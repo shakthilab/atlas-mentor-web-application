@@ -1,0 +1,55 @@
+html {
+  @import "./buttons";
+  @import "./drawer";
+  @import "./form";
+  @import "./card";
+  @import "./typography";
+  @import "./borderColor";
+  @import "./table";
+  @import "./list";
+  @import "./checkbox";
+}
+
+.topbar {
+  background-color: $toolbar;
+}
+
+/* Custom Toast Snackbar Override */
+.cdk-overlay-pane {
+  .mat-mdc-snack-bar-container.toast-snack-container {
+    --mdc-snackbar-container-color: transparent !important;
+    --mdc-snackbar-container-elevation: 0 !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    
+    .mdc-snackbar__surface {
+      background-color: transparent !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+    }
+  }
+
+  /* Custom Dialog Override */
+  .mat-mdc-dialog-container.custom-dialog-container {
+    --mdc-dialog-container-color: #ffffff;
+    --mdc-dialog-container-shape: 16px;
+    
+    .mdc-dialog__surface {
+      border-radius: 16px !important;
+      background-color: #ffffff !important;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+      padding: 0 !important;
+    }
+  }
+}
+
+.dark-theme {
+  .mat-mdc-dialog-container.custom-dialog-container {
+    --mdc-dialog-container-color: #171c24;
+    .mdc-dialog__surface {
+      background-color: #171c24 !important;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+    }
+  }
+}

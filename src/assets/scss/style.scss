@@ -1,0 +1,245 @@
+@use "@angular/material" as mat;
+@include mat.core();
+
+@import "variables";
+@import "layouts/transitions";
+@import "helpers/color";
+@import "helpers/icon-size";
+
+// Light theme
+@import "themecolors/default_theme";
+@include mat.all-component-themes($bluetheme);
+
+// Dark Material theme
+$darkblue-theme: mat.define-dark-theme((
+  color: (
+    primary: $theme-primary,
+    accent: $theme-accent,
+    warn: $theme-warn,
+  ),
+));
+
+.dark-theme {
+  @include mat.all-component-colors($darkblue-theme);
+}
+
+//container layout
+@import "overrides/materialoverrides";
+@import "container";
+@import "layouts/layouts";
+@import "grid/grid";
+@import "helpers/custom-flex";
+@import "helpers/index";
+
+// pages
+@import "pages/dashboards";
+@import "pages/auth";
+
+// ─── Smooth theme transition ───────────────────────────────────────────────
+// Applied briefly via ThemeService during the toggle, then removed
+body.theme-transitioning,
+body.theme-transitioning * {
+  transition:
+    background-color 0.35s cubic-bezier(.4, 0, .2, 1),
+    color 0.35s cubic-bezier(.4, 0, .2, 1),
+    border-color 0.35s cubic-bezier(.4, 0, .2, 1),
+    box-shadow 0.35s cubic-bezier(.4, 0, .2, 1),
+    fill 0.35s cubic-bezier(.4, 0, .2, 1) !important;
+}
+
+// ─── Dark theme overrides ──────────────────────────────────────────────────
+.dark-theme {
+  --dark-background: #{$darkbackground};
+  --dark-sidebarbg: #{$darksidebarbg};
+  --dark-toolbar: #{$darktoolbar};
+  --dark-cardbg: #{$darkcardbg};
+  --dark-borderColor: #{$darkborderColor};
+  --dark-formborderColor: #{$darkformborderColor};
+  --dark-hoverbgcolor: #{$darkhoverbgcolor};
+  --dark-themelightprimary: #{$darkthemelightprimary};
+
+  background-color: $darkbackground;
+  color: #f8fafc;
+
+  .mat-drawer-container,
+  .mat-sidenav-container {
+    background-color: $darkbackground;
+  }
+
+  .sidebarNav {
+    background-color: $darksidebarbg !important;
+    border-right: 1px solid $darkborderColor;
+  }
+
+  .sidebar-list .mdc-list-group__subheader {
+    color: #7c8fac;
+  }
+
+  .topbar {
+    background-color: $darktoolbar !important;
+    border-bottom: 1px solid $darkborderColor;
+  }
+
+  .mat-mdc-card,
+  .mat-card,
+  .cardWithShadow {
+    background-color: $darkcardbg !important;
+    box-shadow: $darkcardshadow !important;
+    border: 1px solid $darkborderColor !important;
+  }
+
+  .page-wrapper {
+    background-color: $darkbackground;
+  }
+
+  .search-bar-container {
+    background-color: $darksidebarbg !important;
+    border-color: $darkborderColor !important;
+
+    &:focus-within {
+      background-color: $darkbackground !important;
+      border-color: $primary !important;
+    }
+
+    .search-input {
+      color: #f8fafc !important;
+      &::placeholder {
+        color: #7c8fac !important;
+      }
+    }
+  }
+
+  .mat-mdc-form-field .mdc-notched-outline__leading,
+  .mat-mdc-form-field .mdc-notched-outline__notch,
+  .mat-mdc-form-field .mdc-notched-outline__trailing {
+    border-color: $darkformborderColor !important;
+  }
+
+  .border-bottom {
+    border-color: $darkborderColor !important;
+  }
+
+  .bg-light-primary { background-color: $darkthemelightprimary !important; }
+  .bg-light-accent  { background-color: $darkthemelightaccent  !important; }
+  .bg-light-warning { background-color: $darkthemelightwarning !important; }
+  .bg-light-error   { background-color: $darkthemelighterror   !important; }
+  .bg-light-success { background-color: $darkthemelightsuccess !important; }
+
+  .text-muted { color: #7c8fac !important; }
+  .text-dark  { color: #e0e0e0 !important; }
+
+  .mat-mdc-menu-panel,
+  .mat-mdc-select-panel,
+  .mat-mdc-autocomplete-panel {
+    background-color: $darkcardbg !important;
+  }
+
+  .mat-divider {
+    border-color: $darkborderColor !important;
+  }
+
+  // Fix hardcoded $textPrimary (#2a3547) on all Material typography classes
+  .mat-subtitle-2,
+  .mat-subtitle-1,
+  .mat-headline-5,
+  .mat-headline-6,
+  .mat-body-1,
+  .mat-body-2,
+  .mat-mdc-card-title,
+  .mat-mdc-card-subtitle,
+  .mat-mdc-card-content,
+  .mdc-list-item__primary-text,
+  .mdc-list-item__secondary-text,
+  .mat-drawer-container,
+  .mat-drawer,
+  .mat-mdc-list-item,
+  .mat-mdc-menu-item,
+  .mat-mdc-option,
+  .mat-mdc-select-value,
+  .mat-mdc-form-field,
+  .mat-mdc-input-element,
+  .mat-mdc-table,
+  .mat-mdc-header-cell,
+  .mat-mdc-cell,
+  .mat-mdc-paginator,
+  .mat-mdc-tab,
+  h1, h2, h3, h4, h5, h6, p, span, label, td, th {
+    color: #f8fafc !important;
+  }
+
+  // Placeholder text in inputs
+  input::placeholder,
+  textarea::placeholder {
+    color: #7c8fac !important;
+  }
+
+  // Form field label
+  .mdc-floating-label,
+  .mat-mdc-floating-label {
+    color: #7c8fac !important;
+  }
+
+  // Table rows
+  .mat-mdc-row,
+  .mat-mdc-header-row {
+    background-color: $darkcardbg;
+  }
+
+  // Toolbar text
+  .topbar,
+  .topbar * {
+    color: #e2e8f0;
+  }
+
+  // Icon colors
+  .mat-icon,
+  i-tabler {
+    color: #e2e8f0;
+  }
+
+  // Sidebar nav icons — hardcoded $textPrimary on .mdc-list-item__start
+  .mdc-list-item__start,
+  .mat-mdc-list-item-icon,
+  .routeIcon {
+    color: #a9b8d4 !important;
+  }
+
+  // Active menu item keeps white
+  .menu-list-item.activeMenu .mdc-list-item__primary-text,
+  .menu-list-item.activeMenu .mat-mdc-list-item-icon,
+  .menu-list-item.activeMenu .mdc-list-item__start,
+  .menu-list-item.activeMenu .routeIcon {
+    color: #ffffff !important;
+  }
+
+  // Dark-theme mobile footer overrides
+  .mobile-footer-nav {
+    background-color: $darksidebarbg !important;
+    border-top: 1px solid $darkborderColor !important;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+  }
+  .footer-nav-item {
+    color: #a9b8d4 !important;
+    &.active {
+      color: $primary !important;
+      .footer-icon {
+        color: $primary !important;
+      }
+    }
+    &:hover {
+      color: $primary !important;
+    }
+  }
+}
+
+// ─── Theme toggle icon animation ──────────────────────────────────────────
+.theme-toggle-icon {
+  display: flex;
+  transition: transform 0.45s cubic-bezier(.34, 1.56, .64, 1), opacity 0.25s ease;
+
+  &.spinning {
+    transform: rotate(180deg);
+    opacity: 0.4;
+  }
+}
+

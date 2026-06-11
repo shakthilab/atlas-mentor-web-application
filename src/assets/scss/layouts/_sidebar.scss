@@ -1,0 +1,306 @@
+.sidebarNav {
+  width: $sidenav-desktop !important;
+  flex-shrink: 0;
+  transition: swift-ease-out(width);
+  position: absolute;
+  overflow-x: hidden;
+}
+
+.sidebar-header {
+  padding-right: 16px;
+  .branding {
+    padding: 20px 0 20px 24px;
+    display: flex;
+    align-items: center;
+
+    .brand-logo-image {
+      max-height: 40px;
+      width: auto;
+      transition: all 0.2s ease-in-out;
+    }
+
+    .brand-logo-text-mini {
+      display: none !important;
+    }
+  }
+}
+
+.mobile-close-btn {
+  display: none !important;
+  @media (max-width: 768px) {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    color: $textPrimary;
+  }
+}
+
+.sidebar-list {
+  &.mdc-list {
+    padding: 0 24px;
+
+    .mdc-list-group__subheader {
+      margin: 12px 0;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-top: 24px;
+    }
+
+    .menu-list-item {
+      border-radius: 7px;
+      height: 45px;
+      padding: 8px 10px !important;
+      margin-bottom: 2px;
+      &.twoline {
+        height: 60px;
+        align-items: center;
+      }
+      &:before,
+      &:focus {
+        z-index: -1;
+      }
+
+      &.activeMenu {
+        .mdc-list-item__primary-text {
+          color: $white !important;
+        }
+
+        .mat-mdc-list-item-icon {
+          color: $white !important;
+        }
+      }
+
+      .mdc-list-item__start {
+        margin-right: 14px;
+        margin-left: 0 !important;
+        width: 20px;
+        height: 20px;
+        fill: transparent !important;
+        color: $textPrimary;
+        display: flex;
+      }
+
+      .mdc-list-item__primary-text {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+    }
+  }
+}
+
+.flex-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+
+.side-img {
+  margin-top: -60px;
+}
+
+// Transitions for layouts
+.sidebarNav {
+  transition: swift-ease-out(width) !important;
+}
+
+.contentWrapper {
+  transition: swift-ease-out(margin-left) !important;
+}
+
+@media (min-width: 769px) {
+  .mainWrapper:not(.mini-sidebar) {
+    .sidebarNav {
+      width: $sidenav-desktop !important;
+    }
+    .contentWrapper {
+      margin-left: $sidenav-desktop !important;
+    }
+  }
+}
+
+// Mini Sidebar Modifiers
+.mini-sidebar {
+  .sidebarNav {
+    width: 80px !important;
+  }
+
+  .contentWrapper {
+    margin-left: 80px !important;
+  }
+
+  .branding {
+    padding: 20px 0 20px 21px !important;
+    display: flex !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    width: 100% !important;
+    overflow: hidden !important;
+
+    .brand-logo-image {
+      display: none !important;
+    }
+
+    .brand-logo-text-mini {
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 700;
+      color: $primary;
+      letter-spacing: 0.5px;
+      width: 38px;
+      height: 38px;
+      background-color: rgba($primary, 0.1);
+      border-radius: 50%;
+      margin-left: 2px;
+    }
+  }
+
+  .sidebar-header {
+    justify-content: flex-start !important;
+    padding-right: 0 !important;
+    width: 100% !important;
+    overflow: hidden !important;
+  }
+
+  .sidebar-list {
+    padding: 0 !important;
+  }
+
+  .hide-menu {
+    display: none !important;
+  }
+
+  .nav-caption {
+    display: none !important;
+  }
+
+  // Hide the rocket promotion card
+  .flex-layout > .p-24 {
+    display: none !important;
+  }
+
+  // Center icons in nav items
+  .menu-list-item {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 8px 0 !important;
+    margin: 4px 12px !important;
+    border-radius: 8px !important;
+    width: 56px !important;
+
+    .mdc-list-item__content {
+      display: none !important;
+    }
+
+    .mdc-list-item__start {
+      margin-right: 0 !important;
+      margin-left: 0 !important;
+      display: flex !important;
+      justify-content: center !important;
+      align-items: center !important;
+      width: 24px !important;
+      height: 24px !important;
+
+      i-tabler, svg {
+        width: 24px !important;
+        height: 24px !important;
+      }
+    }
+  }
+}
+
+// Mobile controls inside sidebar
+.d-show-mobile-block {
+  display: none !important;
+  @media (max-width: 768px) {
+    display: block !important;
+  }
+}
+
+.mobile-sidebar-controls {
+  margin-top: 10px;
+  margin-bottom: 10px;
+
+  .sidebar-search-container {
+    display: flex;
+    align-items: center;
+    background-color: $hoverBgColor;
+    border-radius: 8px;
+    padding: 0 12px;
+    height: 38px;
+    border: 1px solid $borderColor;
+    transition: all 0.2s ease-in-out;
+
+    &:focus-within {
+      border-color: $primary;
+      background-color: white;
+      box-shadow: 0 0 0 3px rgba($primary, 0.1);
+    }
+
+    .search-icon {
+      color: $gray-100;
+      margin-right: 8px;
+      display: flex;
+      align-items: center;
+    }
+
+    .sidebar-search-input {
+      border: none;
+      background: transparent;
+      outline: none;
+      width: 100%;
+      font-size: 13px;
+      color: $textPrimary;
+
+      &::placeholder {
+        color: $gray-100;
+        opacity: 0.8;
+      }
+    }
+  }
+
+  .mobile-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 38px;
+    border-radius: 8px;
+    border: 1px solid $borderColor;
+    background-color: transparent;
+    color: $textPrimary;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    padding: 0 10px;
+
+    i-tabler {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      color: $gray-100;
+      transition: color 0.2s ease;
+    }
+
+    span {
+      white-space: nowrap;
+    }
+
+    &:hover {
+      background-color: $hoverBgColor;
+      border-color: $primary;
+      color: $primary !important;
+      
+      i-tabler {
+        color: $primary !important;
+      }
+    }
+  }
+}

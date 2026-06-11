@@ -1,0 +1,59 @@
+<mat-card class="cardWithShadow theme-card">
+  <mat-card-header>
+    <mat-card-title class="m-b-0">{{ 'badge.title' | translate }}</mat-card-title>
+  </mat-card-header>
+  <mat-card-content class="b-t-1">
+
+    <mat-card class="b-1 shadow-none">
+      <mat-card-content>
+        <p>
+          <span matBadge="4" matBadgeOverlap="false" class="f-w-500 text-muted">
+            {{ 'badge.textBadge' | translate }}
+          </span>
+        </p>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="b-1 shadow-none">
+      <mat-card-content>
+        <p>
+          <span matBadge="4" matBadgeOverlap="false" matBadgeSize="large" class="f-w-500 text-muted">
+            {{ 'badge.textLargeBadge' | translate }}
+          </span>
+        </p>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="b-1 shadow-none">
+      <mat-card-content>
+        <p class="f-w-500 text-muted">
+          {{ 'badge.buttonBadgeLeft' | translate }}
+          <button mat-flat-button color="primary" matBadge="8" matBadgePosition="before" matBadgeColor="accent">
+            {{ 'badge.action' | translate }}
+          </button>
+        </p>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="b-1 shadow-none">
+      <mat-card-content>
+        <p class="f-w-500 text-muted">
+          {{ 'badge.iconBadge' | translate }}
+          <mat-icon matBadge="15" matBadgeColor="warn">home</mat-icon>
+        </p>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="b-1 shadow-none">
+      <mat-card-content>
+        <p>
+          {{ 'badge.buttonToggle' | translate }}
+          <button mat-flat-button color="primary" matBadge="7" [matBadgeHidden]="hidden" (click)="toggleBadgeVisibility()">
+            {{ 'badge.hide' | translate }}
+          </button>
+        </p>
+      </mat-card-content>
+    </mat-card>
+
+  </mat-card-content>
+</mat-card>

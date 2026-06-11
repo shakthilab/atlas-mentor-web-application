@@ -1,0 +1,57 @@
+<mat-sidenav-container
+  class="mainWrapper blue_theme light-theme"
+  [class.mini-sidebar]="isSidebarMini && !isOver"
+  autosize
+  autoFocus
+  dir="ltr"
+>
+  <!-- ============================================================== -->
+  <!-- Vertical Sidebar -->
+  <!-- ============================================================== -->
+
+  <mat-sidenav
+    #leftsidenav
+    [mode]="isOver ? 'over' : 'side'"
+    [opened]="!isOver"
+    (openedChange)="onSidenavOpenedChange($event)"
+    (closedStart)="onSidenavClosedStart()"
+    class="sidebarNav"
+  >
+    <app-sidebar (closeSidebar)="leftsidenav.close()"></app-sidebar>
+  </mat-sidenav>
+  <!-- ============================================================== -->
+  <!-- Main Content -->
+  <!-- ============================================================== -->
+  <mat-sidenav-content class="contentWrapper">
+    <!-- ============================================================== -->
+    <!-- VerticalHeader -->
+    <!-- ============================================================== -->
+
+    <app-header
+      [showToggle]="!isOver"
+      (toggleCollapsed)="toggleCollapsed()"
+      (toggleMobileNav)="handleSidebarToggle()"
+    ></app-header>
+
+    <main class="pageWrapper">
+      <!-- ============================================================== -->
+      <!-- Outlet -->
+      <!-- ============================================================== -->
+      <router-outlet></router-outlet>
+    </main>
+
+    <!-- Mobile Bottom Navigation Footer Bar -->
+    <div class="mobile-footer-nav d-show-mobile-flex">
+      <a
+        *ngFor="let item of footerNavItems"
+        [routerLink]="item.route"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="footer-nav-item"
+      >
+        <i-tabler [name]="item.iconName || 'circle'" class="footer-icon"></i-tabler>
+        <span class="footer-label">{{ item.displayName | translate }}</span>
+      </a>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

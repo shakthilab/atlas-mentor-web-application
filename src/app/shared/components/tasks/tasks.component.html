@@ -1,0 +1,1060 @@
+<div class="workspace-container">
+  <!-- Top Toolbar -->
+  <mat-card class="toolbar-card cardWithShadow">
+    <mat-card-content class="p-12">
+      <div class="toolbar-layout">
+        <!-- Left Side: Search + Filters -->
+        <div class="toolbar-left">
+          <!-- Search -->
+          <div class="search-box">
+            <i-tabler name="search" class="icon-16 search-icon"></i-tabler>
+            <input [(ngModel)]="searchText" (input)="applyFiltersAndSort()" placeholder="Search tasks..."
+              class="search-input" />
+          </div>
+
+          <!-- Filters horizontal scroll wrapper -->
+          <div class="filters-scroll-wrapper">
+            <div class="filters-group">
+              <!-- Status Filter -->
+              <button mat-stroked-button [matMenuTriggerFor]="statusMenu" class="filter-pill">
+                <i-tabler name="circle-dot" class="icon-14 m-r-6"></i-tabler>
+                <span class="f-s-13">Status: <span class="filter-value">{{ filterStatus === 'All' ? 'All' : filterStatus
+                    }}</span></span>
+                <i-tabler name="chevron-down" class="icon-12 m-l-6"></i-tabler>
+              </button>
+              <mat-menu #statusMenu="matMenu" class="cardWithShadow">
+                <button mat-menu-item (click)="filterStatus = 'All'; applyFiltersAndSort()">All Statuses</button>
+                <button mat-menu-item *ngFor="let s of statuses"
+                  (click)="filterStatus = s.label; applyFiltersAndSort()">{{ s.label }}</button>
+              </mat-menu>
+
+              <!-- Priority Filter -->
+              <button mat-stroked-button [matMenuTriggerFor]="priorityMenu" class="filter-pill">
+                <i-tabler name="alert-circle" class="icon-14 m-r-6"></i-tabler>
+                <span class="f-s-13">Priority: <span class="filter-value">{{ filterPriority === 'All' ? 'All' :
+                    filterPriority }}</span></span>
+                <i-tabler name="chevron-down" class="icon-12 m-l-6"></i-tabler>
+              </button>
+              <mat-menu #priorityMenu="matMenu" class="cardWithShadow">
+                <button mat-menu-item (click)="filterPriority = 'All'; applyFiltersAndSort()">All Priorities</button>
+                <button mat-menu-item *ngFor="let p of priorities"
+                  (click)="filterPriority = p.label; applyFiltersAndSort()">{{ p.label }}</button>
+              </mat-menu>
+
+              <!-- Due Date Filter -->
+              <div style="position: relative;">
+                <button mat-stroked-button [matMenuTriggerFor]="dateMenu" class="filter-pill">
+                  <i-tabler name="calendar" class="icon-14 m-r-6"></i-tabler>
+                  <span class="f-s-13">Due: <span class="filter-value">{{ getDueDateLabel() }}</span></span>
+                  <i-tabler name="chevron-down" class="icon-12 m-l-6"></i-tabler>
+                </button>
+                <mat-menu #dateMenu="matMenu" class="cardWithShadow">
+                  <button mat-menu-item (click)="filterDueDate = ''; applyFiltersAndSort()">All Dates</button>
+                  <button mat-menu-item (click)="filterDueDate = 'Overdue'; applyFiltersAndSort()">Overdue</button>
+                  <button mat-menu-item (click)="filterDueDate = 'Today'; applyFiltersAndSort()">Due Today</button>
+                  <button mat-menu-item (click)="filterDueDate = 'Week'; applyFiltersAndSort()">Due this Week</button>
+                  <mat-divider></mat-divider>
+                  <button mat-menu-item (click)="dueDatePicker.open()">Custom Range...</button>
+                </mat-menu>
+                <div
+                  style="position: absolute; top: 36px; left: 0; width: 1px; height: 1px; overflow: hidden; opacity: 0;">
+                  <mat-date-range-input [rangePicker]="dueDatePicker">
+                    <input matStartDate [(ngModel)]="customDueDateStart" (dateChange)="onCustomDueDateChange()">
+                    <input matEndDate [(ngModel)]="customDueDateEnd" (dateChange)="onCustomDueDateChange()">
+                  </mat-date-range-input>
+                  <mat-date-range-picker #dueDatePicker></mat-date-range-picker>
+                </div>
+              </div>
+
+              <!-- Create Date Filter -->
+              <div style="position: relative;">
+                <button mat-stroked-button [matMenuTriggerFor]="createDateMenu" class="filter-pill">
+                  <i-tabler name="calendar-event" class="icon-14 m-r-6"></i-tabler>
+                  <span class="f-s-13">Created: <span class="filter-value">{{ getCreateDateLabel() }}</span></span>
+                  <i-tabler name="chevron-down" class="icon-12 m-l-6"></i-tabler>
+                </button>
+                <mat-menu #createDateMenu="matMenu" class="cardWithShadow">
+                  <button mat-menu-item (click)="filterCreateDate = ''; applyFiltersAndSort()">All Dates</button>
+                  <button mat-menu-item (click)="filterCreateDate = 'Today'; applyFiltersAndSort()">Created
+                    Today</button>
+                  <button mat-menu-item (click)="filterCreateDate = 'Week'; applyFiltersAndSort()">Created Last 7
+                    Days</button>
+                  <mat-divider></mat-divider>
+                  <button mat-menu-item (click)="createDatePicker.open()">Custom Range...</button>
+                </mat-menu>
+                <div
+                  style="position: absolute; top: 36px; left: 0; width: 1px; height: 1px; overflow: hidden; opacity: 0;">
+                  <mat-date-range-input [rangePicker]="createDatePicker">
+                    <input matStartDate [(ngModel)]="customCreateDateStart" (dateChange)="onCustomCreateDateChange()">
+                    <input matEndDate [(ngModel)]="customCreateDateEnd" (dateChange)="onCustomCreateDateChange()">
+                  </mat-date-range-input>
+                  <mat-date-range-picker #createDatePicker></mat-date-range-picker>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Side: View Controls & Action buttons -->
+        <div class="actions-group">
+          <!-- Column visibility options dropdown (List View Only) -->
+          <button class="action-icon-btn border-none" matRipple [matMenuTriggerFor]="colMenu"
+            *ngIf="viewMode === 'list'" matTooltip="Manage Columns">
+            <i-tabler name="settings" class="icon-18"></i-tabler>
+          </button>
+          <mat-menu #colMenu="matMenu" class="cardWithShadow p-8">
+            <h6 class="m-b-8 f-w-600 f-s-13 p-x-8">Visible Columns</h6>
+            <mat-checkbox class="d-block m-b-4" [(ngModel)]="visibleColumns.status">Status</mat-checkbox>
+            <mat-checkbox class="d-block m-b-4" [(ngModel)]="visibleColumns.priority">Priority</mat-checkbox>
+            <mat-checkbox class="d-block m-b-4" [(ngModel)]="visibleColumns.assignee">Assignee</mat-checkbox>
+            <mat-checkbox class="d-block m-b-4" [(ngModel)]="visibleColumns.dueDate">Due Date</mat-checkbox>
+            <mat-checkbox class="d-block m-b-4" [(ngModel)]="visibleColumns.createdBy">Created By</mat-checkbox>
+            <mat-checkbox class="d-block m-b-4" [(ngModel)]="visibleColumns.lastUpdated">Last Updated</mat-checkbox>
+          </mat-menu>
+
+          <button class="action-icon-btn border-none" matRipple (click)="loadTasks(true)" matTooltip="Refresh Board">
+            <i-tabler name="refresh" class="icon-18"></i-tabler>
+          </button>
+
+          <!-- View Toggle -->
+          <mat-button-toggle-group [(ngModel)]="viewMode" aria-label="View Mode" class="view-toggle-group"
+            [hideSingleSelectionIndicator]="true">
+            <mat-button-toggle value="list" matTooltip="List View">
+              <i-tabler name="list" class="icon-18"></i-tabler>
+            </mat-button-toggle>
+            <mat-button-toggle value="kanban" matTooltip="Kanban View">
+              <i-tabler name="layout-grid" class="icon-18"></i-tabler>
+            </mat-button-toggle>
+          </mat-button-toggle-group>
+
+          <!-- Create Button -->
+          <button mat-flat-button color="primary" (click)="openCreateTaskDialog()" class="create-task-btn desktop-only">
+            <span class="d-flex align-items-center justify-content-center">
+              <i-tabler name="plus" class="icon-18 m-r-4"></i-tabler>
+              Create Task
+            </span>
+          </button>
+
+          <button mat-stroked-button (click)="openCreateBundleDialog()" class="create-task-btn desktop-only">
+            <span class="d-flex align-items-center justify-content-center">
+              <i-tabler name="package" class="icon-18 m-r-4"></i-tabler>
+              Create Bundle
+            </span>
+          </button>
+
+          <button mat-stroked-button (click)="openManageBundlesDialog()" class="create-task-btn desktop-only">
+            <span class="d-flex align-items-center justify-content-center">
+              <i-tabler name="packages" class="icon-18 m-r-4"></i-tabler>
+              Manage Bundles
+            </span>
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Workspace Content Areas -->
+  <div class="workspace-content" [class.blur-content]="isLoading">
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" *ngIf="isLoading">
+      <mat-spinner diameter="50"></mat-spinner>
+    </div>
+
+    <!-- 1. LIST VIEW -->
+    <div class="list-view-container" *ngIf="viewMode === 'list'">
+      <!-- Standard Table -->
+      <mat-card class="cardWithShadow p-0 overflow-hidden">
+        <div class="table-responsive">
+          <table mat-table [dataSource]="dataSource" class="w-100">
+            <!-- Checkbox Column -->
+            <ng-container matColumnDef="select">
+              <th mat-header-cell *matHeaderCellDef width="48px">
+                <mat-checkbox (change)="toggleSelectAll()" [checked]="isAllSelected()"
+                  [indeterminate]="isSomeSelected()"></mat-checkbox>
+              </th>
+              <td mat-cell *matCellDef="let element">
+                <mat-checkbox (click)="$event.stopPropagation()" (change)="toggleSelectTask(element.id)"
+                  [checked]="selectedTaskIds.includes(element.id)"></mat-checkbox>
+              </td>
+            </ng-container>
+
+            <!-- Task Title Column -->
+            <ng-container matColumnDef="title">
+              <th mat-header-cell *matHeaderCellDef (click)="toggleSort('title')"
+                class="sortable-header f-w-600 f-s-14">
+                Task Name
+                <i-tabler *ngIf="sortBy === 'title'" [name]="sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'"
+                  class="icon-12 m-l-4"></i-tabler>
+              </th>
+              <td mat-cell *matCellDef="let element">
+                <div class="task-title-cell">
+                  <div class="f-w-600 text-dark f-s-14 m-t-4">{{ element.title }}</div>
+                  <div class="text-muted f-s-12 text-truncate description-snippet">{{ element.description }}</div>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Status Column -->
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Status</th>
+              <td mat-cell *matCellDef="let element">
+                <span class="status-badge" [ngClass]="element.status.toLowerCase().replace(' ', '-')">
+                  {{ element.status }}
+                </span>
+              </td>
+            </ng-container>
+
+            <!-- Priority Column -->
+            <ng-container matColumnDef="priority">
+              <th mat-header-cell *matHeaderCellDef (click)="toggleSort('priority')"
+                class="sortable-header f-w-600 f-s-14">
+                Priority
+                <i-tabler *ngIf="sortBy === 'priority'" [name]="sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'"
+                  class="icon-12 m-l-4"></i-tabler>
+              </th>
+              <td mat-cell *matCellDef="let element">
+                <span class="priority-badge" [ngClass]="element.priority.toLowerCase()">
+                  {{ element.priority }}
+                </span>
+              </td>
+            </ng-container>
+
+            <!-- Assignee Column -->
+            <ng-container matColumnDef="assignee">
+              <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Assignee</th>
+              <td mat-cell *matCellDef="let element">
+                <div class="d-flex align-items-center">
+                  <img [src]="element.assignee.avatar" class="rounded-circle m-r-8 object-cover" width="28"
+                    height="28" />
+                  <span class="f-w-500 text-dark f-s-13">{{ element.assignee.name }}</span>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Due Date Column -->
+            <ng-container matColumnDef="dueDate">
+              <th mat-header-cell *matHeaderCellDef (click)="toggleSort('dueDate')"
+                class="sortable-header f-w-600 f-s-14">
+                Due Date
+                <i-tabler *ngIf="sortBy === 'dueDate'" [name]="sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'"
+                  class="icon-12 m-l-4"></i-tabler>
+              </th>
+              <td mat-cell *matCellDef="let element" class="f-s-13 text-dark">
+                {{ element.dueDate | date:'mediumDate' }}
+              </td>
+            </ng-container>
+
+
+            <!-- Created By Column -->
+            <ng-container matColumnDef="createdBy">
+              <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Created By</th>
+              <td mat-cell *matCellDef="let element" class="f-s-13 text-muted">
+                {{ element.createdBy }}
+              </td>
+            </ng-container>
+
+            <!-- Last Updated Column -->
+            <ng-container matColumnDef="lastUpdated">
+              <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Last Updated</th>
+              <td mat-cell *matCellDef="let element" class="f-s-13 text-muted">
+                {{ element.lastUpdated | date:'shortTime' }}
+              </td>
+            </ng-container>
+
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef class="text-center f-w-600 f-s-14" width="80px">Actions</th>
+              <td mat-cell *matCellDef="let element" class="text-center">
+                <button mat-icon-button (click)="$event.stopPropagation(); openEditDrawer(element)" class="text-muted">
+                  <i-tabler name="edit" class="icon-16"></i-tabler>
+                </button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;" (click)="openEditDrawer(row)"
+              class="task-row cursor-pointer"></tr>
+          </table>
+        </div>
+        <mat-paginator [pageSizeOptions]="[5, 10, 20]" [pageSize]="10" showFirstLastButtons
+          class="p-y-12"></mat-paginator>
+      </mat-card>
+    </div>
+
+    <!-- 2. KANBAN BOARD VIEW -->
+    <div class="kanban-view-container" *ngIf="viewMode === 'kanban'" cdkDropListGroup>
+
+      <!-- Dynamic Columns — one per backend status -->
+      <div class="kanban-board-layout">
+
+        <div class="kanban-column" *ngFor="let status of statuses">
+          <!-- Column Header -->
+          <div class="kanban-column-header" [ngClass]="getKanbanColumnClass(status.label)">
+            <div class="d-flex align-items-center gap-8">
+              <i-tabler [name]="getKanbanColumnIcon(status.label)" class="icon-16"></i-tabler>
+              <span class="column-name f-w-700">{{ status.label }}</span>
+            </div>
+            <span class="column-count">{{ (kanbanColumns[status.label] || []).length }}</span>
+          </div>
+
+          <!-- Cards Drop Zone -->
+          <div [id]="status.label"
+               cdkDropList
+               [cdkDropListData]="kanbanColumns[status.label] || []"
+               (cdkDropListDropped)="onCardDropped($event)"
+               class="kanban-cards-list">
+
+            <div class="kanban-card cardWithShadow cursor-pointer"
+                 *ngFor="let task of kanbanColumns[status.label] || []"
+                 cdkDrag
+                 (click)="openEditDrawer(task)">
+
+              <div class="card-tag-wrapper">
+                <span class="priority-badge" [ngClass]="task.priority.toLowerCase()">{{ task.priority }}</span>
+              </div>
+              <h6 class="task-card-title f-w-600 m-t-8"
+                  [class.text-decoration-line-through]="status.label === 'Completed'">{{ task.title }}</h6>
+              <p class="task-card-desc text-muted m-b-12 text-truncate-2">{{ task.description }}</p>
+
+              <div class="card-footer-layout">
+                <div class="due-date-indicator"
+                     [class.text-success]="status.label === 'Completed'"
+                     [class.text-danger]="status.label === 'Blocked' || status.label === 'Rejected' || status.label === 'Overdue'"
+                     [class.overdue]="task.dueDate && task.dueDate < todayStr && status.label !== 'Completed'">
+                  <ng-container *ngIf="status.label === 'Completed'">
+                    <i-tabler name="circle-check" class="icon-14 m-r-4"></i-tabler>
+                    <span>Completed</span>
+                  </ng-container>
+                  <ng-container *ngIf="status.label !== 'Completed'">
+                    <i-tabler name="calendar" class="icon-14 m-r-4"></i-tabler>
+                    <span>{{ task.dueDate ? (task.dueDate | date:'MMM d') : 'No date' }}</span>
+                  </ng-container>
+                </div>
+                <img [src]="task.assignee.avatar" [matTooltip]="task.assignee.name"
+                     class="rounded-circle assignee-avatar" />
+              </div>
+            </div>
+
+            <!-- Empty state -->
+            <div class="kanban-empty-state" *ngIf="(kanbanColumns[status.label] || []).length === 0">
+              <i-tabler name="inbox" class="icon-24 text-muted"></i-tabler>
+              <span class="text-muted f-s-12">No tasks</span>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOATING BULK ACTIONS BAR -->
+  <div class="bulk-actions-floating-bar cardWithShadow" *ngIf="selectedTaskIds.length > 0">
+    <div class="d-flex align-items-center justify-content-between p-x-24 p-y-16 flex-wrap gap-12">
+      <span class="f-w-700 f-s-14 text-white">
+        {{ selectedTaskIds.length }} task(s) selected
+      </span>
+
+      <div class="d-flex align-items-center gap-12 flex-wrap">
+        <!-- Change Status -->
+        <button mat-flat-button color="accent" [matMenuTriggerFor]="bulkStatusMenu">
+          Change Status
+          <i-tabler name="chevron-down" class="icon-14 m-l-4"></i-tabler>
+        </button>
+        <mat-menu #bulkStatusMenu="matMenu" class="cardWithShadow">
+          <button mat-menu-item *ngFor="let s of statuses" (click)="bulkUpdateStatus(s.label)">{{ s.label }}</button>
+        </mat-menu>
+
+        <!-- Change Priority -->
+        <button mat-flat-button color="accent" [matMenuTriggerFor]="bulkPriorityMenu">
+          Change Priority
+          <i-tabler name="chevron-down" class="icon-14 m-l-4"></i-tabler>
+        </button>
+        <mat-menu #bulkPriorityMenu="matMenu" class="cardWithShadow">
+          <button mat-menu-item *ngFor="let p of priorities" (click)="bulkUpdatePriority(p.label)">{{ p.label
+            }}</button>
+        </mat-menu>
+
+        <!-- Reassign -->
+        <button mat-flat-button color="accent" [matMenuTriggerFor]="bulkAssigneeMenu">
+          Assign User
+          <i-tabler name="chevron-down" class="icon-14 m-l-4"></i-tabler>
+        </button>
+        <mat-menu #bulkAssigneeMenu="matMenu" class="cardWithShadow">
+          <button mat-menu-item *ngFor="let m of members" (click)="bulkUpdateAssignee(m)">{{ m.name }}</button>
+        </mat-menu>
+
+        <mat-divider [vertical]="true" style="height: 32px; background: rgba(255,255,255,0.2);"></mat-divider>
+
+        <!-- Delete Selected -->
+        <button mat-flat-button color="warn" (click)="bulkDelete()">
+          <i-tabler name="trash" class="icon-16 m-r-4"></i-tabler>
+          Delete
+        </button>
+
+        <button mat-button class="text-white" (click)="selectedTaskIds = []">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DETAILS DRAWER (SLIDE-IN SIDE PANEL / FULL SCREEN MOBILE) -->
+  <div class="task-drawer-backdrop" *ngIf="isDrawerOpen" (click)="closeDrawer()"></div>
+
+  <div class="task-drawer redesigned-drawer" [class.open]="isDrawerOpen" [class.mobile-full]="isMobile">
+    <!-- Header -->
+    <div class="drawer-header p-x-24 p-y-20 d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center gap-12">
+        <i-tabler name="file-text" class="icon-20 text-muted"></i-tabler>
+        <span class="f-w-600 f-s-12 text-muted" style="letter-spacing: 0.5px; text-transform: uppercase;">TASK - {{
+          editingTask?.id || drawerTaskData.id || 736 }}</span>
+      </div>
+      <button mat-icon-button (click)="closeDrawer()" class="text-muted">
+        <i-tabler name="x" class="icon-20"></i-tabler>
+      </button>
+    </div>
+
+    <!-- Body Content -->
+    <div class="drawer-body p-x-32 p-y-24" *ngIf="isDrawerOpen">
+      <!-- Title field -->
+      <h2 class="drawer-task-title m-b-8" style="font-size: 20px; font-weight: 700; color: #0f172a; line-height: 1.3;">
+        {{ drawerTaskData.title || 'Untitled Task' }}</h2>
+      <div class="drawer-task-subtitle m-b-32 text-muted f-s-13">
+        Created on {{ (drawerTaskData.createdDate | date:'MMM d, y') || 'Today' }} by {{ drawerTaskData.createdBy ||
+        'Unknown' }}
+      </div>
+
+      <!-- 2x2 Grid Info -->
+      <div class="task-info-grid m-b-32" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+        <div class="info-cell">
+          <label class="info-label text-muted f-s-11 f-w-700 d-flex align-items-center gap-6"
+            style="letter-spacing: 0.5px; margin-bottom: 8px;">
+            <i-tabler name="user" class="icon-14 text-muted" style="width: 14px; height: 14px;"></i-tabler>
+            ASSIGNEE
+          </label>
+          <div class="d-flex align-items-center gap-8">
+            <div
+              class="assignee-avatar-icon text-white d-flex align-items-center justify-content-center f-w-600 f-s-11 rounded-circle"
+              [ngStyle]="{'background-color': '#10b981'}" style="width: 24px; height: 24px; flex-shrink: 0;"
+              *ngIf="!drawerTaskData.assignee?.avatar || drawerTaskData.assignee?.avatar?.includes('user-')">
+              {{ getInitials(drawerTaskData.assignee?.name) }}
+            </div>
+            <img [src]="drawerTaskData.assignee?.avatar" class="rounded-circle object-cover" width="24" height="24"
+              *ngIf="drawerTaskData.assignee?.avatar && !drawerTaskData.assignee?.avatar?.includes('user-')" />
+            <span class="f-w-600 f-s-13 text-dark">{{ drawerTaskData.assignee?.name || 'Unassigned' }}</span>
+          </div>
+        </div>
+
+        <div class="info-cell">
+          <label class="info-label text-muted f-s-11 f-w-700 d-flex align-items-center gap-6"
+            style="letter-spacing: 0.5px; margin-bottom: 8px;">
+            <i-tabler name="calendar" class="icon-14 text-muted" style="width: 14px; height: 14px;"></i-tabler>
+            DUE DATE
+          </label>
+          <div class="d-flex align-items-center">
+            <span class="f-w-600 f-s-13 text-dark">{{ (drawerTaskData.dueDate | date:'MMM d, y') || 'No Due Date'
+              }}</span>
+          </div>
+        </div>
+
+        <div class="info-cell">
+          <label class="info-label text-muted f-s-11 f-w-700 d-flex align-items-center gap-6"
+            style="letter-spacing: 0.5px; margin-bottom: 8px;">
+            <i-tabler name="flag" class="icon-14 text-muted" style="width: 14px; height: 14px;"></i-tabler>
+            PRIORITY
+          </label>
+          <div>
+            <button class="priority-dropdown-btn" [ngClass]="drawerTaskData.priority?.toLowerCase()"
+              [matMenuTriggerFor]="drawerPriorityMenu">
+              <i-tabler [name]="getPriorityIcon(drawerTaskData.priority || '')" class="icon-14 m-r-4"></i-tabler>
+              {{ drawerTaskData.priority || 'NONE' | uppercase }}
+              <i-tabler name="chevron-down" class="icon-12 m-l-4"></i-tabler>
+            </button>
+            <mat-menu #drawerPriorityMenu="matMenu" class="cardWithShadow">
+              <button mat-menu-item *ngFor="let p of priorities" (click)="updateDrawerPriority(p.label)">
+                <div class="d-flex align-items-center">
+                  <i-tabler [name]="getPriorityIcon(p.label)" [class]="getPriorityColorClass(p.label)"
+                    class="icon-16 m-r-8"></i-tabler>
+                  <span>{{ p.label }}</span>
+                </div>
+              </button>
+            </mat-menu>
+          </div>
+        </div>
+
+        <div class="info-cell">
+          <label class="info-label text-muted f-s-11 f-w-700 d-flex align-items-center gap-6"
+            style="letter-spacing: 0.5px; margin-bottom: 8px;">
+            <i-tabler name="circle" class="icon-14 text-muted" style="width: 14px; height: 14px;"></i-tabler>
+            STATUS
+          </label>
+          <div>
+            <button class="status-dropdown-btn" [ngClass]="drawerTaskData.status?.toLowerCase()?.replace(' ', '-')"
+              [matMenuTriggerFor]="drawerStatusMenu">
+              <i-tabler [name]="getStatusIcon(drawerTaskData.status || '')" class="icon-14 m-r-4"></i-tabler>
+              {{ drawerTaskData.status || 'To Do' }}
+              <i-tabler name="chevron-down" class="icon-12 m-l-4"></i-tabler>
+            </button>
+            <mat-menu #drawerStatusMenu="matMenu" class="cardWithShadow">
+              <button mat-menu-item *ngFor="let s of statuses" (click)="updateDrawerStatus(s.label)">
+                <div class="d-flex align-items-center">
+                  <i-tabler [name]="getStatusIcon(s.label)" [class]="getStatusColorClass(s.label)"
+                    class="icon-16 m-r-8"></i-tabler>
+                  <span>{{ s.label }}</span>
+                </div>
+              </button>
+            </mat-menu>
+          </div>
+        </div>
+      </div>
+
+      <!-- Description Section -->
+      <div class="description-section m-b-32">
+        <label class="info-label text-muted f-s-11 f-w-700 m-b-12 d-block"
+          style="letter-spacing: 0.5px;">DESCRIPTION</label>
+        <div class="description-box" [class.empty-description]="!drawerTaskData.description"
+          style="background-color: #f8fafc; border-radius: 8px; padding: 20px; font-size: 13px; color: #64748b; font-style: italic;"
+          *ngIf="!drawerTaskData.description">
+          No description provided.
+        </div>
+        <div class="description-box" *ngIf="drawerTaskData.description"
+          style="font-size: 13px; color: #1e293b; line-height: 1.6;">
+          {{ drawerTaskData.description }}
+        </div>
+      </div>
+
+      <!-- Tabs Section -->
+      <div class="custom-tabs-header m-b-24 d-flex gap-24 border-bottom" style="border-bottom: 1px solid #e2e8f0;">
+        <button class="custom-tab-btn" [class.active]="activeTab === 'comments'" (click)="activeTab = 'comments'"
+          style="background: none; border: none; font-size: 14px; font-weight: 600; padding-bottom: 12px; cursor: pointer; border-bottom: 2px solid transparent; position: relative; color: #64748b;"
+          [ngStyle]="activeTab === 'comments' ? {'color': '#0f172a', 'border-bottom-color': '#3b82f6'} : {}">
+          Comments <span class="tab-badge" *ngIf="drawerTaskData.comments?.length"
+            style="background-color: #f1f5f9; color: #475569; font-size: 11px; padding: 2px 8px; border-radius: 12px; margin-left: 6px; font-weight: 600;">{{
+            drawerTaskData.comments?.length }}</span>
+        </button>
+        <button class="custom-tab-btn" [class.active]="activeTab === 'activity'" (click)="activeTab = 'activity'"
+          style="background: none; border: none; font-size: 14px; font-weight: 600; padding-bottom: 12px; cursor: pointer; border-bottom: 2px solid transparent; position: relative; color: #64748b;"
+          [ngStyle]="activeTab === 'activity' ? {'color': '#0f172a', 'border-bottom-color': '#3b82f6'} : {}">
+          Activity
+        </button>
+      </div>
+
+      <!-- Tab Content: Comments -->
+      <div class="tab-content" *ngIf="activeTab === 'comments'">
+        <div class="comments-list d-flex flex-column gap-20 m-b-24">
+          <!-- Display Comments -->
+          <div class="comment-item d-flex gap-16" *ngFor="let com of drawerTaskData.comments">
+            <div
+              class="comment-avatar text-white d-flex align-items-center justify-content-center f-w-600 f-s-12 rounded-circle"
+              [ngStyle]="{'background-color': '#6366f1'}" style="width: 32px; height: 32px; flex-shrink: 0;">
+              {{ getInitials(com.author) }}
+            </div>
+            <div class="comment-content flex-grow-1">
+              <div class="d-flex align-items-center gap-8 m-b-4">
+                <span class="f-w-600 f-s-13 text-dark">{{ com.author }}</span>
+                <span class="text-muted f-s-11">{{ getRelativeTime(com.date) }}</span>
+              </div>
+              <div class="comment-text f-s-13 text-dark p-8 p-x-12 rounded-8"
+                style="background-color: #f1f5f9; display: inline-block; max-width: 100%;">
+                {{ com.text }}
+              </div>
+              <div class="d-flex gap-12 m-t-4" *ngIf="com.author === 'Shakthi'">
+                <a href="javascript:void(0)" class="text-muted f-s-11 text-decoration-none hover-primary"
+                  (click)="deleteComment(com.id)">Delete</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty State -->
+          <div class="text-center text-muted f-s-13 p-y-24" *ngIf="!drawerTaskData.comments?.length">
+            No comments yet.
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Content: Activity -->
+      <div class="tab-content" *ngIf="activeTab === 'activity'">
+        <!-- Timeline Stream -->
+        <div class="timeline-stream">
+          <div class="timeline-track"></div>
+          <div class="timeline-event-item" *ngFor="let act of timelineStream | slice:0:10">
+            <!-- Colorful Dynamic Marker with Tabler Icon -->
+            <div class="timeline-event-marker" [ngClass]="getTimelineEventColorClass(act.rawAction)">
+              <i-tabler [name]="getTimelineEventIcon(act.rawAction)" class="timeline-icon"></i-tabler>
+            </div>
+            <!-- Body content -->
+            <div class="timeline-event-body">
+              <div class="timeline-event-content">
+                <span class="timeline-event-user">{{ act.user }}</span>
+                <span class="timeline-event-action" *ngIf="act.type === 'activity'">{{ act.action }}</span>
+                <span class="timeline-event-action" *ngIf="act.type === 'comment'">added a comment</span>
+              </div>
+              <span class="timeline-event-time">{{ getRelativeTime(act.date) }}</span>
+            </div>
+          </div>
+          <div class="text-center text-muted f-s-13 p-y-24" *ngIf="!timelineStream?.length">
+            No activity found.
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Fixed Comment Input Box Footer -->
+    <div class="comment-footer-box p-20 border-top bg-white mt-auto w-100"
+      *ngIf="isDrawerOpen && activeTab === 'comments'" style="position: sticky; bottom: 0; z-index: 10;">
+      <div class="comment-input-container" style="position: relative; display: flex; align-items: center;">
+        <input type="text" [(ngModel)]="newCommentText" (keyup.enter)="addComment()" class="comment-round-input"
+          placeholder="Write a comment..."
+          style="width: 100%; height: 44px; border-radius: 22px; border: 1px solid #e2e8f0; padding: 0 48px 0 20px; font-size: 14px; outline: none;" />
+        <button class="send-comment-btn" (click)="addComment()" [disabled]="!newCommentText.trim()"
+          [style.background-color]="newCommentText.trim() ? '#3b82f6' : '#bfdbfe'"
+          [style.cursor]="newCommentText.trim() ? 'pointer' : 'default'"
+          style="position: absolute; right: 6px; width: 32px; height: 32px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s;">
+          <i-tabler name="send" class="icon-14 text-white" style="color: white;"></i-tabler>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Floating Create Task Menu -->
+  <button mat-fab color="primary" class="mobile-fab-create d-none" [matMenuTriggerFor]="mobileCreateMenu"
+    matTooltip="Actions">
+    <i-tabler name="plus" class="icon-24"></i-tabler>
+  </button>
+  <mat-menu #mobileCreateMenu="matMenu" class="cardWithShadow" yPosition="above">
+    <button mat-menu-item (click)="openCreateTaskDialog()">
+      <i-tabler name="plus" class="icon-18 m-r-8"></i-tabler>
+      <span>Create Task</span>
+    </button>
+    <button mat-menu-item (click)="openCreateBundleDialog()">
+      <i-tabler name="package" class="icon-18 m-r-8"></i-tabler>
+      <span>Create Bundle</span>
+    </button>
+    <button mat-menu-item (click)="openManageBundlesDialog()">
+      <i-tabler name="packages" class="icon-18 m-r-8"></i-tabler>
+      <span>Manage Bundles</span>
+    </button>
+  </mat-menu>
+</div>
+
+<!-- Create Bundle Dialog -->
+<ng-template #createBundleDialog>
+  <div class="redesigned-dialog-header">
+    <div class="header-left">
+      <div class="header-icon">
+        <i-tabler name="layers-intersect" class="icon-24"></i-tabler>
+      </div>
+      <div class="header-text">
+        <h2 mat-dialog-title>Create Task Bundle</h2>
+        <p>Configure a recurring sequence of automated tasks.</p>
+      </div>
+    </div>
+    <button mat-icon-button mat-dialog-close class="close-btn">
+      <i-tabler name="x" class="icon-20"></i-tabler>
+    </button>
+  </div>
+
+  <mat-dialog-content class="redesigned-dialog-content create-dialog-content">
+    <div class="create-split-layout">
+      <!-- Left Column -->
+      <div class="config-panel">
+
+        <div class="section-heading active-heading">
+          <div class="heading-line"></div>
+          <span class="step-num">01</span>
+          <span class="step-title">BASIC CONFIGURATION</span>
+        </div>
+
+        <div class="form-group">
+          <label>BUNDLE NAME</label>
+          <input type="text" class="custom-input" [(ngModel)]="newBundleData.name"
+            placeholder="e.g., Manager Task Bundle">
+        </div>
+
+        <div class="form-group">
+          <label>DESCRIPTION</label>
+          <textarea class="custom-input" rows="3" [(ngModel)]="newBundleData.description"
+            placeholder="Automated daily tasks..."></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group half-width">
+            <label>TARGET ROLE</label>
+            <mat-select class="custom-input custom-mat-select" panelClass="custom-select-panel"
+              [(ngModel)]="newBundleData.role" placeholder="Select Role...">
+              <mat-option value="MANAGER">Manager</mat-option>
+              <mat-option value="ADMIN">Admin</mat-option>
+              <mat-option value="BRANCH_PARTNER">Branch Partner</mat-option>
+            </mat-select>
+          </div>
+          <div class="form-group half-width">
+            <label>INITIAL STATUS</label>
+            <div class="custom-segmented-control">
+              <button class="segment-btn" [class.active]="newBundleData.status === 'ACTIVE'"
+                (click)="newBundleData.status = 'ACTIVE'">ACTIVE</button>
+              <button class="segment-btn" [class.active]="newBundleData.status === 'INACTIVE'"
+                (click)="newBundleData.status = 'INACTIVE'">INACTIVE</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-heading inactive-heading mt-4">
+          <div class="heading-line"></div>
+          <span class="step-num">02</span>
+          <span class="step-title">SCHEDULE PARAMETERS</span>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group half-width">
+            <label>FREQUENCY</label>
+            <mat-select class="custom-input custom-mat-select" panelClass="custom-select-panel"
+              [(ngModel)]="newBundleData.scheduleType" placeholder="Select Frequency...">
+              <mat-option value="DAILY">Daily</mat-option>
+              <mat-option value="WEEKLY">Weekly</mat-option>
+              <mat-option value="MONTHLY">Monthly</mat-option>
+            </mat-select>
+          </div>
+          <div class="form-group half-width">
+            <label>EXECUTION TIME</label>
+            <div class="input-with-icon">
+              <input type="time" class="custom-input" [(ngModel)]="newBundleData.executionTime">
+              <i-tabler name="clock" class="input-icon"></i-tabler>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group half-width" style="max-width: 50%;">
+          <label>EFFECTIVE FROM</label>
+          <div class="input-with-icon">
+            <input class="custom-input" [matDatepicker]="bundleStartPicker" [(ngModel)]="newBundleData.startDate"
+              (click)="bundleStartPicker.open()" style="cursor: pointer;">
+            <i-tabler name="calendar" class="input-icon" (click)="bundleStartPicker.open()"
+              style="pointer-events: auto; cursor: pointer;"></i-tabler>
+            <mat-datepicker #bundleStartPicker></mat-datepicker>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column -->
+      <div class="tasks-panel">
+        <div class="tasks-panel-header">
+          <div class="d-flex align-items-center gap-8">
+            <span class="tasks-title">BUNDLE TASKS</span>
+            <span class="tasks-badge">{{ newBundleData.tasks.length < 10 ? '0' + newBundleData.tasks.length :
+                newBundleData.tasks.length }}</span>
+          </div>
+          <button class="add-task-btn" (click)="addBundleTask()">
+            <i-tabler name="plus" class="icon-14 m-r-4"></i-tabler> ADD TASK
+          </button>
+        </div>
+
+        <div class="tasks-list-container">
+          <div class="task-card" *ngFor="let task of newBundleData.tasks; let i = index">
+            <div class="task-card-header">
+              <span class="task-num-badge">TASK {{ i < 9 ? '0' + (i + 1) : i + 1 }}</span>
+                  <div class="d-flex align-items-center gap-8">
+                    <span class="task-priority-badge" [ngClass]="task.priority.toLowerCase()">{{ task.priority |
+                      uppercase }}</span>
+                    <a href="javascript:void(0)" class="text-danger" (click)="removeBundleTask(i)"
+                      *ngIf="newBundleData.tasks.length > 1" title="Remove Task">
+                      <i-tabler name="x" class="icon-14"></i-tabler>
+                    </a>
+                  </div>
+            </div>
+
+            <input type="text" class="task-title-input" [(ngModel)]="task.title" placeholder="Task Title">
+            <input type="text" class="task-desc-input" [(ngModel)]="task.description" placeholder="Task description...">
+
+            <div class="task-card-footer">
+              <div class="task-due">
+                <span>DUE: +</span>
+                <input type="number" class="due-input" [(ngModel)]="task.dueDays" min="0" style="width: 25px;">
+                <span> DAYS</span>
+              </div>
+              <div class="d-flex gap-8">
+                <a href="javascript:void(0)" class="edit-link">Edit Details</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="drop-task-placeholder" (click)="addBundleTask()">
+            + Drop or add another task
+          </div>
+        </div>
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="redesigned-dialog-footer create-footer">
+    <button class="cancel-btn" mat-dialog-close>Cancel</button>
+    <button class="new-bundle-btn" (click)="saveBundle()">Save Bundle</button>
+  </mat-dialog-actions>
+</ng-template>
+
+<!-- Create Task Dialog -->
+<ng-template #createTaskDialog>
+  <div class="redesigned-dialog-header border-bottom"
+    style="padding: 24px 32px 20px 32px; display: flex; align-items: flex-start;">
+    <div class="header-left" style="display: flex; gap: 16px; align-items: center;">
+      <div class="header-icon"
+        style="background-color: #eff6ff; color: #3b82f6; border-radius: 12px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+        <i-tabler name="square-check" style="width: 24px; height: 24px;"></i-tabler>
+      </div>
+      <div class="header-text" style="display: flex; flex-direction: column; gap: 4px;">
+        <h2 style="margin: 0; font-size: 20px; font-weight: 700; color: #0f172a; line-height: 1.2;">Create Task</h2>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span
+            style="background-color: #f1f5f9; color: #64748b; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; letter-spacing: 0.5px;">AD-HOC</span>
+          <p style="margin: 0; color: #64748b; font-size: 13px;">Required fields are marked with <span
+              style="color: #ef4444;">*</span></p>
+        </div>
+      </div>
+    </div>
+    <button mat-icon-button mat-dialog-close class="close-btn"
+      style="margin-top: -4px; margin-right: -8px; color: #64748b;">
+      <i-tabler name="x" class="icon-20"></i-tabler>
+    </button>
+  </div>
+
+  <mat-dialog-content class="redesigned-dialog-content" style="overflow-y: auto;">
+    <div style="padding: 16px 32px 32px 32px;" class="create-task-form">
+      <!-- 01 TASK DEFINITION -->
+      <div class="section-heading mb-4">
+        <div class="heading-line" style="background-color: #3b82f6;"></div>
+        <span class="step-num" style="color: #3b82f6;">01</span>
+        <span class="step-title">TASK DEFINITION</span>
+      </div>
+
+      <div class="form-group mb-4">
+        <label>SUMMARY <span style="color: #ef4444;">*</span></label>
+        <input type="text" class="custom-input" [(ngModel)]="newTaskData.title"
+          placeholder="e.g. Verify academic documents">
+      </div>
+
+      <div class="form-group mb-4">
+        <label>DESCRIPTION</label>
+        <textarea class="custom-input" rows="4" [(ngModel)]="newTaskData.description"
+          placeholder="Add more details..."></textarea>
+      </div>
+
+      <!-- 02 ASSIGNMENT SCOPE -->
+      <div class="section-heading inactive-heading mb-4 mt-5">
+        <div class="heading-line"></div>
+        <span class="step-num">02</span>
+        <span class="step-title">ASSIGNMENT SCOPE</span>
+      </div>
+
+      <div class="form-row mb-4">
+        <div class="form-group half-width">
+          <label>BRANCH</label>
+          <mat-select class="custom-input custom-mat-select" panelClass="custom-select-panel"
+            [(ngModel)]="newTaskData.branch" placeholder="All Branches">
+            <mat-option value="All Branches">All Branches</mat-option>
+            <mat-option value="Main Branch">Main Branch</mat-option>
+          </mat-select>
+        </div>
+        <div class="form-group half-width">
+          <label>ROLE</label>
+          <mat-select class="custom-input custom-mat-select" panelClass="custom-select-panel"
+            [(ngModel)]="newTaskData.role" placeholder="All Roles">
+            <mat-option value="All Roles">All Roles</mat-option>
+            <mat-option value="Manager">Manager</mat-option>
+            <mat-option value="Admin">Admin</mat-option>
+          </mat-select>
+        </div>
+      </div>
+
+      <div class="form-group mb-4">
+        <label>ASSIGNED TO <span style="color: #ef4444;">*</span></label>
+        <div class="input-with-icon">
+          <input type="text" class="custom-input" [(ngModel)]="newTaskData.assignee.name"
+            placeholder="Select employee...">
+          <i-tabler name="user" class="input-icon" style="color: #64748b;"></i-tabler>
+        </div>
+      </div>
+
+      <!-- 03 EXECUTION PARAMETERS -->
+      <div class="section-heading inactive-heading mb-4 mt-5">
+        <div class="heading-line"></div>
+        <span class="step-num">03</span>
+        <span class="step-title">EXECUTION PARAMETERS</span>
+      </div>
+
+      <div class="form-row mb-2">
+        <div class="form-group half-width">
+          <label>PRIORITY <span style="color: #ef4444;">*</span></label>
+          <div class="priority-segmented-control">
+            <button class="priority-btn" [class.active]="newTaskData.priority === 'High'"
+              (click)="newTaskData.priority = 'High'">
+              <span class="dot high"></span> HIGH
+            </button>
+            <button class="priority-btn" [class.active]="newTaskData.priority === 'Medium'"
+              (click)="newTaskData.priority = 'Medium'">
+              <span class="dot medium"></span> MEDIUM
+            </button>
+            <button class="priority-btn" [class.active]="newTaskData.priority === 'Low'"
+              (click)="newTaskData.priority = 'Low'">
+              <span class="dot low"></span> LOW
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group half-width" [class.has-error]="!newTaskData.dueDate && isTaskFormSubmitted">
+          <label>DUE DATE <span style="color: #ef4444;">*</span></label>
+          <div class="input-with-icon">
+            <input class="custom-input error-input" [matDatepicker]="taskDuePicker2" [(ngModel)]="newTaskData.dueDate"
+              placeholder="Select date" readonly (click)="taskDuePicker2.open()" style="cursor: pointer;">
+            <i-tabler name="calendar" class="input-icon" style="color: #64748b; pointer-events: auto; cursor: pointer;"
+              (click)="taskDuePicker2.open()"></i-tabler>
+            <mat-datepicker #taskDuePicker2></mat-datepicker>
+          </div>
+          <span class="error-text" *ngIf="!newTaskData.dueDate && isTaskFormSubmitted"><i-tabler name="alert-circle"
+              class="icon-12"></i-tabler> Due date is required</span>
+        </div>
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="create-task-footer">
+    <div class="footer-left">
+      <i-tabler name="flag" class="icon-18"></i-tabler>
+      <span style="font-weight: 600; margin-left: 6px; margin-right: 4px;">PRIORITY</span> <span
+        style="text-transform: uppercase;">{{ newTaskData.priority || 'NONE' }}</span>
+    </div>
+    <div class="footer-right">
+      <button class="cancel-btn" mat-dialog-close>Cancel</button>
+      <button class="create-task-submit-btn" (click)="saveNewTask()">Create Task</button>
+    </div>
+  </mat-dialog-actions>
+</ng-template>
+
+
+<!-- Manage Bundles Dialog -->
+<ng-template #manageBundlesDialog>
+  <div class="redesigned-dialog-header">
+    <div class="header-left">
+      <div class="header-icon">
+        <i-tabler name="layers-intersect" class="icon-24"></i-tabler>
+      </div>
+      <div class="header-text">
+        <h2 mat-dialog-title>Task Bundles</h2>
+        <p>Manage and schedule automated workflow sequences</p>
+      </div>
+    </div>
+    <button mat-icon-button mat-dialog-close class="close-btn">
+      <i-tabler name="x" class="icon-20"></i-tabler>
+    </button>
+  </div>
+
+  <mat-dialog-content class="redesigned-dialog-content">
+    <div class="toolbar-section">
+      <div class="search-container">
+        <i-tabler name="search" class="icon-18 search-icon"></i-tabler>
+        <input placeholder="Search bundles by name..." class="search-input" />
+      </div>
+      <div class="filters-container">
+        <button class="filter-btn" [matMenuTriggerFor]="roleMenu">
+          <i-tabler name="user" class="icon-16 text-muted"></i-tabler>
+          <span class="filter-label">Role:</span> <span class="filter-value">{{ bundleFilterRole }}</span>
+          <i-tabler name="chevron-down" class="icon-14 text-muted"></i-tabler>
+        </button>
+        <mat-menu #roleMenu="matMenu">
+          <button mat-menu-item (click)="bundleFilterRole = 'All'">All</button>
+          <button mat-menu-item (click)="bundleFilterRole = 'Manager'">Manager</button>
+          <button mat-menu-item (click)="bundleFilterRole = 'Admin'">Admin</button>
+          <button mat-menu-item (click)="bundleFilterRole = 'Branch Partner'">Branch Partner</button>
+        </mat-menu>
+
+        <button class="filter-btn" [matMenuTriggerFor]="statusMenu">
+          <i-tabler name="circle-dot" class="icon-16 text-muted"></i-tabler>
+          <span class="filter-label">Status:</span> <span class="filter-value">{{ bundleFilterStatus }}</span>
+          <i-tabler name="chevron-down" class="icon-14 text-muted"></i-tabler>
+        </button>
+        <mat-menu #statusMenu="matMenu">
+          <button mat-menu-item (click)="bundleFilterStatus = 'All'">All</button>
+          <button mat-menu-item (click)="bundleFilterStatus = 'Active'">Active</button>
+          <button mat-menu-item (click)="bundleFilterStatus = 'Paused'">Paused</button>
+        </mat-menu>
+
+        <button class="filter-btn" [matMenuTriggerFor]="scheduleMenu">
+          <i-tabler name="calendar" class="icon-16 text-muted"></i-tabler>
+          <span class="filter-label">Schedule:</span> <span class="filter-value">{{ bundleFilterSchedule }}</span>
+          <i-tabler name="chevron-down" class="icon-14 text-muted"></i-tabler>
+        </button>
+        <mat-menu #scheduleMenu="matMenu">
+          <button mat-menu-item (click)="bundleFilterSchedule = 'All'">All</button>
+          <button mat-menu-item (click)="bundleFilterSchedule = 'Daily'">Daily</button>
+          <button mat-menu-item (click)="bundleFilterSchedule = 'Weekly'">Weekly</button>
+          <button mat-menu-item (click)="bundleFilterSchedule = 'Monthly'">Monthly</button>
+        </mat-menu>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table class="redesigned-table">
+        <thead>
+          <tr>
+            <th class="text-left">BUNDLE INFO</th>
+            <th class="text-left">ROLE</th>
+            <th class="text-left">SCHEDULE</th>
+            <th class="text-left">TASKS</th>
+            <th class="text-left">STATUS</th>
+            <th class="text-right">ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let bundle of filteredBundles">
+            <td>
+              <div class="bundle-name">{{ bundle.name }}</div>
+              <div class="bundle-desc">{{ bundle.description }}</div>
+            </td>
+            <td>
+              <span class="role-pill" [ngClass]="bundle.role === 'MANAGER' ? 'role-manager' : 'role-admin'">
+                {{ bundle.role }}
+              </span>
+            </td>
+            <td>
+              <div class="schedule-type">{{ bundle.scheduleType | titlecase }}</div>
+              <div class="schedule-time">{{ bundle.startDate | date:'MMM d, y' }} — {{ bundle.executionTime || '5:00 PM'
+                }}</div>
+            </td>
+            <td class="text-left">
+              <span class="task-count">{{ bundle.tasks.length }}</span>
+            </td>
+            <td>
+              <span class="status-indicator" [ngClass]="bundle.status === 'ACTIVE' ? 'status-active' : 'status-paused'">
+                <span class="dot"></span> {{ bundle.status }}
+              </span>
+            </td>
+            <td class="text-right actions-cell">
+              <div class="actions-wrapper">
+                <button class="action-btn" matTooltip="Execute"><i-tabler name="player-play"
+                    class="icon-18"></i-tabler></button>
+                <button class="action-btn" matTooltip="Edit"><i-tabler name="pencil"
+                    class="icon-18"></i-tabler></button>
+                <button class="action-btn" matTooltip="Pause"><i-tabler name="player-pause"
+                    class="icon-18"></i-tabler></button>
+                <button class="action-btn" matTooltip="Delete" (click)="deleteBundle(bundle)"><i-tabler name="trash"
+                    class="icon-18"></i-tabler></button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="redesigned-dialog-footer">
+    <div class="footer-stats">
+      Total <strong>{{ filteredBundles.length }}</strong> &nbsp;&nbsp;&nbsp;&nbsp;
+      Active <strong>{{ getActiveCount() }}</strong> &nbsp;&nbsp;&nbsp;&nbsp;
+      Paused <strong>{{ getPausedCount() }}</strong>
+    </div>
+    <button class="new-bundle-btn" (click)="openCreateBundleDialog(); dialog.closeAll();">
+      <i-tabler name="plus" class="icon-16 m-r-4"></i-tabler> New Bundle
+    </button>
+  </mat-dialog-actions>
+</ng-template>

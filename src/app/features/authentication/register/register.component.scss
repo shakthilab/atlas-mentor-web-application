@@ -1,0 +1,95 @@
+.register-card {
+  width: 100%;
+  max-width: 480px;
+}
+
+// Step progress indicator
+.stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 24px 0 32px;
+  gap: 0;
+
+  .step-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    position: relative;
+
+    &:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 20px;
+      left: calc(50% + 20px);
+      width: calc(100% - 40px);
+      height: 2px;
+      background: #e5eaef;
+      transition: background 0.3s ease;
+    }
+
+    &.completed::after { background: #5d87ff; }
+  }
+
+  .step-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid #e5eaef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: #7c8fac;
+    background: #fff;
+    transition: all 0.3s ease;
+    z-index: 1;
+
+    &.active {
+      border-color: #5d87ff;
+      color: #5d87ff;
+    }
+
+    &.completed {
+      background: #5d87ff;
+      border-color: #5d87ff;
+      color: #fff;
+    }
+  }
+
+  .step-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #7c8fac;
+
+    &.active, &.completed { color: #5d87ff; font-weight: 600; }
+  }
+}
+
+// Phone field row
+.phone-row {
+  display: flex;
+  gap: 8px;
+
+  .country-code-field {
+    width: 130px;
+    flex-shrink: 0;
+  }
+
+  .phone-number-field {
+    flex: 1;
+  }
+}
+
+.error-banner {
+  background: #fdede8;
+  border: 1px solid #fa896b;
+  border-radius: 7px;
+  padding: 10px 14px;
+  color: #fa896b;
+  font-size: 13px;
+  margin-bottom: 16px;
+}

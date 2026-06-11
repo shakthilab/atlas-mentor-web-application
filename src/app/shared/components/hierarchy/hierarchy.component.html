@@ -1,0 +1,198 @@
+<div class="row align-items-center mb-4">
+  <div class="col-sm-6">
+    <h3 class="m-b-0 font-weight-bold" style="color: #111c43;">Hierarchy Management</h3>
+  </div>
+  <div class="col-sm-6 text-right d-flex justify-content-end">
+    <button mat-stroked-button class="d-flex align-items-center bg-white">
+      <i-tabler name="map-pin" class="icon-16 m-r-4 text-muted"></i-tabler> <span class="text-muted">All Locations</span> <i-tabler name="chevron-down" class="icon-16 m-l-4 text-muted"></i-tabler>
+    </button>
+  </div>
+</div>
+
+<div class="row mb-4">
+  <!-- Summary Cards -->
+  <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
+    <mat-card class="shadow-sm border border-radius-lg h-100">
+      <mat-card-content class="d-flex align-items-center p-y-24 p-x-24">
+        <div class="bg-light-primary rounded p-3 text-primary m-r-24 d-flex align-items-center justify-content-center border-radius-lg" style="width: 56px; height: 56px;">
+          <i-tabler name="users" class="icon-24"></i-tabler>
+        </div>
+        <div>
+          <span class="text-muted f-s-12 font-weight-bold text-uppercase letter-spacing-1 d-block m-b-4">Total Teams</span>
+          <h2 class="m-b-0 font-weight-bold f-s-24" style="color: #111c43;">06</h2>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+  <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
+    <mat-card class="shadow-sm border border-radius-lg h-100">
+      <mat-card-content class="d-flex align-items-center p-y-24 p-x-24">
+        <div class="bg-light-error rounded p-3 text-error m-r-24 d-flex align-items-center justify-content-center border-radius-lg" style="width: 56px; height: 56px;">
+          <i-tabler name="user" class="icon-24"></i-tabler>
+        </div>
+        <div>
+          <span class="text-muted f-s-12 font-weight-bold text-uppercase letter-spacing-1 d-block m-b-4">Total Members</span>
+          <h2 class="m-b-0 font-weight-bold f-s-24" style="color: #111c43;">11</h2>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+  <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
+    <mat-card class="shadow-sm border border-radius-lg h-100">
+      <mat-card-content class="d-flex align-items-center p-y-24 p-x-24">
+        <div class="bg-light-success rounded p-3 text-success m-r-24 d-flex align-items-center justify-content-center border-radius-lg" style="width: 56px; height: 56px;">
+          <i-tabler name="map-pin" class="icon-24"></i-tabler>
+        </div>
+        <div>
+          <span class="text-muted f-s-12 font-weight-bold text-uppercase letter-spacing-1 d-block m-b-4">Locations</span>
+          <h2 class="m-b-0 font-weight-bold f-s-24" style="color: #111c43;">02</h2>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Organization Tree (Main Content) -->
+  <div class="col-lg-8 mb-4">
+    <mat-card class="shadow-sm border border-radius-lg p-0 w-100 h-100">
+      <div class="d-flex align-items-center p-3 border-bottom bg-white border-radius-lg">
+        <div class="bg-light-primary rounded text-primary m-r-16 d-flex align-items-center justify-content-center border-radius-md" style="width: 40px; height: 40px;">
+          <i-tabler name="sitemap" class="icon-20"></i-tabler>
+        </div>
+        <div>
+          <h5 class="m-b-4 font-weight-bold f-s-14" style="color: #111c43;">Organization Tree</h5>
+          <div class="d-flex align-items-center text-muted f-s-12 font-weight-medium">
+            <span class="text-uppercase">{{ totalTeams }} teams</span>
+            <span class="m-x-8 text-light-muted">•</span>
+            <a href="javascript:void(0)" class="text-primary text-decoration-none" (click)="collapseAll()">Collapse All</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 p-l-24 tree-wrapper">
+        <!-- Recursive Tree Template -->
+        <ng-template #nodeTemplate let-nodes="nodes" let-isRoot="isRoot">
+          <div class="node-container position-relative" *ngFor="let node of nodes; let last = last; let i = index">
+            <!-- Draw horizontal branch from vertical line to each child box -->
+            <div *ngIf="!isRoot" class="tree-branch position-absolute border-bottom" style="left: -24px; top: 36px; width: 24px; border-color: #e5eaef !important;"></div>
+            
+            <!-- Node Box -->
+            <div class="node-item d-flex align-items-center p-y-12 p-x-16 rounded mb-2 border bg-white position-relative z-index-1" [ngClass]="{'border-primary shadow-sm': isRoot}">
+              
+              <!-- Expand/Collapse Toggle -->
+              <button mat-icon-button class="m-r-8 node-toggle" (click)="toggleExpand(node)" [disabled]="!node.children || node.children.length === 0">
+                <i-tabler name="chevron-down" class="icon-18 text-muted transition" [ngClass]="{'rotate-180': !node.expanded}" *ngIf="node.children && node.children.length > 0"></i-tabler>
+              </button>
+
+              <!-- Avatar -->
+              <div class="avatar rounded-circle d-flex align-items-center justify-content-center m-r-16 font-weight-bold f-s-14" [ngClass]="node.color || 'bg-primary text-white'" style="width: 40px; height: 40px;">
+                {{ node.initials }}
+              </div>
+
+              <!-- Info -->
+              <div class="flex-grow-1">
+                <div class="d-flex align-items-center m-b-4">
+                  <h6 class="m-b-0 m-r-12 font-weight-bold f-s-14" style="color: #111c43;">{{ node.name }}</h6>
+                  <span class="badge rounded f-s-10 font-weight-bold text-uppercase letter-spacing-1 p-y-4 p-x-8 node-badge" [ngClass]="node.color">{{ node.role }}</span>
+                </div>
+                <div class="text-muted f-s-12 d-flex align-items-center font-weight-medium">
+                  <i-tabler name="map-pin" class="icon-14 m-r-4"></i-tabler> {{ node.location }}
+                  <span class="m-l-12 text-uppercase letter-spacing-1" *ngIf="node.reportsCount > 0">{{ node.reportsCount < 10 ? '0' + node.reportsCount : node.reportsCount }} REPORTS</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Children -->
+            <div class="node-children position-relative" style="margin-left: 28px; padding-left: 24px;" *ngIf="node.expanded && node.children && node.children.length > 0">
+              <div class="tree-line position-absolute h-100 border-start" style="left: 0; top: -20px; border-color: #e5eaef !important;"></div>
+
+              <ng-container *ngTemplateOutlet="nodeTemplate; context: { nodes: node.children, isRoot: false }"></ng-container>
+              
+              <!-- Add Team Member link inside the children list -->
+              <div class="p-y-8 position-relative z-index-1 mt-2">
+                <div class="tree-branch position-absolute border-bottom" style="left: -24px; top: 20px; width: 24px; border-color: #e5eaef !important;"></div>
+                 <a href="javascript:void(0)" class="text-primary text-decoration-none font-weight-bold f-s-13 d-flex align-items-center text-uppercase letter-spacing-1">
+                  <i-tabler name="plus" class="icon-16 m-r-4"></i-tabler> ADD TEAM MEMBER
+                 </a>
+              </div>
+            </div>
+            
+            <div class="p-y-8 position-relative z-index-1 mt-2" *ngIf="isRoot && i === nodes.length - 1 && (!node.children || node.children.length === 0)">
+                 <a href="javascript:void(0)" class="text-primary text-decoration-none font-weight-bold f-s-13 d-flex align-items-center text-uppercase letter-spacing-1 m-l-40">
+                  <i-tabler name="plus" class="icon-16 m-r-4"></i-tabler> ADD TEAM MEMBER
+                 </a>
+            </div>
+          </div>
+        </ng-template>
+
+        <!-- Initial Call to Template -->
+        <ng-container *ngTemplateOutlet="nodeTemplate; context: { nodes: organizationTree, isRoot: true }"></ng-container>
+
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Quick Assignment Sidebar -->
+  <div class="col-lg-4 mb-4">
+    <mat-card class="shadow-sm border border-radius-lg p-0 w-100 h-100 d-flex flex-column bg-light-primary-opacity">
+      <div class="d-flex align-items-center p-3 border-bottom bg-white border-radius-lg">
+        <div class="bg-light-primary rounded text-primary m-r-16 d-flex align-items-center justify-content-center border-radius-md" style="width: 40px; height: 40px;">
+          <span class="font-weight-bold f-s-14">83</span>
+        </div>
+        <div>
+          <h5 class="m-b-4 font-weight-bold f-s-14 text-uppercase letter-spacing-1" style="color: #111c43;">Quick Assignment</h5>
+          <span class="text-muted f-s-12 font-weight-medium">Map employees under a reporting manager.</span>
+        </div>
+      </div>
+
+      <div class="p-4 flex-grow-1 d-flex flex-column bg-white">
+        <form [formGroup]="assignmentForm" (ngSubmit)="saveAssignment()" class="h-100 d-flex flex-column">
+          
+          <div class="m-b-24">
+            <mat-label class="d-block m-b-8 font-weight-bold f-s-12 text-uppercase letter-spacing-1 text-muted">Select Manager <span class="text-error">*</span></mat-label>
+            <mat-form-field appearance="outline" class="w-100 custom-select">
+              <mat-select formControlName="managerId" placeholder="Select a manager...">
+                <mat-option *ngFor="let manager of managers" [value]="manager.id">
+                  {{ manager.name }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="m-b-24 flex-grow-1 d-flex flex-column">
+            <div class="d-flex align-items-center justify-content-between m-b-8">
+              <mat-label class="font-weight-bold f-s-12 text-uppercase letter-spacing-1 text-muted">Select Employees</mat-label>
+              <span class="text-muted f-s-12 font-weight-bold text-uppercase letter-spacing-1">{{ assignmentForm.get('employeeIds')?.value?.length || 0 }} selected</span>
+            </div>
+            
+            <mat-form-field appearance="outline" class="w-100 m-b-16 search-employees custom-input">
+              <mat-icon matPrefix class="text-muted icon-20">search</mat-icon>
+              <input matInput placeholder="Search employees...">
+            </mat-form-field>
+
+            <div class="employee-checkbox-list flex-grow-1 overflow-auto pe-2" style="max-height: 350px;">
+               <div *ngFor="let employee of employees" class="border rounded mb-2 bg-white d-flex align-items-center p-y-12 p-x-16 border-radius-md list-option-custom">
+                 <mat-checkbox color="primary" [value]="employee.id" (change)="toggleEmployeeSelection(employee.id, $event.checked)" [checked]="isEmployeeSelected(employee.id)" class="m-r-8"></mat-checkbox>
+                 <div class="avatar rounded-circle d-flex align-items-center justify-content-center m-x-12 font-weight-bold f-s-12" [ngClass]="employee.initialColor" style="width: 32px; height: 32px; min-width: 32px;">
+                   {{ employee.initials }}
+                 </div>
+                 <div class="flex-grow-1 d-flex align-items-center justify-content-between">
+                   <h6 class="m-b-0 font-weight-bold f-s-14" style="color: #111c43;">{{ employee.name }}</h6>
+                   <span class="badge rounded f-s-10 font-weight-bold text-uppercase letter-spacing-1 p-y-4 p-x-8 node-badge" [ngClass]="employee.color" style="border: 1px solid #ffeb3b !important;">{{ employee.role }}</span>
+                 </div>
+               </div>
+            </div>
+          </div>
+
+          <div class="p-t-16 mt-auto">
+            <button mat-flat-button color="primary" type="submit" class="w-100 f-s-14 font-weight-bold text-uppercase letter-spacing-1 p-y-12 bg-light-primary text-primary border-radius-md" style="box-shadow: none;" [disabled]="assignmentForm.invalid">
+              Assign {{ assignmentForm.get('employeeIds')?.value?.length || 0 }} Employees
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </mat-card>
+  </div>
+</div>

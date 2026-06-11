@@ -1,0 +1,284 @@
+html .topbar {
+  background-color: $toolbar;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  height: $header-height;
+  border-bottom: 1px solid $borderColor;
+
+  @media (max-width: 768px) {
+    position: fixed;
+    left: 0;
+    right: 0;
+    height: 60px;
+    padding: 0 8px;
+    z-index: 1000;
+  }
+}
+
+// Ensure all icon buttons are touch-friendly (44px minimum)
+.mat-icon-button,
+button[mat-icon-button] {
+  min-width: 44px !important;
+  min-height: 44px !important;
+}
+
+.object-cover {
+  object-fit: cover;
+}
+
+// Responsive Utility
+.d-none-mobile {
+  @media (max-width: 768px) {
+    display: none !important;
+  }
+}
+
+// Navigation Links
+.header-nav-links {
+  display: flex;
+  align-items: center;
+  margin-left: 24px;
+  gap: 8px;
+
+  .nav-link-btn {
+    color: $textPrimary;
+    font-size: 15px;
+    font-weight: 500;
+    height: 40px;
+    line-height: 40px;
+    padding: 0 16px;
+    border-radius: $border-radius;
+    transition: all 0.2s ease-in-out;
+    text-decoration: none;
+
+    &:hover {
+      background-color: $hoverBgColor;
+      color: $primary;
+    }
+  }
+}
+
+// Profile Menu Panel Custom Styling
+.profile-menu-panel {
+  min-width: 360px !important;
+  max-width: 360px !important;
+  border-radius: 12px !important;
+  box-shadow: $cardshadow !important;
+  overflow: hidden;
+  margin-top: 10px;
+
+  .profile-menu-content {
+    padding: 24px;
+
+    .profile-menu-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: $textPrimary;
+      margin-bottom: 16px;
+    }
+
+    .user-info-card {
+      display: flex;
+      align-items: center;
+      margin-bottom: 24px;
+
+      img {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+
+      .user-details {
+        margin-left: 16px;
+
+        .user-name {
+          font-size: 16px;
+          font-weight: 600;
+          color: $textPrimary;
+          margin: 0 0 4px 0;
+        }
+
+        .user-role {
+          font-size: 13px;
+          color: $gray-100;
+          font-weight: 400;
+        }
+
+        .user-email {
+          font-size: 13px;
+          color: $gray-100;
+          font-weight: 400;
+          gap: 4px;
+        }
+      }
+    }
+
+    .profile-items-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 16px;
+
+      .profile-item {
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+        padding: 12px;
+        border-radius: $border-radius;
+        transition: all 0.2s ease-in-out;
+
+        &:hover {
+          background-color: $hoverBgColor;
+
+          .item-text .item-title {
+            color: $primary;
+          }
+        }
+
+        .profile-icon-container {
+          width: 45px;
+          height: 45px;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+
+          &.bg-light-primary {
+            background-color: $light-primary;
+            color: $primary;
+          }
+
+          &.bg-light-info {
+            background-color: $light-accent;
+            color: $accent;
+          }
+
+          &.bg-light-warning {
+            background-color: $light-warning;
+            color: $warning;
+          }
+        }
+
+        .item-text {
+          margin-left: 16px;
+          flex-grow: 1;
+
+          .item-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: $textPrimary;
+            transition: color 0.2s ease;
+          }
+
+          .item-subtitle {
+            font-size: 12px;
+            color: $gray-100;
+            font-weight: 400;
+          }
+        }
+      }
+    }
+
+    .logout-btn {
+      font-weight: 600;
+      border-color: $primary;
+      color: $primary;
+      height: 45px;
+      line-height: 45px;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background-color: $primary;
+        color: white;
+      }
+    }
+  }
+}
+
+// Notification menu custom styling
+.notification-menu-panel {
+  min-width: 320px !important;
+  border-radius: 12px !important;
+  box-shadow: $cardshadow !important;
+  margin-top: 10px;
+
+  .notification-list {
+    display: flex;
+    flex-direction: column;
+
+    .border-bottom {
+      border-bottom: 1px solid $borderColor;
+    }
+  }
+}
+
+// Search Bar Style
+.search-bar-container {
+  display: flex;
+  align-items: center;
+  background-color: $hoverBgColor;
+  border-radius: 8px;
+  padding: 0 12px;
+  height: 40px;
+  width: 260px;
+  border: 1px solid $borderColor;
+  transition: all 0.2s ease-in-out;
+
+  &:focus-within {
+    border-color: $primary;
+    background-color: white;
+    box-shadow: 0 0 0 3px rgba($primary, 0.1);
+  }
+
+  .search-icon {
+    color: $gray-100;
+    margin-right: 8px;
+    display: flex;
+    align-items: center;
+  }
+
+  .search-input {
+    border: none;
+    background: transparent;
+    outline: none;
+    width: 100%;
+    font-size: 14px;
+    color: $textPrimary;
+
+    &::placeholder {
+      color: $gray-100;
+      opacity: 0.8;
+    }
+  }
+}
+
+// Responsive display utilities
+.d-show-mobile {
+  display: none !important;
+  @media (max-width: 768px) {
+    display: block !important;
+  }
+}
+.d-none-mobile {
+  display: flex !important;
+  @media (max-width: 768px) {
+    display: none !important;
+  }
+}
+
+.product-name-mobile {
+  display: none;
+  @media (max-width: 768px) {
+    display: block;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 20px;
+    font-weight: 700;
+    color: $primary;
+    letter-spacing: 0.5px;
+  }
+}

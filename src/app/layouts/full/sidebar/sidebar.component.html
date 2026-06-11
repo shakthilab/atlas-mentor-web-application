@@ -1,0 +1,44 @@
+<div class="flex-layout">
+  <div class="sidebar-header d-flex align-items-center justify-content-between">
+    <app-branding></app-branding>
+    <button mat-icon-button (click)="closeSidebar.emit()" class="mobile-close-btn">
+      <i-tabler name="x" class="icon-20 d-flex"></i-tabler>
+    </button>
+  </div>
+
+  <!-- Mobile Controls (Search) -->
+  <div class="mobile-sidebar-controls d-show-mobile-block p-x-24">
+    <!-- Search Box -->
+    <div class="sidebar-search-container m-b-12">
+      <i-tabler name="search" class="icon-16 search-icon"></i-tabler>
+      <input type="text" placeholder="Search..." class="sidebar-search-input" />
+    </div>
+  </div>
+
+  <mat-nav-list class="sidebar-list">
+    <app-nav-item *ngFor="let item of filteredNavItems" [item]="item"> </app-nav-item>
+  </mat-nav-list>
+  <div class="p-24">
+    <div class="bg-light-primary d-flex align-items-center rounded p-20 m-t-20">
+      <div>
+        <h5 class="mat-subtitle-1 f-s-16 f-w-600 m-b-8">
+          {{ 'sidebar.unlimitedAccess' | translate }}
+        </h5>
+        <a
+          mat-flat-button
+          color="primary"
+          href="https://adminmart.com/product/modernize-angular-material-dashboard/?ref=5"
+          target="_blank"
+          class="d-flex justify-content-center"
+        >
+          {{ 'sidebar.upgrade' | translate }}
+        </a>
+      </div>
+      <img
+        src="/assets/images/backgrounds/rocket.png"
+        alt="imgae"
+        class="side-img"
+      />
+    </div>
+  </div>
+</div>

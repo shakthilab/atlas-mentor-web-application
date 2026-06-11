@@ -1,0 +1,197 @@
+<mat-toolbar class="topbar">
+  <!-- Sidebar Toggle -->
+  <button mat-icon-button (click)="toggleMobileNav.emit()">
+    <i-tabler name="menu-2" class="icon-20 d-flex"></i-tabler>
+  </button>
+
+  <span class="product-name-mobile d-show-mobile">Atlas Mentor</span>
+
+  <!-- Search Bar (Desktop) -->
+  <div class="search-bar-container d-none-mobile m-l-12">
+    <i-tabler name="search" class="icon-18 search-icon"></i-tabler>
+    <input type="text" placeholder="Search here..." class="search-input" />
+  </div>
+
+  <span class="flex-1-auto"></span>
+
+  <!-- Right Side Icons -->
+  <div class="d-flex align-items-center header-right-actions">
+
+    <!-- Dark / Light Mode Toggle -->
+    <button mat-icon-button (click)="toggleDarkMode()" class="m-r-8 d-none-mobile"
+      [attr.aria-label]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'">
+      <i-tabler [name]="isDarkMode ? 'sun' : 'moon'" class="icon-20 theme-toggle-icon"
+        [class.spinning]="isIconSpinning"></i-tabler>
+    </button>
+
+    <!-- Language Selector -->
+    <button mat-icon-button [matMenuTriggerFor]="langmenu" class="m-r-8 d-none-mobile">
+      <ng-container [ngSwitch]="currentLang">
+        <!-- English -->
+        <svg *ngSwitchCase="'en'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 30" width="22" height="15"
+          class="rounded">
+          <rect width="60" height="30" fill="#012169" />
+          <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6" />
+          <path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" stroke-width="4" />
+          <path d="M30,0 L30,30 M0,15 L60,15" stroke="#fff" stroke-width="10" />
+          <path d="M30,0 L30,30 M0,15 L60,15" stroke="#C8102E" stroke-width="6" />
+        </svg>
+        <!-- Uzbekistan -->
+        <svg *ngSwitchCase="'uz'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 15" width="22" height="15"
+          class="rounded">
+          <rect width="30" height="5" fill="#1EB53A" />
+          <rect y="5" width="30" height="5" fill="#ffffff" />
+          <rect y="10" width="30" height="5" fill="#0099B5" />
+          <rect y="4.5" width="30" height="1" fill="#CE1126" />
+          <rect y="9.5" width="30" height="1" fill="#CE1126" />
+        </svg>
+        <!-- French -->
+        <svg *ngSwitchCase="'fr'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3 2" width="22" height="15"
+          class="rounded">
+          <rect width="1" height="2" fill="#002395" />
+          <rect x="1" width="1" height="2" fill="#fff" />
+          <rect x="2" width="1" height="2" fill="#ED2939" />
+        </svg>
+        <!-- German -->
+        <svg *ngSwitchCase="'de'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 5 3" width="22" height="15"
+          class="rounded">
+          <rect width="5" height="1" fill="#000" />
+          <rect y="1" width="5" height="1" fill="#D00" />
+          <rect y="2" width="5" height="1" fill="#FFCE00" />
+        </svg>
+      </ng-container>
+    </button>
+    <mat-menu #langmenu="matMenu" class="cardWithShadow">
+      <button mat-menu-item *ngFor="let lang of languages" (click)="changeLanguage(lang.code)">
+        <div class="d-flex align-items-center gap-8">
+          <ng-container [ngSwitch]="lang.code">
+            <svg *ngSwitchCase="'en'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 30" width="22" height="15"
+              class="rounded">
+              <rect width="60" height="30" fill="#012169" />
+              <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6" />
+              <path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" stroke-width="4" />
+              <path d="M30,0 L30,30 M0,15 L60,15" stroke="#fff" stroke-width="10" />
+              <path d="M30,0 L30,30 M0,15 L60,15" stroke="#C8102E" stroke-width="6" />
+            </svg>
+            <svg *ngSwitchCase="'uz'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 15" width="22" height="15"
+              class="rounded">
+              <rect width="30" height="5" fill="#1EB53A" />
+              <rect y="5" width="30" height="5" fill="#ffffff" />
+              <rect y="10" width="30" height="5" fill="#0099B5" />
+              <rect y="4.5" width="30" height="1" fill="#CE1126" />
+              <rect y="9.5" width="30" height="1" fill="#CE1126" />
+            </svg>
+            <svg *ngSwitchCase="'fr'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3 2" width="22" height="15"
+              class="rounded">
+              <rect width="1" height="2" fill="#002395" />
+              <rect x="1" width="1" height="2" fill="#fff" />
+              <rect x="2" width="1" height="2" fill="#ED2939" />
+            </svg>
+            <svg *ngSwitchCase="'de'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 5 3" width="22" height="15"
+              class="rounded">
+              <rect width="5" height="1" fill="#000" />
+              <rect y="1" width="5" height="1" fill="#D00" />
+              <rect y="2" width="5" height="1" fill="#FFCE00" />
+            </svg>
+          </ng-container>
+          <span>{{ lang.name }}</span>
+        </div>
+      </button>
+    </mat-menu>
+
+    <!-- Notification Bell -->
+    <button mat-icon-button aria-label="Notifications" [matMenuTriggerFor]="notificationMenu" class="m-r-8">
+      <i-tabler class="d-flex" name="bell" matBadge="5" matBadgeColor="warn"></i-tabler>
+    </button>
+    <mat-menu #notificationMenu="matMenu" class="notification-menu-panel cardWithShadow" xPosition="before">
+      <div class="p-16" (click)="$event.stopPropagation()">
+        <div class="d-flex align-items-center justify-content-between m-b-16">
+          <h4 class="font-semibold m-0">{{ 'header.notifications' | translate }}</h4>
+          <span class="badge bg-light-primary text-primary rounded p-y-4 p-x-8 f-s-12">5 {{ 'header.newNotifications' |
+            translate }}</span>
+        </div>
+        <div class="notification-list">
+          <div class="d-flex align-items-center p-y-12 border-bottom">
+            <div class="m-r-12 rounded-circle bg-light-primary text-primary p-8 d-flex">
+              <i-tabler name="user" class="icon-18"></i-tabler>
+            </div>
+            <div>
+              <h6 class="font-semibold m-b-4 f-s-14">{{ 'header.newUserRegistered' | translate }}</h6>
+              <span class="text-muted f-s-12">{{ 'header.justNow' | translate }}</span>
+            </div>
+          </div>
+          <div class="d-flex align-items-center p-y-12">
+            <div class="m-r-12 rounded-circle bg-light-success text-success p-8 d-flex">
+              <i-tabler name="settings" class="icon-18"></i-tabler>
+            </div>
+            <div>
+              <h6 class="font-semibold m-b-4 f-s-14">{{ 'header.systemUpdated' | translate }}</h6>
+              <span class="text-muted f-s-12">{{ 'header.yesterday' | translate }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </mat-menu>
+
+    <!-- Profile Menu -->
+    <button mat-icon-button [matMenuTriggerFor]="profilemenu" aria-label="User Profile" class="profile-btn">
+      <img [src]="currentUser?.avatar || '/assets/images/profile/user-1.jpg'" class="rounded-circle object-cover"
+        width="35" height="35" />
+    </button>
+    <mat-menu #profilemenu="matMenu" class="profile-menu-panel cardWithShadow" xPosition="before">
+      <div class="profile-menu-content" (click)="$event.stopPropagation()">
+        <h4 class="profile-menu-title font-semibold m-b-16">{{ 'header.userProfile' | translate }}</h4>
+
+        <!-- User Info Card -->
+        <div class="user-info-card d-flex align-items-center m-b-24">
+          <img [src]="currentUser?.avatar || '/assets/images/profile/user-1.jpg'"
+            class="rounded-circle m-r-16 object-cover" width="80" height="80" />
+          <div class="user-details">
+            <h5 class="user-name text-dark font-semibold m-b-4">{{ currentUser?.name || 'Unknown User' }}</h5>
+            <span class="user-role text-muted d-block m-b-4 f-s-14">{{ currentUser?.role || ('header.role' | translate)
+              }}</span>
+            <span class="user-email text-muted d-flex align-items-center f-s-14">
+              <i-tabler name="mail" class="icon-16 m-r-4"></i-tabler>
+              {{ currentUser?.email || 'info@modernize.com' }}
+            </span>
+          </div>
+        </div>
+
+        <mat-divider class="m-b-16"></mat-divider>
+
+        <!-- Menu Items -->
+        <div class="profile-items-list">
+          <!-- Item 1: My Profile -->
+          <a [routerLink]="profileLink" class="profile-item d-flex align-items-center p-y-12">
+            <div class="profile-icon-container bg-light-primary text-primary m-r-16">
+              <i-tabler name="user" class="icon-20"></i-tabler>
+            </div>
+            <div class="item-text">
+              <span class="item-title font-semibold d-block">{{ 'header.myProfile' | translate }}</span>
+              <span class="item-subtitle text-muted font-normal">{{ 'header.accountSettings' | translate }}</span>
+            </div>
+          </a>
+
+          <!-- Item 2: My Tasks -->
+          <a *ngIf="showTasksLink" [routerLink]="tasksLink" class="profile-item d-flex align-items-center p-y-12">
+            <div class="profile-icon-container bg-light-warning text-warning m-r-16">
+              <i-tabler name="list-check" class="icon-20"></i-tabler>
+            </div>
+            <div class="item-text">
+              <span class="item-title font-semibold d-block">{{ 'header.myTasks' | translate }}</span>
+              <span class="item-subtitle text-muted font-normal">{{ 'header.todoDaily' | translate }}</span>
+            </div>
+          </a>
+        </div>
+
+        <!-- Logout Button -->
+        <div class="p-t-16">
+          <button mat-stroked-button color="primary" class="w-100 logout-btn" (click)="logout()">
+            {{ 'header.logout' | translate }}
+          </button>
+        </div>
+      </div>
+    </mat-menu>
+
+  </div>
+</mat-toolbar>

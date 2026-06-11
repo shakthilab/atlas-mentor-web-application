@@ -1,0 +1,123 @@
+.mat-card-hover {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+  }
+}
+
+.node-container {
+  .node-item {
+    transition: background-color 0.2s ease-in-out;
+    border-color: rgba(0,0,0,0.08) !important;
+    
+    .node-toggle {
+      width: 24px;
+      height: 24px;
+      line-height: 24px;
+      padding: 0;
+      .mat-mdc-button-touch-target {
+        width: 24px;
+        height: 24px;
+      }
+    }
+  }
+}
+
+.rotate-180 {
+  transform: rotate(-90deg);
+}
+
+.transition {
+  transition: transform 0.2s ease-in-out;
+}
+
+.search-employees {
+  ::ng-deep .mat-mdc-text-field-wrapper {
+    padding-bottom: 0;
+  }
+  ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+    display: none;
+  }
+}
+
+.employee-list {
+  max-height: 300px;
+  overflow-y: auto;
+  
+  ::ng-deep .mdc-list-item__primary-text {
+    width: 100%;
+  }
+
+  ::ng-deep .mat-mdc-list-item {
+    height: auto !important;
+    padding: 0 !important;
+  }
+
+  ::ng-deep .mdc-list-item__start {
+    margin-right: 12px;
+  }
+}
+
+// Dark Mode overrides
+.dark-theme {
+  .node-container {
+    .node-item {
+      border-color: rgba(255,255,255,0.05) !important;
+      &:hover {
+        background-color: rgba(255,255,255,0.02);
+      }
+    }
+    .tree-line, .tree-branch {
+      border-color: rgba(255,255,255,0.08) !important;
+    }
+  }
+  .bg-hover-light:hover {
+    background-color: rgba(255,255,255,0.05) !important;
+  }
+}
+
+/* Custom styles for exact mockup match */
+.letter-spacing-1 {
+  letter-spacing: 0.5px;
+}
+
+.bg-light-primary-opacity {
+  background-color: rgba(93, 135, 255, 0.05) !important;
+}
+
+.custom-select, .custom-input {
+  ::ng-deep .mat-mdc-text-field-wrapper {
+    background-color: white;
+  }
+  ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+    display: none;
+  }
+  ::ng-deep .mat-mdc-text-field-wrapper {
+    padding-bottom: 0;
+  }
+}
+
+.node-badge {
+  border: 1px solid transparent;
+}
+
+.bg-light-primary { background-color: #ecf2ff !important; color: #5d87ff !important; }
+.bg-light-error { background-color: #fdede8 !important; color: #fa896b !important; }
+.bg-light-success { background-color: #e6fffa !important; color: #13deb9 !important; }
+.bg-light-warning { background-color: #fef5e5 !important; color: #ffae1f !important; }
+.bg-light-secondary { background-color: #f6f9fc !important; color: #8e9aab !important; }
+
+/* Custom Badge Borders for specific roles if needed */
+.text-warning.bg-light-warning {
+  border-color: rgba(255, 174, 31, 0.2);
+}
+
+.list-option-custom {
+  border-color: rgba(0,0,0,0.08) !important;
+}
+
+/* Checkbox alignment fix */
+::ng-deep .mat-mdc-checkbox-touch-target {
+  display: none;
+}

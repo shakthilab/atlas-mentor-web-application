@@ -1,0 +1,63 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
+
+// font
+$font-family: 'Inter', sans-serif;
+
+// light color variable
+$sidebarbg: white;
+$background: white;
+$cardbg: white;
+$toolbar: white;
+$cardshadow: rgb(145 158 171 / 30%) 0px 0px 2px 0px, rgb(145 158 171 / 12%) 0px 12px 24px -4px;
+$hoverBgColor: #f6f9fc;
+
+// Dark color variable
+$darksidebarbg: #121214;
+$darkbackground: #0c0c0e;
+$darkcardbg: #18181c;
+$darktoolbar: #121214;
+$darkcardshadow: none;
+$darkborderColor: #242428;
+$darkformborderColor: #2c2c32;
+$darkhoverbgcolor: #202024;
+$darkthemelightprimary: #182235;
+$darkthemelightaccent: #0e2938;
+$darkthemelightwarning: #2c1e14;
+$darkthemelighterror: #30161d;
+$darkthemelightsuccess: #0d281e;
+
+// Sidenav
+$sidenav-desktop: 270px !default;
+$sidenav-mini: 80px !default;
+$header-height: 70px !default;
+
+
+//BorderColor
+$borderColor: #e5eaef;
+$borderformColor: #dfe5ef;
+
+// custom
+$primary: #5d87ff;
+$accent: #49beff;
+$warning: #ffae1f;
+$error: #fa896b;
+$success: #13deb9;
+$white: #ffffff;
+
+$light: #f2f6fa;
+
+$gray-100:  #7c8fac;
+
+$light-primary: #ecf2ff;
+$light-accent: #e8f7ff;
+$light-warning: #fef5e5;
+$light-error: #fdede8;
+$light-success: #e6fffa;
+
+// layout
+$boxedWidth: 1200px;
+
+$border-radius: 7px;
+
+// text color
+$textPrimary: #2a3547;
