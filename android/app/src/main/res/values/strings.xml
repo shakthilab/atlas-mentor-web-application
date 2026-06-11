@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">EduCRM</string>
-    <string name="title_activity_main">EduCRM</string>
+    <string name="app_name">Atlas Mentor</string>
+    <string name="title_activity_main">Atlas Mentor</string>
     <string name="package_name">com.educrm.app</string>
     <string name="custom_url_scheme">com.educrm.app</string>
 </resources>
