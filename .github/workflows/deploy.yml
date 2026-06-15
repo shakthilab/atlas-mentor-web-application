@@ -30,7 +30,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "dist/atlas-mentor-web-app/browser/*"
+          source: "dist/atlas-mentor-web-app/*"
           target: "/home/ec2-user/frontend"
 
       - name: 🔄 Move to Nginx & Restart
@@ -41,5 +41,5 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             sudo rm -rf /usr/share/nginx/html/*
-            sudo cp -r /home/ec2-user/frontend/dist/atlas-mentor-web-app/browser/* /usr/share/nginx/html/
+            sudo cp -r /home/ec2-user/frontend/dist/atlas-mentor-web-app/* /usr/share/nginx/html/
             sudo systemctl restart nginx
