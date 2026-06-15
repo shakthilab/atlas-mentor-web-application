@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { delay, map, switchMap } from 'rxjs/operators';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 
 export interface TaskComment {
@@ -43,10 +43,13 @@ export interface TaskBundle {
   description: string;
   role: string;
   status: 'ACTIVE' | 'INACTIVE' | 'PAUSED';
-  scheduleType: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'N/A' | '';
+  scheduleType: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'ONE_TIME' | 'N/A' | '';
   executionTime?: string; // Time string like "10:25 PM"
   startDate?: string;
+  executionDay?: string;
+  executionDayOfMonth?: number;
   tasks: BundleTask[];
+  activeTaskCount?: number;
 }
 
 export interface Task {
@@ -358,6 +361,14 @@ export class TaskService {
 
   updateTaskPriority(taskId: number, priority: string): Observable<any> {
     return this.http.put<any>(`${environment.apiUrl}/tasks/${taskId}/priority`, { priority: priority.toUpperCase() });
+  }
+
+  updateTaskAssignee(taskId: number, assigneeId: number): Observable<any> {
+    return this.http.put<any>(`${environment.apiUrl}/tasks/${taskId}/assignee`, { assignedToId: assigneeId });
+  }
+
+  updateTaskDueDate(taskId: number, dueDate: string): Observable<any> {
+    return this.http.put<any>(`${environment.apiUrl}/tasks/${taskId}/due-date`, { dueDate: dueDate });
   }
 
   updateTaskStatusHttp(taskId: number, status: string): Observable<any> {
@@ -715,5 +726,55 @@ export class TaskService {
 
     this.saveTasksToStore(tasks);
     return of(task).pipe(delay(250));
+  }
+
+  getTaskBundles(roleId?: number, status?: string, scheduleType?: string): Observable<any> {
+    let params = new HttpParams();
+    if (roleId) params = params.set('roleId', roleId.toString());
+    if (status && status !== 'All') params = params.set('status', status.toUpperCase());
+    if (scheduleType && scheduleType !== 'All') params = params.set('scheduleType', scheduleType.toUpperCase());
+
+    return this.http.get<any>(`${environment.apiUrl}/task-bundles`, { params }).pipe(
+      map(response => {
+        const content = response.content || [];
+        const mappedBundles = content.map((item: any) => {
+          return {
+            id: item.id,
+            name: item.name,
+            description: item.description,
+            role: item.roleName,
+            status: item.status,
+            scheduleType: item.scheduleType || 'N/A',
+            executionTime: item.nextExecutionAt ? new Date(item.nextExecutionAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
+            startDate: item.createdAt,
+            activeTaskCount: item.activeTaskCount,
+            tasks: new Array(item.activeTaskCount || 0).fill({})
+          } as TaskBundle;
+        });
+
+        return {
+          bundles: mappedBundles,
+          totalCount: response.totalCount || 0,
+          activeCount: response.activeCount || 0,
+          inactiveCount: response.inactiveCount || 0
+        };
+      })
+    );
+  }
+
+  executeTaskBundleNow(bundleId: number): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/task-bundles/${bundleId}/execute-now`, {});
+  }
+
+  createTaskBundle(payload: any): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/task-bundles`, payload);
+  }
+
+  deleteTaskBundle(bundleId: number): Observable<any> {
+    return this.http.delete<any>(`${environment.apiUrl}/task-bundles/${bundleId}`);
+  }
+
+  deleteTask(taskId: number): Observable<any> {
+    return this.http.delete<any>(`${environment.apiUrl}/tasks/${taskId}`);
   }
 }

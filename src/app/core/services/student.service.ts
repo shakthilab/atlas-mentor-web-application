@@ -25,6 +25,42 @@ export interface RegisteredStudentDto {
   assignedByName?: string | null;
 }
 
+export interface Payout {
+  id: number;
+  paidAmount: number;
+  paymentProgress: number;
+  paymentStageDisplay: string;
+  payoutStatus: string;
+  sourceType: string;
+  studentId: number;
+  studentName: string;
+  assignedAmount?: number;
+  balanceAmount?: number;
+  disputeReason?: string;
+  disputeResponse?: string;
+  disputedAt?: string;
+  respondedAt?: string;
+  createdAt?: string;
+  user?: {
+    id: number;
+    username: string;
+    email: string;
+    role: string;
+  };
+}
+
+export interface PayoutSummary {
+  totalAssignedAmount?: number;
+  totalDisputedAmount?: number;
+  totalPaidAmount?: number;
+  totalRejectedAmount?: number;
+}
+
+export interface PaymentPageData {
+  payouts: Payout[];
+  summary: PayoutSummary;
+}
+
 export interface StudentPageData {
   content: RegisteredStudentDto[];
   currentPage: number;
@@ -68,5 +104,19 @@ export class StudentService {
     });
     const params = new HttpParams().set('status', status);
     return this.http.put(`${environment.apiUrl}/students/${id}/active-status`, {}, { headers, params });
+  }
+
+  getPaymentsByReferralCompany(page = 0, size = 10): Observable<PaymentPageData> {
+    const token = this.authService.getToken();
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Accept': 'application/json'
+    });
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+    return this.http
+      .get<ApiResponse<PaymentPageData>>(`${environment.apiUrl}/students/with-payment-by-referral-company`, { headers, params })
+      .pipe(map((res) => res.data));
   }
 }

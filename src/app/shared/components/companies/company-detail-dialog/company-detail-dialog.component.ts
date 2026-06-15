@@ -39,7 +39,7 @@ import { Company } from '../companies.component';
           <div class="flex-grow-1">
             <h3 class="mat-subtitle-1 f-w-700 m-b-4 f-s-18">{{ company.companyName }}</h3>
             <div class="d-flex align-items-center gap-8 flex-wrap">
-              <span class="status-badge" [ngClass]="company.status?.toUpperCase()">
+              <span class="status-badge" [ngClass]="(company.status || '').toUpperCase()">
                 {{ company.status | titlecase }}
               </span>
               <span *ngIf="company.industry" class="industry-chip f-s-12">
@@ -116,10 +116,10 @@ import { Company } from '../companies.component';
           <!-- Address -->
           <div class="detail-item detail-item-full" *ngIf="company.location">
             <span class="detail-label">Address</span>
-            <span class="detail-value d-flex align-items-start">
+            <div class="detail-value d-flex align-items-start">
               <i-tabler name="map-pin" class="icon-15 m-r-8 text-muted" style="margin-top:2px;flex-shrink:0"></i-tabler>
-              {{ company.location }}
-            </span>
+              <span class="line-clamp-2-mobile">{{ company.location }}</span>
+            </div>
           </div>
 
           <!-- Assigned Manager -->
@@ -143,14 +143,14 @@ import { Company } from '../companies.component';
       <div class="dialog-footer d-flex align-items-center justify-content-between p-x-24 p-y-16">
         <!-- Activate / Deactivate -->
         <div>
-          <button *ngIf="company.status?.toUpperCase() === 'ACTIVE'"
+          <button *ngIf="(company.status || '').toUpperCase() === 'ACTIVE'"
             mat-stroked-button color="warn"
             class="d-flex align-items-center"
             (click)="toggleStatus()">
             <i-tabler name="ban" class="icon-16 m-r-6"></i-tabler>
             Deactivate
           </button>
-          <button *ngIf="company.status?.toUpperCase() !== 'ACTIVE'"
+          <button *ngIf="(company.status || '').toUpperCase() !== 'ACTIVE'"
             mat-stroked-button color="primary"
             class="d-flex align-items-center"
             (click)="toggleStatus()">
@@ -225,6 +225,19 @@ import { Company } from '../companies.component';
     .icon-16 { width: 16px; height: 16px; }
     .icon-20 { width: 20px; height: 20px; }
     .icon-36 { width: 36px; height: 36px; }
+
+    @media (max-width: 576px) {
+      .line-clamp-2-mobile {
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2 !important;
+        /* autoprefixer: ignore next */
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: pre-line !important;
+        word-break: break-word !important;
+      }
+    }
 
     :host-context(.dark-theme) {
       .profile-banner { background: rgba(97,93,255,0.06); }

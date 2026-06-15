@@ -5,6 +5,9 @@ import { RouterModule } from '@angular/router';
 import { MaterialModule } from './material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import * as TablerIcons from 'angular-tabler-icons/icons';
+import { NgxEchartsModule } from 'ngx-echarts';
+import { AdminDashboardComponent, AnimatedNumberDirective } from '../features/admin/dashboard/admin-dashboard.component';
+import { PartnerDashboardComponent } from './components/partner-dashboard/partner-dashboard.component';
 import { ComingSoonComponent } from './components/coming-soon/coming-soon.component';
 import { SettingsComponent } from './components/settings/settings.component';
 import { LeadsComponent } from './components/leads/leads.component';
@@ -36,6 +39,9 @@ import { HierarchyComponent } from './components/hierarchy/hierarchy.component';
     CompaniesComponent,
     ResourcesComponent,
     HierarchyComponent,
+    AdminDashboardComponent,
+    AnimatedNumberDirective,
+    PartnerDashboardComponent,
   ],
   imports: [
     CommonModule,
@@ -44,6 +50,9 @@ import { HierarchyComponent } from './components/hierarchy/hierarchy.component';
     ReactiveFormsModule,
     MaterialModule,
     TablerIconsModule.pick(TablerIcons),
+    NgxEchartsModule.forRoot({
+      echarts: () => import('echarts')
+    }),
   ],
   exports: [
     CommonModule,
@@ -66,6 +75,10 @@ import { HierarchyComponent } from './components/hierarchy/hierarchy.component';
     CompaniesComponent,
     ResourcesComponent,
     HierarchyComponent,
+    AdminDashboardComponent,
+    AnimatedNumberDirective,
+    PartnerDashboardComponent,
+    NgxEchartsModule,
   ],
 })
 export class SharedModule {}

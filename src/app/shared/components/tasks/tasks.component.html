@@ -267,8 +267,9 @@
             <ng-container matColumnDef="actions">
               <th mat-header-cell *matHeaderCellDef class="text-center f-w-600 f-s-14" width="80px">Actions</th>
               <td mat-cell *matCellDef="let element" class="text-center">
-                <button mat-icon-button (click)="$event.stopPropagation(); openEditDrawer(element)" class="text-muted">
-                  <i-tabler name="edit" class="icon-16"></i-tabler>
+
+                <button mat-icon-button color="warn" (click)="$event.stopPropagation(); deleteTask(element)" matTooltip="Delete Task">
+                  <i-tabler name="trash" class="icon-16"></i-tabler>
                 </button>
               </td>
             </ng-container>
@@ -452,9 +453,13 @@
             <i-tabler name="calendar" class="icon-14 text-muted" style="width: 14px; height: 14px;"></i-tabler>
             DUE DATE
           </label>
-          <div class="d-flex align-items-center">
-            <span class="f-w-600 f-s-13 text-dark">{{ (drawerTaskData.dueDate | date:'MMM d, y') || 'No Due Date'
-              }}</span>
+          <div class="d-flex align-items-center cursor-pointer" (click)="drawerDueDatePicker.open()">
+            <span class="f-w-600 f-s-13 text-dark">{{ (drawerTaskData.dueDate | date:'MMM d, y') || 'No Due Date' }}</span>
+            <i-tabler name="chevron-down" class="icon-12 m-l-4 text-muted"></i-tabler>
+          </div>
+          <div style="position: absolute; top: 0; left: 0; width: 1px; height: 1px; overflow: hidden; opacity: 0;">
+            <input [matDatepicker]="drawerDueDatePicker" (dateChange)="updateDrawerDueDate($event.value)">
+            <mat-datepicker #drawerDueDatePicker></mat-datepicker>
           </div>
         </div>
 
@@ -684,9 +689,7 @@
             <label>TARGET ROLE</label>
             <mat-select class="custom-input custom-mat-select" panelClass="custom-select-panel"
               [(ngModel)]="newBundleData.role" placeholder="Select Role...">
-              <mat-option value="MANAGER">Manager</mat-option>
-              <mat-option value="ADMIN">Admin</mat-option>
-              <mat-option value="BRANCH_PARTNER">Branch Partner</mat-option>
+              <mat-option *ngFor="let role of availableRoles" [value]="role.name">{{ role.name }}</mat-option>
             </mat-select>
           </div>
           <div class="form-group half-width">
@@ -756,8 +759,9 @@
             <div class="task-card-header">
               <span class="task-num-badge">TASK {{ i < 9 ? '0' + (i + 1) : i + 1 }}</span>
                   <div class="d-flex align-items-center gap-8">
-                    <span class="task-priority-badge" [ngClass]="task.priority.toLowerCase()">{{ task.priority |
-                      uppercase }}</span>
+                    <span class="task-priority-badge cursor-pointer" [ngClass]="task.priority.toLowerCase()" (click)="cyclePriority(task)" matTooltip="Click to change priority">
+                      {{ task.priority | uppercase }}
+                    </span>
                     <a href="javascript:void(0)" class="text-danger" (click)="removeBundleTask(i)"
                       *ngIf="newBundleData.tasks.length > 1" title="Remove Task">
                       <i-tabler name="x" class="icon-14"></i-tabler>
@@ -774,9 +778,7 @@
                 <input type="number" class="due-input" [(ngModel)]="task.dueDays" min="0" style="width: 25px;">
                 <span> DAYS</span>
               </div>
-              <div class="d-flex gap-8">
-                <a href="javascript:void(0)" class="edit-link">Edit Details</a>
-              </div>
+
             </div>
           </div>
 
@@ -953,7 +955,7 @@
     <div class="toolbar-section">
       <div class="search-container">
         <i-tabler name="search" class="icon-18 search-icon"></i-tabler>
-        <input placeholder="Search bundles by name..." class="search-input" />
+        <input placeholder="Search bundles by name..." class="search-input" [(ngModel)]="bundleSearchText" />
       </div>
       <div class="filters-container">
         <button class="filter-btn" [matMenuTriggerFor]="roleMenu">
@@ -962,10 +964,10 @@
           <i-tabler name="chevron-down" class="icon-14 text-muted"></i-tabler>
         </button>
         <mat-menu #roleMenu="matMenu">
-          <button mat-menu-item (click)="bundleFilterRole = 'All'">All</button>
-          <button mat-menu-item (click)="bundleFilterRole = 'Manager'">Manager</button>
-          <button mat-menu-item (click)="bundleFilterRole = 'Admin'">Admin</button>
-          <button mat-menu-item (click)="bundleFilterRole = 'Branch Partner'">Branch Partner</button>
+          <button mat-menu-item (click)="bundleFilterRole = 'All'; loadTaskBundles()">All</button>
+          <button mat-menu-item (click)="bundleFilterRole = 'Manager'; loadTaskBundles()">Manager</button>
+          <button mat-menu-item (click)="bundleFilterRole = 'Admin'; loadTaskBundles()">Admin</button>
+          <button mat-menu-item (click)="bundleFilterRole = 'Branch Partner'; loadTaskBundles()">Branch Partner</button>
         </mat-menu>
 
         <button class="filter-btn" [matMenuTriggerFor]="statusMenu">
@@ -974,9 +976,9 @@
           <i-tabler name="chevron-down" class="icon-14 text-muted"></i-tabler>
         </button>
         <mat-menu #statusMenu="matMenu">
-          <button mat-menu-item (click)="bundleFilterStatus = 'All'">All</button>
-          <button mat-menu-item (click)="bundleFilterStatus = 'Active'">Active</button>
-          <button mat-menu-item (click)="bundleFilterStatus = 'Paused'">Paused</button>
+          <button mat-menu-item (click)="bundleFilterStatus = 'All'; loadTaskBundles()">All</button>
+          <button mat-menu-item (click)="bundleFilterStatus = 'Active'; loadTaskBundles()">Active</button>
+          <button mat-menu-item (click)="bundleFilterStatus = 'Inactive'; loadTaskBundles()">Inactive</button>
         </mat-menu>
 
         <button class="filter-btn" [matMenuTriggerFor]="scheduleMenu">
@@ -985,10 +987,10 @@
           <i-tabler name="chevron-down" class="icon-14 text-muted"></i-tabler>
         </button>
         <mat-menu #scheduleMenu="matMenu">
-          <button mat-menu-item (click)="bundleFilterSchedule = 'All'">All</button>
-          <button mat-menu-item (click)="bundleFilterSchedule = 'Daily'">Daily</button>
-          <button mat-menu-item (click)="bundleFilterSchedule = 'Weekly'">Weekly</button>
-          <button mat-menu-item (click)="bundleFilterSchedule = 'Monthly'">Monthly</button>
+          <button mat-menu-item (click)="bundleFilterSchedule = 'All'; loadTaskBundles()">All</button>
+          <button mat-menu-item (click)="bundleFilterSchedule = 'Daily'; loadTaskBundles()">Daily</button>
+          <button mat-menu-item (click)="bundleFilterSchedule = 'Weekly'; loadTaskBundles()">Weekly</button>
+          <button mat-menu-item (click)="bundleFilterSchedule = 'Monthly'; loadTaskBundles()">Monthly</button>
         </mat-menu>
       </div>
     </div>
@@ -1012,7 +1014,7 @@
               <div class="bundle-desc">{{ bundle.description }}</div>
             </td>
             <td>
-              <span class="role-pill" [ngClass]="bundle.role === 'MANAGER' ? 'role-manager' : 'role-admin'">
+              <span class="role-pill">
                 {{ bundle.role }}
               </span>
             </td>
@@ -1025,18 +1027,22 @@
               <span class="task-count">{{ bundle.tasks.length }}</span>
             </td>
             <td>
-              <span class="status-indicator" [ngClass]="bundle.status === 'ACTIVE' ? 'status-active' : 'status-paused'">
-                <span class="dot"></span> {{ bundle.status }}
+              <span class="status-indicator" [ngClass]="bundle.status === 'ACTIVE' ? 'status-active' : 'status-inactive'">
+                <span class="dot"></span> {{ bundle.status === 'INACTIVE' ? 'Inactive' : bundle.status }}
               </span>
             </td>
             <td class="text-right actions-cell">
               <div class="actions-wrapper">
-                <button class="action-btn" matTooltip="Execute"><i-tabler name="player-play"
+                <button class="action-btn" [matTooltip]="'Execute ' + bundle.name" (click)="openExecuteBundleDialog(bundle)"><i-tabler name="player-play"
                     class="icon-18"></i-tabler></button>
                 <button class="action-btn" matTooltip="Edit"><i-tabler name="pencil"
                     class="icon-18"></i-tabler></button>
-                <button class="action-btn" matTooltip="Pause"><i-tabler name="player-pause"
-                    class="icon-18"></i-tabler></button>
+                <button class="action-btn" *ngIf="bundle.status === 'ACTIVE'" matTooltip="Deactivate" (click)="toggleBundleStatus(bundle)">
+                  <i-tabler name="user-x" class="icon-18 text-warning"></i-tabler>
+                </button>
+                <button class="action-btn" *ngIf="bundle.status === 'INACTIVE'" matTooltip="Activate" (click)="toggleBundleStatus(bundle)">
+                  <i-tabler name="user-check" class="icon-18 text-success"></i-tabler>
+                </button>
                 <button class="action-btn" matTooltip="Delete" (click)="deleteBundle(bundle)"><i-tabler name="trash"
                     class="icon-18"></i-tabler></button>
               </div>
@@ -1049,12 +1055,37 @@
 
   <mat-dialog-actions class="redesigned-dialog-footer">
     <div class="footer-stats">
-      Total <strong>{{ filteredBundles.length }}</strong> &nbsp;&nbsp;&nbsp;&nbsp;
+      Total <strong>{{ bundleTotalCount }}</strong> &nbsp;&nbsp;&nbsp;&nbsp;
       Active <strong>{{ getActiveCount() }}</strong> &nbsp;&nbsp;&nbsp;&nbsp;
-      Paused <strong>{{ getPausedCount() }}</strong>
+      Inactive <strong>{{ getInactiveCount() }}</strong>
     </div>
     <button class="new-bundle-btn" (click)="openCreateBundleDialog(); dialog.closeAll();">
       <i-tabler name="plus" class="icon-16 m-r-4"></i-tabler> New Bundle
     </button>
   </mat-dialog-actions>
+</ng-template>
+
+<!-- Execute Bundle Dialog -->
+<ng-template #executeBundleDialog>
+  <div style="padding: 24px 16px; text-align: center;">
+    <div style="background-color: #eff6ff; color: #5d87ff; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px auto;">
+      <i-tabler name="bolt" style="width: 28px; height: 28px;"></i-tabler>
+    </div>
+    
+    <h2 style="font-size: 20px; font-weight: 600; color: #1e293b; margin-bottom: 16px;">Execute Bundle Now</h2>
+    
+    <p style="font-size: 14px; color: #64748b; line-height: 1.6; margin-bottom: 32px; padding: 0 8px;">
+      Are you sure you want to immediately execute <br>
+      "{{ selectedBundleToExecute?.name }}"? This will run all tasks associated with this bundle right away.
+    </p>
+    
+    <div style="display: flex; gap: 16px; justify-content: center; padding: 0 8px;">
+      <button mat-dialog-close style="flex: 1; height: 44px; background: white; border: 1px solid #cbd5e1; color: #64748b; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+        Cancel
+      </button>
+      <button (click)="confirmExecuteBundle()" style="flex: 1; height: 44px; background: #5d87ff; border: none; color: white; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 10px rgba(93, 135, 255, 0.2);">
+        Execute
+      </button>
+    </div>
+  </div>
 </ng-template>

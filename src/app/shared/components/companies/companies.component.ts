@@ -1,10 +1,14 @@
 import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { MatDialog } from '@angular/material/dialog';
 import { NotificationService } from '../../../core/services/notification.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { CompanyService } from '../../../core/services/company.service';
+import { MasterDataService } from '../../../core/services/master-data.service';
 import { environment } from '../../../../environments/environment';
+import { CompanyDetailDialogComponent } from './company-detail-dialog/company-detail-dialog.component';
+import { AddCompanyDialogComponent } from './add-company-dialog/add-company-dialog.component';
 
 export interface Company {
   id: number;
@@ -16,6 +20,15 @@ export interface Company {
   status: string;
   branchName?: string | null;
   branchId?: number | null;
+  contactPerson?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  mobileCountryCodeId?: number | null;
+  totalStaffs?: number;
+  totalStudents?: number;
+  assignedTo?: any;
+  firstName?: string | null;
+  lastName?: string | null;
 }
 
 export interface BranchOption {
@@ -136,7 +149,7 @@ export interface BranchOption {
                 <ng-container matColumnDef="location">
                   <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Location</th>
                   <td mat-cell *matCellDef="let element">
-                    <span class="d-block f-w-500 text-dark f-s-13">{{ element.location || '—' }}</span>
+                    <span class="d-block f-w-500 text-dark f-s-13 line-clamp-2-mobile">{{ element.location || '—' }}</span>
                   </td>
                 </ng-container>
 
@@ -159,7 +172,7 @@ export interface BranchOption {
                 <ng-container matColumnDef="status">
                   <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Status</th>
                   <td mat-cell *matCellDef="let element">
-                    <span class="status-badge" [ngClass]="element.status?.toLowerCase()">
+                    <span class="status-badge" [ngClass]="element.status.toLowerCase()">
                       {{ element.status | titlecase }}
                     </span>
                   </td>
@@ -181,7 +194,16 @@ export interface BranchOption {
                         <span>Edit company</span>
                       </button>
                       <mat-divider></mat-divider>
-                      <button mat-menu-item class="text-danger" (click)="deleteCompany(element)">
+                      <button mat-menu-item *ngIf="(element.status || 'ACTIVE').toUpperCase() === 'ACTIVE'" class="text-danger" (click)="toggleStatus(element); $event.stopPropagation()">
+                        <i-tabler name="ban" class="icon-16 m-r-8 text-danger"></i-tabler>
+                        <span>Deactivate</span>
+                      </button>
+                      <button mat-menu-item *ngIf="(element.status || 'ACTIVE').toUpperCase() !== 'ACTIVE'" (click)="toggleStatus(element); $event.stopPropagation()">
+                        <i-tabler name="check" class="icon-16 m-r-8 text-success"></i-tabler>
+                        <span>Activate</span>
+                      </button>
+                      <mat-divider></mat-divider>
+                      <button mat-menu-item class="text-danger" (click)="deleteCompany(element); $event.stopPropagation()">
                         <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
                         <span>Delete</span>
                       </button>
@@ -211,7 +233,7 @@ export interface BranchOption {
                     </div>
                     <div>
                       <h6 class="mat-subtitle-1 f-w-600 m-b-0">{{ element.companyName }}</h6>
-                      <span class="status-badge mt-1 d-inline-block" [ngClass]="element.status?.toLowerCase()">{{ element.status | titlecase }}</span>
+                      <span class="status-badge mt-1 d-inline-block" [ngClass]="element.status.toLowerCase()">{{ element.status | titlecase }}</span>
                     </div>
                     <div class="m-l-auto">
                       <button mat-icon-button [matMenuTriggerFor]="cardMenu" class="text-muted" (click)="$event.stopPropagation()">
@@ -227,7 +249,16 @@ export interface BranchOption {
                           <span>Edit company</span>
                         </button>
                         <mat-divider></mat-divider>
-                        <button mat-menu-item class="text-danger" (click)="deleteCompany(element)">
+                        <button mat-menu-item *ngIf="(element.status || 'ACTIVE').toUpperCase() === 'ACTIVE'" class="text-danger" (click)="toggleStatus(element); $event.stopPropagation()">
+                          <i-tabler name="ban" class="icon-16 m-r-8 text-danger"></i-tabler>
+                          <span>Deactivate</span>
+                        </button>
+                        <button mat-menu-item *ngIf="(element.status || 'ACTIVE').toUpperCase() !== 'ACTIVE'" (click)="toggleStatus(element); $event.stopPropagation()">
+                          <i-tabler name="check" class="icon-16 m-r-8 text-success"></i-tabler>
+                          <span>Activate</span>
+                        </button>
+                        <mat-divider></mat-divider>
+                        <button mat-menu-item class="text-danger" (click)="deleteCompany(element); $event.stopPropagation()">
                           <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
                           <span>Delete</span>
                         </button>
@@ -241,10 +272,9 @@ export interface BranchOption {
                     </span>
                   </div>
 
-                  <div *ngIf="element.location" class="d-flex align-items-center m-b-10">
-                    <span class="f-s-13 text-muted d-flex align-items-center">
-                      <i-tabler name="map-pin" class="icon-16 m-r-4"></i-tabler> {{ element.location }}
-                    </span>
+                  <div *ngIf="element.location" class="d-flex align-items-start m-b-10">
+                    <i-tabler name="map-pin" class="icon-16 m-r-4" style="flex-shrink:0; margin-top:2px;"></i-tabler>
+                    <span class="f-s-13 text-muted line-clamp-2-mobile">{{ element.location }}</span>
                   </div>
 
                   <div *ngIf="element.branchName" class="d-flex align-items-center m-b-10">
@@ -388,6 +418,19 @@ export interface BranchOption {
     .text-danger { color: #fa896b !important; }
     .text-success { color: #13deb9 !important; }
 
+    @media (max-width: 576px) {
+      .line-clamp-2-mobile {
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2 !important;
+        /* autoprefixer: ignore next */
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: pre-line !important;
+        word-break: break-word !important;
+      }
+    }
+
     :host-context(.dark-theme) {
       .mobile-filter-strip { background: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); }
       .filter-trigger-btn { background: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); color: #94a3b8; &:hover { background: var(--dark-hoverbgcolor); } &.filter-active { background: rgba(97,93,255,0.2); border-color: #615dff; color: #a5a1ff; } }
@@ -423,9 +466,11 @@ export class CompaniesComponent implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor(
-    private http: HttpClient,
+    private companyService: CompanyService,
+    private masterDataService: MasterDataService,
     private authService: AuthService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
@@ -435,36 +480,20 @@ export class CompaniesComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {}
 
-  private getHeaders(): HttpHeaders {
-    const token = this.authService.getToken();
-    return new HttpHeaders({
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    });
-  }
-
   loadBranches(): void {
-    const url = `${environment.apiUrl}/branches?includeInactive=true`;
-    this.http.get<any>(url, { headers: this.getHeaders() }).subscribe({
+    this.masterDataService.getBranches(true).subscribe({
       next: (res) => {
-        if (res && Array.isArray(res.data)) {
+        if (res?.data) {
           this.branches = res.data.map((b: any) => ({ id: b.id, name: b.name }));
-        } else if (Array.isArray(res)) {
-          this.branches = res.map((b: any) => ({ id: b.id, name: b.name }));
         }
       },
-      error: (err) => console.error('Failed to load branches for filter', err),
+      error: (err) => console.error('Failed to load branches for filter', err)
     });
   }
 
   loadCompanies(): void {
     this.isLoading = true;
-    let url = `${environment.apiUrl}/company/list?page=${this.currentPage}&size=${this.pageSize}`;
-    if (this.selectedBranchId !== null) {
-      url += `&branchId=${this.selectedBranchId}`;
-    }
-
-    this.http.get<any>(url, { headers: this.getHeaders() }).subscribe({
+    this.companyService.getCompanies(this.currentPage, this.pageSize, this.selectedBranchId).subscribe({
       next: (res) => {
         // Handle various possible paginated response shapes
         const rawList: any[] =
@@ -488,16 +517,26 @@ export class CompaniesComponent implements OnInit, AfterViewInit {
   }
 
   private mapCompany(c: any): Company {
+    const details = c.companyDetails || {};
     return {
       id: c.id,
-      companyName: c.companyName ?? c.name ?? c.company_name ?? 'Unknown',
-      logo: c.logo ?? c.logoUrl ?? '',
-      industry: c.industry ?? c.sector ?? '',
-      location: c.location ?? c.city ?? '',
-      website: c.website ?? c.websiteUrl ?? '',
-      status: (c.status ?? 'active').toLowerCase(),
-      branchName: c.branchName ?? c.branch?.name ?? null,
-      branchId: c.branchId ?? c.branch?.id ?? null,
+      companyName: details.companyName || c.firstName || c.companyName || c.name || 'Unknown',
+      logo: c.logo || c.logoUrl || '',
+      industry: details.industry || c.industry || '',
+      location: details.address || c.location || '',
+      website: details.website || c.website || '',
+      status: c.status || 'ACTIVE',
+      branchName: c.branchName || c.branch?.name || null,
+      branchId: c.branchId || c.branch?.id || null,
+      contactPerson: details.contactPerson || null,
+      email: c.email || null,
+      phone: c.phone || null,
+      mobileCountryCodeId: c.mobileCountryCodeId || null,
+      totalStaffs: c.userCounts?.totalStaffs || 0,
+      totalStudents: c.userCounts?.totalStudents || 0,
+      assignedTo: details.assignedTo || c.assignedTo || null,
+      firstName: c.firstName || null,
+      lastName: c.lastName || null
     };
   }
 
@@ -534,18 +573,84 @@ export class CompaniesComponent implements OnInit, AfterViewInit {
   }
 
   addCompany(): void {
-    this.notificationService.showSuccessToast('Company creation coming soon.', 'Info');
+    const dialogRef = this.dialog.open(AddCompanyDialogComponent, {
+      panelClass: 'dialog-container-custom'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadCompanies();
+      }
+    });
   }
 
   viewDetails(company: Company): void {
-    this.notificationService.showSuccessToast(`Viewing details for ${company.companyName}.`, 'Details');
+    const dialogRef = this.dialog.open(CompanyDetailDialogComponent, {
+      data: {
+        company,
+        onToggleStatus: (c: Company) => this.toggleStatus(c)
+      },
+      panelClass: 'dialog-container-custom'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'statusChanged') {
+        // Status changed was already handled by toggleStatus which reloads the list
+      }
+    });
   }
 
   editCompany(company: Company): void {
-    this.notificationService.showSuccessToast(`Edit form for ${company.companyName} coming soon.`, 'Edit');
+    const dialogRef = this.dialog.open(AddCompanyDialogComponent, {
+      data: company,
+      panelClass: 'dialog-container-custom'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadCompanies();
+      }
+    });
+  }
+
+  toggleStatus(company: Company): void {
+    if (!company.id) return;
+    
+    const currentStatus = (company.status || 'ACTIVE').toUpperCase();
+    const actionText = currentStatus === 'ACTIVE' ? 'deactivate' : 'activate';
+
+    this.companyService.toggleCompanyStatus(company.id).subscribe({
+      next: () => {
+        this.notificationService.showSuccessToast(`Company ${actionText}d successfully.`, 'Status Updated');
+        this.loadCompanies();
+      },
+      error: (err) => {
+        console.error('Failed to update status', err);
+        this.notificationService.showErrorToast(`Failed to ${actionText} company.`, 'Error');
+      }
+    });
   }
 
   deleteCompany(company: Company): void {
-    this.notificationService.showErrorToast(`Company "${company.companyName}" deleted.`, 'Deleted');
+    if (!company.id) return;
+
+    this.notificationService.showErrorPopup(
+      `Are you sure you want to delete the company "${company.companyName}"? This action cannot be undone.`,
+      'Delete Company',
+      'Delete'
+    ).subscribe(confirmed => {
+      if (confirmed) {
+        this.companyService.deleteCompany(company.id!).subscribe({
+          next: () => {
+            this.notificationService.showSuccessToast('Company deleted successfully.', 'Deleted');
+            this.loadCompanies();
+          },
+          error: (err) => {
+            console.error('Failed to delete company', err);
+            this.notificationService.showErrorToast('Failed to delete company.', 'Error');
+          }
+        });
+      }
+    });
   }
 }

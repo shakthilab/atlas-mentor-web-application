@@ -5,6 +5,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { TaskService, Task, TaskComment, TaskAttachment, TaskActivity, MOCK_MEMBERS, MOCK_BUNDLES, TaskBundle, BundleTask } from '../../../core/services/task.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { MasterDataService, Role } from '../../../core/services/master-data.service';
 
 
 
@@ -94,28 +95,53 @@ export class TasksComponent implements OnInit, AfterViewInit {
   @ViewChild('createBundleDialog') createBundleDialog!: TemplateRef<any>;
   @ViewChild('manageBundlesDialog') manageBundlesDialog!: TemplateRef<any>;
   @ViewChild('createTaskDialog') createTaskDialog!: TemplateRef<any>;
+  @ViewChild('executeBundleDialog') executeBundleDialog!: TemplateRef<any>;
   mockBundles: TaskBundle[] = MOCK_BUNDLES;
 
   // Bundle filters
   bundleFilterRole: string = 'All';
   bundleFilterStatus: string = 'Active';
   bundleFilterSchedule: string = 'All';
+  availableRoles: Role[] = [];
+
+  taskBundles: TaskBundle[] = [];
+  bundleTotalCount: number = 0;
+  bundleActiveCount: number = 0;
+  bundleInactiveCount: number = 0;
+  selectedBundleToExecute: TaskBundle | null = null;
+  bundleSearchText: string = '';
 
   get filteredBundles(): TaskBundle[] {
-    return this.mockBundles.filter(b => {
-      const matchRole = this.bundleFilterRole === 'All' || b.role.replace('_', ' ').toLowerCase() === this.bundleFilterRole.toLowerCase();
-      const matchStatus = this.bundleFilterStatus === 'All' || b.status.toLowerCase() === this.bundleFilterStatus.toLowerCase();
-      const matchSchedule = this.bundleFilterSchedule === 'All' || b.scheduleType.toLowerCase() === this.bundleFilterSchedule.toLowerCase();
-      return matchRole && matchStatus && matchSchedule;
-    });
+    if (!this.bundleSearchText) {
+      return this.taskBundles;
+    }
+    const searchLower = this.bundleSearchText.toLowerCase();
+    return this.taskBundles.filter(b => b.name.toLowerCase().includes(searchLower));
   }
 
   getActiveCount(): number {
-    return this.filteredBundles.filter(b => b.status === 'ACTIVE').length;
+    return this.bundleActiveCount;
   }
 
-  getPausedCount(): number {
-    return this.filteredBundles.filter(b => b.status === 'PAUSED').length;
+  getInactiveCount(): number {
+    return this.bundleInactiveCount;
+  }
+
+  loadTaskBundles(): void {
+    let roleId: number | undefined;
+    if (this.bundleFilterRole === 'Manager') roleId = 2;
+    else if (this.bundleFilterRole === 'Admin') roleId = 1;
+    else if (this.bundleFilterRole === 'Branch Partner') roleId = 9;
+
+    this.taskService.getTaskBundles(roleId, this.bundleFilterStatus, this.bundleFilterSchedule).subscribe({
+      next: (data) => {
+        this.taskBundles = data.bundles;
+        this.bundleTotalCount = data.totalCount;
+        this.bundleActiveCount = data.activeCount;
+        this.bundleInactiveCount = data.inactiveCount;
+      },
+      error: (err) => console.error('Failed to load task bundles', err)
+    });
   }
 
   newBundleData: TaskBundle = {
@@ -151,7 +177,8 @@ export class TasksComponent implements OnInit, AfterViewInit {
   constructor(
     private taskService: TaskService,
     private notificationService: NotificationService,
-    public dialog: MatDialog
+    public dialog: MatDialog,
+    private masterDataService: MasterDataService
   ) {
     this.checkScreenSize();
   }
@@ -169,9 +196,23 @@ export class TasksComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
+    this.loadRoles();
     this.loadTasks();
     this.loadStatuses();
     this.loadPriorities();
+  }
+
+  loadRoles(): void {
+    this.masterDataService.getRoles().subscribe({
+      next: (res) => {
+        if (res && res.success && res.data) {
+          this.availableRoles = res.data;
+        } else if (Array.isArray(res)) {
+          this.availableRoles = res;
+        }
+      },
+      error: (err) => console.error('Failed to load roles', err)
+    });
   }
 
   loadStatuses(): void {
@@ -214,6 +255,23 @@ export class TasksComponent implements OnInit, AfterViewInit {
       error: () => {
         this.isLoading = false;
         this.notificationService.showErrorToast('Failed to load tasks.', 'Error');
+      }
+    });
+  }
+
+  deleteTask(task: Task): void {
+    this.notificationService.showErrorPopup(`Are you sure you want to delete task "${task.title}"?`, 'Delete Task', 'Delete').subscribe((confirmed) => {
+      if (confirmed) {
+        this.taskService.deleteTask(task.id).subscribe({
+          next: () => {
+            this.notificationService.showSuccessToast('Task deleted successfully.', 'Deleted');
+            this.loadTasks();
+          },
+          error: (err) => {
+            console.error('Failed to delete task', err);
+            this.notificationService.showErrorToast('Failed to delete task.', 'Error');
+          }
+        });
       }
     });
   }
@@ -669,6 +727,76 @@ export class TasksComponent implements OnInit, AfterViewInit {
     });
   }
 
+  updateDrawerAssignee(member: any): void {
+    if (!this.editingTask) return;
+    const taskId = this.editingTask.id;
+    this.isLoading = true;
+
+    const assignedToId = member.id || (this.members.indexOf(member) + 1);
+
+    this.taskService.updateTaskAssignee(taskId, assignedToId).subscribe({
+      next: () => {
+        this.drawerTaskData.assignee = member;
+        if (this.editingTask) {
+          this.editingTask.assignee = member;
+        }
+
+        this.taskService.getTaskActivity(taskId).subscribe({
+          next: (activities) => {
+            this.drawerTaskData.activities = activities;
+            this.buildTimelineStream();
+            this.isLoading = false;
+          },
+          error: () => {
+            this.isLoading = false;
+          }
+        });
+
+        this.loadTasks();
+        this.notificationService.showSuccessToast(`Assignee updated.`, 'Success');
+      },
+      error: () => {
+        this.isLoading = false;
+        this.notificationService.showErrorToast('Failed to update assignee.', 'Error');
+      }
+    });
+  }
+
+  updateDrawerDueDate(dateValue: any): void {
+    if (!this.editingTask || !dateValue) return;
+    const taskId = this.editingTask.id;
+    this.isLoading = true;
+
+    const formattedDate = new Date(dateValue).toISOString().substring(0, 10);
+
+    this.taskService.updateTaskDueDate(taskId, formattedDate).subscribe({
+      next: () => {
+        this.drawerTaskData.dueDate = formattedDate;
+        if (this.editingTask) {
+          this.editingTask.dueDate = formattedDate;
+        }
+
+        this.taskService.getTaskActivity(taskId).subscribe({
+          next: (activities) => {
+            this.drawerTaskData.activities = activities;
+            this.buildTimelineStream();
+            this.isLoading = false;
+          },
+          error: () => {
+            this.isLoading = false;
+          }
+        });
+
+        this.loadTasks();
+        this.notificationService.showSuccessToast(`Due Date updated.`, 'Success');
+      },
+      error: () => {
+        this.isLoading = false;
+        this.notificationService.showErrorToast('Failed to update due date.', 'Error');
+      }
+    });
+  }
+
   // Tag Management in Drawer
   addTag(input: HTMLInputElement): void {
     const val = input.value.trim();
@@ -1096,6 +1224,7 @@ export class TasksComponent implements OnInit, AfterViewInit {
   }
 
   openManageBundlesDialog(): void {
+    this.loadTaskBundles();
     this.dialog.open(this.manageBundlesDialog, {
       width: '1000px',
       maxWidth: '95vw',
@@ -1108,6 +1237,12 @@ export class TasksComponent implements OnInit, AfterViewInit {
     this.newBundleData.tasks.push({ title: '', description: '', priority: 'Medium', dueDays: 0 });
   }
 
+  cyclePriority(task: BundleTask): void {
+    const priorities = ['Low', 'Medium', 'High'];
+    const currentIndex = priorities.indexOf(task.priority || 'Medium');
+    task.priority = priorities[(currentIndex + 1) % priorities.length] as 'Low' | 'Medium' | 'High';
+  }
+
   removeBundleTask(index: number): void {
     this.newBundleData.tasks.splice(index, 1);
   }
@@ -1117,15 +1252,112 @@ export class TasksComponent implements OnInit, AfterViewInit {
       this.notificationService.showErrorToast('Please fill all required fields.', 'Validation Error');
       return;
     }
-    this.mockBundles.push({ ...this.newBundleData, id: Date.now() });
-    this.dialog.closeAll();
-    this.notificationService.showSuccessToast('Task Bundle has been successfully saved.', 'Bundle Created');
+
+    const role = this.availableRoles.find(r => r.name === this.newBundleData.role);
+    const roleId = role ? role.id : 2; // fallback to 2 if not found
+
+    const payload: any = {
+      name: this.newBundleData.name,
+      description: this.newBundleData.description || null,
+      roleId: roleId,
+      status: this.newBundleData.status || 'ACTIVE',
+      schedule: {
+        executionTime: this.newBundleData.executionTime ? (this.newBundleData.executionTime.length === 5 ? this.newBundleData.executionTime + ':00' : this.newBundleData.executionTime) : '09:00:00',
+      },
+      tasks: this.newBundleData.tasks.map((t, index) => ({
+        title: t.title,
+        description: t.description || null,
+        priority: t.priority?.toUpperCase() || 'MEDIUM',
+        taskOrder: index + 1,
+        defaultDueDays: t.dueDays || 0
+      }))
+    };
+
+    if (this.newBundleData.startDate) {
+      const d = new Date(this.newBundleData.startDate);
+      payload.schedule.startDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    } else {
+      const d = new Date();
+      payload.schedule.startDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    if (this.newBundleData.scheduleType === 'WEEKLY') {
+      payload.schedule.scheduleType = 'WEEKLY';
+      payload.schedule.executionDay = this.newBundleData.executionDay || 'MONDAY';
+    } else if (this.newBundleData.scheduleType === 'MONTHLY') {
+      payload.schedule.scheduleType = 'MONTHLY';
+      payload.schedule.executionDayOfMonth = this.newBundleData.executionDayOfMonth || 1;
+    } else if (this.newBundleData.scheduleType === 'ONE_TIME') {
+      payload.schedule.scheduleType = 'ONE_TIME';
+      payload.schedule.oneTimeExecutionDate = `${payload.schedule.startDate}T${payload.schedule.executionTime}`;
+      delete payload.schedule.startDate;
+    } else {
+      payload.schedule.scheduleType = 'DAILY';
+    }
+
+    this.taskService.createTaskBundle(payload).subscribe({
+      next: () => {
+        this.notificationService.showSuccessToast('Task Bundle has been successfully created.', 'Bundle Created');
+        this.dialog.closeAll();
+        this.loadTaskBundles();
+      },
+      error: (err) => {
+        console.error('Failed to create bundle', err);
+        this.notificationService.showErrorToast('Failed to create bundle.', 'Error');
+      }
+    });
   }
 
   deleteBundle(bundle: TaskBundle): void {
-    this.notificationService.showErrorPopup('Are you sure you want to delete this bundle?', 'Delete Bundle', 'Delete').subscribe(() => {
-      this.mockBundles = this.mockBundles.filter(b => b.id !== bundle.id);
-      this.notificationService.showErrorToast('Bundle deleted.', 'Deleted');
+    this.notificationService.showErrorPopup('Are you sure you want to delete this bundle?', 'Delete Bundle', 'Delete').subscribe((confirmed) => {
+      if (confirmed) {
+        this.taskService.deleteTaskBundle(bundle.id).subscribe({
+          next: () => {
+            this.notificationService.showSuccessToast('Bundle deleted successfully.', 'Deleted');
+            this.loadTaskBundles();
+          },
+          error: (err) => {
+            console.error('Failed to delete bundle', err);
+            this.notificationService.showErrorToast('Failed to delete bundle.', 'Error');
+          }
+        });
+      }
+    });
+  }
+
+  toggleBundleStatus(bundle: TaskBundle): void {
+    const currentStatus = bundle.status || 'ACTIVE';
+    const newStatus = currentStatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+    const actionText = newStatus === 'ACTIVE' ? 'activate' : 'deactivate';
+
+    // Optimistic update
+    bundle.status = newStatus;
+    this.notificationService.showSuccessToast(`Bundle ${actionText}d successfully.`, 'Status Updated');
+    // If backend endpoint is added, we would call it here and potentially revert on error.
+  }
+
+  openExecuteBundleDialog(bundle: TaskBundle): void {
+    this.selectedBundleToExecute = bundle;
+    this.dialog.open(this.executeBundleDialog, {
+      width: '400px',
+      panelClass: ['responsive-dialog', 'custom-rounded-dialog'],
+      autoFocus: false
+    });
+  }
+
+  confirmExecuteBundle(): void {
+    if (!this.selectedBundleToExecute) return;
+    
+    this.taskService.executeTaskBundleNow(this.selectedBundleToExecute.id).subscribe({
+      next: () => {
+        this.notificationService.showSuccessToast(`Bundle "${this.selectedBundleToExecute?.name}" executed successfully.`, 'Execution Started');
+        this.dialog.closeAll();
+        this.selectedBundleToExecute = null;
+      },
+      error: (err) => {
+        console.error('Failed to execute bundle', err);
+        this.notificationService.showErrorToast('Failed to execute bundle. Please try again.', 'Execution Error');
+      }
     });
   }
 

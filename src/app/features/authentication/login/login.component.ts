@@ -7,6 +7,7 @@ import { NotificationService } from '../../../core/services/notification.service
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
+  styleUrls: ['./login.component.scss']
 })
 export class AppSideLoginComponent {
   mode: 'login' | 'forgot-password' | 'reset-password' = 'login';
@@ -27,9 +28,11 @@ export class AppSideLoginComponent {
     private route: ActivatedRoute,
     private notificationService: NotificationService,
   ) {
+    const rememberedEmail = localStorage.getItem('rememberedEmail');
     this.form = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
+      email: [rememberedEmail || '', [Validators.required, Validators.email]],
       password: ['', Validators.required],
+      rememberMe: [!!rememberedEmail]
     });
 
     this.forgotForm = this.fb.group({
@@ -80,6 +83,11 @@ export class AppSideLoginComponent {
       this.loading = true;
       this.authService.login(this.form.value).subscribe({
         next: () => {
+          if (this.form.value.rememberMe) {
+            localStorage.setItem('rememberedEmail', this.form.value.email);
+          } else {
+            localStorage.removeItem('rememberedEmail');
+          }
           this.notificationService.showSuccessToast('Successfully signed in.', 'Welcome Back');
           const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
           this.router.navigateByUrl(returnUrl);

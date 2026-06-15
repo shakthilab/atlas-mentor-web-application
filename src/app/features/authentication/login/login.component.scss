@@ -9,7 +9,6 @@
   animation: gradientBG 15s ease infinite;
   position: relative;
   overflow: hidden;
-  padding: 40px 20px;
 
   // Animated background shapes
   &::before, &::after {
@@ -41,7 +40,7 @@
 
 .auth-card {
   width: 100%;
-  max-width: 560px;
+  max-width: 480px;
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -106,20 +105,25 @@
       padding-bottom: 10px !important;
       min-height: 44px !important;
     }
-    input.mat-mdc-input-element, textarea.mat-mdc-input-element, .mat-mdc-select-value-text {
+    input.mat-mdc-input-element {
       color: #212529 !important;
       &::placeholder {
         color: rgba(0, 0, 0, 0.4) !important;
       }
-    }
-    .mat-mdc-select-arrow {
-      color: rgba(0, 0, 0, 0.6) !important;
     }
     .mat-mdc-form-field-subscript-wrapper {
       color: #ff5252;
     }
     .mdc-icon-button {
       color: rgba(0, 0, 0, 0.6) !important;
+    }
+    .mat-mdc-checkbox {
+      .mdc-checkbox__native-control:enabled:not(:checked):not(:indeterminate):not([data-indeterminate=true]) ~ .mdc-checkbox__background {
+        border-color: rgba(0,0,0,0.4);
+      }
+      label {
+        color: rgba(0,0,0,0.8);
+      }
     }
   }
 
@@ -157,22 +161,6 @@
   }
 }
 
-.auth-btn-secondary {
-  background: rgba(0, 0, 0, 0.03) !important;
-  border: 1px solid rgba(0, 0, 0, 0.1) !important;
-  color: #212529 !important;
-  border-radius: 12px !important;
-  padding: 24px 0 !important;
-  font-size: 16px !important;
-  font-weight: 600 !important;
-  transition: all 0.3s ease !important;
-  margin-top: 16px;
-
-  &:hover:not([disabled]) {
-    background: rgba(0, 0, 0, 0.06) !important;
-    border-color: rgba(0, 0, 0, 0.15) !important;
-  }
-}
 
 .auth-footer {
   text-align: center;
@@ -193,92 +181,6 @@
   }
 }
 
-// Phone field custom styling
-.phone-row {
-  display: flex;
-  gap: 12px;
-  
-  .country-code-field {
-    width: 120px;
-    flex-shrink: 0;
-  }
-  
-  .phone-number-field {
-    flex-grow: 1;
-  }
-}
-
-// Stepper custom styling
-.stepper {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 32px;
-  position: relative;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 16px;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: rgba(0, 0, 0, 0.1);
-    z-index: 0;
-  }
-}
-
-.step-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: relative;
-  z-index: 1;
-  flex: 1;
-
-  .step-circle {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: #fff;
-    border: 2px solid rgba(0, 0, 0, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    font-weight: 600;
-    color: rgba(0, 0, 0, 0.4);
-    margin-bottom: 8px;
-    transition: all 0.3s ease;
-
-    &.active {
-      border-color: #5d87ff;
-      color: #5d87ff;
-      box-shadow: 0 0 15px rgba(93, 135, 255, 0.2);
-    }
-
-    &.completed {
-      background: #5d87ff;
-      border-color: #5d87ff;
-      color: white;
-    }
-  }
-
-  .step-label {
-    font-size: 12px;
-    font-weight: 500;
-    color: rgba(0, 0, 0, 0.4);
-    transition: all 0.3s ease;
-
-    &.active {
-      color: #212529;
-    }
-
-    &.completed {
-      color: #5d87ff;
-    }
-  }
-}
-
 @keyframes gradientBG {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
@@ -291,6 +193,7 @@
   100% { transform: translateY(0) scale(1); }
 }
 
+// Media Queries for Mobile
 @media (max-width: 576px) {
   .auth-card {
     padding: 32px 24px;
@@ -298,4 +201,5 @@
     border: none;
     background: rgba(255, 255, 255, 0.95);
   }
+
 }

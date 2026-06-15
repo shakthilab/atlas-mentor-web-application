@@ -1,202 +1,174 @@
-<div class="blank-layout-container justify-content-center align-items-center bg-light-primary">
-  <div class="position-relative row w-100 h-100 bg-gredient justify-content-center">
-    <div class="col-lg-5 col-md-8 d-flex align-items-center justify-content-center p-24">
-      <mat-card class="cardWithShadow register-card">
-        <mat-card-content class="p-32">
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <div class="auth-logo-container">
+      <img src="/assets/logo/Atlas-Mentor-Pvt-Ltd.webp" alt="Atlas Mentor" width="220" class="m-b-8" />
+      <p class="brand-subtitle">Join us and start your journey today</p>
+    </div>
 
-          <!-- Logo + Title -->
-          <div class="text-center m-b-8">
-            <img src="./assets/images/logos/dark-logo.svg" class="align-middle m-b-12" width="40" alt="logo" />
-            <h2 class="mat-headline-5 m-b-4">Create an account</h2>
-            <p class="text-muted f-s-14">Join us and start your journey today.</p>
+    <!-- Step Progress Indicator -->
+    <div class="stepper">
+      <div class="step-item" [class.completed]="currentStep > 1">
+        <div class="step-circle" [class.active]="currentStep === 1" [class.completed]="currentStep > 1">
+          <i-tabler *ngIf="currentStep > 1" name="check" class="icon-16 d-flex"></i-tabler>
+          <span *ngIf="currentStep <= 1">1</span>
+        </div>
+        <span class="step-label" [class.active]="currentStep === 1" [class.completed]="currentStep > 1">Account</span>
+      </div>
+
+      <div class="step-item" [class.completed]="currentStep > 2">
+        <div class="step-circle" [class.active]="currentStep === 2" [class.completed]="currentStep > 2">
+          <i-tabler *ngIf="currentStep > 2" name="check" class="icon-16 d-flex"></i-tabler>
+          <span *ngIf="currentStep <= 2">2</span>
+        </div>
+        <span class="step-label" [class.active]="currentStep === 2" [class.completed]="currentStep > 2">Preferences</span>
+      </div>
+
+      <div class="step-item">
+        <div class="step-circle" [class.active]="currentStep === 3">
+          <span>3</span>
+        </div>
+        <span class="step-label" [class.active]="currentStep === 3">Details</span>
+      </div>
+    </div>
+
+    <!-- Error Banner -->
+    <div *ngIf="error" class="m-b-20 p-12 rounded bg-light-error text-error d-flex align-items-center gap-8" style="background: rgba(255, 60, 100, 0.1); border: 1px solid rgba(255, 60, 100, 0.3); color: #ff3c64;">
+      <i-tabler name="alert-circle" class="icon-18 d-flex"></i-tabler>
+      <span class="f-s-13 f-w-500">{{ error }}</span>
+    </div>
+
+    <div class="auth-form">
+      <!-- ── STEP 1: Account ──────────────────────────────────────── -->
+      <form *ngIf="currentStep === 1" [formGroup]="step1">
+        <div class="row">
+          <div class="col-6">
+            <label class="auth-label">First Name <span class="text-error">*</span></label>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100 m-b-8">
+              <input matInput formControlName="firstName" placeholder="Olivia" />
+              <mat-error *ngIf="s1['firstName'].hasError('required')">Required</mat-error>
+            </mat-form-field>
           </div>
-
-          <!-- Step Progress Indicator -->
-          <div class="stepper">
-            <div class="step-item" [class.completed]="currentStep > 1">
-              <div class="step-circle" [class.active]="currentStep === 1" [class.completed]="currentStep > 1">
-                <i-tabler *ngIf="currentStep > 1" name="check" class="icon-16 d-flex"></i-tabler>
-                <span *ngIf="currentStep <= 1">1</span>
-              </div>
-              <span class="step-label" [class.active]="currentStep === 1" [class.completed]="currentStep > 1">Account</span>
-            </div>
-
-            <div class="step-item" [class.completed]="currentStep > 2">
-              <div class="step-circle" [class.active]="currentStep === 2" [class.completed]="currentStep > 2">
-                <i-tabler *ngIf="currentStep > 2" name="check" class="icon-16 d-flex"></i-tabler>
-                <span *ngIf="currentStep <= 2">2</span>
-              </div>
-              <span class="step-label" [class.active]="currentStep === 2" [class.completed]="currentStep > 2">Preferences</span>
-            </div>
-
-            <div class="step-item">
-              <div class="step-circle" [class.active]="currentStep === 3">
-                <span>3</span>
-              </div>
-              <span class="step-label" [class.active]="currentStep === 3">Details</span>
-            </div>
+          <div class="col-6">
+            <label class="auth-label">Last Name <span class="text-error">*</span></label>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100 m-b-8">
+              <input matInput formControlName="lastName" placeholder="Smith" />
+              <mat-error *ngIf="s1['lastName'].hasError('required')">Required</mat-error>
+            </mat-form-field>
           </div>
+        </div>
 
-          <!-- Error Banner -->
-          <div *ngIf="error" class="error-banner">{{ error }}</div>
+        <label class="auth-label">Email <span class="text-error">*</span></label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100 m-b-8">
+          <input matInput formControlName="email" type="email" placeholder="olivia@example.com" autocomplete="email" />
+          <mat-error *ngIf="s1['email'].hasError('required')">Email is required</mat-error>
+          <mat-error *ngIf="s1['email'].hasError('email')">Enter a valid email</mat-error>
+        </mat-form-field>
 
-          <!-- ── STEP 1: Account ──────────────────────────────────────── -->
-          <form *ngIf="currentStep === 1" [formGroup]="step1">
+        <label class="auth-label">Phone <span class="text-error">*</span></label>
+        <div class="phone-row m-b-8">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="country-code-field">
+            <mat-select formControlName="mobileCountryCodeId">
+              <mat-option *ngFor="let c of countryCodes" [value]="c.id">
+                {{ c.flag }} {{ c.code }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="phone-number-field">
+            <input matInput formControlName="phone" placeholder="Phone number" type="tel" />
+            <mat-error *ngIf="s1['phone'].hasError('required')">Required</mat-error>
+            <mat-error *ngIf="s1['phone'].hasError('pattern')">Enter a valid number</mat-error>
+          </mat-form-field>
+        </div>
 
-            <div class="row">
-              <div class="col-6">
-                <mat-label class="mat-subtitle-2 f-s-13 f-w-600 m-b-8 d-block">
-                  First Name <span class="text-error">*</span>
-                </mat-label>
-                <mat-form-field appearance="outline" class="w-100" color="primary">
-                  <input matInput formControlName="firstName" placeholder="Enter your first name" />
-                  <mat-error *ngIf="s1['firstName'].hasError('required')">Required</mat-error>
-                </mat-form-field>
-              </div>
-              <div class="col-6">
-                <mat-label class="mat-subtitle-2 f-s-13 f-w-600 m-b-8 d-block">
-                  Last Name <span class="text-error">*</span>
-                </mat-label>
-                <mat-form-field appearance="outline" class="w-100" color="primary">
-                  <input matInput formControlName="lastName" placeholder="Enter your last name" />
-                  <mat-error *ngIf="s1['lastName'].hasError('required')">Required</mat-error>
-                </mat-form-field>
-              </div>
-            </div>
+        <label class="auth-label">Password <span class="text-error">*</span></label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100 m-b-8">
+          <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'" placeholder="••••••••" autocomplete="new-password" />
+          <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword">
+            <i-tabler [name]="hidePassword ? 'eye-off' : 'eye'" class="icon-18 d-flex"></i-tabler>
+          </button>
+          <mat-error *ngIf="s1['password'].hasError('required')">Required</mat-error>
+          <mat-error *ngIf="s1['password'].hasError('minlength')">Minimum 8 characters</mat-error>
+        </mat-form-field>
 
-            <mat-label class="mat-subtitle-2 f-s-13 f-w-600 m-b-8 d-block">Email</mat-label>
-            <mat-form-field appearance="outline" class="w-100" color="primary">
-              <input matInput formControlName="email" type="email" placeholder="olivia@example.com" autocomplete="email" />
-              <mat-error *ngIf="s1['email'].hasError('required')">Email is required</mat-error>
-              <mat-error *ngIf="s1['email'].hasError('email')">Enter a valid email</mat-error>
-            </mat-form-field>
+        <label class="auth-label">Confirm Password <span class="text-error">*</span></label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100 m-b-16">
+          <input matInput formControlName="confirmPassword" [type]="hideConfirm ? 'password' : 'text'" placeholder="••••••••" autocomplete="new-password" />
+          <button mat-icon-button matSuffix type="button" (click)="hideConfirm = !hideConfirm">
+            <i-tabler [name]="hideConfirm ? 'eye-off' : 'eye'" class="icon-18 d-flex"></i-tabler>
+          </button>
+          <mat-error *ngIf="s1['confirmPassword'].hasError('required')">Required</mat-error>
+          <mat-error *ngIf="step1.hasError('passwordMismatch')">Passwords do not match</mat-error>
+        </mat-form-field>
 
-            <mat-label class="mat-subtitle-2 f-s-13 f-w-600 m-b-8 d-block">
-              Phone <span class="text-error">*</span>
-            </mat-label>
-            <div class="phone-row">
-              <mat-form-field appearance="outline" class="country-code-field" color="primary">
-                <mat-select formControlName="mobileCountryCodeId">
-                  <mat-option *ngFor="let c of countryCodes" [value]="c.id">
-                    {{ c.flag }} {{ c.code }}
-                  </mat-option>
-                </mat-select>
-              </mat-form-field>
-              <mat-form-field appearance="outline" class="phone-number-field" color="primary">
-                <input matInput formControlName="phone" placeholder="Phone number" type="tel" />
-                <mat-error *ngIf="s1['phone'].hasError('required')">Required</mat-error>
-                <mat-error *ngIf="s1['phone'].hasError('pattern')">Enter a valid number</mat-error>
-              </mat-form-field>
-            </div>
+        <button mat-flat-button class="w-100 auth-btn-primary" type="button" (click)="next()">
+          Continue
+        </button>
+      </form>
 
-            <mat-label class="mat-subtitle-2 f-s-13 f-w-600 m-b-8 d-block">
-              Password <span class="text-error">*</span>
-            </mat-label>
-            <mat-form-field appearance="outline" class="w-100" color="primary">
-              <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'" placeholder="Create a password" autocomplete="new-password" />
-              <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword">
-                <i-tabler [name]="hidePassword ? 'eye-off' : 'eye'" class="icon-18 d-flex"></i-tabler>
-              </button>
-              <mat-error *ngIf="s1['password'].hasError('required')">Required</mat-error>
-              <mat-error *ngIf="s1['password'].hasError('minlength')">Minimum 8 characters</mat-error>
-            </mat-form-field>
+      <!-- ── STEP 2: Preferences ──────────────────────────────────── -->
+      <form *ngIf="currentStep === 2" [formGroup]="step2">
+        <label class="auth-label">Preferred Country <span class="text-error">*</span></label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100 m-b-8">
+          <mat-select formControlName="countryId" placeholder="Select a country">
+            <mat-option *ngFor="let c of countries" [value]="c.id">{{ c.name }}</mat-option>
+          </mat-select>
+          <mat-error *ngIf="s2['countryId'].hasError('required')">Please select a country</mat-error>
+        </mat-form-field>
 
-            <mat-label class="mat-subtitle-2 f-s-13 f-w-600 m-b-8 d-block">
-              Confirm Password <span class="text-error">*</span>
-            </mat-label>
-            <mat-form-field appearance="outline" class="w-100" color="primary">
-              <input matInput formControlName="confirmPassword" [type]="hideConfirm ? 'password' : 'text'" placeholder="Confirm password" autocomplete="new-password" />
-              <button mat-icon-button matSuffix type="button" (click)="hideConfirm = !hideConfirm">
-                <i-tabler [name]="hideConfirm ? 'eye-off' : 'eye'" class="icon-18 d-flex"></i-tabler>
-              </button>
-              <mat-error *ngIf="s1['confirmPassword'].hasError('required')">Required</mat-error>
-              <mat-error *ngIf="step1.hasError('passwordMismatch')">Passwords do not match</mat-error>
-            </mat-form-field>
+        <label class="auth-label">Preferred University</label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100 m-b-8">
+          <input matInput formControlName="universityId" placeholder="Enter university name" />
+        </mat-form-field>
 
-            <button mat-flat-button color="primary" class="w-100 m-t-8" type="button" (click)="next()">
-              Continue
-            </button>
+        <label class="auth-label">Course <span class="text-error">*</span></label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100 m-b-8">
+          <mat-select formControlName="course" placeholder="Select course">
+            <mat-option *ngFor="let c of courses" [value]="c">{{ c }}</mat-option>
+          </mat-select>
+          <mat-error *ngIf="s2['course'].hasError('required')">Please select a course</mat-error>
+        </mat-form-field>
 
-          </form>
+        <label class="auth-label">Intake</label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100 m-b-16">
+          <input matInput formControlName="intake" placeholder="e.g. Fall 2026" />
+        </mat-form-field>
 
-          <!-- ── STEP 2: Preferences ──────────────────────────────────── -->
-          <form *ngIf="currentStep === 2" [formGroup]="step2">
+        <div class="d-flex gap-16">
+          <button mat-stroked-button class="flex-1-auto auth-btn-secondary" type="button" (click)="back()">Back</button>
+          <button mat-flat-button class="flex-1-auto auth-btn-primary" type="button" (click)="next()">Continue</button>
+        </div>
+      </form>
 
-            <mat-label class="mat-subtitle-2 f-s-13 f-w-600 m-b-8 d-block">
-              Preferred Country <span class="text-error">*</span>
-            </mat-label>
-            <mat-form-field appearance="outline" class="w-100" color="primary">
-              <mat-select formControlName="countryId" placeholder="Select a country">
-                <mat-option *ngFor="let c of countries" [value]="c.id">{{ c.name }}</mat-option>
-              </mat-select>
-              <mat-error *ngIf="s2['countryId'].hasError('required')">Please select a country</mat-error>
-            </mat-form-field>
+      <!-- ── STEP 3: Details ──────────────────────────────────────── -->
+      <form *ngIf="currentStep === 3" [formGroup]="step3" (ngSubmit)="onSubmit()">
+        <label class="auth-label">Referral Code (Optional)</label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100 m-b-8">
+          <input matInput formControlName="referralCode" placeholder="Enter code if any" />
+        </mat-form-field>
 
-            <mat-label class="mat-subtitle-2 f-s-13 f-w-600 m-b-8 d-block">Preferred University</mat-label>
-            <mat-form-field appearance="outline" class="w-100" color="primary">
-              <input matInput formControlName="universityId" placeholder="Enter university name" />
-            </mat-form-field>
+        <label class="auth-label">Academic Details (Optional)</label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100 m-b-8">
+          <textarea matInput formControlName="basicAcademicDetails" rows="3" placeholder="High school grades, completed degrees..."></textarea>
+        </mat-form-field>
 
-            <mat-label class="mat-subtitle-2 f-s-13 f-w-600 m-b-8 d-block">
-              Course <span class="text-error">*</span>
-            </mat-label>
-            <mat-form-field appearance="outline" class="w-100" color="primary">
-              <mat-select formControlName="course" placeholder="Select course">
-                <mat-option *ngFor="let c of courses" [value]="c">{{ c }}</mat-option>
-              </mat-select>
-              <mat-error *ngIf="s2['course'].hasError('required')">Please select a course</mat-error>
-            </mat-form-field>
+        <label class="auth-label">Optional Notes</label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100 m-b-16">
+          <textarea matInput formControlName="optionalNotes" rows="3" placeholder="Any specific requirements..."></textarea>
+        </mat-form-field>
 
-            <mat-label class="mat-subtitle-2 f-s-13 f-w-600 m-b-8 d-block">Intake</mat-label>
-            <mat-form-field appearance="outline" class="w-100" color="primary">
-              <input matInput formControlName="intake" placeholder="e.g. Fall 2026" />
-            </mat-form-field>
+        <div class="d-flex gap-16">
+          <button mat-stroked-button class="flex-1-auto auth-btn-secondary" type="button" (click)="back()">Back</button>
+          <button mat-flat-button class="flex-1-auto auth-btn-primary" type="submit" [disabled]="loading">
+            <span *ngIf="!loading">Get Started</span>
+            <span *ngIf="loading">Creating Account...</span>
+          </button>
+        </div>
+      </form>
+    </div>
 
-            <div class="d-flex gap-12 m-t-8">
-              <button mat-stroked-button class="flex-1-auto" type="button" (click)="back()">Back</button>
-              <button mat-flat-button color="primary" class="flex-1-auto" type="button" (click)="next()">Continue</button>
-            </div>
-
-          </form>
-
-          <!-- ── STEP 3: Details ──────────────────────────────────────── -->
-          <form *ngIf="currentStep === 3" [formGroup]="step3" (ngSubmit)="onSubmit()">
-
-            <mat-label class="mat-subtitle-2 f-s-13 f-w-600 m-b-8 d-block">Referral Code (Optional)</mat-label>
-            <mat-form-field appearance="outline" class="w-100" color="primary">
-              <input matInput formControlName="referralCode" placeholder="Enter code if any" />
-            </mat-form-field>
-
-            <mat-label class="mat-subtitle-2 f-s-13 f-w-600 m-b-8 d-block">Academic Details (Optional)</mat-label>
-            <mat-form-field appearance="outline" class="w-100" color="primary">
-              <textarea matInput formControlName="basicAcademicDetails" rows="3"
-                placeholder="High school grades, completed degrees..."></textarea>
-            </mat-form-field>
-
-            <mat-label class="mat-subtitle-2 f-s-13 f-w-600 m-b-8 d-block">Optional Notes</mat-label>
-            <mat-form-field appearance="outline" class="w-100" color="primary">
-              <textarea matInput formControlName="optionalNotes" rows="3"
-                placeholder="Any specific requirements..."></textarea>
-            </mat-form-field>
-
-            <div class="d-flex gap-12 m-t-8">
-              <button mat-stroked-button class="flex-1-auto" type="button" (click)="back()">Back</button>
-              <button mat-flat-button color="primary" class="flex-1-auto" type="submit" [disabled]="loading">
-                <span *ngIf="!loading">Get started</span>
-                <span *ngIf="loading">Creating account...</span>
-              </button>
-            </div>
-
-          </form>
-
-          <!-- Already have account -->
-          <p class="text-center f-s-14 m-t-24 m-b-0">
-            Already have an account?
-            <a [routerLink]="['/auth/login']" class="text-primary f-w-600 text-decoration-none">Log in</a>
-          </p>
-
-        </mat-card-content>
-      </mat-card>
+    <!-- Already have account -->
+    <div class="auth-footer">
+      Already have an account? <a [routerLink]="['/auth/login']">Log in</a>
     </div>
   </div>
 </div>

@@ -1,202 +1,119 @@
-<div class="blank-layout-container justify-content-center align-items-center bg-light-primary">
-  <div
-    class="position-relative row w-100 h-100 bg-gredient justify-content-center"
-  >
-    <div class="col-lg-4 d-flex align-items-center">
-      <mat-card class="cardWithShadow boxed-auth">
-        <mat-card-content class="p-32">
-          <div class="text-center">
-            <a [routerLink]="['/dashboard']">
-              <img
-                src="./assets/images/logos/dark-logo.svg"
-                class="align-middle m-2"
-                alt="logo"
-              />
-            </a>
-          </div>
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <div class="auth-logo-container">
+      <img src="/assets/logo/Atlas-Mentor-Pvt-Ltd.webp" alt="Atlas Mentor" width="220" class="m-b-8" />
+      <p class="brand-subtitle">Empowering your educational journey</p>
+    </div>
 
-          <!-- Social Sign In (Only for Login Mode) -->
-          <div *ngIf="mode === 'login'" class="row m-t-24 custom-row">
-            <div class="col-12 col-sm-6">
-              <button mat-stroked-button class="w-100">
-                <div class="d-flex align-items-center">
-                  <img
-                    src="/assets/images/svgs/google-icon.svg"
-                    alt="google"
-                    width="16"
-                    class="m-r-8"
-                  />
-                  {{ 'auth.signInGoogle' | translate }}
-                </div>
-              </button>
-            </div>
-            <div class="col-12 col-sm-6">
-              <button
-                mat-stroked-button
-                class="w-100 d-flex align-items-center"
-              >
-                <div class="d-flex align-items-center">
-                  <img
-                    src="/assets/images/svgs/facebook-icon.svg"
-                    alt="facebook"
-                    width="40"
-                    class="m-r-4"
-                  />
-                  {{ 'auth.signInFacebook' | translate }}
-                </div>
-              </button>
-            </div>
-          </div>
+    <!-- Alert Messages -->
+    <div class="m-t-20 m-b-20" *ngIf="error || successMessage">
+      <!-- Error Alert -->
+      <div *ngIf="error" class="p-12 rounded bg-light-error text-error d-flex align-items-center gap-8" style="background: rgba(255, 60, 100, 0.1); border: 1px solid rgba(255, 60, 100, 0.3); color: #ff3c64;">
+        <i-tabler name="alert-circle" class="icon-18 d-flex"></i-tabler>
+        <span class="f-s-13 f-w-500">{{ error }}</span>
+      </div>
 
-          <div *ngIf="mode === 'login'" class="or-border m-t-30">{{ 'auth.orSignInWith' | translate }}</div>
+      <!-- Success Alert -->
+      <div *ngIf="successMessage" class="p-12 rounded bg-light-success text-success d-flex align-items-center gap-8" style="background: rgba(60, 255, 120, 0.1); border: 1px solid rgba(60, 255, 120, 0.3); color: #3cff78;">
+        <i-tabler name="circle-check" class="icon-18 d-flex"></i-tabler>
+        <span class="f-s-13 f-w-500">{{ successMessage }}</span>
+      </div>
+    </div>
 
-          <!-- Alert Messages -->
-          <div class="m-t-20">
-            <!-- Error Alert (supports rate limit lockout messages) -->
-            <div *ngIf="error" class="m-b-16 p-12 rounded bg-light-error text-error d-flex align-items-center gap-8">
-              <i-tabler name="alert-circle" class="icon-18 d-flex"></i-tabler>
-              <span class="f-s-13 f-w-500">{{ error }}</span>
-            </div>
+    <!-- Dynamic Forms Content -->
+    <div [ngSwitch]="mode" class="auth-form">
+      <!-- Sign In Form -->
+      <form *ngSwitchCase="'login'" [formGroup]="form" (ngSubmit)="onSubmit()">
 
-            <!-- Success Alert -->
-            <div *ngIf="successMessage" class="m-b-16 p-12 rounded bg-light-success text-success d-flex align-items-center gap-8">
-              <i-tabler name="circle-check" class="icon-18 d-flex"></i-tabler>
-              <span class="f-s-13 f-w-500">{{ successMessage }}</span>
-            </div>
-          </div>
+        <label class="auth-label">{{ 'auth.email' | translate }}</label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100 m-b-16">
+          <input matInput formControlName="email" type="email" autocomplete="email" placeholder="name@example.com" />
+          <mat-error *ngIf="email.hasError('required')">Email is required</mat-error>
+          <mat-error *ngIf="email.hasError('email')">Enter a valid email</mat-error>
+        </mat-form-field>
 
-          <!-- Dynamic Forms Content -->
-          <div [ngSwitch]="mode">
-            <!-- Sign In Form -->
-            <form *ngSwitchCase="'login'" [formGroup]="form" (ngSubmit)="onSubmit()" class="m-t-20">
-              <mat-label class="mat-subtitle-2 f-s-14 f-w-600 m-b-12 d-block">
-                {{ 'auth.email' | translate }}
-              </mat-label>
-              <mat-form-field appearance="outline" class="w-100" color="primary">
-                <input matInput formControlName="email" type="email" autocomplete="email" />
-                <mat-error *ngIf="email.hasError('required')">Email is required</mat-error>
-                <mat-error *ngIf="email.hasError('email')">Enter a valid email</mat-error>
-              </mat-form-field>
+        <label class="auth-label">{{ 'auth.password' | translate }}</label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100 m-b-8">
+          <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'" autocomplete="current-password" placeholder="••••••••" />
+          <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword">
+            <i-tabler [name]="hidePassword ? 'eye-off' : 'eye'" class="icon-18 d-flex"></i-tabler>
+          </button>
+          <mat-error *ngIf="password.hasError('required')">Password is required</mat-error>
+        </mat-form-field>
 
-              <mat-label class="mat-subtitle-2 f-s-14 f-w-600 m-b-12 d-block">
-                {{ 'auth.password' | translate }}
-              </mat-label>
-              <mat-form-field appearance="outline" class="w-100" color="primary">
-                <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'" autocomplete="current-password" />
-                <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword">
-                  <i-tabler [name]="hidePassword ? 'eye-off' : 'eye'" class="icon-18 d-flex"></i-tabler>
-                </button>
-                <mat-error *ngIf="password.hasError('required')">Password is required</mat-error>
-              </mat-form-field>
+        <div class="d-flex align-items-center m-b-24">
+          <mat-checkbox formControlName="rememberMe" color="primary" class="m-l-n8">{{ 'auth.rememberDevice' | translate }}</mat-checkbox>
+          <a [routerLink]="['/auth/forgot-password']" class="m-l-auto" style="color: #5a607d; font-size: 13px; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#212529'" onmouseout="this.style.color='#5a607d'">
+            Forgot Password?
+          </a>
+        </div>
 
-              <div class="d-flex align-items-center m-b-12">
-                <mat-checkbox color="primary">{{ 'auth.rememberDevice' | translate }}</mat-checkbox>
-                <a [routerLink]="['/auth/forgot-password']" class="text-primary f-w-600 text-decoration-none m-l-auto f-s-14">
-                  {{ 'auth.forgotPassword' | translate }}
-                </a>
-              </div>
+        <button mat-flat-button class="w-100 auth-btn-primary" type="submit" [disabled]="loading">
+          <span *ngIf="!loading">Sign In to Atlas</span>
+          <span *ngIf="loading">Signing In...</span>
+        </button>
 
-              <button
-                mat-flat-button
-                color="primary"
-                class="w-100 m-t-12"
-                type="submit"
-                [disabled]="loading"
-              >
-                <span *ngIf="!loading">{{ 'auth.signIn' | translate }}</span>
-                <span *ngIf="loading">Signing In...</span>
-              </button>
-            </form>
+        <div class="auth-footer">
+          Don't have an account? <a [routerLink]="['/auth/register/student']">Create one</a>
+        </div>
+      </form>
 
-            <!-- Forgot Password Form -->
-            <form *ngSwitchCase="'forgot-password'" [formGroup]="forgotForm" (ngSubmit)="onSubmit()" class="m-t-20">
-              <h4 class="f-s-18 f-w-600 m-b-8">Forgot Password?</h4>
-              <p class="text-muted f-s-13 m-b-20">Enter your email address and we'll send you a recovery link.</p>
+      <!-- Forgot Password Form -->
+      <form *ngSwitchCase="'forgot-password'" [formGroup]="forgotForm" (ngSubmit)="onSubmit()">
+        <h4 class="f-s-20 f-w-600 m-b-8" style="color: #212529;">Recover Password</h4>
+        <p class="f-s-14 m-b-24" style="color: rgba(0,0,0,0.6);">Enter your email address and we'll send you a recovery link.</p>
 
-              <mat-label class="mat-subtitle-2 f-s-14 f-w-600 m-b-12 d-block">
-                {{ 'auth.email' | translate }}
-              </mat-label>
-              <mat-form-field appearance="outline" class="w-100" color="primary">
-                <input matInput formControlName="email" type="email" autocomplete="email" />
-                <mat-error *ngIf="forgotEmail.hasError('required')">Email is required</mat-error>
-                <mat-error *ngIf="forgotEmail.hasError('email')">Enter a valid email</mat-error>
-              </mat-form-field>
+        <label class="auth-label">{{ 'auth.email' | translate }}</label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100 m-b-16">
+          <input matInput formControlName="email" type="email" autocomplete="email" placeholder="name@example.com" />
+          <mat-error *ngIf="forgotEmail.hasError('required')">Email is required</mat-error>
+          <mat-error *ngIf="forgotEmail.hasError('email')">Enter a valid email</mat-error>
+        </mat-form-field>
 
-              <button
-                mat-flat-button
-                color="primary"
-                class="w-100 m-t-12"
-                type="submit"
-                [disabled]="loading"
-              >
-                <span *ngIf="!loading">Send Reset Link</span>
-                <span *ngIf="loading">Sending...</span>
-              </button>
+        <button mat-flat-button class="w-100 auth-btn-primary" type="submit" [disabled]="loading">
+          <span *ngIf="!loading">Send Reset Link</span>
+          <span *ngIf="loading">Sending...</span>
+        </button>
 
-              <div class="text-center m-t-24">
-                <a [routerLink]="['/auth/login']" class="text-primary f-w-600 text-decoration-none f-s-14">
-                  Back to Login
-                </a>
-              </div>
-            </form>
+        <div class="auth-footer">
+          <a [routerLink]="['/auth/login']">← Back to Login</a>
+        </div>
+      </form>
 
-            <!-- Reset Password Form -->
-            <form *ngSwitchCase="'reset-password'" [formGroup]="resetForm" (ngSubmit)="onSubmit()" class="m-t-20">
-              <h4 class="f-s-18 f-w-600 m-b-8">Reset Password</h4>
-              <p class="text-muted f-s-13 m-b-20">Enter your new secure password below.</p>
+      <!-- Reset Password Form -->
+      <form *ngSwitchCase="'reset-password'" [formGroup]="resetForm" (ngSubmit)="onSubmit()">
+        <h4 class="f-s-20 f-w-600 m-b-8" style="color: #212529;">Reset Password</h4>
+        <p class="f-s-14 m-b-24" style="color: rgba(0,0,0,0.6);">Enter your new secure password below.</p>
 
-              <mat-label class="mat-subtitle-2 f-s-14 f-w-600 m-b-12 d-block">
-                New Password
-              </mat-label>
-              <mat-form-field appearance="outline" class="w-100" color="primary">
-                <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'" autocomplete="new-password" />
-                <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword">
-                  <i-tabler [name]="hidePassword ? 'eye-off' : 'eye'" class="icon-18 d-flex"></i-tabler>
-                </button>
-                <mat-error *ngIf="resetPasswordInput.hasError('required')">New password is required</mat-error>
-                <mat-error *ngIf="resetPasswordInput.hasError('minlength')">Password must be at least 8 characters long</mat-error>
-              </mat-form-field>
+        <label class="auth-label">New Password</label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100 m-b-16">
+          <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'" autocomplete="new-password" placeholder="••••••••" />
+          <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword">
+            <i-tabler [name]="hidePassword ? 'eye-off' : 'eye'" class="icon-18 d-flex"></i-tabler>
+          </button>
+          <mat-error *ngIf="resetPasswordInput.hasError('required')">New password is required</mat-error>
+          <mat-error *ngIf="resetPasswordInput.hasError('minlength')">Password must be at least 8 characters long</mat-error>
+        </mat-form-field>
 
-              <mat-label class="mat-subtitle-2 f-s-14 f-w-600 m-b-12 d-block">
-                Confirm New Password
-              </mat-label>
-              <mat-form-field appearance="outline" class="w-100" color="primary">
-                <input matInput formControlName="confirmPassword" [type]="hideConfirmPassword ? 'password' : 'text'" autocomplete="new-password" />
-                <button mat-icon-button matSuffix type="button" (click)="hideConfirmPassword = !hideConfirmPassword">
-                  <i-tabler [name]="hideConfirmPassword ? 'eye-off' : 'eye'" class="icon-18 d-flex"></i-tabler>
-                </button>
-                <mat-error *ngIf="confirmPasswordInput.hasError('required')">Please confirm your new password</mat-error>
-                <mat-error *ngIf="resetForm.hasError('passwordMismatch')">Passwords do not match</mat-error>
-              </mat-form-field>
+        <label class="auth-label">Confirm New Password</label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100 m-b-16">
+          <input matInput formControlName="confirmPassword" [type]="hideConfirmPassword ? 'password' : 'text'" autocomplete="new-password" placeholder="••••••••" />
+          <button mat-icon-button matSuffix type="button" (click)="hideConfirmPassword = !hideConfirmPassword">
+            <i-tabler [name]="hideConfirmPassword ? 'eye-off' : 'eye'" class="icon-18 d-flex"></i-tabler>
+          </button>
+          <mat-error *ngIf="confirmPasswordInput.hasError('required')">Please confirm your new password</mat-error>
+          <mat-error *ngIf="resetForm.hasError('passwordMismatch')">Passwords do not match</mat-error>
+        </mat-form-field>
 
-              <button
-                mat-flat-button
-                color="primary"
-                class="w-100 m-t-12"
-                type="submit"
-                [disabled]="loading"
-              >
-                <span *ngIf="!loading">Reset Password</span>
-                <span *ngIf="loading">Resetting...</span>
-              </button>
+        <button mat-flat-button class="w-100 auth-btn-primary" type="submit" [disabled]="loading">
+          <span *ngIf="!loading">Reset Password</span>
+          <span *ngIf="loading">Resetting...</span>
+        </button>
 
-              <div class="text-center m-t-24">
-                <a [routerLink]="['/auth/login']" class="text-primary f-w-600 text-decoration-none f-s-14">
-                  Back to Login
-                </a>
-              </div>
-            </form>
-          </div>
-
-          <!-- Create Account Link (Only for Login Mode) -->
-          <span *ngIf="mode === 'login'" class="d-block f-w-500 text-center m-t-24">
-            {{ 'auth.newToApp' | translate }}
-            <a [routerLink]="['/auth/register/student']" class="text-decoration-none text-primary f-w-500 f-s-14">
-              {{ 'auth.createAccount' | translate }}
-            </a>
-          </span>
-        </mat-card-content>
-      </mat-card>
+        <div class="auth-footer">
+          <a [routerLink]="['/auth/login']">← Back to Login</a>
+        </div>
+      </form>
     </div>
   </div>
 </div>

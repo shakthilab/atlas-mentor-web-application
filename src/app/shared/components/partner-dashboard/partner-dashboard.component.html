@@ -1,0 +1,142 @@
+<div class="partner-dashboard">
+
+  <div class="container-fluid px-3 px-md-4 px-lg-5 pt-4 pb-2">
+
+    <!-- Greeting Section -->
+    <div class="d-flex align-items-center mb-4 animate-card">
+      <div>
+        <h2 class="fs-2 fw-bolder text-dark mb-1">{{ greeting }}, {{ userName }}! 👋</h2>
+      </div>
+    </div>
+
+    <!-- SECTION 01: Top KPI Cards -->
+    <div class="section-label animate-section">SECTION 01 — KPI CARDS</div>
+    <div class="metrics-grid mb-4">
+      <div class="op-card card-sm m-0 animate-card" *ngFor="let card of summaryCards; let i = index"
+        [style.animation-delay]="(i * 55) + 'ms'">
+        <div class="card-label">{{ card.title }}</div>
+        <div class="d-flex align-items-center justify-content-between">
+          <div class="card-value">{{ card.prefix || '' }}{{ card.value }}</div>
+          <span class="trend-badge" [ngStyle]="{'background-color': card.trendColor + '18', 'color': card.trendColor}">
+            {{ card.trend }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 02: CHARTS -->
+    <div class="section-label animate-section">SECTION 02 — EARNINGS & PAYOUTS</div>
+    <div class="row g-4 mb-5">
+      <div class="col-lg-8">
+        <div class="op-card h-100 p-4 animate-card" style="animation-delay:80ms">
+          <div class="d-flex justify-content-between mb-4">
+            <div>
+              <div class="card-label text-primary">COMMISSION TREND</div>
+              <div class="fs-5 fw-bold text-dark" style="font-weight: 900 !important;">Earnings Overview</div>
+            </div>
+          </div>
+          <div style="height: 280px;" class="mt-4 pt-2">
+            <div echarts [options]="earningsOverviewOptions" style="height: 100%;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="op-card h-100 p-4 animate-card" style="animation-delay:120ms">
+          <div class="card-label text-primary">DISTRIBUTION</div>
+          <div class="fs-5 fw-bold text-dark mb-4" style="font-weight: 900 !important;">Payout Status</div>
+          <div style="height: 180px; position: relative;">
+            <div echarts [options]="payoutStatusOptions" style="height: 100%;"></div>
+          </div>
+          <div class="mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-2 fs-3 fw-bold"
+              *ngFor="let leg of payoutDistLegends">
+              <div class="d-flex align-items-center gap-2 text-muted">
+                <span [style.background]="leg.color"
+                  style="width:8px;height:8px;border-radius:50%;display:inline-block;"></span>
+                {{ leg.label }}
+              </div>
+              <div class="text-dark">{{ leg.value }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 03: STUDENTS & QUICK STATS -->
+    <div class="section-label animate-section">SECTION 03 — STUDENTS & ACTIVITY</div>
+    <div class="row g-4 mb-5">
+      <div class="col-lg-8">
+        <div class="op-card p-4 h-100 animate-card" style="animation-delay:80ms">
+          <div class="d-flex justify-content-between mb-4">
+            <div>
+              <div class="card-label text-primary">ENROLMENTS</div>
+              <div class="fs-5 fw-bold text-dark" style="font-weight: 900 !important;">Recent Students</div>
+            </div>
+            <a href="javascript:void(0)" class="link-all-details">All Details <i-tabler name="chevron-right"
+                class="icon-14"></i-tabler></a>
+          </div>
+          <table class="op-table">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Enrolled</th>
+                <th>Status</th>
+                <th>Amount</th>
+                <th class="text-end">Progress</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let student of recentStudents">
+                <td class="fw-bold">{{ student.name }}</td>
+                <td class="text-muted fw-normal">{{ student.enrolled }}</td>
+                <td>
+                  <span class="op-badge badge-{{ student.status | lowercase }}">{{ student.status }}</span>
+                </td>
+                <td class="fw-bold">{{ student.amount }}</td>
+                <td class="text-end">
+                  <div class="d-flex align-items-center justify-content-end gap-3">
+                    <div class="progress flex-grow-1" style="max-width: 80px; height:6px; background:#e9ecef; border-radius:3px;">
+                      <div class="progress-bar" [style.width.%]="student.progress" [style.background-color]="student.progressColor"
+                        style="border-radius:3px; transition:width 1.2s ease;"></div>
+                    </div>
+                    <span class="fw-bold fs-3">{{ student.progress }}%</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="op-card p-4 h-100 dark-card animate-card" style="animation-delay:140ms">
+          <div class="card-label" style="color:#5b7fa6;">QUICK</div>
+          <div class="fs-5 fw-bold text-white mb-4" style="font-weight: 900 !important;">Partner Stats</div>
+          
+          <div class="quick-card" *ngFor="let stat of quickStats">
+            <div class="icon-box {{ stat.color }}">
+              <i-tabler [name]="stat.icon" class="icon-16"></i-tabler>
+            </div>
+            <div class="fw-bold fs-3 text-white">{{ stat.label }}</div>
+            <div class="count">{{ stat.value }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GLOBAL TIME FILTER (FLOATING) -->
+    <div class="dashboard-time-filter animate-card" style="animation-delay:200ms">
+      <select (change)="onPeriodChange($event)" [value]="currentPeriod">
+        <option value="7d">7 Days</option>
+        <option value="15d">15 Days</option>
+        <option value="30d">30 Days</option>
+        <option value="60d">60 Days</option>
+        <option value="90d">90 Days</option>
+        <option value="1y">1 Year</option>
+        <option value="5y">5 Years</option>
+      </select>
+      <i-tabler name="chevron-down" class="icon-chevron"></i-tabler>
+    </div>
+
+  </div>
+
+</div>

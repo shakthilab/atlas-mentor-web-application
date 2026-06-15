@@ -1,7 +1,10 @@
 import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
+import { MatDialog } from '@angular/material/dialog';
 import { NotificationService } from '../../../core/services/notification.service';
+import { StudentService, Payout } from '../../../core/services/student.service';
+import { PaymentDetailsDialogComponent } from './payment-details-dialog/payment-details-dialog.component';
 
 export interface Payment {
   id: number;
@@ -28,21 +31,21 @@ export interface Payment {
             <h5 class="mat-headline-6 f-w-600 m-b-0">Payments Directory</h5>
           </mat-card-title>
           <div class="header-actions d-flex align-items-center gap-12">
-            <div class="search-box">
+            <div class="search-box flex-1-auto">
               <i-tabler name="search" class="icon-16 search-icon"></i-tabler>
               <input (keyup)="applyFilter($event)" placeholder="Search payments..." class="search-input" />
             </div>
             <div class="view-mode-toggle d-flex align-items-center">
-              <button (click)="viewMode = 'table'" class="toggle-btn" [class.active]="viewMode === 'table'">
+              <button (click)="viewMode = 'table'" class="toggle-btn" [class.active]="viewMode === 'table'" title="List view">
                 <i-tabler name="list" class="icon-18"></i-tabler>
               </button>
-              <button (click)="viewMode = 'card'" class="toggle-btn" [class.active]="viewMode === 'card'">
+              <button (click)="viewMode = 'card'" class="toggle-btn" [class.active]="viewMode === 'card'" title="Card view">
                 <i-tabler name="layout-grid" class="icon-18"></i-tabler>
               </button>
             </div>
-            <button mat-flat-button color="primary" class="d-flex align-items-center" (click)="addPayment()">
+            <button mat-flat-button color="primary" class="d-flex align-items-center add-btn desktop-add-btn" (click)="addPayment()">
               <i-tabler name="plus" class="icon-18 m-r-4"></i-tabler>
-              Add Payment
+              <span class="add-btn-text">Add Payment</span>
             </button>
           </div>
         </mat-card-header>
@@ -55,7 +58,7 @@ export interface Payment {
                 <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Student Name</th>
                 <td mat-cell *matCellDef="let element">
                   <div class="d-flex align-items-center">
-                    <img [src]="element.studentAvatar" class="rounded-circle m-r-12 object-cover" width="40" height="40" />
+                    <img [src]="element.studentAvatar" class="rounded-circle m-r-12 object-cover avatar-animated" width="40" height="40" />
                     <span class="f-w-600 d-block text-dark f-s-14">{{ element.studentName }}</span>
                   </div>
                 </td>
@@ -69,7 +72,7 @@ export interface Payment {
               </ng-container>
 
               <ng-container matColumnDef="assigned">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Assigned</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Assigned By</th>
                 <td mat-cell *matCellDef="let element">
                   <div class="d-flex align-items-center">
                     <img [src]="element.assignedAvatar" class="rounded-circle m-r-8 object-cover" width="28" height="28" />
@@ -129,7 +132,7 @@ export interface Payment {
               <ng-container matColumnDef="actions">
                 <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14 text-center">Actions</th>
                 <td mat-cell *matCellDef="let element" class="text-center">
-                  <button mat-icon-button [matMenuTriggerFor]="menu" class="text-muted">
+                  <button mat-icon-button [matMenuTriggerFor]="menu" class="text-muted" (click)="$event.stopPropagation()">
                     <i-tabler name="dots" class="icon-18"></i-tabler>
                   </button>
                   <mat-menu #menu="matMenu" class="cardWithShadow">
@@ -151,22 +154,22 @@ export interface Payment {
               </ng-container>
 
               <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-              <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="element-row"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="payment-row cursor-pointer" (click)="viewDetails(row)"></tr>
             </table>
           </div>
 
           <!-- Card View -->
           <div *ngIf="viewMode === 'card'" class="card-grid view-container p-24">
-            <mat-card *ngFor="let element of dataSource.connect() | async" class="payment-card cardWithShadow">
+            <mat-card *ngFor="let element of dataSource.connect() | async" class="payment-card cardWithShadow cursor-pointer" (click)="viewDetails(element)">
               <mat-card-content class="p-16">
                 <div class="d-flex align-items-center m-b-16">
-                  <img [src]="element.studentAvatar" class="rounded-circle m-r-12 object-cover" width="48" height="48" />
+                  <img [src]="element.studentAvatar" class="rounded-circle m-r-12 object-cover avatar-animated" width="48" height="48" />
                   <div>
                     <h6 class="mat-subtitle-1 f-w-600 m-b-0">{{ element.studentName }}</h6>
                     <span class="status-badge" [ngClass]="element.studentStatus">{{ element.studentStatus | titlecase }}</span>
                   </div>
                   <div class="m-l-auto">
-                    <button mat-icon-button [matMenuTriggerFor]="cardMenu" class="text-muted">
+                    <button mat-icon-button [matMenuTriggerFor]="cardMenu" class="text-muted" (click)="$event.stopPropagation()">
                       <i-tabler name="dots-vertical" class="icon-18"></i-tabler>
                     </button>
                     <mat-menu #cardMenu="matMenu" class="cardWithShadow">
@@ -206,21 +209,76 @@ export interface Payment {
             </mat-card>
           </div>
 
-          <mat-paginator [pageSizeOptions]="[5, 10, 15]" [pageSize]="10" showFirstLastButtons class="p-y-12"></mat-paginator>
+          <mat-paginator [length]="totalElements"
+                         [pageSize]="pageSize"
+                         [pageSizeOptions]="[5, 10, 15]"
+                         (page)="pageChanged($event)"
+                         showFirstLastButtons 
+                         class="p-y-12">
+          </mat-paginator>
         </mat-card-content>
       </mat-card>
     </div>
+
+    <!-- Mobile FAB -->
+    <button mat-fab color="primary" class="payment-mobile-fab" (click)="addPayment()" aria-label="Add Payment">
+      <i-tabler name="plus" class="icon-24"></i-tabler>
+    </button>
   `,
   styles: [`
-    .table-container { padding: 24px; @media (max-width: 768px) { padding: 12px 8px; } }
-    mat-card-header { @media (max-width: 576px) { flex-direction: column !important; align-items: flex-start !important; gap: 16px; } }
-    .header-actions { @media (max-width: 576px) { width: 100%; justify-content: space-between; } button { white-space: nowrap; flex-shrink: 0; } }
+    .table-container {
+      padding: 24px;
+      
+      @media (max-width: 768px) {
+        padding: 12px 8px;
+      }
+    }
+
+    mat-card-header {
+      @media (max-width: 576px) {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 16px;
+      }
+    }
+    
+    .header-actions {
+      @media (max-width: 576px) {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      button.desktop-add-btn {
+        white-space: nowrap;
+        flex-shrink: 0;
+        @media (max-width: 576px) {
+          display: none !important;
+        }
+      }
+    }
+
     .table-responsive { width: 100%; overflow-x: auto; }
     table { min-width: 1050px; }
-    .element-row { transition: background-color 0.2s ease; &:hover { background-color: #f8fafc; } }
+    .payment-row { transition: background-color 0.2s ease; cursor: pointer; &:hover { background-color: #f8fafc; } }
 
     .view-container { animation: fadeIn 0.4s ease-in-out; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .avatar-animated {
+      transition: transform 0.3s ease;
+    }
+    
+    .payment-row:hover .avatar-animated,
+    .payment-card:hover .avatar-animated {
+      transform: scale(1.1) rotate(5deg);
+      animation: gentle-bounce 1s infinite alternate ease-in-out;
+    }
+    
+    @keyframes gentle-bounce {
+      0% { transform: scale(1.1) rotate(3deg) translateY(0); }
+      100% { transform: scale(1.1) rotate(7deg) translateY(-3px); }
+    }
+
     .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; @media (max-width: 576px) { grid-template-columns: 1fr; padding: 16px !important; } }
     .payment-card { transition: transform 0.2s ease, box-shadow 0.2s ease; &:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important; } }
     .view-mode-toggle { background-color: #ffffff; border-radius: 6px; border: 1px solid #e2e8f0; display: flex; overflow: hidden; .toggle-btn { width: 42px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; color: #64748b; background: transparent; border: none; cursor: pointer; transition: all 0.2s ease; &.active { background-color: #615dff; color: #ffffff; } &:hover:not(.active) { background-color: #f1f5f9; } } }
@@ -232,18 +290,41 @@ export interface Payment {
       &.inactive, &.overdue, &.rejected { background-color: rgba(250, 137, 107, 0.1); color: #fa896b; }
     }
 
+    .cursor-pointer { cursor: pointer; }
+
     .search-box {
-      position: relative; display: flex; align-items: center; background-color: #f1f5f9; border-radius: 8px; padding: 0 12px; border: 1px solid #e2e8f0; width: 240px; height: 38px; transition: all 0.2s ease-in-out;
-      @media (max-width: 576px) { width: calc(100% - 140px); }
+      position: relative; display: flex; align-items: center; background-color: #f1f5f9; border-radius: 8px; padding: 0 12px; border: 1px solid #e2e8f0; min-width: 0; height: 38px; transition: all 0.2s ease-in-out;
       &:focus-within { background-color: #ffffff; border-color: #615dff; box-shadow: 0 0 0 3px rgba(97, 93, 255, 0.1); }
-      .search-icon { color: #64748b; margin-right: 8px; }
+      .search-icon { color: #64748b; margin-right: 8px; flex-shrink: 0; }
       .search-input { border: none; background: transparent; outline: none; width: 100%; font-size: 13px; color: #1e293b; &::placeholder { color: #94a3b8; } }
     }
 
+    .flex-1-auto { flex: 1 1 auto; }
+
     .gap-12 { gap: 12px; } .m-r-12 { margin-right: 12px; } .m-r-8 { margin-right: 8px; } .m-r-4 { margin-right: 4px; } .p-0 { padding: 0 !important; } .object-cover { object-fit: cover; }
 
+    /* Mobile FAB */
+    .payment-mobile-fab {
+      position: fixed;
+      bottom: 84px;
+      right: 24px;
+      z-index: 1000;
+      display: none !important;
+      
+      @media (max-width: 576px) {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+
+    @keyframes fabIn {
+      from { transform: scale(0.5); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
     :host-context(.dark-theme) {
-      .element-row:hover { background-color: var(--dark-hoverbgcolor); }
+      .payment-row:hover { background-color: var(--dark-hoverbgcolor); }
       .search-box { background-color: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); .search-input { color: #f8fafc; } }
       .view-mode-toggle { background-color: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); .toggle-btn { color: #94a3b8; &.active { background-color: #615dff; color: #ffffff; } &:hover:not(.active) { background-color: var(--dark-hoverbgcolor); } } }
       .status-badge {
@@ -257,16 +338,83 @@ export interface Payment {
 export class PaymentsComponent implements OnInit, AfterViewInit {
   viewMode: 'table' | 'card' = 'table';
   displayedColumns: string[] = ['studentName', 'source', 'assigned', 'paid', 'balance', 'studentStatus', 'paymentStatus', 'approval', 'date', 'actions'];
-  dataSource = new MatTableDataSource<Payment>(PAYMENT_DATA);
+  dataSource = new MatTableDataSource<Payment>([]);
+
+  totalElements = 0;
+  pageSize = 10;
+  currentPage = 0;
+  searchQuery = '';
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-  constructor(private notificationService: NotificationService) {}
+  constructor(
+    private notificationService: NotificationService,
+    private studentService: StudentService,
+    private dialog: MatDialog
+  ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.loadPayments();
+  }
 
   ngAfterViewInit(): void {
-    this.dataSource.paginator = this.paginator;
+    // Custom pagination handled via pageChanged event
+  }
+
+  loadPayments(): void {
+    this.studentService.getPaymentsByReferralCompany(this.currentPage, this.pageSize).subscribe({
+      next: (data) => {
+        if (data && data.payouts) {
+          this.dataSource.data = data.payouts.map(p => this.mapToPayment(p));
+          // Since the API doesn't return totalElements currently, we'll fall back to array length
+          this.totalElements = data.payouts.length; 
+        }
+      },
+      error: (err) => {
+        console.error('Error fetching payments:', err);
+        this.notificationService.showErrorToast('Failed to load payments.', 'Error');
+      }
+    });
+  }
+
+  mapToPayment(payout: Payout): Payment {
+    const avatarIndex = (payout.studentId % 4) + 1;
+    const assignedIndex = ((payout.user?.id || 1) % 4) + 1;
+    
+    const rawDate = payout.disputedAt || payout.respondedAt || payout.createdAt;
+    const formattedDate = rawDate ? new Date(rawDate).toLocaleDateString() : 'N/A';
+
+    return {
+      id: payout.id,
+      studentName: payout.studentName || 'Unknown Student',
+      studentAvatar: `/assets/images/profile/user-${avatarIndex}.jpg`,
+      source: payout.sourceType || 'UNKNOWN',
+      assigned: payout.user?.username || 'Unassigned',
+      assignedAvatar: `/assets/images/profile/user-${assignedIndex}.jpg`,
+      paid: `$${payout.paidAmount || 0}`,
+      balance: `$${payout.balanceAmount || 0}`,
+      studentStatus: 'active', // Placeholder as not in API
+      paymentStatus: this.mapStatus(payout.payoutStatus) as any,
+      approval: payout.paymentStageDisplay as any || 'Pending',
+      date: formattedDate
+    };
+  }
+
+  mapStatus(status: string): string {
+    if (!status) return 'pending';
+    switch(status.toUpperCase()) {
+      case 'PAID': return 'paid';
+      case 'REJECTED': return 'rejected';
+      case 'DISPUTE': return 'overdue';
+      case 'PENDING': return 'pending';
+      default: return 'pending';
+    }
+  }
+
+  pageChanged(event: any): void {
+    this.currentPage = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.loadPayments();
   }
 
   applyFilter(event: Event): void {
@@ -279,7 +427,11 @@ export class PaymentsComponent implements OnInit, AfterViewInit {
   }
 
   viewDetails(payment: Payment): void {
-    this.notificationService.showSuccessToast(`Loading details for ${payment.studentName}.`, 'Loading');
+    this.dialog.open(PaymentDetailsDialogComponent, {
+      data: payment,
+      width: '500px',
+      panelClass: 'payment-details-dialog'
+    });
   }
 
   editPayment(payment: Payment): void {
@@ -290,8 +442,3 @@ export class PaymentsComponent implements OnInit, AfterViewInit {
     this.notificationService.showErrorToast(`Payment for ${payment.studentName} deleted.`, 'Deleted');
   }
 }
-
-const PAYMENT_DATA: Payment[] = [
-  { id: 1, studentName: 'John Doe', studentAvatar: '/assets/images/profile/user-1.jpg', source: 'Bank Transfer', assigned: 'Admin Officer', assignedAvatar: '/assets/images/profile/user-2.jpg', paid: '$1,200', balance: '$0', studentStatus: 'active', paymentStatus: 'paid', approval: 'approved', date: 'Oct 10, 2026' },
-  { id: 2, studentName: 'Jane Smith', studentAvatar: '/assets/images/profile/user-3.jpg', source: 'Credit Card', assigned: 'Manager', assignedAvatar: '/assets/images/profile/user-4.jpg', paid: '$500', balance: '$1,000', studentStatus: 'active', paymentStatus: 'pending', approval: 'pending', date: 'Oct 12, 2026' },
-];
