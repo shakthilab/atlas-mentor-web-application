@@ -6,6 +6,8 @@ import { MatPaginator } from '@angular/material/paginator';
 import { TaskService, Task, TaskComment, TaskAttachment, TaskActivity, MOCK_MEMBERS, MOCK_BUNDLES, TaskBundle, BundleTask } from '../../../core/services/task.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { MasterDataService, Role } from '../../../core/services/master-data.service';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 
 
@@ -38,6 +40,8 @@ export class TasksComponent implements OnInit, AfterViewInit {
 
   // Toolbar state
   searchText: string = '';
+  private searchSubject = new Subject<string>();
+
   filterStatus: string = '';
   filterPriority: string = '';
   filterAssignee: string = '';
@@ -50,8 +54,13 @@ export class TasksComponent implements OnInit, AfterViewInit {
   customCreateDateStart: Date | null = null;
   customCreateDateEnd: Date | null = null;
 
-  sortBy: 'dueDate' | 'priority' | 'title' = 'dueDate';
-  sortDirection: 'asc' | 'desc' = 'asc';
+  sortBy: 'dueDate' | 'priority' | 'title' | 'createdDate' | '' = '';
+  sortDirection: 'asc' | 'desc' | '' = '';
+
+  // Pagination state
+  currentPage: number = 0;
+  hasMoreTasks: boolean = false;
+  isLoadingMore: boolean = false;
 
   // Columns visibility in List View
   visibleColumns = {
@@ -61,6 +70,7 @@ export class TasksComponent implements OnInit, AfterViewInit {
     priority: true,
     assignee: true,
     dueDate: true,
+    createdDate: true,
     createdBy: true,
     lastUpdated: true,
     actions: true
@@ -100,9 +110,11 @@ export class TasksComponent implements OnInit, AfterViewInit {
 
   // Bundle filters
   bundleFilterRole: string = 'All';
-  bundleFilterStatus: string = 'Active';
+  bundleFilterStatus: string = 'All';
   bundleFilterSchedule: string = 'All';
   availableRoles: Role[] = [];
+  availableBranches: any[] = [];
+  availableAssignees: any[] = [];
 
   taskBundles: TaskBundle[] = [];
   bundleTotalCount: number = 0;
@@ -197,9 +209,21 @@ export class TasksComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.loadRoles();
+    this.loadBranches();
     this.loadTasks();
     this.loadStatuses();
     this.loadPriorities();
+
+    this.searchSubject.pipe(
+      debounceTime(400),
+      distinctUntilChanged()
+    ).subscribe(() => {
+      this.loadTasks();
+    });
+  }
+
+  onSearchChange(text: string): void {
+    this.searchSubject.next(text);
   }
 
   loadRoles(): void {
@@ -212,6 +236,49 @@ export class TasksComponent implements OnInit, AfterViewInit {
         }
       },
       error: (err) => console.error('Failed to load roles', err)
+    });
+  }
+
+  loadBranches(): void {
+    this.masterDataService.getBranches().subscribe({
+      next: (res) => {
+        if (res && res.success && res.data) {
+          this.availableBranches = res.data;
+        }
+      },
+      error: (err) => console.error('Failed to load branches', err)
+    });
+  }
+
+  onAssignmentScopeChange(): void {
+    const branchId = this.newTaskData.branch;
+    const roleId = this.newTaskData.role;
+    
+    if (!branchId && !roleId) {
+      this.availableAssignees = [];
+      this.newTaskData.assignee = { name: '', avatar: '/assets/images/profile/user-1.jpg' };
+      return;
+    }
+
+    this.masterDataService.getEmployeesByFilter(branchId, roleId).subscribe({
+      next: (res) => {
+        if (res && res.success && res.data) {
+          this.availableAssignees = res.data;
+        } else if (Array.isArray(res)) {
+          this.availableAssignees = res;
+        } else {
+          this.availableAssignees = [];
+        }
+        
+        // Reset assignee if not in new list
+        if (this.newTaskData.assignee && this.newTaskData.assignee.id) {
+          const exists = this.availableAssignees.find(a => a.id === this.newTaskData.assignee.id);
+          if (!exists) {
+            this.newTaskData.assignee = { name: '', avatar: '/assets/images/profile/user-1.jpg' };
+          }
+        }
+      },
+      error: (err) => console.error('Failed to fetch assignees', err)
     });
   }
 
@@ -237,26 +304,159 @@ export class TasksComponent implements OnInit, AfterViewInit {
     });
   }
 
+  taskStats: any = null;
+  animatedStats = {
+    openTasks: 0,
+    inProgress: 0,
+    overdue: 0,
+    completedThisWeek: 0
+  };
+
+  animateValue(obj: any, start: number, end: number, duration: number, prop: string) {
+    let startTimestamp: number | null = null;
+    const step = (timestamp: number) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      // easeOutQuart
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      const ease = 1 - Math.pow(1 - progress, 4);
+      obj[prop] = Math.floor(ease * (end - start) + start);
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      } else {
+        obj[prop] = end;
+      }
+    };
+    window.requestAnimationFrame(step);
+  }
+
   ngAfterViewInit(): void {
     this.dataSource.paginator = this.paginator;
   }
 
-  loadTasks(showToast: boolean = false): void {
-    this.isLoading = true;
-    this.taskService.getTasks().subscribe({
+  // Helper to format Date to YYYY-MM-DD
+  private formatDateYYYYMMDD(date: Date): string {
+    const d = new Date(date);
+    let month = '' + (d.getMonth() + 1);
+    let day = '' + d.getDate();
+    const year = d.getFullYear();
+
+    if (month.length < 2) month = '0' + month;
+    if (day.length < 2) day = '0' + day;
+
+    return [year, month, day].join('-');
+  }
+
+  // Get start of current week (Monday)
+  private getStartOfWeek(): Date {
+    const curr = new Date();
+    const first = curr.getDate() - curr.getDay() + (curr.getDay() === 0 ? -6 : 1); // Monday
+    return new Date(curr.setDate(first));
+  }
+
+  // Get end of current week (Sunday)
+  private getEndOfWeek(): Date {
+    const curr = new Date();
+    const first = curr.getDate() - curr.getDay() + (curr.getDay() === 0 ? -6 : 1);
+    const last = first + 6; 
+    return new Date(curr.setDate(last));
+  }
+
+  loadTasks(showToast: boolean = false, append: boolean = false): void {
+    if (!append) {
+      this.currentPage = 0;
+      this.isLoading = true;
+    } else {
+      this.isLoadingMore = true;
+    }
+
+    // Build backend filters
+    const backendFilters: any = {
+      page: this.currentPage,
+      size: 50
+    };
+    
+    // Status, Priority, Search
+    if (this.filterStatus && this.filterStatus !== 'All') {
+      backendFilters.status = this.filterStatus;
+    }
+    if (this.filterPriority && this.filterPriority !== 'All') {
+      backendFilters.priority = this.filterPriority;
+    }
+    if (this.searchText && this.searchText.trim() !== '') {
+      backendFilters.search = this.searchText.trim();
+    }
+    
+    // Due Date logic
+    if (this.filterDueDate === 'Overdue') {
+      backendFilters.overdue = true;
+    } else if (this.filterDueDate === 'Today') {
+      const today = this.formatDateYYYYMMDD(new Date());
+      backendFilters.dueDateFrom = today;
+      backendFilters.dueDateTo = today;
+    } else if (this.filterDueDate === 'Week') {
+      backendFilters.dueDateFrom = this.formatDateYYYYMMDD(this.getStartOfWeek());
+      backendFilters.dueDateTo = this.formatDateYYYYMMDD(this.getEndOfWeek());
+    } else if (this.filterDueDate === 'Custom' && this.customDueDateStart && this.customDueDateEnd) {
+      backendFilters.dueDateFrom = this.formatDateYYYYMMDD(this.customDueDateStart);
+      backendFilters.dueDateTo = this.formatDateYYYYMMDD(this.customDueDateEnd);
+    }
+
+    // Created Date logic
+    if (this.filterCreateDate === 'Today') {
+      const today = this.formatDateYYYYMMDD(new Date());
+      backendFilters.assignedDateFrom = today;
+      backendFilters.assignedDateTo = today;
+    } else if (this.filterCreateDate === 'Week') {
+      // Last 7 days (today - 7 to today)
+      const today = new Date();
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(today.getDate() - 7);
+      
+      backendFilters.assignedDateFrom = this.formatDateYYYYMMDD(sevenDaysAgo);
+      backendFilters.assignedDateTo = this.formatDateYYYYMMDD(today);
+    } else if (this.filterCreateDate === 'Custom' && this.customCreateDateStart && this.customCreateDateEnd) {
+      backendFilters.assignedDateFrom = this.formatDateYYYYMMDD(this.customCreateDateStart);
+      backendFilters.assignedDateTo = this.formatDateYYYYMMDD(this.customCreateDateEnd);
+    }
+
+    this.taskService.getTasks(backendFilters).subscribe({
       next: (data) => {
-        this.tasks = data;
+        if (append) {
+          this.tasks = [...this.tasks, ...data.tasks];
+        } else {
+          this.tasks = data.tasks;
+        }
+        
+        // Update pagination flag
+        this.hasMoreTasks = this.currentPage < ((data.totalPages || 1) - 1);
+
+        this.taskStats = data.stats;
+        if (this.taskStats) {
+          this.animateValue(this.animatedStats, 0, this.taskStats.openTasks, 1500, 'openTasks');
+          this.animateValue(this.animatedStats, 0, this.taskStats.inProgress, 1500, 'inProgress');
+          this.animateValue(this.animatedStats, 0, this.taskStats.overdue, 1500, 'overdue');
+          this.animateValue(this.animatedStats, 0, this.taskStats.completedThisWeek, 1500, 'completedThisWeek');
+        }
         this.applyFiltersAndSort();
         this.isLoading = false;
+        this.isLoadingMore = false;
         if (showToast) {
           this.notificationService.showSuccessToast('Task board refreshed.', 'Refreshed');
         }
       },
       error: () => {
         this.isLoading = false;
+        this.isLoadingMore = false;
         this.notificationService.showErrorToast('Failed to load tasks.', 'Error');
       }
     });
+  }
+
+  loadMoreTasks(): void {
+    if (this.hasMoreTasks && !this.isLoadingMore) {
+      this.currentPage++;
+      this.loadTasks(false, true);
+    }
   }
 
   deleteTask(task: Task): void {
@@ -279,100 +479,36 @@ export class TasksComponent implements OnInit, AfterViewInit {
   applyFiltersAndSort(): void {
     // 1. Filter
     this.filteredTasks = this.tasks.filter((task) => {
-      const matchesSearch =
-        task.title.toLowerCase().includes(this.searchText.toLowerCase()) ||
-        task.description.toLowerCase().includes(this.searchText.toLowerCase());
-
-      const matchesStatus =
-        !this.filterStatus || this.filterStatus === 'All' || task.status === this.filterStatus;
-
-      const matchesPriority =
-        !this.filterPriority || this.filterPriority === 'All' || task.priority === this.filterPriority;
-
       const matchesAssignee =
         !this.filterAssignee || this.filterAssignee === 'All' || task.assignee.name === this.filterAssignee;
 
-      // 5. Due Date Filter
-      let matchesDueDate = true;
-      if (this.filterDueDate) {
-        const todayStr = new Date().toISOString().substring(0, 10);
-        if (this.filterDueDate === 'Overdue') {
-          matchesDueDate = task.dueDate < todayStr && task.status !== 'Completed';
-        } else if (this.filterDueDate === 'Today') {
-          matchesDueDate = task.dueDate === todayStr;
-        } else if (this.filterDueDate === 'Week') {
-          const nextWeek = new Date();
-          nextWeek.setDate(nextWeek.getDate() + 7);
-          const nextWeekStr = nextWeek.toISOString().substring(0, 10);
-          matchesDueDate = task.dueDate >= todayStr && task.dueDate <= nextWeekStr;
-        } else if (this.filterDueDate === 'Custom') {
-          const taskDate = new Date(task.dueDate);
-          taskDate.setHours(0, 0, 0, 0);
-
-          if (this.customDueDateStart) {
-            const start = new Date(this.customDueDateStart);
-            start.setHours(0, 0, 0, 0);
-            if (taskDate < start) matchesDueDate = false;
-          }
-          if (this.customDueDateEnd) {
-            const end = new Date(this.customDueDateEnd);
-            end.setHours(0, 0, 0, 0);
-            if (taskDate > end) matchesDueDate = false;
-          }
-        }
-      }
-
-      // 6. Create Date Filter
-      let matchesCreateDate = true;
-      if (this.filterCreateDate) {
-        const todayStr = new Date().toISOString().substring(0, 10);
-        const taskCreateStr = task.createdDate ? task.createdDate.substring(0, 10) : '';
-
-        if (this.filterCreateDate === 'Today') {
-          matchesCreateDate = taskCreateStr === todayStr;
-        } else if (this.filterCreateDate === 'Week') {
-          const pastWeek = new Date();
-          pastWeek.setDate(pastWeek.getDate() - 7);
-          const pastWeekStr = pastWeek.toISOString().substring(0, 10);
-          matchesCreateDate = taskCreateStr <= todayStr && taskCreateStr >= pastWeekStr;
-        } else if (this.filterCreateDate === 'Custom') {
-          const taskDate = new Date(task.createdDate || task.dueDate);
-          taskDate.setHours(0, 0, 0, 0);
-
-          if (this.customCreateDateStart) {
-            const start = new Date(this.customCreateDateStart);
-            start.setHours(0, 0, 0, 0);
-            if (taskDate < start) matchesCreateDate = false;
-          }
-          if (this.customCreateDateEnd) {
-            const end = new Date(this.customCreateDateEnd);
-            end.setHours(0, 0, 0, 0);
-            if (taskDate > end) matchesCreateDate = false;
-          }
-        }
-      }
-
-      return matchesSearch && matchesStatus && matchesPriority && matchesAssignee && matchesDueDate && matchesCreateDate;
+      return matchesAssignee;
     });
 
     // 2. Sort
-    const priorityWeight: Record<string, number> = { Low: 1, Medium: 2, High: 3, LOW: 1, MEDIUM: 2, HIGH: 3 };
-    this.filteredTasks.sort((a, b) => {
-      let comparison = 0;
-      if (this.sortBy === 'dueDate') {
-        const dateA = a.dueDate || '';
-        const dateB = b.dueDate || '';
-        comparison = dateA.localeCompare(dateB);
-      } else if (this.sortBy === 'priority') {
-        comparison = (priorityWeight[a.priority] || 0) - (priorityWeight[b.priority] || 0);
-      } else if (this.sortBy === 'title') {
-        const titleA = a.title || '';
-        const titleB = b.title || '';
-        comparison = titleA.localeCompare(titleB);
-      }
+    if (this.sortBy) {
+      const priorityWeight: Record<string, number> = { Low: 1, Medium: 2, High: 3, LOW: 1, MEDIUM: 2, HIGH: 3 };
+      this.filteredTasks.sort((a, b) => {
+        let comparison = 0;
+        if (this.sortBy === 'dueDate') {
+          const dateA = a.dueDate || '';
+          const dateB = b.dueDate || '';
+          comparison = dateA.localeCompare(dateB);
+        } else if (this.sortBy === 'priority') {
+          comparison = (priorityWeight[a.priority] || 0) - (priorityWeight[b.priority] || 0);
+        } else if (this.sortBy === 'title') {
+          const titleA = a.title || '';
+          const titleB = b.title || '';
+          comparison = titleA.localeCompare(titleB);
+        } else if (this.sortBy === 'createdDate') {
+          const dateA = a.createdDate || '';
+          const dateB = b.createdDate || '';
+          comparison = dateA.localeCompare(dateB);
+        }
 
-      return this.sortDirection === 'asc' ? comparison : -comparison;
-    });
+        return this.sortDirection === 'asc' ? comparison : -comparison;
+      });
+    }
 
     // 3. Update view specific layouts
     this.dataSource.data = this.filteredTasks;
@@ -428,9 +564,14 @@ export class TasksComponent implements OnInit, AfterViewInit {
   }
 
   // Sorting helper
-  toggleSort(field: 'dueDate' | 'priority' | 'title'): void {
+  toggleSort(field: 'dueDate' | 'priority' | 'title' | 'createdDate'): void {
     if (this.sortBy === field) {
-      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+      if (this.sortDirection === 'asc') {
+        this.sortDirection = 'desc';
+      } else {
+        this.sortBy = '';
+        this.sortDirection = '';
+      }
     } else {
       this.sortBy = field;
       this.sortDirection = 'asc';
@@ -526,6 +667,7 @@ export class TasksComponent implements OnInit, AfterViewInit {
       priority: 'Low',
       dueDate: ''
     };
+    this.availableAssignees = [];
 
     this.dialog.open(this.createTaskDialog, {
       width: '640px',
@@ -537,42 +679,40 @@ export class TasksComponent implements OnInit, AfterViewInit {
 
   saveNewTask(): void {
     this.isTaskFormSubmitted = true;
-    if (!this.newTaskData.title || !this.newTaskData.dueDate) {
-      // Basic validation: Title and Due Date are required
+    if (!this.newTaskData.title || !this.newTaskData.dueDate || !this.newTaskData.assignee) {
+      // Basic validation: Title, Due Date and Assignee are required
       this.notificationService.showErrorToast('Please fill out required fields.', 'Validation Error');
       return;
     }
 
-    const newId = Math.max(...this.tasks.map(t => t.id), 0) + 1;
     let formattedDueDate = this.newTaskData.dueDate;
     if (this.newTaskData.dueDate instanceof Date) {
       formattedDueDate = this.newTaskData.dueDate.toISOString().substring(0, 10);
     }
 
-    const newTask: Task = {
-      id: newId,
+    const payload = {
       title: this.newTaskData.title,
       description: this.newTaskData.description,
-      status: 'To Do',
-      priority: this.newTaskData.priority,
-      category: 'Development',
-      tags: ['New'],
-      assignee: { name: this.newTaskData.assignee.name || 'Unassigned', avatar: '/assets/images/profile/user-1.jpg' },
-      reporter: { name: 'Shakthi', avatar: '/assets/images/profile/user-2.jpg' },
+      priority: this.newTaskData.priority.toUpperCase(),
       dueDate: formattedDueDate,
-      estimatedTime: '4h',
-      createdBy: 'Shakthi',
-      createdDate: new Date().toISOString(),
-      lastUpdated: new Date().toISOString(),
-      comments: [],
-      attachments: [],
-      activities: []
+      assignedToId: this.newTaskData.assignee?.id || null,
+      branchId: this.newTaskData.branch || null
     };
 
-    this.tasks.unshift(newTask);
-    this.applyFiltersAndSort();
-    this.notificationService.showSuccessToast('Task created successfully.', 'Created');
-    this.dialog.closeAll();
+    this.isLoading = true;
+    this.taskService.createTaskApi(payload).subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.notificationService.showSuccessToast('Task created successfully.', 'Created');
+        this.dialog.closeAll();
+        this.loadTasks(); // Reload the tasks table
+      },
+      error: (err) => {
+        console.error('Failed to create task:', err);
+        this.isLoading = false;
+        this.notificationService.showErrorToast('Failed to create task.', 'Error');
+      }
+    });
   }
 
   // Side Drawer Operations
@@ -1181,13 +1321,40 @@ export class TasksComponent implements OnInit, AfterViewInit {
   }
 
   onCustomDueDateChange() {
-    this.filterDueDate = 'Custom';
-    this.applyFiltersAndSort();
+    if (this.customDueDateStart && this.customDueDateEnd) {
+      this.filterDueDate = 'Custom';
+      this.loadTasks();
+    }
   }
 
   onCustomCreateDateChange() {
-    this.filterCreateDate = 'Custom';
-    this.applyFiltersAndSort();
+    if (this.customCreateDateStart && this.customCreateDateEnd) {
+      this.filterCreateDate = 'Custom';
+      this.loadTasks();
+    }
+  }
+
+  hasActiveFilters(): boolean {
+    return !!(
+      this.searchText || 
+      (this.filterStatus && this.filterStatus !== 'All') || 
+      (this.filterPriority && this.filterPriority !== 'All') || 
+      this.filterDueDate || 
+      this.filterCreateDate
+    );
+  }
+
+  resetFilters(): void {
+    this.searchText = '';
+    this.filterStatus = '';
+    this.filterPriority = '';
+    this.filterDueDate = '';
+    this.customDueDateStart = null;
+    this.customDueDateEnd = null;
+    this.filterCreateDate = '';
+    this.customCreateDateStart = null;
+    this.customCreateDateEnd = null;
+    this.loadTasks();
   }
 
   onDueDateChange(date: any): void {
@@ -1233,6 +1400,47 @@ export class TasksComponent implements OnInit, AfterViewInit {
     });
   }
 
+  editBundle(bundle: TaskBundle): void {
+    this.taskService.getTaskBundleById(bundle.id).subscribe({
+      next: (response) => {
+        // Map backend response to newBundleData
+        this.newBundleData = {
+          id: response.id,
+          name: response.name,
+          description: response.description || '',
+          role: response.role?.name || bundle.role || '',
+          status: response.status || 'ACTIVE',
+          scheduleType: response.schedule?.scheduleType || 'DAILY',
+          executionTime: response.schedule?.executionTime ? response.schedule.executionTime.substring(0, 5) : '',
+          startDate: response.schedule?.startDate ? response.schedule.startDate : new Date().toISOString().substring(0, 10),
+          executionDay: response.schedule?.executionDay,
+          executionDayOfMonth: response.schedule?.executionDayOfMonth,
+          tasks: (response.tasks || []).map((t: any) => ({
+            id: t.id,
+            title: t.title,
+            description: t.description || '',
+            priority: t.priority ? t.priority.charAt(0) + t.priority.slice(1).toLowerCase() : 'Medium',
+            dueDays: t.defaultDueDays || 0
+          }))
+        };
+
+        if (this.newBundleData.tasks.length === 0) {
+          this.newBundleData.tasks.push({ title: '', description: '', priority: 'Medium', dueDays: 0 });
+        }
+
+        this.dialog.open(this.createBundleDialog, {
+          width: '900px',
+          maxWidth: '95vw',
+          panelClass: 'responsive-dialog',
+          autoFocus: false
+        });
+      },
+      error: () => {
+        this.notificationService.showErrorToast('Failed to load bundle details.', 'Error');
+      }
+    });
+  }
+
   addBundleTask(): void {
     this.newBundleData.tasks.push({ title: '', description: '', priority: 'Medium', dueDays: 0 });
   }
@@ -1264,13 +1472,19 @@ export class TasksComponent implements OnInit, AfterViewInit {
       schedule: {
         executionTime: this.newBundleData.executionTime ? (this.newBundleData.executionTime.length === 5 ? this.newBundleData.executionTime + ':00' : this.newBundleData.executionTime) : '09:00:00',
       },
-      tasks: this.newBundleData.tasks.map((t, index) => ({
-        title: t.title,
-        description: t.description || null,
-        priority: t.priority?.toUpperCase() || 'MEDIUM',
-        taskOrder: index + 1,
-        defaultDueDays: t.dueDays || 0
-      }))
+      tasks: this.newBundleData.tasks.map((t, index) => {
+        const mappedTask: any = {
+          title: t.title,
+          description: t.description || null,
+          priority: t.priority?.toUpperCase() || 'MEDIUM',
+          taskOrder: index + 1,
+          defaultDueDays: t.dueDays || 0
+        };
+        if (t.id) {
+          mappedTask.id = t.id;
+        }
+        return mappedTask;
+      })
     };
 
     if (this.newBundleData.startDate) {
@@ -1295,17 +1509,31 @@ export class TasksComponent implements OnInit, AfterViewInit {
       payload.schedule.scheduleType = 'DAILY';
     }
 
-    this.taskService.createTaskBundle(payload).subscribe({
-      next: () => {
-        this.notificationService.showSuccessToast('Task Bundle has been successfully created.', 'Bundle Created');
-        this.dialog.closeAll();
-        this.loadTaskBundles();
-      },
-      error: (err) => {
-        console.error('Failed to create bundle', err);
-        this.notificationService.showErrorToast('Failed to create bundle.', 'Error');
-      }
-    });
+    if (this.newBundleData.id && this.newBundleData.id > 0) {
+      this.taskService.updateTaskBundle(this.newBundleData.id, payload).subscribe({
+        next: () => {
+          this.notificationService.showSuccessToast('Task Bundle has been successfully updated.', 'Bundle Updated');
+          this.dialog.closeAll();
+          this.loadTaskBundles();
+        },
+        error: (err) => {
+          console.error('Failed to update bundle', err);
+          this.notificationService.showErrorToast('Failed to update bundle.', 'Error');
+        }
+      });
+    } else {
+      this.taskService.createTaskBundle(payload).subscribe({
+        next: () => {
+          this.notificationService.showSuccessToast('Task Bundle has been successfully created.', 'Bundle Created');
+          this.dialog.closeAll();
+          this.loadTaskBundles();
+        },
+        error: (err) => {
+          console.error('Failed to create bundle', err);
+          this.notificationService.showErrorToast('Failed to create bundle.', 'Error');
+        }
+      });
+    }
   }
 
   deleteBundle(bundle: TaskBundle): void {
@@ -1328,12 +1556,28 @@ export class TasksComponent implements OnInit, AfterViewInit {
   toggleBundleStatus(bundle: TaskBundle): void {
     const currentStatus = bundle.status || 'ACTIVE';
     const newStatus = currentStatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-    const actionText = newStatus === 'ACTIVE' ? 'activate' : 'deactivate';
-
-    // Optimistic update
-    bundle.status = newStatus;
-    this.notificationService.showSuccessToast(`Bundle ${actionText}d successfully.`, 'Status Updated');
-    // If backend endpoint is added, we would call it here and potentially revert on error.
+    
+    if (newStatus === 'ACTIVE') {
+      this.taskService.activateTaskBundle(bundle.id).subscribe({
+        next: () => {
+          this.notificationService.showSuccessToast(`Bundle activated successfully.`, 'Status Updated');
+          this.loadTaskBundles();
+        },
+        error: () => {
+          this.notificationService.showErrorToast(`Failed to activate bundle.`, 'Error');
+        }
+      });
+    } else {
+      this.taskService.deactivateTaskBundle(bundle.id).subscribe({
+        next: () => {
+          this.notificationService.showSuccessToast(`Bundle deactivated successfully.`, 'Status Updated');
+          this.loadTaskBundles();
+        },
+        error: () => {
+          this.notificationService.showErrorToast(`Failed to deactivate bundle.`, 'Error');
+        }
+      });
+    }
   }
 
   openExecuteBundleDialog(bundle: TaskBundle): void {

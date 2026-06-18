@@ -1,4 +1,79 @@
 <div class="workspace-container">
+  
+  <!-- Task Statistics Row -->
+  <div class="stats-cards-grid m-b-24" *ngIf="taskStats">
+    <!-- Open Tasks -->
+    <div class="stat-card">
+      <div class="stat-card-header">
+        <span class="stat-card-title">OPEN TASKS</span>
+        <div class="stat-icon-wrapper bg-light-blue text-blue">
+          <i-tabler name="list-check" class="icon-20"></i-tabler>
+        </div>
+      </div>
+      <div class="stat-card-value">{{ animatedStats.openTasks }}</div>
+      <div class="stat-card-footer">
+        <span class="trend-pill" [ngClass]="taskStats.openTasksTrend.startsWith('+') ? 'trend-positive' : 'trend-negative'">
+          <i-tabler [name]="taskStats.openTasksTrend.startsWith('+') ? 'arrow-up-right' : 'arrow-down-right'" class="icon-12 m-r-4"></i-tabler>
+          {{ taskStats.openTasksTrend }}
+        </span>
+        <span class="trend-subtext">since last week</span>
+      </div>
+    </div>
+
+    <!-- In Progress -->
+    <div class="stat-card">
+      <div class="stat-card-header">
+        <span class="stat-card-title">IN PROGRESS</span>
+        <div class="stat-icon-wrapper bg-light-orange text-brown">
+          <i-tabler name="clock" class="icon-20"></i-tabler>
+        </div>
+      </div>
+      <div class="stat-card-value">{{ animatedStats.inProgress }}</div>
+      <div class="stat-card-footer">
+        <span class="trend-pill trend-neutral">
+          {{ taskStats.inProgressTrend }}
+        </span>
+        <span class="trend-subtext">since last week</span>
+      </div>
+    </div>
+
+    <!-- Overdue -->
+    <div class="stat-card">
+      <div class="stat-card-header">
+        <span class="stat-card-title">OVERDUE</span>
+        <div class="stat-icon-wrapper bg-light-red text-red">
+          <i-tabler name="alert-triangle" class="icon-20"></i-tabler>
+        </div>
+      </div>
+      <div class="stat-card-value">{{ animatedStats.overdue }}</div>
+      <div class="stat-card-footer">
+        <span class="trend-pill trend-negative">
+          <i-tabler name="arrow-down-right" class="icon-12 m-r-4"></i-tabler>
+          {{ taskStats.overdueTrend }}
+        </span>
+        <span class="trend-subtext">since last week</span>
+      </div>
+    </div>
+
+    <!-- Completed This Week -->
+    <div class="stat-card">
+      <div class="stat-card-header">
+        <span class="stat-card-title">COMPLETED THIS WEEK</span>
+        <div class="stat-icon-wrapper bg-light-green text-green">
+          <i-tabler name="circle-check" class="icon-20"></i-tabler>
+        </div>
+      </div>
+      <div class="stat-card-value">{{ animatedStats.completedThisWeek }}</div>
+      <div class="stat-card-footer">
+        <span class="trend-pill" [ngClass]="taskStats.completedThisWeekTrend.startsWith('+') ? 'trend-positive' : 'trend-negative'">
+          <i-tabler [name]="taskStats.completedThisWeekTrend.startsWith('+') ? 'arrow-up-right' : 'arrow-down-right'" class="icon-12 m-r-4"></i-tabler>
+          {{ taskStats.completedThisWeekTrend }}
+        </span>
+        <span class="trend-subtext">vs last week</span>
+      </div>
+    </div>
+  </div>
+
   <!-- Top Toolbar -->
   <mat-card class="toolbar-card cardWithShadow">
     <mat-card-content class="p-12">
@@ -8,7 +83,7 @@
           <!-- Search -->
           <div class="search-box">
             <i-tabler name="search" class="icon-16 search-icon"></i-tabler>
-            <input [(ngModel)]="searchText" (input)="applyFiltersAndSort()" placeholder="Search tasks..."
+            <input [(ngModel)]="searchText" (ngModelChange)="onSearchChange($event)" placeholder="Search tasks..."
               class="search-input" />
           </div>
 
@@ -23,9 +98,9 @@
                 <i-tabler name="chevron-down" class="icon-12 m-l-6"></i-tabler>
               </button>
               <mat-menu #statusMenu="matMenu" class="cardWithShadow">
-                <button mat-menu-item (click)="filterStatus = 'All'; applyFiltersAndSort()">All Statuses</button>
+                <button mat-menu-item (click)="filterStatus = 'All'; loadTasks()">All Statuses</button>
                 <button mat-menu-item *ngFor="let s of statuses"
-                  (click)="filterStatus = s.label; applyFiltersAndSort()">{{ s.label }}</button>
+                  (click)="filterStatus = s.label; loadTasks()">{{ s.label }}</button>
               </mat-menu>
 
               <!-- Priority Filter -->
@@ -36,9 +111,9 @@
                 <i-tabler name="chevron-down" class="icon-12 m-l-6"></i-tabler>
               </button>
               <mat-menu #priorityMenu="matMenu" class="cardWithShadow">
-                <button mat-menu-item (click)="filterPriority = 'All'; applyFiltersAndSort()">All Priorities</button>
+                <button mat-menu-item (click)="filterPriority = 'All'; loadTasks()">All Priorities</button>
                 <button mat-menu-item *ngFor="let p of priorities"
-                  (click)="filterPriority = p.label; applyFiltersAndSort()">{{ p.label }}</button>
+                  (click)="filterPriority = p.label; loadTasks()">{{ p.label }}</button>
               </mat-menu>
 
               <!-- Due Date Filter -->
@@ -49,10 +124,10 @@
                   <i-tabler name="chevron-down" class="icon-12 m-l-6"></i-tabler>
                 </button>
                 <mat-menu #dateMenu="matMenu" class="cardWithShadow">
-                  <button mat-menu-item (click)="filterDueDate = ''; applyFiltersAndSort()">All Dates</button>
-                  <button mat-menu-item (click)="filterDueDate = 'Overdue'; applyFiltersAndSort()">Overdue</button>
-                  <button mat-menu-item (click)="filterDueDate = 'Today'; applyFiltersAndSort()">Due Today</button>
-                  <button mat-menu-item (click)="filterDueDate = 'Week'; applyFiltersAndSort()">Due this Week</button>
+                  <button mat-menu-item (click)="filterDueDate = ''; loadTasks()">All Dates</button>
+                  <button mat-menu-item (click)="filterDueDate = 'Overdue'; loadTasks()">Overdue</button>
+                  <button mat-menu-item (click)="filterDueDate = 'Today'; loadTasks()">Due Today</button>
+                  <button mat-menu-item (click)="filterDueDate = 'Week'; loadTasks()">Due this Week</button>
                   <mat-divider></mat-divider>
                   <button mat-menu-item (click)="dueDatePicker.open()">Custom Range...</button>
                 </mat-menu>
@@ -74,10 +149,10 @@
                   <i-tabler name="chevron-down" class="icon-12 m-l-6"></i-tabler>
                 </button>
                 <mat-menu #createDateMenu="matMenu" class="cardWithShadow">
-                  <button mat-menu-item (click)="filterCreateDate = ''; applyFiltersAndSort()">All Dates</button>
-                  <button mat-menu-item (click)="filterCreateDate = 'Today'; applyFiltersAndSort()">Created
+                  <button mat-menu-item (click)="filterCreateDate = ''; loadTasks()">All Dates</button>
+                  <button mat-menu-item (click)="filterCreateDate = 'Today'; loadTasks()">Created
                     Today</button>
-                  <button mat-menu-item (click)="filterCreateDate = 'Week'; applyFiltersAndSort()">Created Last 7
+                  <button mat-menu-item (click)="filterCreateDate = 'Week'; loadTasks()">Created Last 7
                     Days</button>
                   <mat-divider></mat-divider>
                   <button mat-menu-item (click)="createDatePicker.open()">Custom Range...</button>
@@ -91,6 +166,12 @@
                   <mat-date-range-picker #createDatePicker></mat-date-range-picker>
                 </div>
               </div>
+
+              <!-- Reset Filters -->
+              <button mat-stroked-button color="warn" class="reset-pill" (click)="resetFilters()" [disabled]="!hasActiveFilters()">
+                <i-tabler name="x" class="icon-14 m-r-4"></i-tabler>
+                <span class="f-s-13">Clear</span>
+              </button>
 
             </div>
           </div>
@@ -109,6 +190,7 @@
             <mat-checkbox class="d-block m-b-4" [(ngModel)]="visibleColumns.priority">Priority</mat-checkbox>
             <mat-checkbox class="d-block m-b-4" [(ngModel)]="visibleColumns.assignee">Assignee</mat-checkbox>
             <mat-checkbox class="d-block m-b-4" [(ngModel)]="visibleColumns.dueDate">Due Date</mat-checkbox>
+            <mat-checkbox class="d-block m-b-4" [(ngModel)]="visibleColumns.createdDate">Created Date</mat-checkbox>
             <mat-checkbox class="d-block m-b-4" [(ngModel)]="visibleColumns.createdBy">Created By</mat-checkbox>
             <mat-checkbox class="d-block m-b-4" [(ngModel)]="visibleColumns.lastUpdated">Last Updated</mat-checkbox>
           </mat-menu>
@@ -246,6 +328,19 @@
               </td>
             </ng-container>
 
+            <!-- Created Date Column -->
+            <ng-container matColumnDef="createdDate">
+              <th mat-header-cell *matHeaderCellDef (click)="toggleSort('createdDate')"
+                class="sortable-header f-w-600 f-s-14">
+                Created Date
+                <i-tabler *ngIf="sortBy === 'createdDate'" [name]="sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'"
+                  class="icon-12 m-l-4"></i-tabler>
+              </th>
+              <td mat-cell *matCellDef="let element" class="f-s-13 text-dark">
+                {{ element.createdDate | date:'mediumDate' }}
+              </td>
+            </ng-container>
+
 
             <!-- Created By Column -->
             <ng-container matColumnDef="createdBy">
@@ -348,6 +443,14 @@
         </div>
 
       </div>
+
+      <!-- Kanban Load More -->
+      <div class="kanban-load-more text-center p-t-16 p-b-24" *ngIf="hasMoreTasks">
+        <button mat-stroked-button color="primary" (click)="loadMoreTasks()" [disabled]="isLoadingMore">
+          {{ isLoadingMore ? 'Loading...' : 'Load More Tasks' }}
+        </button>
+      </div>
+
     </div>
   </div>
 
@@ -458,7 +561,7 @@
             <i-tabler name="chevron-down" class="icon-12 m-l-4 text-muted"></i-tabler>
           </div>
           <div style="position: absolute; top: 0; left: 0; width: 1px; height: 1px; overflow: hidden; opacity: 0;">
-            <input [matDatepicker]="drawerDueDatePicker" (dateChange)="updateDrawerDueDate($event.value)">
+            <input matInput [matDatepicker]="drawerDueDatePicker" (dateChange)="updateDrawerDueDate($event.value)">
             <mat-datepicker #drawerDueDatePicker></mat-datepicker>
           </div>
         </div>
@@ -652,7 +755,7 @@
         <i-tabler name="layers-intersect" class="icon-24"></i-tabler>
       </div>
       <div class="header-text">
-        <h2 mat-dialog-title>Create Task Bundle</h2>
+        <h2 mat-dialog-title>{{ newBundleData.id > 0 ? 'Edit Task Bundle' : 'Create Task Bundle' }}</h2>
         <p>Configure a recurring sequence of automated tasks.</p>
       </div>
     </div>
@@ -731,7 +834,7 @@
         <div class="form-group half-width" style="max-width: 50%;">
           <label>EFFECTIVE FROM</label>
           <div class="input-with-icon">
-            <input class="custom-input" [matDatepicker]="bundleStartPicker" [(ngModel)]="newBundleData.startDate"
+            <input matInput class="custom-input" [matDatepicker]="bundleStartPicker" [(ngModel)]="newBundleData.startDate"
               (click)="bundleStartPicker.open()" style="cursor: pointer;">
             <i-tabler name="calendar" class="input-icon" (click)="bundleStartPicker.open()"
               style="pointer-events: auto; cursor: pointer;"></i-tabler>
@@ -792,7 +895,7 @@
 
   <mat-dialog-actions class="redesigned-dialog-footer create-footer">
     <button class="cancel-btn" mat-dialog-close>Cancel</button>
-    <button class="new-bundle-btn" (click)="saveBundle()">Save Bundle</button>
+    <button class="new-bundle-btn" (click)="saveBundle()">{{ newBundleData.id > 0 ? 'Update Bundle' : 'Save Bundle' }}</button>
   </mat-dialog-actions>
 </ng-template>
 
@@ -853,29 +956,32 @@
         <div class="form-group half-width">
           <label>BRANCH</label>
           <mat-select class="custom-input custom-mat-select" panelClass="custom-select-panel"
-            [(ngModel)]="newTaskData.branch" placeholder="All Branches">
-            <mat-option value="All Branches">All Branches</mat-option>
-            <mat-option value="Main Branch">Main Branch</mat-option>
+            [(ngModel)]="newTaskData.branch" placeholder="All Branches" (selectionChange)="onAssignmentScopeChange()">
+            <mat-option [value]="''">All Branches</mat-option>
+            <mat-option *ngFor="let branch of availableBranches" [value]="branch.id">{{ branch.name }}</mat-option>
           </mat-select>
         </div>
         <div class="form-group half-width">
           <label>ROLE</label>
           <mat-select class="custom-input custom-mat-select" panelClass="custom-select-panel"
-            [(ngModel)]="newTaskData.role" placeholder="All Roles">
-            <mat-option value="All Roles">All Roles</mat-option>
-            <mat-option value="Manager">Manager</mat-option>
-            <mat-option value="Admin">Admin</mat-option>
+            [(ngModel)]="newTaskData.role" placeholder="All Roles" (selectionChange)="onAssignmentScopeChange()">
+            <mat-option [value]="''">All Roles</mat-option>
+            <mat-option *ngFor="let role of availableRoles" [value]="role.id">{{ role.name }}</mat-option>
           </mat-select>
         </div>
       </div>
 
       <div class="form-group mb-4">
         <label>ASSIGNED TO <span style="color: #ef4444;">*</span></label>
-        <div class="input-with-icon">
-          <input type="text" class="custom-input" [(ngModel)]="newTaskData.assignee.name"
-            placeholder="Select employee...">
-          <i-tabler name="user" class="input-icon" style="color: #64748b;"></i-tabler>
-        </div>
+        <mat-select class="custom-input custom-mat-select" panelClass="custom-select-panel"
+          [(ngModel)]="newTaskData.assignee" placeholder="Select employee...">
+          <mat-option *ngFor="let emp of availableAssignees" [value]="emp">
+            {{ emp.firstName }} {{ emp.lastName }}
+          </mat-option>
+          <mat-option *ngIf="availableAssignees.length === 0" disabled>
+            No employees found
+          </mat-option>
+        </mat-select>
       </div>
 
       <!-- 03 EXECUTION PARAMETERS -->
@@ -907,7 +1013,7 @@
         <div class="form-group half-width" [class.has-error]="!newTaskData.dueDate && isTaskFormSubmitted">
           <label>DUE DATE <span style="color: #ef4444;">*</span></label>
           <div class="input-with-icon">
-            <input class="custom-input error-input" [matDatepicker]="taskDuePicker2" [(ngModel)]="newTaskData.dueDate"
+            <input matInput class="custom-input error-input" [matDatepicker]="taskDuePicker2" [(ngModel)]="newTaskData.dueDate"
               placeholder="Select date" readonly (click)="taskDuePicker2.open()" style="cursor: pointer;">
             <i-tabler name="calendar" class="input-icon" style="color: #64748b; pointer-events: auto; cursor: pointer;"
               (click)="taskDuePicker2.open()"></i-tabler>
@@ -1035,7 +1141,7 @@
               <div class="actions-wrapper">
                 <button class="action-btn" [matTooltip]="'Execute ' + bundle.name" (click)="openExecuteBundleDialog(bundle)"><i-tabler name="player-play"
                     class="icon-18"></i-tabler></button>
-                <button class="action-btn" matTooltip="Edit"><i-tabler name="pencil"
+                <button class="action-btn" matTooltip="Edit" (click)="editBundle(bundle)"><i-tabler name="pencil"
                     class="icon-18"></i-tabler></button>
                 <button class="action-btn" *ngIf="bundle.status === 'ACTIVE'" matTooltip="Deactivate" (click)="toggleBundleStatus(bundle)">
                   <i-tabler name="user-x" class="icon-18 text-warning"></i-tabler>

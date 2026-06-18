@@ -61,6 +61,17 @@ export class MasterDataService {
     return this.http.get<any>(`${this.apiUrl}/admin/get-all-employee`, { params });
   }
 
+  getEmployeesByFilter(branchId?: number, roleId?: number): Observable<any> {
+    let params = new HttpParams();
+    if (branchId) {
+      params = params.set('branchId', branchId.toString());
+    }
+    if (roleId) {
+      params = params.append('roleIds', roleId.toString());
+    }
+    return this.http.get<any>(`${this.apiUrl}/admin/get-all-employee`, { params });
+  }
+
   getCounsellorsByBranch(branchId: number): Observable<{ success: boolean; data: any[] }> {
     return this.http.get<{ success: boolean; data: any[] }>(
       `${this.apiUrl}/users/counsellors/by-branch`,

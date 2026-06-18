@@ -30,7 +30,26 @@ export interface TaskActivity {
   rawAction?: string;
 }
 
+export interface TaskStats {
+  openTasks: number;
+  openTasksTrend: string;
+  inProgress: number;
+  inProgressTrend: string;
+  overdue: number;
+  overdueTrend: string;
+  completedThisWeek: number;
+  completedThisWeekTrend: string;
+}
+
+export interface TaskResponse {
+  tasks: Task[];
+  stats: TaskStats | null;
+  totalPages?: number;
+  totalElements?: number;
+}
+
 export interface BundleTask {
+  id?: number;
   title: string;
   description: string;
   priority: 'Low' | 'Medium' | 'High';
@@ -313,10 +332,36 @@ export class TaskService {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
   }
 
-  getTasks(): Observable<Task[]> {
-    return this.http.get<any>(`${environment.apiUrl}/tasks?page=0&size=200&sortBy=createdAt&sortDir=desc`).pipe(
+  getTasks(filters?: any): Observable<TaskResponse> {
+    let params = new HttpParams()
+      .set('page', filters && filters.page !== undefined ? filters.page : '0')
+      .set('size', filters && filters.size !== undefined ? filters.size : '50')
+      .set('sortBy', 'createdAt')
+      .set('sortDir', 'desc');
+
+    if (filters) {
+      if (filters.overdue) params = params.set('overdue', 'true');
+      if (filters.dueDateFrom) params = params.set('dueDateFrom', filters.dueDateFrom);
+      if (filters.dueDateTo) params = params.set('dueDateTo', filters.dueDateTo);
+      if (filters.assignedDateFrom) params = params.set('assignedDateFrom', filters.assignedDateFrom);
+      if (filters.assignedDateTo) params = params.set('assignedDateTo', filters.assignedDateTo);
+
+      if (filters.status && filters.status !== 'All') {
+        // Assume backend expects IN_PROGRESS, TO_DO, etc.
+        params = params.set('status', filters.status.toUpperCase().replace(/ /g, '_'));
+      }
+      if (filters.priority && filters.priority !== 'All') {
+        params = params.set('priority', filters.priority.toUpperCase());
+      }
+      if (filters.search) {
+        params = params.set('search', filters.search);
+      }
+    }
+
+    return this.http.get<any>(`${environment.apiUrl}/tasks`, { params }).pipe(
       map(response => {
         const content = response.tasks ? response.tasks.content : (response.content || []);
+        const stats = response.stats || null;
 
         // Same helper used in getTaskById — converts "IN_PROGRESS" → "In Progress"
         const formatEnum = (val: string) => {
@@ -326,7 +371,7 @@ export class TaskService {
           ).join(' ');
         };
 
-        return content.map((item: any) => {
+        const parsedTasks = content.map((item: any) => {
           return {
             id: item.id,
             title: item.title || 'Untitled',
@@ -347,6 +392,16 @@ export class TaskService {
             activities: []
           } as Task;
         });
+
+        const totalPages = response.tasks ? response.tasks.totalPages : (response.totalPages || 0);
+        const totalElements = response.tasks ? response.tasks.totalElements : (response.totalElements || 0);
+
+        return {
+          tasks: parsedTasks,
+          stats: stats,
+          totalPages: totalPages,
+          totalElements: totalElements
+        };
       })
     );
   }
@@ -479,6 +534,10 @@ export class TaskService {
     tasks.unshift(newTask);
     this.saveTasksToStore(tasks);
     return of(newTask).pipe(delay(400));
+  }
+
+  createTaskApi(payload: any): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/tasks`, payload);
   }
 
   updateTask(updatedTask: Task, changedBy: string = 'System'): Observable<Task> {
@@ -766,8 +825,24 @@ export class TaskService {
     return this.http.post<any>(`${environment.apiUrl}/task-bundles/${bundleId}/execute-now`, {});
   }
 
+  activateTaskBundle(bundleId: number): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/task-bundles/${bundleId}/activate`, {});
+  }
+
+  deactivateTaskBundle(bundleId: number): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/task-bundles/${bundleId}/deactivate`, {});
+  }
+
   createTaskBundle(payload: any): Observable<any> {
     return this.http.post<any>(`${environment.apiUrl}/task-bundles`, payload);
+  }
+
+  getTaskBundleById(bundleId: number): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/task-bundles/${bundleId}`);
+  }
+
+  updateTaskBundle(bundleId: number, payload: any): Observable<any> {
+    return this.http.put<any>(`${environment.apiUrl}/task-bundles/${bundleId}`, payload);
   }
 
   deleteTaskBundle(bundleId: number): Observable<any> {
