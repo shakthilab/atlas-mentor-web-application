@@ -1,0 +1,145 @@
+.h-dialog {
+  font-family: 'Inter', sans-serif;
+  color: #2a3547;
+}
+
+.h-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5eaef;
+}
+
+.h-dialog-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.h-dialog-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.h-close-btn {
+  margin: -8px;
+  &:hover {
+    background: #f2f6fa;
+  }
+}
+
+.h-dialog-body {
+  padding: 24px;
+}
+
+.h-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(93, 135, 255, 0.2);
+}
+
+.h-alert-icon {
+  margin-top: 2px;
+}
+
+.h-alert-text {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.h-field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #2a3547;
+  margin-bottom: 8px;
+}
+
+.h-candidate-list {
+  border: 1px solid #e5eaef;
+  border-radius: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+  position: relative;
+  
+  &.loading {
+    min-height: 120px;
+  }
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #c1cbd8;
+    border-radius: 999px;
+  }
+}
+
+.h-loading-state, .h-empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  text-align: center;
+  font-size: 13px;
+  color: #7c8fac;
+}
+
+.h-candidate-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5eaef;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: #f8faff;
+  }
+}
+
+.h-candidate-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.h-submit-btn {
+  height: 44px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+// Utilities
+.gap-12 { gap: 12px; }
+.m-0 { margin: 0; }
+.m-t-0 { margin-top: 0; }
+.m-t-20 { margin-top: 20px; }
+.m-b-8 { margin-bottom: 8px; }
+.m-b-16 { margin-bottom: 16px; }
+.m-b-20 { margin-bottom: 20px; }
+.f-s-11 { font-size: 11px; }
+.f-s-12 { font-size: 12px; }
+.f-s-13 { font-size: 13px; }
+.f-s-14 { font-size: 14px; }
+.f-w-600 { font-weight: 600; }
+.f-w-700 { font-weight: 700; }
+.h-muted { color: #7c8fac; }
+.w-100 { width: 100%; }
+.text-dark { color: #2a3547; }

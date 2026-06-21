@@ -1,0 +1,84 @@
+<div class="h-dialog">
+  <!-- Header -->
+  <div class="h-dialog-header">
+    <div class="d-flex align-items-center gap-12">
+      <div class="h-dialog-icon bg-light-primary text-primary">
+        <i-tabler name="user-plus" class="icon-18"></i-tabler>
+      </div>
+      <h2 class="h-dialog-title m-0">
+        {{ isAssigningToSenior ? 'Assign Junior Counsellor' : 'Assign Employees' }}
+      </h2>
+    </div>
+    <button mat-icon-button (click)="onCancel()" class="h-close-btn">
+      <i-tabler name="x" class="icon-18 h-muted"></i-tabler>
+    </button>
+  </div>
+
+  <div class="h-dialog-body">
+    <p class="f-s-13 m-t-0 m-b-16">Assigning new members to <strong>{{ data.managerName }}</strong>'s team.</p>
+
+    <!-- Info Alert -->
+    <div class="h-alert bg-light-primary text-primary m-b-20">
+      <i-tabler name="info-circle" class="icon-16 h-alert-icon"></i-tabler>
+      <div class="h-alert-text">
+        Managers and Partners can map Senior Counsellors and other staff, but not other Managers, Partners or Junior Counsellors.
+      </div>
+    </div>
+
+    <form [formGroup]="assignForm" (ngSubmit)="onSubmit()">
+      <!-- Role Selection -->
+      <div class="m-b-20" *ngIf="!isAssigningToSenior">
+        <label class="h-field-label">Select Role to Map</label>
+        <mat-form-field appearance="outline" class="w-100" subscriptSizing="dynamic">
+          <mat-select formControlName="roleId" placeholder="Choose a role...">
+            <mat-option *ngFor="let role of roles" [value]="role.id">
+              {{ role.name }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <!-- Candidates List -->
+      <div *ngIf="assignForm.get('roleId')?.value">
+        <div class="d-flex align-items-center justify-content-between m-b-8">
+          <label class="h-field-label m-0">Available Candidates</label>
+          <span class="f-s-11 h-muted f-w-600">{{ selectedCandidates.size }} selected</span>
+        </div>
+
+        <div class="h-candidate-list" [class.loading]="isLoadingCandidates">
+          <div *ngIf="isLoadingCandidates" class="h-loading-state">
+            <mat-spinner diameter="24"></mat-spinner>
+          </div>
+          
+          <div *ngIf="!isLoadingCandidates && candidates.length === 0" class="h-empty-state">
+            No candidates found for this role in the manager's branch.
+          </div>
+
+          <div *ngIf="!isLoadingCandidates && candidates.length > 0">
+            <div *ngFor="let candidate of candidates" 
+                 class="h-candidate-item"
+                 (click)="toggleCandidate(candidate.id, !isCandidateSelected(candidate.id))">
+              <mat-checkbox color="primary" 
+                            [checked]="isCandidateSelected(candidate.id)"
+                            (change)="toggleCandidate(candidate.id, $event.checked)"
+                            (click)="$event.stopPropagation()">
+              </mat-checkbox>
+              <div class="h-candidate-info">
+                <div class="f-w-600 f-s-14 text-dark">{{ candidate.name }}</div>
+                <div class="f-s-12 h-muted">{{ candidate.email }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <div class="m-t-20">
+        <button type="submit" mat-flat-button color="primary" class="w-100 h-submit-btn"
+                [disabled]="assignForm.invalid || selectedCandidates.size === 0 || isSubmitting">
+          {{ isSubmitting ? 'Mapping...' : 'Map ' + selectedCandidates.size + ' Employees' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

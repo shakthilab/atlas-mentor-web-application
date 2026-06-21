@@ -14,6 +14,14 @@
   <link rel="icon" type="image/png" sizes="16x16" href="assets/images/logos/favicon.png">
   <link rel="apple-touch-icon" href="assets/icons/icon-192x192.png">
   <link rel="manifest" href="manifest.webmanifest">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      corePlugins: {
+        preflight: false,
+      }
+    }
+  </script>
 </head>
 <body>
   <app-root></app-root>

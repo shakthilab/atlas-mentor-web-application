@@ -22,6 +22,7 @@ import { ReferralsComponent } from './components/referrals/referrals.component';
 import { CompaniesComponent } from './components/companies/companies.component';
 import { ResourcesComponent } from './components/resources/resources.component';
 import { HierarchyComponent } from './components/hierarchy/hierarchy.component';
+import { HierarchyAssignDialogComponent } from './components/hierarchy/hierarchy-assign-dialog/hierarchy-assign-dialog.component';
 
 @NgModule({
   declarations: [
@@ -39,6 +40,7 @@ import { HierarchyComponent } from './components/hierarchy/hierarchy.component';
     CompaniesComponent,
     ResourcesComponent,
     HierarchyComponent,
+    HierarchyAssignDialogComponent,
     AdminDashboardComponent,
     AnimatedNumberDirective,
     PartnerDashboardComponent,
@@ -75,6 +77,7 @@ import { HierarchyComponent } from './components/hierarchy/hierarchy.component';
     CompaniesComponent,
     ResourcesComponent,
     HierarchyComponent,
+    HierarchyAssignDialogComponent,
     AdminDashboardComponent,
     AnimatedNumberDirective,
     PartnerDashboardComponent,

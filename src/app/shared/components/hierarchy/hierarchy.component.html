@@ -1,5 +1,259 @@
-<div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 60vh;">
-  <i-tabler name="tools" class="text-primary m-b-16 d-flex" style="width: 64px; height: 64px;"></i-tabler>
-  <h2 class="mat-headline-5 m-b-8">Hierarchy</h2>
-  <p class="text-muted f-s-16">This page is under construction. Coming soon!</p>
+<div class="hierarchy-container">
+
+  <!-- Page Header -->
+  <div class="h-page-header m-b-24">
+    <div>
+      <h1 class="h-page-title">Hierarchy Management</h1>
+      <p class="h-page-subtitle m-0">Visualize organization tree structures and assign reporting roles.</p>
+    </div>
+    <div class="h-location-wrapper">
+      <label class="h-field-label">Location</label>
+      <mat-form-field appearance="outline" class="h-location-select" subscriptSizing="dynamic">
+        <mat-select [(ngModel)]="selectedLocation">
+          <mat-option *ngFor="let loc of locationsList; trackBy: trackByString" [value]="loc">
+            {{ loc === 'All Locations' ? 'Select your city' : loc }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <!-- Summary Stats -->
+  <div class="h-stats-grid m-b-24">
+
+    <div class="h-stat-card">
+      <div class="h-stat-icon bg-light-primary text-primary">
+        <i-tabler name="users" class="icon-22"></i-tabler>
+      </div>
+      <div class="h-stat-body">
+        <span class="h-stat-label">TOTAL TEAMS</span>
+        <div class="h-stat-value">{{ totalTeams }}</div>
+      </div>
+    </div>
+
+    <div class="h-stat-card">
+      <div class="h-stat-icon bg-light-accent text-accent">
+        <i-tabler name="users-group" class="icon-22"></i-tabler>
+      </div>
+      <div class="h-stat-body">
+        <span class="h-stat-label">TOTAL MEMBERS</span>
+        <div class="h-stat-value">{{ totalMembers }}</div>
+      </div>
+    </div>
+
+    <div class="h-stat-card">
+      <div class="h-stat-icon bg-light-success text-success">
+        <i-tabler name="map-pin" class="icon-22"></i-tabler>
+      </div>
+      <div class="h-stat-body">
+        <span class="h-stat-label">LOCATIONS</span>
+        <div class="h-stat-value">{{ locations }}</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Main Content -->
+  <div class="h-main-grid">
+
+    <!-- Organization Tree -->
+    <mat-card class="cardWithShadow h-tree-card">
+      <mat-card-content class="p-24">
+
+        <div class="h-card-header m-b-20">
+          <div class="d-flex align-items-center gap-12">
+            <div class="h-section-icon bg-light-primary text-primary">
+              <i-tabler name="hierarchy-3" class="icon-16"></i-tabler>
+            </div>
+            <div>
+              <h2 class="h-card-title m-0">Organization Tree</h2>
+              <p class="h-subtitle m-0">{{ totalTeams }} teams active &bull; {{ selectedLocation }}</p>
+            </div>
+          </div>
+          <div class="d-flex align-items-center gap-8">
+            <button mat-stroked-button class="h-tree-btn" (click)="expandAll()">
+              Expand All
+            </button>
+            <button mat-stroked-button class="h-tree-btn" (click)="collapseAll()">
+              Collapse All
+            </button>
+          </div>
+        </div>
+
+        <!-- Recursive Tree Template -->
+        <ng-template #nodeTemplate let-node="node" let-level="level">
+          <div class="h-node-wrapper">
+            <div class="h-node-card" (click)="toggleExpand(node)">
+
+              <div class="h-expand-btn" *ngIf="node.children && node.children.length > 0">
+                <i-tabler [name]="node.expanded ? 'chevron-down' : 'chevron-right'" class="icon-16 h-muted"></i-tabler>
+              </div>
+              <div class="h-expand-spacer" *ngIf="!node.children || node.children.length === 0"></div>
+
+              <div class="h-avatar f-w-700" [ngClass]="node.color || 'bg-light-primary text-primary'">
+                {{ node.initials }}
+              </div>
+
+              <div class="h-node-info">
+                <div class="d-flex align-items-center gap-8 m-b-4">
+                  <span class="h-node-name f-w-700">{{ node.name }}</span>
+                  <span class="h-role-badge" [ngClass]="getRoleColorClass(node.role)">{{ node.role }}</span>
+                </div>
+                <div class="d-flex align-items-center gap-16 h-muted f-s-12">
+                  <span class="d-flex align-items-center gap-4">
+                    <i-tabler name="map-pin" class="icon-13"></i-tabler>
+                    {{ node.location }}
+                  </span>
+                  <span *ngIf="node.reportsCount > 0" class="d-flex align-items-center gap-4 f-w-600">
+                    <i-tabler name="subtask" class="icon-13"></i-tabler>
+                    {{ node.reportsCount }} report(s)
+                  </span>
+                </div>
+              </div>
+
+              <div class="d-flex align-items-center gap-4">
+                <button *ngIf="node.role.toUpperCase().includes('MANAGER') || node.role.toUpperCase().includes('SENIOR COUNSELLOR')"
+                        mat-icon-button color="primary"
+                        matTooltip="Add Direct Report"
+                        (click)="$event.stopPropagation(); addTeamMember(node)">
+                  <i-tabler name="user-plus" class="icon-18"></i-tabler>
+                </button>
+                <button *ngIf="level > 0"
+                        mat-icon-button class="h-unassign-btn"
+                        matTooltip="Unassign from hierarchy"
+                        (click)="$event.stopPropagation(); unassignNode(node)">
+                  <i-tabler name="user-minus" class="icon-18"></i-tabler>
+                </button>
+              </div>
+            </div>
+
+            <div *ngIf="node.expanded && node.children && node.children.length > 0" class="h-children">
+              <ng-container *ngFor="let child of node.children; trackBy: trackByNodeId">
+                <ng-container *ngTemplateOutlet="nodeTemplate; context: { node: child, level: level + 1 }"></ng-container>
+              </ng-container>
+            </div>
+          </div>
+        </ng-template>
+
+        <div class="h-tree-scroll-area">
+          <div class="h-tree-wrapper">
+            <div *ngIf="getFilteredTree().length > 0; else emptyState">
+              <div *ngFor="let rootNode of getFilteredTree(); trackBy: trackByNodeId">
+                <ng-container *ngTemplateOutlet="nodeTemplate; context: { node: rootNode, level: 0 }"></ng-container>
+              </div>
+            </div>
+
+            <ng-template #emptyState>
+              <div class="h-empty-state">
+                <div class="h-empty-icon-wrap bg-light-primary">
+                  <i-tabler name="hierarchy" class="icon-32 text-primary"></i-tabler>
+                </div>
+                <h3 class="h-card-title m-0 m-b-8">No hierarchy nodes match this location</h3>
+                <p class="f-s-12 h-muted m-0">Try clearing your location filter or assigning members to managers in this location.</p>
+              </div>
+            </ng-template>
+          </div>
+        </div>
+
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Quick Assignment Panel -->
+    <mat-card class="cardWithShadow h-assign-card">
+      <mat-card-content class="p-24">
+        <form [formGroup]="assignmentForm" (ngSubmit)="saveAssignment()" class="m-0">
+
+          <div class="h-card-header m-b-20">
+            <div class="d-flex align-items-center gap-12">
+              <div class="h-section-icon bg-light-primary text-primary">
+                <i-tabler name="user-check" class="icon-16"></i-tabler>
+              </div>
+              <div>
+                <h3 class="h-card-title m-0">Quick Assignment</h3>
+                <p class="h-subtitle m-0">Assign employees to a reporting manager.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Manager -->
+          <div class="m-b-16">
+            <label class="h-field-label">Select Manager *</label>
+            <mat-form-field appearance="outline" class="w-100" subscriptSizing="dynamic">
+              <mat-select formControlName="managerId" placeholder="Select a manager...">
+                <mat-option *ngFor="let mgr of getEligibleManagers(); trackBy: trackByManagerId" [value]="mgr.id">
+                  {{ mgr.name }} ({{ mgr.role }})
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <!-- Employees -->
+          <div *ngIf="assignmentForm.get('managerId')?.value">
+            <div class="d-flex align-items-center justify-content-between m-b-8">
+              <label class="h-field-label">Select Employees</label>
+              <span class="h-count-badge bg-light-primary text-primary">
+                {{ (assignmentForm.get('employeeIds')?.value || []).length }} Selected
+              </span>
+            </div>
+
+            <mat-form-field appearance="outline" class="w-100 m-b-8" subscriptSizing="dynamic">
+              <i-tabler matPrefix name="search" class="icon-16 h-muted" style="margin-left: 12px; margin-right: 8px;"></i-tabler>
+              <input matInput type="text"
+                     id="search-employee-input"
+                     [(ngModel)]="searchTerm"
+                     [ngModelOptions]="{standalone: true}"
+                     placeholder="Search employees..." />
+            </mat-form-field>
+
+            <div class="h-emp-checklist">
+              <div *ngIf="getAssignableEmployees().length === 0" class="h-checklist-empty">
+                No matching assignable employees found.
+              </div>
+              <div *ngFor="let emp of getAssignableEmployees(); trackBy: trackByEmpId"
+                   class="h-emp-item"
+                   (click)="toggleEmployeeSelection(emp.id, !isEmployeeSelected(emp.id))">
+                <mat-checkbox color="primary"
+                              [checked]="isEmployeeSelected(emp.id)"
+                              (change)="toggleEmployeeSelection(emp.id, $event.checked)"
+                              (click)="$event.stopPropagation()">
+                </mat-checkbox>
+                <div class="h-emp-avatar f-w-700" [ngClass]="getRoleColorClass(emp.role)">
+                  {{ emp.initials }}
+                </div>
+                <div class="h-emp-info">
+                  <div class="f-w-600 f-s-13 h-node-name">{{ emp.name }}</div>
+                  <div class="d-flex align-items-center gap-6 m-t-2" style="flex-wrap: nowrap; overflow: hidden;">
+                    <span class="h-role-badge-sm" style="flex-shrink: 0;" [ngClass]="getRoleColorClass(emp.role)">{{ emp.role }}</span>
+                    <span class="f-s-11 h-muted" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ emp.location }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- No Manager Selected -->
+          <div *ngIf="!assignmentForm.get('managerId')?.value" class="h-panel-empty">
+            <div class="h-empty-icon-sm bg-light-primary">
+              <i-tabler name="user-check" class="icon-24 text-primary"></i-tabler>
+            </div>
+            <p class="f-s-13 h-muted m-0">Select a reporting manager above to start assigning employees.</p>
+          </div>
+
+          <!-- Actions -->
+          <div class="d-flex gap-8 m-t-20 h-form-actions">
+            <button type="button" mat-stroked-button (click)="cancelAssignment()">
+              Cancel
+            </button>
+            <button type="submit" mat-flat-button color="primary"
+                    [disabled]="!assignmentForm.valid || (assignmentForm.get('employeeIds')?.value || []).length === 0">
+              <i-tabler name="check" class="icon-16 m-r-4"></i-tabler>
+              Assign Selected
+            </button>
+          </div>
+
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+  </div>
 </div>

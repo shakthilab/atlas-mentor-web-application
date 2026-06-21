@@ -90,7 +90,19 @@ export class AuthService {
   }
 
   navigateToLogin(): void {
-    this.router.navigate(['/auth/login']);
+    this.router.navigate(['/auth/login']).then(
+      (navigated) => {
+        if (!navigated) {
+          window.location.href = '/auth/login';
+        }
+      },
+      (error) => {
+        console.error('Navigation to login failed, falling back to window redirect:', error);
+        window.location.href = '/auth/login';
+      }
+    ).catch(() => {
+      window.location.href = '/auth/login';
+    });
   }
 
   getToken(): string | null {
