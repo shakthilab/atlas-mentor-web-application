@@ -139,14 +139,14 @@ import { ReferralDetailDialogComponent } from './referral-detail-dialog/referral
                 <ng-container matColumnDef="leads">
                   <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Leads</th>
                   <td mat-cell *matCellDef="let element">
-                    <span class="d-block f-w-500 text-dark f-s-13">{{ element.userCounts?.totalLeads || 0 }}</span>
+                    <span class="d-block f-w-500 text-dark f-s-13">{{ element.userCounts?.leadsCount || 0 }}</span>
                   </td>
                 </ng-container>
 
                 <ng-container matColumnDef="registered">
                   <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Registered</th>
                   <td mat-cell *matCellDef="let element">
-                    <span class="d-block f-w-500 text-dark f-s-13">{{ element.userCounts?.totalStudents || 0 }}</span>
+                    <span class="d-block f-w-500 text-dark f-s-13">{{ element.userCounts?.registeredCount || 0 }}</span>
                   </td>
                 </ng-container>
 
@@ -242,8 +242,8 @@ import { ReferralDetailDialogComponent } from './referral-detail-dialog/referral
                   </div>
                   
                   <div class="d-flex align-items-center justify-content-between m-b-16">
-                    <span class="f-s-13 text-muted">Leads: <span class="text-dark f-w-500">{{ element.userCounts?.totalLeads || 0 }}</span></span>
-                    <span class="f-s-13 text-muted">Registered: <span class="text-dark f-w-500">{{ element.userCounts?.totalStudents || 0 }}</span></span>
+                    <span class="f-s-13 text-muted">Leads: <span class="text-dark f-w-500">{{ element.userCounts?.leadsCount || 0 }}</span></span>
+                    <span class="f-s-13 text-muted">Registered: <span class="text-dark f-w-500">{{ element.userCounts?.registeredCount || 0 }}</span></span>
                   </div>
                 </mat-card-content>
               </mat-card>
