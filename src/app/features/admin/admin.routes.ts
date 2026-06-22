@@ -12,6 +12,7 @@ import { ReferralsComponent } from '../../shared/components/referrals/referrals.
 import { CompaniesComponent } from '../../shared/components/companies/companies.component';
 import { ResourcesComponent } from '../../shared/components/resources/resources.component';
 import { HierarchyComponent } from '../../shared/components/hierarchy/hierarchy.component';
+import { TasksV2Component } from '../../shared/components/tasks-v2/tasks-v2.component';
 
 
 export const adminRoutes: Routes = [
@@ -19,6 +20,7 @@ export const adminRoutes: Routes = [
   { path: 'leads', component: LeadsComponent, data: { title: 'Leads' } },
   { path: 'students', component: StudentsComponent, data: { title: 'Students' } },
   { path: 'tasks', component: TasksComponent, data: { title: 'Tasks' } },
+  { path: 'tasks-v2', component: TasksV2Component, data: { title: 'Tasks V2' } },
   { path: 'payments', component: PaymentsComponent, data: { title: 'Payments' } },
   { path: 'employees', component: EmployeesComponent, data: { title: 'Employees' } },
   { path: 'hierarchy', component: HierarchyComponent, data: { title: 'Hierarchy' } },

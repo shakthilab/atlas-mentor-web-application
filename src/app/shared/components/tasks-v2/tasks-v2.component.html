@@ -1,0 +1,423 @@
+<div class="tasks-v2-container">
+
+  <!-- Top Navigation / Toolbar -->
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <div class="search-box">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" placeholder="Search tasks..." [(ngModel)]="searchText">
+      </div>
+      
+      <div class="filters">
+        <button class="filter-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          Status
+        </button>
+        <button class="filter-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
+          Priority
+        </button>
+        <button class="filter-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+          Bundle
+        </button>
+      </div>
+    </div>
+    <div class="toolbar-right">
+      <span class="task-count">{{ filteredTasks.length }} of {{ tasks.length }} tasks</span>
+    </div>
+  </div>
+
+  <!-- View Switcher Tabs -->
+  <div class="view-tabs">
+    <button class="tab-btn" [class.active]="activeView === 'list'" (click)="setView('list')">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+      List
+    </button>
+    <button class="tab-btn" [class.active]="activeView === 'board'" (click)="setView('board')">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+      Board
+    </button>
+    <button class="tab-btn" [class.active]="activeView === 'calendar'" (click)="setView('calendar')">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+      Calendar
+    </button>
+    <button class="tab-btn" [class.active]="activeView === 'timeline'" (click)="setView('timeline')">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="10" x2="18" y2="21"></line><line x1="6" y1="4" x2="6" y2="21"></line><line x1="12" y1="7" x2="12" y2="21"></line></svg>
+      Timeline
+    </button>
+    <button class="tab-btn" [class.active]="activeView === 'table'" (click)="setView('table')">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="9" y1="9" x2="9" y2="21"></line><line x1="15" y1="9" x2="15" y2="21"></line></svg>
+      Table
+    </button>
+  </div>
+
+  <div class="content-area">
+
+    <!-- 1. LIST VIEW -->
+    <div class="list-view" *ngIf="activeView === 'list'">
+      <!-- Group by Status -->
+      <div class="status-group" *ngFor="let status of statuses" [class.d-none]="getTasksByStatus(status).length === 0">
+        <div class="group-header" (click)="toggleGroup(status)" style="cursor: pointer;">
+          <div class="group-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" [style.transform]="expandedGroups[status] ? 'rotate(0deg)' : 'rotate(-90deg)'" style="transition: transform 0.2s;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            <span class="status-dot" [style.background-color]="getStatusColor(status)"></span>
+            {{ status }} <span class="group-count">{{ getTasksByStatus(status).length }}</span>
+          </div>
+          <!-- Columns header for the first group only just mimicking the design loosely for alignment -->
+          <div class="group-cols" *ngIf="status === 'To Do' && expandedGroups[status]">
+            <span class="col-status">STATUS</span>
+            <span class="col-priority">PRIORITY</span>
+            <span class="col-due">DUE</span>
+            <span class="col-assignees">ASSIGNEES</span>
+          </div>
+        </div>
+
+        <ng-container *ngIf="expandedGroups[status]">
+          <ng-container *ngFor="let task of getTasksByStatus(status)">
+            <ng-container *ngTemplateOutlet="taskNode; context: { $implicit: task, level: 0 }"></ng-container>
+          </ng-container>
+        </ng-container>
+      </div>
+
+      <!-- Recursive template for tasks and subtasks -->
+      <ng-template #taskNode let-task let-level="level">
+        <div class="task-list-item" (click)="openTask(task)" style="cursor: pointer;">
+          <div class="task-info" [style.padding-left.px]="level * 24">
+            <div class="task-id-title">
+              <button class="expand-btn" (click)="toggleTask(task, $event)" [style.transform]="task.expanded ? 'rotate(90deg)' : 'rotate(0deg)'" style="background:transparent; border:none; cursor:pointer; padding:0; display:flex; align-items:center; transition: transform 0.2s; color:#64748b; margin-right: 8px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              </button>
+              <span class="task-id">{{ task.id }}</span>
+              <span class="task-title">{{ task.title }}</span>
+            </div>
+            <div class="task-tags">
+              <span class="tag" *ngFor="let tag of task.tags">{{ tag }}</span>
+            </div>
+          </div>
+          <div class="task-meta">
+            <div class="col-status">
+              <span class="table-status-badge">
+                <span class="status-dot" [style.background-color]="getStatusColor(task.status)"></span>
+                {{ task.status }}
+              </span>
+            </div>
+            <div class="col-priority">
+              <ng-container *ngTemplateOutlet="priorityIcon; context: { $implicit: task.priority }"></ng-container>
+              <span [style.color]="getPriorityColor(task.priority)">{{ task.priority }}</span>
+            </div>
+            <div class="col-due">{{ task.dueDate }}</div>
+            <div class="col-assignees">
+              <div class="assignee-circle" *ngFor="let a of task.assignees" [style.background-color]="a.bgColor">
+                {{ a.initials }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <ng-container *ngIf="task.expanded">
+          <ng-container *ngIf="task.subtasks?.length">
+            <ng-container *ngFor="let sub of task.subtasks">
+              <ng-container *ngTemplateOutlet="taskNode; context: { $implicit: sub, level: level + 1 }"></ng-container>
+            </ng-container>
+          </ng-container>
+          
+          <div *ngIf="!task.subtasks?.length" class="task-list-item create-subtask-row" [style.padding-left.px]="(level + 1) * 24 + 24" style="border-bottom: 1px solid #f1f5f9; padding-top: 12px; padding-bottom: 12px; background: #f8fafc; display: flex; align-items: center;">
+             <button class="create-task-btn" style="color: #0ea5e9; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; background: transparent; border: none; cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: background 0.2s;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                Create task
+             </button>
+          </div>
+        </ng-container>
+      </ng-template>
+
+    </div>
+
+    <!-- 2. BOARD VIEW -->
+    <div class="board-view" *ngIf="activeView === 'board'">
+      <div class="board-columns" cdkDropListGroup>
+        <div class="board-column" *ngFor="let status of statuses">
+          <div class="board-column-header">
+            <div class="status-name">
+              <span class="status-dot" [style.background-color]="getStatusColor(status)"></span>
+              {{ status }}
+            </div>
+            <span class="group-count">{{ getTasksByStatus(status).length }}</span>
+          </div>
+
+          <div class="board-cards" cdkDropList [cdkDropListData]="boardColumns[status] || []" [id]="status" (cdkDropListDropped)="drop($event)">
+            <div class="task-group" *ngFor="let task of boardColumns[status] || []" cdkDrag [cdkDragData]="task">
+              <ng-container *ngTemplateOutlet="boardCardNode; context: { $implicit: task, level: 0 }"></ng-container>
+            </div>
+            <button class="add-task-col-btn">+ Add Task</button>
+          </div>
+          
+          <ng-template #boardCardNode let-task let-level="level">
+            <div class="board-card" (click)="openTask(task)" [style.margin-left.px]="level * 16" [style.margin-bottom.px]="8" [style.border-left]="level > 0 ? '3px solid #cbd5e1' : '1px solid #e2e8f0'">
+              
+              <div class="card-actions-menu">
+                <button class="action-icon"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></button>
+                <button class="action-icon" (click)="openCreateSubtask(task, $event)"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg></button>
+                <button class="action-icon"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></button>
+                <button class="action-icon"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg></button>
+              </div>
+
+              <div class="card-title">{{ task.title }}</div>
+              
+              <div class="card-icons">
+                <div class="icon-btn-outline"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
+                <div class="icon-btn-outline"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
+                <div class="icon-btn-outline"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg></div>
+              </div>
+
+              <div class="card-subtask-count" *ngIf="task.subtasks?.length as count">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><polyline points="15 10 20 15 15 20"></polyline><path d="M4 4v7a4 4 0 0 0 4 4h12"></path></svg>
+                {{ count }} subtask<span *ngIf="count > 1">s</span>
+              </div>
+            </div>
+
+            <div class="provisional-card" *ngIf="creatingSubtaskFor === task.id" (click)="$event.stopPropagation()" [style.margin-left.px]="(level + 1) * 16" [style.margin-bottom.px]="8">
+              <div class="prov-header">
+                <input type="text" placeholder="Subtask Name..." autofocus>
+                <button class="prov-save" (click)="cancelCreateTask($event)">Save ↵</button>
+              </div>
+              <div class="prov-actions">
+                <button class="prov-action-btn"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Add assignee</button>
+                <button class="prov-action-btn"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> Add dates</button>
+                <button class="prov-action-btn"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg> Add priority</button>
+              </div>
+            </div>
+
+            <ng-container *ngIf="task.subtasks?.length">
+              <ng-container *ngFor="let sub of task.subtasks">
+                <ng-container *ngTemplateOutlet="boardCardNode; context: { $implicit: sub, level: level + 1 }"></ng-container>
+              </ng-container>
+            </ng-container>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. CALENDAR VIEW -->
+    <div class="calendar-view" *ngIf="activeView === 'calendar'">
+      <div class="calendar-header">
+        <h3>June 2026</h3>
+        <div class="calendar-nav">
+          <button>&lt;</button>
+          <span>Today</span>
+          <button>&gt;</button>
+        </div>
+      </div>
+      <div class="calendar-grid-header">
+        <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
+      </div>
+      <div class="calendar-grid">
+        <div class="calendar-day" *ngFor="let day of calendarDays" [class.other-month]="!day.currentMonth">
+          <div class="day-num" [class.today]="day.date === 21 && day.currentMonth">
+            <button class="cal-add-btn" title="Create Task" (click)="createNewTask($event, day.date)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </button>
+            {{ day.date }}
+          </div>
+          <div class="day-tasks">
+            <div class="cal-task" *ngFor="let t of day.tasks" [style.background-color]="getTimelineBarColor(t.status)" [style.color]="getTimelineTextColor(t.status)" (click)="openTask(t); $event.stopPropagation()" style="cursor: pointer;">
+              {{ t.title }}
+            </div>
+          </div>
+          
+          <div class="provisional-card cal-provisional" *ngIf="creatingTaskForDate === day.date" (click)="$event.stopPropagation()">
+            <div class="prov-header">
+              <input type="text" placeholder="Task Name or type '/' for commands" autofocus>
+              <button class="prov-save" (click)="cancelCreateTask($event)">Save ↵</button>
+            </div>
+            <div class="prov-actions">
+              <button class="prov-action-btn"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Add assignee</button>
+              <button class="prov-action-btn"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg> Add priority</button>
+              <button class="prov-action-btn"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> Date</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. TIMELINE VIEW -->
+    <div class="timeline-view" *ngIf="activeView === 'timeline'">
+      <div class="timeline-container">
+        <div class="timeline-left-panel">
+          <div class="tl-header">TASK</div>
+          <div class="tl-task-row" *ngFor="let task of filteredTasks">
+            <span class="status-dot" [style.background-color]="getStatusColor(task.status)"></span>
+            <span class="tl-task-title text-truncate">{{ task.title }}</span>
+          </div>
+        </div>
+        <div class="timeline-right-panel">
+          <div class="tl-grid-header" [style.grid-template-columns]="'repeat(30, 40px)'">
+            <!-- Mock header for days 1-30 -->
+            <div class="tl-day-col" *ngFor="let d of timelineDays">
+              <div class="d-num">{{ d }}</div>
+              <div class="d-name">Day</div>
+            </div>
+          </div>
+          <div class="tl-grid-body">
+             <div class="tl-gantt-row" *ngFor="let task of filteredTasks" [style.grid-template-columns]="'repeat(30, 40px)'">
+                <div class="tl-gantt-bar" [ngStyle]="getTimelineItemStyle(task)" (click)="openTask(task)" style="cursor: pointer;">
+                  <span class="status-dot" [style.background-color]="getStatusColor(task.status)" style="margin-right:4px;"></span>
+                  {{ task.title }}
+                </div>
+             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. TABLE VIEW -->
+    <div class="table-view" *ngIf="activeView === 'table'">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>TITLE</th>
+            <th>STATUS</th>
+            <th>PRIORITY</th>
+            <th>ASSIGNEES</th>
+            <th>DUE</th>
+            <th>EST</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let task of filteredTasks" (click)="openTask(task)" style="cursor: pointer;">
+            <td class="text-muted">{{ task.id }}</td>
+            <td class="font-medium">{{ task.title }}</td>
+            <td>
+              <span class="table-status-badge">
+                <span class="status-dot" [style.background-color]="getStatusColor(task.status)"></span>
+                {{ task.status }}
+              </span>
+            </td>
+            <td>
+              <div class="priority-badge">
+                <ng-container *ngTemplateOutlet="priorityIcon; context: { $implicit: task.priority }"></ng-container>
+                <span [style.color]="getPriorityColor(task.priority)">{{ task.priority }}</span>
+              </div>
+            </td>
+            <td>
+              <div class="assignees-cell">
+                <div class="assignee-circle" *ngFor="let a of task.assignees" [style.background-color]="a.bgColor">
+                  {{ a.initials }}
+                </div>
+              </div>
+            </td>
+            <td>{{ task.dueDate }}</td>
+            <td>{{ task.est }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- FULL SCREEN SPLIT MODAL -->
+  <ng-template #taskDetailModal>
+  <div class="task-modal" *ngIf="selectedTask">
+    <div class="modal-left-pane">
+      <h1 class="modal-task-title">{{ selectedTask.title }}</h1>
+
+      <div class="modal-attributes-grid">
+        <div class="attr-row">
+          <div class="attr-label"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Status</div>
+          <div class="attr-value">
+            <span class="status-badge" [style.background-color]="getStatusColor(selectedTask.status)">{{ selectedTask.status | uppercase }} <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+          </div>
+          
+          <div class="attr-label"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Assignees</div>
+          <div class="attr-value text-muted">Empty</div>
+        </div>
+
+        <div class="attr-row">
+          <div class="attr-label"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> Dates</div>
+          <div class="attr-value"><span class="text-muted">Start →</span> <span style="color:#ef4444;"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;margin-bottom:-2px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> {{ selectedTask.dueDate }}</span></div>
+          
+          <div class="attr-label"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg> Priority</div>
+          <div class="attr-value">
+            <span *ngIf="selectedTask.priority; else emptyPriority" style="display:flex;align-items:center;gap:4px;" [style.color]="getPriorityColor(selectedTask.priority)">
+              <ng-container *ngTemplateOutlet="priorityIcon; context: { $implicit: selectedTask.priority }"></ng-container>
+              {{ selectedTask.priority }}
+            </span>
+            <ng-template #emptyPriority><span class="text-muted">Empty</span></ng-template>
+          </div>
+        </div>
+
+        <div class="attr-row">
+          <div class="attr-label"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Track time</div>
+          <div class="attr-value"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> <span class="text-muted">Start</span></div>
+          
+          <div class="attr-label"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg> Tags</div>
+          <div class="attr-value text-muted">Empty</div>
+        </div>
+      </div>
+
+      <div class="modal-description-area text-muted">
+        Add description...
+      </div>
+
+      <div class="modal-actions-list">
+        <button class="action-list-btn"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg> Add fields</button>
+        <button class="action-list-btn"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 10 20 15 15 20"></polyline><path d="M4 4v7a4 4 0 0 0 4 4h12"></path></svg> Add subtask</button>
+        <button class="action-list-btn"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg> Relate items or add dependencies</button>
+        <button class="action-list-btn"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg> Create checklist</button>
+        <button class="action-list-btn"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg> Attach file</button>
+      </div>
+
+    </div>
+
+    <div class="modal-right-pane">
+      <div class="right-pane-header">
+        <span style="font-weight:600;font-size:14px;color:#1e293b;">Activity</span>
+        <div class="header-actions">
+          <button class="icon-btn-outline" (click)="closeTask()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+        </div>
+      </div>
+      
+      <div class="activity-feed">
+        <div class="activity-item">
+          <div class="activity-bullet"></div>
+          <div class="activity-content">
+            <span class="activity-text">You created this task</span>
+            <span class="activity-time">11 mins</span>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-bullet"></div>
+          <div class="activity-content">
+            <span class="activity-text">You set the due date to {{ selectedTask.dueDate }}</span>
+            <span class="activity-time">11 mins</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="comment-input-area">
+        <div class="comment-box">
+          <input type="text" placeholder="Write a comment...">
+          <div class="comment-actions">
+            <div class="comment-tools">
+              <button class="icon-btn-outline" style="border:none;padding:4px;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+              <button class="icon-btn-outline" style="border:none;padding:4px;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg></button>
+              <button class="icon-btn-outline" style="border:none;padding:4px;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg></button>
+              <button class="icon-btn-outline" style="border:none;padding:4px;margin-left:auto;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </ng-template>
+
+</div>
+
+<ng-template #priorityIcon let-priority>
+  <svg *ngIf="priority === 'Urgent'" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#ef4444" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
+  <svg *ngIf="priority === 'High'" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
+  <svg *ngIf="priority === 'Normal'" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#3b82f6" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
+  <svg *ngIf="priority === 'Low'" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#94a3b8" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
+  <svg *ngIf="!priority || priority === 'Clear'" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
+</ng-template>

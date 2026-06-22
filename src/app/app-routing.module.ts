@@ -56,7 +56,7 @@ const routes: Routes = [
       {
         path: 'manager',
         canActivate: [AuthGuard],
-        data: { roles: ['MANAGER'] },
+        data: { roles: ['MANAGER', 'ADMINISTRATIVE_ASSISTANT'] },
         loadChildren: () =>
           import('./features/manager/manager.module').then((m) => m.ManagerModule),
       },

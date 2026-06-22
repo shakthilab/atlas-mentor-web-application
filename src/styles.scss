@@ -53,3 +53,12 @@
     }
   }
 }
+
+.task-v2-dialog-panel {
+  .mat-mdc-dialog-container .mdc-dialog__surface {
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    overflow: visible;
+  }
+}

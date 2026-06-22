@@ -23,6 +23,7 @@ export class AuthService {
     BRANCH_PARTNER: '/branch-partner',
     COMPANY: '/company',
     REFERRAL: '/referral',
+    ADMINISTRATIVE_ASSISTANT: '/manager',
   };
 
   constructor(private http: HttpClient, private router: Router) {

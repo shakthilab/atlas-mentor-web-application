@@ -23,6 +23,7 @@ import { CompaniesComponent } from './components/companies/companies.component';
 import { ResourcesComponent } from './components/resources/resources.component';
 import { HierarchyComponent } from './components/hierarchy/hierarchy.component';
 import { HierarchyAssignDialogComponent } from './components/hierarchy/hierarchy-assign-dialog/hierarchy-assign-dialog.component';
+import { TasksV2Component } from './components/tasks-v2/tasks-v2.component';
 
 @NgModule({
   declarations: [
@@ -55,6 +56,7 @@ import { HierarchyAssignDialogComponent } from './components/hierarchy/hierarchy
     NgxEchartsModule.forRoot({
       echarts: () => import('echarts')
     }),
+    TasksV2Component,
   ],
   exports: [
     CommonModule,
@@ -82,6 +84,7 @@ import { HierarchyAssignDialogComponent } from './components/hierarchy/hierarchy
     AnimatedNumberDirective,
     PartnerDashboardComponent,
     NgxEchartsModule,
+    TasksV2Component,
   ],
 })
 export class SharedModule {}

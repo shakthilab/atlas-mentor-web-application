@@ -7,7 +7,8 @@ export type UserRole =
   | 'MANAGER'
   | 'BRANCH_PARTNER'
   | 'COMPANY'
-  | 'REFERRAL';
+  | 'REFERRAL'
+  | 'ADMINISTRATIVE_ASSISTANT';
 
 export type UserStatus = 'ACTIVE' | 'INACTIVE' | 'PENDING';
 

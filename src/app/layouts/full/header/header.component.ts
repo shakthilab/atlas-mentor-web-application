@@ -57,7 +57,7 @@ export class HeaderComponent {
     if (!this.currentUser) return '/';
     const role = this.currentUser.role.toUpperCase();
     if (role === 'STUDENT') return '/student/profile';
-    if (['ADMIN', 'MANAGER', 'BRANCH_PARTNER', 'EMPLOYEE', 'SENIOR_COUNSELLOR', 'JUNIOR_COUNSELLOR'].includes(role)) {
+    if (['ADMIN', 'MANAGER', 'BRANCH_PARTNER', 'EMPLOYEE', 'SENIOR_COUNSELLOR', 'JUNIOR_COUNSELLOR', 'ADMINISTRATIVE_ASSISTANT'].includes(role)) {
       const base = this.authService.getRoleRoute(this.currentUser.role);
       return `${base}/settings`;
     }
@@ -68,7 +68,7 @@ export class HeaderComponent {
     if (!this.currentUser) return '/';
     const role = this.currentUser.role.toUpperCase();
     if (role === 'STUDENT') return '/student';
-    if (['ADMIN', 'MANAGER', 'BRANCH_PARTNER', 'EMPLOYEE', 'SENIOR_COUNSELLOR', 'JUNIOR_COUNSELLOR'].includes(role)) {
+    if (['ADMIN', 'MANAGER', 'BRANCH_PARTNER', 'EMPLOYEE', 'SENIOR_COUNSELLOR', 'JUNIOR_COUNSELLOR', 'ADMINISTRATIVE_ASSISTANT'].includes(role)) {
       const base = this.authService.getRoleRoute(this.currentUser.role);
       return `${base}/tasks`;
     }
@@ -78,7 +78,7 @@ export class HeaderComponent {
   get showTasksLink(): boolean {
     if (!this.currentUser) return false;
     const role = this.currentUser.role.toUpperCase();
-    return ['ADMIN', 'MANAGER', 'BRANCH_PARTNER', 'EMPLOYEE', 'SENIOR_COUNSELLOR', 'JUNIOR_COUNSELLOR', 'STUDENT'].includes(role);
+    return ['ADMIN', 'MANAGER', 'BRANCH_PARTNER', 'EMPLOYEE', 'SENIOR_COUNSELLOR', 'JUNIOR_COUNSELLOR', 'STUDENT', 'ADMINISTRATIVE_ASSISTANT'].includes(role);
   }
 
   toggleDarkMode(): void {
