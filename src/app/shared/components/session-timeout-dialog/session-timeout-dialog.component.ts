@@ -29,8 +29,10 @@ import { TablerIconsModule } from 'angular-tabler-icons';
       <!-- Action -->
       <div class="dialog-actions">
         <button mat-flat-button color="primary" class="login-btn" (click)="onLogin()">
-          <i-tabler name="login" class="btn-icon"></i-tabler>
-          Login Again
+          <span class="btn-content">
+            <i-tabler name="login" class="btn-icon"></i-tabler>
+            <span>Login Again</span>
+          </span>
         </button>
       </div>
     </div>
@@ -95,13 +97,29 @@ import { TablerIconsModule } from 'angular-tabler-icons';
       height: 44px;
       font-size: 15px;
       font-weight: 600;
+      border-radius: 8px;
+      display: block;
+      padding: 0;
+    }
+
+    .btn-content {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      border-radius: 8px;
+      height: 100%;
+      width: 100%;
+    }
 
-      .btn-icon {
+    .btn-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+
+      ::ng-deep svg {
+        display: block;
         width: 20px;
         height: 20px;
       }

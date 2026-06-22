@@ -34,6 +34,7 @@ export interface ApiLoginResponse {
   message: string;
   data: {
     token: string;
+    refreshToken: string;
     userId: number;
     name: string;
     email: string;

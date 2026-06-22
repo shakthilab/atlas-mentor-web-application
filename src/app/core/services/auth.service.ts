@@ -28,10 +28,9 @@ export class AuthService {
 
   constructor(private http: HttpClient, private router: Router) {
     // Clear any stale "undefined"/"null" string tokens from bad previous sessions
-    const storedToken = localStorage.getItem(this.TOKEN_KEY);
+    const storedToken = localStorage.getItem('accessToken') || localStorage.getItem(this.TOKEN_KEY);
     if (storedToken === 'undefined' || storedToken === 'null') {
-      localStorage.removeItem(this.TOKEN_KEY);
-      localStorage.removeItem(this.USER_KEY);
+      this.clearSession();
     }
 
     const stored = localStorage.getItem(this.USER_KEY);
@@ -46,6 +45,12 @@ export class AuthService {
 
   register(payload: Record<string, unknown>): Observable<unknown> {
     return this.http.post(`${environment.apiUrl}/students/register`, payload);
+  }
+
+  saveTokens(token: string, refreshToken: string): void {
+    localStorage.setItem('accessToken', token);
+    localStorage.setItem('refreshToken', refreshToken);
+    localStorage.setItem(this.TOKEN_KEY, token);
   }
 
   login(credentials: LoginRequest): Observable<User> {
@@ -63,12 +68,40 @@ export class AuthService {
             isEmployee: d.employee,
             token: d.token,
           };
-          localStorage.setItem(this.TOKEN_KEY, d.token);
+          this.saveTokens(d.token, d.refreshToken);
           localStorage.setItem(this.USER_KEY, JSON.stringify(user));
           this.currentUserSubject.next(user);
           return user;
         })
       );
+  }
+
+  refreshToken(): Observable<{ token: string; refreshToken: string }> {
+    const refreshToken = localStorage.getItem('refreshToken');
+    return this.http.post<any>(`${environment.apiUrl}/auth/refresh`, { refreshToken }).pipe(
+      map((res) => {
+        const d = res.data || res;
+        const newTokens = {
+          token: d.token,
+          refreshToken: d.refreshToken
+        };
+        this.saveTokens(newTokens.token, newTokens.refreshToken);
+
+        const stored = localStorage.getItem(this.USER_KEY);
+        if (stored) {
+          try {
+            const user = JSON.parse(stored);
+            user.token = newTokens.token;
+            localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+            this.currentUserSubject.next(user);
+          } catch (e) {
+            console.error('Error syncing refreshed token in user object', e);
+          }
+        }
+
+        return newTokens;
+      })
+    );
   }
 
   forgotPassword(email: string): Observable<unknown> {
@@ -80,11 +113,21 @@ export class AuthService {
   }
 
   logout(): void {
+    const refreshToken = localStorage.getItem('refreshToken');
+    if (refreshToken) {
+      this.http.post(`${environment.apiUrl}/auth/logout`, { refreshToken })
+        .subscribe({
+          next: () => console.log('Session revoked successfully'),
+          error: (err) => console.error('Failed to revoke session on server', err)
+        });
+    }
     this.clearSession();
     this.navigateToLogin();
   }
 
   clearSession(): void {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
     this.currentUserSubject.next(null);
@@ -107,7 +150,7 @@ export class AuthService {
   }
 
   getToken(): string | null {
-    return localStorage.getItem(this.TOKEN_KEY);
+    return localStorage.getItem('accessToken') || localStorage.getItem(this.TOKEN_KEY);
   }
 
   isAuthenticated(): boolean {
