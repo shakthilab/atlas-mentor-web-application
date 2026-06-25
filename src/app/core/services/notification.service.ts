@@ -38,6 +38,19 @@ export class NotificationService {
   }
 
   /**
+   * Show a warning toast notification.
+   */
+  showWarningToast(message: string, title?: string, duration: number = 4000): void {
+    this.snackBar.openFromComponent(NotificationToastComponent, {
+      data: { type: 'warning', title, message },
+      duration,
+      horizontalPosition: 'right',
+      verticalPosition: 'top',
+      panelClass: ['toast-snack-container']
+    });
+  }
+
+  /**
    * Show a success dialog/popup modal.
    */
   showSuccessPopup(message: string, title?: string, buttonText?: string): Observable<boolean> {
@@ -56,6 +69,25 @@ export class NotificationService {
   showErrorPopup(message: string, title?: string, buttonText?: string): Observable<boolean> {
     const dialogRef = this.dialog.open(NotificationDialogComponent, {
       data: { type: 'error', title, message, buttonText },
+      width: '400px',
+      disableClose: false,
+      panelClass: 'custom-dialog-container'
+    });
+    return dialogRef.afterClosed();
+  }
+
+  /**
+   * Show an error dialog/popup modal specifically for unverified email error with a resend button.
+   */
+  showUnverifiedEmailPopup(message: string, title?: string, buttonText?: string): Observable<string | boolean> {
+    const dialogRef = this.dialog.open(NotificationDialogComponent, {
+      data: { 
+        type: 'error', 
+        title: title || 'Email Verification Required', 
+        message, 
+        buttonText: buttonText || 'Close',
+        showResend: true
+      },
       width: '400px',
       disableClose: false,
       panelClass: 'custom-dialog-container'

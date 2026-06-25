@@ -36,6 +36,7 @@ export const navItems: NavItem[] = [
   { displayName: 'nav.leads', iconName: 'target', route: '/employee/leads', roles: ['EMPLOYEE', 'SENIOR_COUNSELLOR', 'JUNIOR_COUNSELLOR'] },
   { displayName: 'nav.students', iconName: 'users', route: '/employee/students', roles: ['EMPLOYEE', 'SENIOR_COUNSELLOR', 'JUNIOR_COUNSELLOR'] },
   { displayName: 'nav.tasks', iconName: 'checklist', route: '/employee/tasks', roles: ['EMPLOYEE', 'SENIOR_COUNSELLOR', 'JUNIOR_COUNSELLOR'] },
+  { displayName: 'nav.resources', iconName: 'books', route: '/employee/resources', roles: ['EMPLOYEE', 'SENIOR_COUNSELLOR', 'JUNIOR_COUNSELLOR'] },
   { navCap: 'nav.account', roles: ['EMPLOYEE', 'SENIOR_COUNSELLOR', 'JUNIOR_COUNSELLOR'] },
   { displayName: 'nav.settings', iconName: 'settings', route: '/employee/settings', roles: ['EMPLOYEE', 'SENIOR_COUNSELLOR', 'JUNIOR_COUNSELLOR'] },
 

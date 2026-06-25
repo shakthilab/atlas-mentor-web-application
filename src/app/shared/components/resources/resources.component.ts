@@ -317,12 +317,20 @@ export class ResourcesComponent implements OnInit, AfterViewInit {
     this.resourceService.getResources(this.currentPage, this.pageSize, filters).subscribe({
       next: (response: any) => {
         const pageData = response?.data || response;
+        let isEmpty = false;
         if (pageData && pageData.content) {
           this.dataSource.data = pageData.content.map((item: any) => this.mapToResource(item));
           this.totalElements = pageData.totalElements || pageData.content.length;
+          isEmpty = pageData.content.length === 0;
         } else if (Array.isArray(pageData)) {
           this.dataSource.data = pageData.map((item: any) => this.mapToResource(item));
           this.totalElements = pageData.length;
+          isEmpty = pageData.length === 0;
+        }
+
+        if (isEmpty) {
+          const msg = response?.message || 'No records found';
+          this.notificationService.showErrorToast(msg, 'Error');
         }
       },
       error: (err) => {

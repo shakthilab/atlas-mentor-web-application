@@ -5,12 +5,14 @@ import { catchError, filter, take, switchMap } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
 import { MatDialog } from '@angular/material/dialog';
 import { SessionTimeoutDialogComponent } from '../../shared/components/session-timeout-dialog/session-timeout-dialog.component';
+import { NotificationService } from '../services/notification.service';
 
 const PUBLIC_ENDPOINTS = [
   '/api/auth/login',
   '/api/auth/forgot-password',
   '/api/auth/verify-email',
   '/api/auth/reset-password',
+  '/api/auth/resend-verification',
   '/api/students/register',
   '/api/auth/refresh',
   '/api/auth/logout',
@@ -22,33 +24,51 @@ export class AuthInterceptor implements HttpInterceptor {
   private isRefreshing = false;
   private refreshTokenSubject: BehaviorSubject<string | null> = new BehaviorSubject<string | null>(null);
 
-  constructor(private authService: AuthService, private dialog: MatDialog) {}
+  constructor(
+    private authService: AuthService,
+    private dialog: MatDialog,
+    private notificationService: NotificationService
+  ) {}
 
   intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
-    const isPublic = PUBLIC_ENDPOINTS.some((url) => req.url.includes(url));
-    if (isPublic) return next.handle(req);
+    // Force withCredentials: true on every request (required for future cookie-based auth)
+    let clonedReq = req.clone({ withCredentials: true });
+
+    const isPublic = PUBLIC_ENDPOINTS.some((url) => clonedReq.url.includes(url));
+    if (isPublic) return next.handle(clonedReq);
 
     const token = this.authService.getToken();
-    let authReq = req;
     if (token && token !== 'undefined' && token !== 'null') {
-      authReq = this.addTokenHeader(req, token);
+      clonedReq = this.addTokenHeader(clonedReq, token);
     }
 
-    return next.handle(authReq).pipe(
+    return next.handle(clonedReq).pipe(
       catchError((error: HttpErrorResponse) => {
-        const isAuthError =
-          error.status === 401 ||
-          (error.status === 403 && (
-            error.error?.message?.toLowerCase().includes('signature') ||
-            error.error?.message?.toLowerCase().includes('token') ||
-            error.error?.message?.toLowerCase().includes('expired') ||
-            error.error?.error?.toLowerCase().includes('signature') ||
-            error.error?.error?.toLowerCase().includes('token')
-          ));
+        // ── 401 Unauthorized ──────────────────────────────────────────────────
+        if (error.status === 401) {
+          const apiErrorCode = error.error?.code;
 
-        if (isAuthError) {
-          return this.handle401Error(authReq, next, error);
+          if (apiErrorCode === 'INVALID_TOKEN_SIGNATURE') {
+            // Security Threat: toast + silent hard logout
+            this.notificationService.showErrorToast(
+              'Security Alert: Invalid token signature detected.',
+              'Security Alert'
+            );
+            this.authService.handleSecurityThreat();
+            return throwError(() => error);
+          } else {
+            // Existing session expired logic (silent refresh / modal popup)
+            return this.handle401Error(clonedReq, next, error);
+          }
         }
+
+        // ── 403 Forbidden ─────────────────────────────────────────────────────
+        if (error.status === 403) {
+          const warningMessage = error.error?.message || 'Access Denied';
+          this.notificationService.showWarningToast(warningMessage, 'Access Denied');
+          return throwError(() => error);
+        }
+
         return throwError(() => error);
       })
     );

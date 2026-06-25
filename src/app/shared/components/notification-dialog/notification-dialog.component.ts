@@ -16,9 +16,12 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
         <p class="dialog-message">{{ data.message }}</p>
       </div>
 
-      <div class="dialog-actions">
+      <div class="dialog-actions" [style.flex-direction]="data.showResend ? 'column' : 'row'" [style.gap]="data.showResend ? '8px' : '0'">
         <button mat-flat-button [color]="data.type === 'success' ? 'primary' : 'warn'" class="action-btn" (click)="dialogRef.close(true)">
           {{ data.buttonText || 'OK' }}
+        </button>
+        <button *ngIf="data.showResend" mat-button color="primary" class="action-btn resend-btn" (click)="dialogRef.close('resend')">
+          Resend Verification Link
         </button>
       </div>
     </div>
@@ -96,6 +99,16 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
         border-radius: 8px;
         height: 42px;
       }
+
+      .resend-btn {
+        color: #5d87ff;
+        font-weight: 600;
+        text-decoration: underline;
+        
+        &:hover {
+          background-color: rgba(93, 135, 255, 0.04);
+        }
+      }
     }
 
     :host-context(.dark-theme) {
@@ -113,12 +126,21 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
         background-color: rgba(250, 137, 107, 0.25);
         color: #ffb4a2;
       }
+      .dialog-actions .resend-btn {
+        color: #ecf2ff;
+      }
     }
   `]
 })
 export class NotificationDialogComponent {
   constructor(
-    @Inject(MAT_DIALOG_DATA) public data: { type: 'success' | 'error'; title?: string; message: string; buttonText?: string },
+    @Inject(MAT_DIALOG_DATA) public data: { 
+      type: 'success' | 'error'; 
+      title?: string; 
+      message: string; 
+      buttonText?: string;
+      showResend?: boolean;
+    },
     public dialogRef: MatDialogRef<NotificationDialogComponent>
   ) {}
 }

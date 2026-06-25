@@ -94,7 +94,34 @@ export class AppSideLoginComponent {
         },
         error: (err) => {
           this.handleError(err);
-          this.notificationService.showErrorToast(this.error, 'Login Failed');
+          if (this.error === 'Please verify your email before logging in') {
+            this.notificationService.showUnverifiedEmailPopup(
+              'Please verify your email before logging in. If you did not receive the email, you can request a new verification link.',
+              'Verification Required',
+              'Dismiss'
+            ).subscribe((res) => {
+              if (res === 'resend') {
+                this.loading = true;
+                this.authService.resendVerification(this.form.value.email).subscribe({
+                  next: () => {
+                    this.loading = false;
+                    this.notificationService.showSuccessPopup(
+                      'A new verification link has been sent to your email address. Please check your inbox.',
+                      'Verification Email Sent',
+                      'OK'
+                    );
+                  },
+                  error: (resendErr) => {
+                    this.loading = false;
+                    const resendErrorMsg = resendErr?.error?.message || 'Failed to resend verification link.';
+                    this.notificationService.showErrorToast(resendErrorMsg, 'Error');
+                  }
+                });
+              }
+            });
+          } else {
+            this.notificationService.showErrorToast(this.error, 'Login Failed');
+          }
         },
       });
     } else if (this.mode === 'forgot-password') {

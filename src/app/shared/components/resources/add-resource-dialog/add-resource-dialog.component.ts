@@ -209,7 +209,7 @@ export class AddResourceDialogComponent implements OnInit {
       next: (res) => {
         if (res.success) {
           this.roles = res.data.filter(r => 
-            r.name.toUpperCase() === 'REFERRAL' || r.name.toUpperCase() === 'COMPANY'
+            r.name.toUpperCase() !== 'ADMIN'
           );
           
           if (this.isEditMode && this.data?.ownerType) {

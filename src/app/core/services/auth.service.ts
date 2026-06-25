@@ -112,6 +112,14 @@ export class AuthService {
     return this.http.post(`${environment.apiUrl}/auth/reset-password`, { password, token });
   }
 
+  resendVerification(email: string): Observable<unknown> {
+    return this.http.post(`${environment.apiUrl}/auth/resend-verification`, { email });
+  }
+
+  verifyEmail(token: string): Observable<unknown> {
+    return this.http.get(`${environment.apiUrl}/auth/verify-email`, { params: { token } });
+  }
+
   logout(): void {
     const refreshToken = localStorage.getItem('refreshToken');
     if (refreshToken) {
@@ -133,19 +141,30 @@ export class AuthService {
     this.currentUserSubject.next(null);
   }
 
+  handleSecurityThreat(): void {
+    this.clearSession();
+    this.navigateToLogin();
+  }
+
   navigateToLogin(): void {
-    this.router.navigate(['/auth/login']).then(
+    const currentUrl = this.router.url;
+    const queryParams = (currentUrl && !currentUrl.includes('/auth/')) ? { returnUrl: currentUrl } : {};
+
+    this.router.navigate(['/auth/login'], { queryParams }).then(
       (navigated) => {
         if (!navigated) {
-          window.location.href = '/auth/login';
+          const paramsString = queryParams.returnUrl ? `?returnUrl=${encodeURIComponent(queryParams.returnUrl)}` : '';
+          window.location.href = `/auth/login${paramsString}`;
         }
       },
       (error) => {
         console.error('Navigation to login failed, falling back to window redirect:', error);
-        window.location.href = '/auth/login';
+        const paramsString = queryParams.returnUrl ? `?returnUrl=${encodeURIComponent(queryParams.returnUrl)}` : '';
+        window.location.href = `/auth/login${paramsString}`;
       }
     ).catch(() => {
-      window.location.href = '/auth/login';
+      const paramsString = queryParams.returnUrl ? `?returnUrl=${encodeURIComponent(queryParams.returnUrl)}` : '';
+      window.location.href = `/auth/login${paramsString}`;
     });
   }
 

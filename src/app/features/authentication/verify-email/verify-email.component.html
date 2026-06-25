@@ -1,0 +1,52 @@
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <div class="auth-logo-container">
+      <img src="/assets/logo/Atlas-Mentor-Pvt-Ltd.webp" alt="Atlas Mentor" width="220" class="m-b-8" />
+      <p class="brand-subtitle">Empowering your educational journey</p>
+    </div>
+
+    <!-- Status Content -->
+    <div class="verify-status-container" [ngSwitch]="status">
+      
+      <!-- Verifying State -->
+      <div *ngSwitchCase="'verifying'" class="status-content text-center">
+        <div class="icon-wrapper loading-spin">
+          <i-tabler name="loader-2" class="status-icon icon-spin text-primary"></i-tabler>
+        </div>
+        <h3 class="f-s-22 f-w-600 m-t-24 m-b-8 text-dark">Verifying Email</h3>
+        <p class="f-s-14 text-muted m-b-0">
+          Checking your token... Please hold on while we verify your email address. Do not close this tab.
+        </p>
+      </div>
+
+      <!-- Success State -->
+      <div *ngSwitchCase="'success'" class="status-content text-center">
+        <div class="icon-wrapper success-pulse">
+          <i-tabler name="circle-check" class="status-icon text-success"></i-tabler>
+        </div>
+        <h3 class="f-s-22 f-w-600 m-t-24 m-b-8 text-dark">Email Verified!</h3>
+        <p class="f-s-14 text-muted m-b-32">
+          Your email has been successfully verified. You can now access all the features of Atlas Mentor.
+        </p>
+        <button mat-flat-button class="w-100 auth-btn-primary" (click)="navigateToLogin()">
+          Proceed to Login
+        </button>
+      </div>
+
+      <!-- Error State -->
+      <div *ngSwitchCase="'error'" class="status-content text-center">
+        <div class="icon-wrapper error-pulse">
+          <i-tabler name="alert-triangle" class="status-icon text-danger"></i-tabler>
+        </div>
+        <h3 class="f-s-22 f-w-600 m-t-24 m-b-8 text-dark">Verification Failed</h3>
+        <p class="f-s-14 text-muted m-b-32">
+          {{ errorMessage }}
+        </p>
+        <button mat-flat-button class="w-100 auth-btn-primary" (click)="navigateToLogin()">
+          Back to Login
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>

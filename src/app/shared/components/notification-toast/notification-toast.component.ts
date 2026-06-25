@@ -6,9 +6,9 @@ import { MAT_SNACK_BAR_DATA, MatSnackBarRef } from '@angular/material/snack-bar'
   template: `
     <div class="toast-container" [ngClass]="data.type">
       <div class="toast-content">
-        <i-tabler [name]="data.type === 'success' ? 'circle-check' : 'alert-circle'" class="toast-icon"></i-tabler>
+        <i-tabler [name]="data.type === 'success' ? 'circle-check' : (data.type === 'warning' ? 'alert-triangle' : 'alert-circle')" class="toast-icon"></i-tabler>
         <div class="toast-text">
-          <div class="toast-title">{{ data.title || (data.type === 'success' ? 'Success' : 'Error') }}</div>
+          <div class="toast-title">{{ data.title || (data.type === 'success' ? 'Success' : (data.type === 'warning' ? 'Warning' : 'Error')) }}</div>
           <div class="toast-message">{{ data.message }}</div>
         </div>
       </div>
@@ -33,6 +33,13 @@ import { MAT_SNACK_BAR_DATA, MatSnackBarRef } from '@angular/material/snack-bar'
         border-left: 4px solid #13deb9;
         color: #0d7c66;
         .toast-icon { color: #13deb9; }
+      }
+      
+      &.warning {
+        background-color: #fffbeb;
+        border-left: 4px solid #ffae1f;
+        color: #b45309;
+        .toast-icon { color: #ffae1f; }
       }
       
       &.error {
@@ -102,6 +109,10 @@ import { MAT_SNACK_BAR_DATA, MatSnackBarRef } from '@angular/material/snack-bar'
           background-color: #112d26;
           color: #80f1d4;
         }
+        &.warning {
+          background-color: #3b2f11;
+          color: #ffe082;
+        }
         &.error {
           background-color: #3b1912;
           color: #ffb4a2;
@@ -112,7 +123,7 @@ import { MAT_SNACK_BAR_DATA, MatSnackBarRef } from '@angular/material/snack-bar'
 })
 export class NotificationToastComponent {
   constructor(
-    @Inject(MAT_SNACK_BAR_DATA) public data: { type: 'success' | 'error'; title?: string; message: string },
+    @Inject(MAT_SNACK_BAR_DATA) public data: { type: 'success' | 'warning' | 'error'; title?: string; message: string },
     public snackBarRef: MatSnackBarRef<NotificationToastComponent>
   ) {}
 }
