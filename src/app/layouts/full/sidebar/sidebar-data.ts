@@ -10,6 +10,7 @@ export const navItems: NavItem[] = [
   { displayName: 'nav.students', iconName: 'users', route: '/admin/students', roles: ['ADMIN'] },
   { displayName: 'nav.employees', iconName: 'user-check', route: '/admin/employees', roles: ['ADMIN'] },
   { displayName: 'nav.tasks', iconName: 'checklist', route: '/admin/tasks', roles: ['ADMIN'] },
+  // { displayName: 'nav.taskAccountability', iconName: 'checkbox', route: '/admin/task-accountability', roles: ['ADMIN'] },
   { displayName: 'nav.payments', iconName: 'credit-card', route: '/admin/payments', roles: ['ADMIN'] },
 
   { navCap: 'nav.organization', roles: ['ADMIN'] },

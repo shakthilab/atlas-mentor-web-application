@@ -693,7 +693,17 @@ export class LeadsComponent implements OnInit, AfterViewInit {
 
         dialogRef.afterClosed().subscribe(result => {
           if (result) {
-            this.notificationService.showSuccessToast(`Lead updates saved for ${lead.name}.`, 'Changes Saved');
+            this.leadService.updateLead(lead.id!, result).subscribe({
+              next: () => {
+                this.notificationService.showSuccessToast(`Lead updates saved for ${lead.name}.`, 'Changes Saved');
+                this.loadLeads(); // Refresh the list
+              },
+              error: (err) => {
+                console.error('Failed to update lead:', err);
+                const errorMessage = err.error?.message || err.message || 'Failed to update student lead.';
+                this.notificationService.showErrorPopup(errorMessage, 'Update Failed', 'Close').subscribe();
+              }
+            });
           }
         });
       },
