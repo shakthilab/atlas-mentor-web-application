@@ -366,21 +366,19 @@ export class BranchesComponent implements OnInit {
 
     this.http.get<any>(url, { headers: this.getHeaders() }).subscribe({
       next: (res) => {
-        if (res.success && Array.isArray(res.data)) {
-          this.branches = res.data;
-          this.dataSource.data = this.branches;
-          // If the API returns pagination metadata use it; otherwise fall back to array length
-          this.totalElements = res.totalElements ?? res.data.length;
-        } else {
-          this.branches = [];
-          this.dataSource.data = [];
-        }
+        const rawData = res?.data ?? res;
+        const branchesList = Array.isArray(rawData) ? rawData : (rawData?.content || []);
+        this.branches = branchesList;
+        this.dataSource.data = this.branches;
+        this.totalElements = res?.totalElements ?? res?.data?.totalElements ?? branchesList.length;
         this.isLoading = false;
       },
       error: (err) => {
         console.error('Failed to load branches', err);
         this.notificationService.showErrorToast('Failed to load branches. Please try again.', 'Error');
         this.isLoading = false;
+        this.branches = [];
+        this.dataSource.data = [];
       }
     });
   }

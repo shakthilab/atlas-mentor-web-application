@@ -11,8 +11,11 @@ export class ReferralService {
   constructor(private http: HttpClient) { }
 
   getReferralTypes(): Observable<string[]> {
-    return this.http.get<{ success: boolean; data: string[] }>(`${this.apiUrl}/types`).pipe(
-      map(res => res.data || [])
+    return this.http.get<any>(`${this.apiUrl}/types`).pipe(
+      map(res => {
+        const rawData = res?.data ?? res;
+        return Array.isArray(rawData) ? rawData : [];
+      })
     );
   }
 

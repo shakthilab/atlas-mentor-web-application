@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
 export interface Role {
@@ -50,7 +51,16 @@ export class MasterDataService {
     if (includeInactive) {
       params = params.set('includeInactive', 'true');
     }
-    return this.http.get<{ success: boolean; data: Branch[] }>(`${this.apiUrl}/branches`, { params });
+    return this.http.get<any>(`${this.apiUrl}/branches`, { params }).pipe(
+      map(res => {
+        if (res && res.data) {
+          const rawData = res.data;
+          const branchesList = Array.isArray(rawData) ? rawData : (rawData.content || []);
+          return { ...res, data: branchesList };
+        }
+        return { success: res?.success || false, data: [] };
+      })
+    );
   }
 
   getManagersByBranch(branchId: number, roleIds: number[]): Observable<any> {
