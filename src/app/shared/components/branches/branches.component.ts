@@ -96,8 +96,8 @@ export interface Branch {
                     <div class="d-flex align-items-center">
                       <img [src]="getManagerAvatar(element.manager?.id)" class="rounded-circle m-r-8 object-cover avatar-img" width="36" height="36" />
                       <div>
-                        <span class="f-w-500 text-dark f-s-13 d-block">{{ element.manager?.name }}</span>
-                        <span class="f-s-12 text-muted">{{ element.manager?.email }}</span>
+                        <span class="f-w-500 text-dark f-s-13 d-block">{{ element.manager?.name || 'N/A' }}</span>
+                        <span class="f-s-12 text-muted" *ngIf="element.manager?.email">{{ element.manager?.email }}</span>
                       </div>
                     </div>
                   </td>
@@ -214,8 +214,11 @@ export interface Branch {
                   <div class="d-flex align-items-center m-b-16">
                     <img [src]="getManagerAvatar(element.manager?.id)" class="rounded-circle m-r-8 object-cover avatar-img" width="32" height="32" />
                     <div>
-                      <span class="f-s-13 text-dark f-w-500 d-block">{{ element.manager?.name }} <span class="badge-role">Manager</span></span>
-                      <span class="f-s-12 text-muted">{{ element.manager?.email }}</span>
+                      <span class="f-s-13 text-dark f-w-500 d-block">
+                        {{ element.manager?.name || 'N/A' }}
+                        <span class="badge-role" *ngIf="element.manager?.name">Manager</span>
+                      </span>
+                      <span class="f-s-12 text-muted" *ngIf="element.manager?.email">{{ element.manager?.email }}</span>
                     </div>
                   </div>
 

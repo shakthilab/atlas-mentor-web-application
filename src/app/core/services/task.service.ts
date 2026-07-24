@@ -360,8 +360,9 @@ export class TaskService {
 
     return this.http.get<any>(`${environment.apiUrl}/tasks`, { params }).pipe(
       map(response => {
-        const content = response.tasks ? response.tasks.content : (response.content || []);
-        const stats = response.stats || null;
+        const res = response && response.data !== undefined ? response.data : response;
+        const content = res.tasks ? res.tasks.content : (res.content || []);
+        const stats = res.stats || null;
 
         // Same helper used in getTaskById — converts "IN_PROGRESS" → "In Progress"
         const formatEnum = (val: string) => {
@@ -393,8 +394,8 @@ export class TaskService {
           } as Task;
         });
 
-        const totalPages = response.tasks ? response.tasks.totalPages : (response.totalPages || 0);
-        const totalElements = response.tasks ? response.tasks.totalElements : (response.totalElements || 0);
+        const totalPages = res.tasks ? res.tasks.totalPages : (res.totalPages || 0);
+        const totalElements = res.tasks ? res.tasks.totalElements : (res.totalElements || 0);
 
         return {
           tasks: parsedTasks,
@@ -407,11 +408,15 @@ export class TaskService {
   }
 
   getStatuses(): Observable<{value: string, label: string}[]> {
-    return this.http.get<{value: string, label: string}[]>(`${environment.apiUrl}/tasks/statuses`);
+    return this.http.get<any>(`${environment.apiUrl}/tasks/statuses`).pipe(
+      map(res => res && res.data !== undefined ? res.data : res)
+    );
   }
 
   getPriorities(): Observable<{value: string, label: string}[]> {
-    return this.http.get<{value: string, label: string}[]>(`${environment.apiUrl}/tasks/priorities`);
+    return this.http.get<any>(`${environment.apiUrl}/tasks/priorities`).pipe(
+      map(res => res && res.data !== undefined ? res.data : res)
+    );
   }
 
   updateTaskPriority(taskId: number, priority: string): Observable<any> {
@@ -433,8 +438,9 @@ export class TaskService {
   }
 
   getTaskActivity(taskId: number): Observable<TaskActivity[]> {
-    return this.http.get<any[]>(`${environment.apiUrl}/tasks/${taskId}/activity`).pipe(
-      map(activities => {
+    return this.http.get<any>(`${environment.apiUrl}/tasks/${taskId}/activity`).pipe(
+      map(response => {
+        const activities = response && response.data !== undefined ? response.data : response;
         return (activities || []).map((a: any) => {
           const user = a.doneByName || 'System';
           let actionText = a.message || a.action;

@@ -1,0 +1,30 @@
+<div class="workflow-container" *ngIf="day">
+  <div class="workflow-title-row">
+    <h4>DAY APPROVAL WORKFLOW</h4>
+    <div class="current-status-info">
+      Currently at <span class="status-name">{{ day.status }}</span>
+    </div>
+  </div>
+
+  <div class="workflow-steps">
+    <div 
+      class="workflow-step-wrapper" 
+      *ngFor="let step of steps; let i = index"
+      (click)="changeStatus(step.value)"
+      title="Change Day status to {{ step.label }}"
+    >
+      <div class="step-badge" [ngClass]="getStepClass(i)">
+        <span class="step-indicator-circle check" *ngIf="getStepClass(i) === 'step-completed'">
+          <i-tabler name="check" class="check-icon"></i-tabler>
+        </span>
+        <span class="step-indicator-circle number" *ngIf="getStepClass(i) !== 'step-completed'">
+          {{ i + 1 }}
+        </span>
+        <span class="step-label">{{ step.label }}</span>
+      </div>
+
+      <!-- Connector line (only render between items) -->
+      <div class="step-connector" *ngIf="i < steps.length - 1" [class.completed]="i < currentStepIndex"></div>
+    </div>
+  </div>
+</div>

@@ -58,7 +58,14 @@ export class LeadService {
   }
 
   createLead(lead: any): Observable<any> {
-    return this.http.post<any>(`${environment.apiUrl}/students/onboarding`, lead);
+    const payload = { ...lead };
+    if (payload && payload.personalInfo) {
+      payload.personalInfo = {
+        ...payload.personalInfo,
+        email: (payload.personalInfo.email && payload.personalInfo.email.trim() !== '') ? payload.personalInfo.email : null
+      };
+    }
+    return this.http.post<any>(`${environment.apiUrl}/students/onboarding`, payload);
   }
 
   updateLead(id: number, lead: any): Observable<any> {

@@ -1,0 +1,27 @@
+<div class="workspace-layout">
+  <!-- Left Panel: Employee Tree -->
+  <div class="tree-sidebar-panel">
+    <app-employee-tree></app-employee-tree>
+  </div>
+
+  <!-- Right Panel: Accountability Workspace -->
+  <div class="workspace-main-panel">
+    <!-- Header / Tab Bar (only visible to Admin/Manager) -->
+    <div class="workspace-header" *ngIf="isAdminOrManager">
+      <nav class="workspace-nav">
+        <a class="nav-tab" routerLink="daily" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Daily Workspace</a>
+        <a class="nav-tab" routerLink="templates" routerLinkActive="active">Templates</a>
+        <a class="nav-tab" routerLink="assignments" routerLinkActive="active">Assignments</a>
+        <a class="nav-tab" routerLink="weekly" routerLinkActive="active">Weekly Accountability</a>
+        <a class="nav-tab" routerLink="reports" routerLinkActive="active">Reports</a>
+      </nav>
+    </div>
+
+    <!-- Workspace Sub-Page body -->
+    <div class="workspace-body">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>
+
+<app-task-create-drawer></app-task-create-drawer>

@@ -86,6 +86,7 @@ export interface BranchManager {
             </mat-label>
             <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100 theme-input">
               <mat-select formControlName="managerId" placeholder="Select Manager">
+                <mat-option [value]="null">None / No Manager</mat-option>
                 <mat-option *ngFor="let mgr of managers" [value]="mgr.id">
                   <div class="d-flex align-items-center">
                     <img [src]="getManagerAvatar(mgr.id)" class="rounded-circle m-r-8 object-cover" width="24" height="24" />
@@ -95,7 +96,6 @@ export interface BranchManager {
                 </mat-option>
               </mat-select>
               <mat-hint *ngIf="isLoadingManagers">Loading managers...</mat-hint>
-              <mat-error *ngIf="branchForm.get('managerId')?.hasError('required')">Manager is required</mat-error>
             </mat-form-field>
           </div>
 
@@ -192,7 +192,7 @@ export class AddBranchDialogComponent implements OnInit {
     this.branchForm = this.fb.group({
       name: ['', Validators.required],
       location: ['', Validators.required],
-      managerId: ['', Validators.required],
+      managerId: [null],
       status: ['ACTIVE']
     });
   }
@@ -203,7 +203,7 @@ export class AddBranchDialogComponent implements OnInit {
       this.branchForm.patchValue({
         name: this.data.name,
         location: this.data.location,
-        managerId: this.data.manager?.id || this.data.managerId,
+        managerId: this.data.manager?.id || this.data.managerId || null,
         status: this.data.status || 'ACTIVE'
       });
     }
@@ -246,8 +246,12 @@ export class AddBranchDialogComponent implements OnInit {
 
     this.isSubmitting = true;
     const payload = { ...this.branchForm.value };
-    // Ensure managerId is a number
-    payload.managerId = Number(payload.managerId);
+    // Ensure managerId is a number or null
+    if (payload.managerId) {
+      payload.managerId = Number(payload.managerId);
+    } else {
+      payload.managerId = null;
+    }
 
     if (this.isEditMode) {
       this.http.put<any>(

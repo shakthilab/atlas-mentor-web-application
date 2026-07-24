@@ -1,0 +1,60 @@
+.workspace-layout {
+  display: flex;
+  height: calc(100vh - 70px);
+  background-color: #f8fafc;
+  overflow: hidden;
+  margin: -24px; // Full bleed
+}
+
+.tree-sidebar-panel {
+  width: 320px;
+  min-width: 320px;
+  background-color: #ffffff;
+  border-right: 1px solid #e2e8f0;
+  height: 100%;
+}
+
+.workspace-main-panel {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.workspace-header {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 0 24px;
+}
+
+.workspace-nav {
+  display: flex;
+  gap: 24px;
+}
+
+.nav-tab {
+  display: inline-block;
+  padding: 16px 0;
+  color: #64748b;
+  font-weight: 500;
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: #0f172a;
+  }
+
+  &.active {
+    color: #3b82f6;
+    border-bottom-color: #3b82f6;
+  }
+}
+
+.workspace-body {
+  flex-grow: 1;
+  padding: 24px;
+  overflow-y: auto;
+}

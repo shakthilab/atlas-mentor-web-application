@@ -1,0 +1,116 @@
+<div class="weekly-workspace">
+  <!-- Center Content Panel -->
+  <div class="weekly-content-panel">
+    <!-- Breadcrumbs & Meta -->
+    <div class="meta-breadcrumbs m-b-8">
+      <span>Accountability</span>
+      <span class="separator">/</span>
+      <span>{{ selectedBranchName }}</span>
+      <span class="separator">/</span>
+      <span>{{ selectedEmployee?.name }}</span>
+      <span class="separator">/</span>
+      <span class="current">Weekly Accountability</span>
+    </div>
+
+    <!-- Header Actions Row -->
+    <div class="weekly-header-row m-b-24" *ngIf="selectedEmployee">
+      <div class="emp-profile-info">
+        <div class="avatar" [style.background-color]="selectedEmployee.id === 'emp-rohith' ? '#4ade80' : '#f43f5e'">
+          {{ selectedEmployee.initials || 'EE' }}
+        </div>
+        <div>
+          <h2 class="emp-name">{{ selectedEmployee.name }}</h2>
+          <p class="emp-meta">{{ selectedEmployee.role }} • Weekly Summary Review</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button mat-stroked-button class="outline-btn" (click)="saveWeeklyForm()">
+          <i-tabler name="device-floppy" class="icon-16 m-r-8"></i-tabler>
+          Save Progress
+        </button>
+        <button mat-flat-button color="primary" class="premium-btn" (click)="submitWeekly()">
+          Submit Week
+        </button>
+        <button mat-flat-button color="accent" class="approve-btn" (click)="approveWeekly()" *ngIf="selectedDay?.status === 'Manager Review'">
+          <i-tabler name="circle-check" class="icon-16 m-r-8"></i-tabler>
+          Approve & Verify
+        </button>
+      </div>
+    </div>
+
+    <!-- Status Alert Saved Banner -->
+    <div class="saved-banner m-b-16" *ngIf="isSaved">
+      <i-tabler name="circle-check" class="icon-18 m-r-8"></i-tabler>
+      Progress saved successfully.
+    </div>
+
+    <!-- Dynamic Workflow Timeline Card -->
+    <div class="workflow-card m-b-24">
+      <h3 class="card-title m-b-16">Weekly Review Status</h3>
+      <app-workflow-progress></app-workflow-progress>
+    </div>
+
+    <!-- Weekly Metrics & Form Grid -->
+    <div class="weekly-grid">
+      <!-- Left Forms Column -->
+      <div class="form-inputs-column">
+        <div class="input-card m-b-20">
+          <label class="card-label">Weekly Achievements & Milestones</label>
+          <textarea [(ngModel)]="achievements" rows="4" placeholder="List key objectives met, lead conversions, client satisfaction, etc..." class="form-textarea"></textarea>
+        </div>
+
+        <div class="input-card m-b-20">
+          <label class="card-label">Key Challenges & Blockers</label>
+          <textarea [(ngModel)]="challenges" rows="4" placeholder="Outline hurdles in lead calling, portal downtime, client queries, etc..." class="form-textarea"></textarea>
+        </div>
+
+        <div class="input-card m-b-20">
+          <label class="card-label">Support or Tools Needed</label>
+          <textarea [(ngModel)]="supportNeeded" rows="3" placeholder="Specify resources, team approvals, or tool updates required..." class="form-textarea"></textarea>
+        </div>
+
+        <div class="input-card m-b-20">
+          <label class="card-label">Next Week Focus & Commitments</label>
+          <textarea [(ngModel)]="nextWeekPlan" rows="3" placeholder="Detail high priority tasks and expected KPI targets for next week..." class="form-textarea"></textarea>
+        </div>
+      </div>
+
+      <!-- Right Metrics & Feedback Column -->
+      <div class="metrics-feedback-column">
+        <!-- KPI Stats Card -->
+        <div class="metric-card m-b-20" *ngIf="selectedEmployee">
+          <h3 class="card-title m-b-16">Weekly KPIs Summary</h3>
+          <div class="stat-big">
+            <span class="stat-number">94%</span>
+            <span class="stat-label">Completion rate</span>
+          </div>
+          <div class="progress-bar-container m-b-16">
+            <div class="progress-fill green" style="width: 94%"></div>
+          </div>
+          <div class="stat-details">
+            <div class="detail-row">
+              <span class="detail-label">Tasks Completed</span>
+              <span class="detail-value font-semibold">132 / 140 tasks</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Streaks</span>
+              <span class="detail-value text-orange font-semibold">🔥 8-day streak</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Manager Feedback Card (Highlighted) -->
+        <div class="feedback-card" [class.highlighted]="selectedDay?.status === 'Manager Review'">
+          <div class="card-header-icon m-b-12">
+            <i-tabler name="message-dots" class="icon-18 text-primary m-r-8"></i-tabler>
+            <h3 class="card-title">Manager Feedback</h3>
+          </div>
+          <p class="manager-tip m-b-12" *ngIf="selectedDay?.status === 'Manager Review'">
+            Attention: Employee has submitted this week. Please review details and provide evaluation feedback below.
+          </p>
+          <textarea [(ngModel)]="managerFeedback" rows="6" placeholder="Provide professional manager assessment, ratings, and action points..." class="form-textarea feedback-textarea"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

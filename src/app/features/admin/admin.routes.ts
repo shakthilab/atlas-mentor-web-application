@@ -20,6 +20,14 @@ export const adminRoutes: Routes = [
   { path: 'leads', component: LeadsComponent, data: { title: 'Leads' } },
   { path: 'students', component: StudentsComponent, data: { title: 'Students' } },
   { path: 'tasks', component: TasksComponent, data: { title: 'Tasks' } },
+  {
+    path: 'task-accountability',
+    loadChildren: () =>
+      import('../task-accountability/task-accountability.module').then(
+        (m) => m.TaskAccountabilityModule
+      ),
+    data: { title: 'Task Accountability' }
+  },
   { path: 'tasks-v2', component: TasksV2Component, data: { title: 'Tasks V2' } },
   { path: 'payments', component: PaymentsComponent, data: { title: 'Payments' } },
   { path: 'employees', component: EmployeesComponent, data: { title: 'Employees' } },

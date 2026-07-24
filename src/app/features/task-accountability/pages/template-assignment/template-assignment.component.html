@@ -1,0 +1,111 @@
+<div class="assignments-container">
+  <div class="assignments-header m-b-24">
+    <h2 class="section-title">Template Assignment</h2>
+    <p class="section-subtitle">Map daily accountability templates to employees, roles, or branches.</p>
+  </div>
+
+  <div class="assignments-content">
+    <!-- Left Panel: Assignment Form -->
+    <div class="form-card">
+      <h3 class="card-title m-b-20">Create New Assignment</h3>
+      
+      <div class="form-group m-b-20">
+        <label>Select Role Template</label>
+        <select [(ngModel)]="selectedTemplateId" class="form-select">
+          <option *ngFor="let temp of templates$ | async" [value]="temp.id">{{ temp.name }} ({{ temp.role }})</option>
+        </select>
+      </div>
+
+      <div class="form-group m-b-20">
+        <label>Assignment Scope</label>
+        <div class="scope-toggle-group">
+          <button type="button" class="scope-btn" [class.active]="assignType === 'role'" (click)="assignType = 'role'; onTypeChange()">
+            <i-tabler name="id" class="icon-14 m-r-4"></i-tabler> Role
+          </button>
+          <button type="button" class="scope-btn" [class.active]="assignType === 'branch'" (click)="assignType = 'branch'; onTypeChange()">
+            <i-tabler name="building" class="icon-14 m-r-4"></i-tabler> Branch
+          </button>
+          <button type="button" class="scope-btn" [class.active]="assignType === 'employee'" (click)="assignType = 'employee'; onTypeChange()">
+            <i-tabler name="user" class="icon-14 m-r-4"></i-tabler> Employee
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group m-b-20">
+        <label *ngIf="assignType === 'role'">Target Role</label>
+        <label *ngIf="assignType === 'branch'">Target Branch</label>
+        <label *ngIf="assignType === 'employee'">Target Employee</label>
+        
+        <select [(ngModel)]="targetName" class="form-select" *ngIf="assignType === 'role'">
+          <option *ngFor="let r of rolesList" [value]="r">{{ r }}</option>
+        </select>
+        
+        <select [(ngModel)]="targetName" class="form-select" *ngIf="assignType === 'branch'">
+          <option *ngFor="let b of branchesList" [value]="b">{{ b }}</option>
+        </select>
+        
+        <select [(ngModel)]="targetName" class="form-select" *ngIf="assignType === 'employee'">
+          <option *ngFor="let e of employeesList" [value]="e">{{ e }}</option>
+        </select>
+      </div>
+
+      <div class="form-group m-b-24">
+        <label>Effective Date</label>
+        <input type="date" [(ngModel)]="effectiveDate" class="form-input" />
+      </div>
+
+      <button mat-flat-button color="primary" class="premium-btn w-100" (click)="assignTemplate()">
+        <i-tabler name="link" class="icon-16 m-r-8"></i-tabler>
+        Assign Template
+      </button>
+    </div>
+
+    <!-- Right Panel: Active Assignments Table -->
+    <div class="list-card">
+      <h3 class="card-title m-b-20">Active Assignments</h3>
+      
+      <div class="table-container">
+        <table class="premium-table">
+          <thead>
+            <tr>
+              <th>Template</th>
+              <th>Assigned To</th>
+              <th>Type</th>
+              <th>Effective Date</th>
+              <th>Status</th>
+              <th class="text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let assign of assignments$ | async">
+              <td class="font-semibold">{{ assign.templateName }}</td>
+              <td>
+                <span class="target-chip">{{ assign.targetName }}</span>
+              </td>
+              <td>
+                <span class="type-badge" [class]="assign.assignType">{{ assign.assignType | uppercase }}</span>
+              </td>
+              <td>{{ assign.effectiveDate | date:'mediumDate' }}</td>
+              <td>
+                <span class="status-dot-active">
+                  <span class="dot"></span> Active
+                </span>
+              </td>
+              <td class="text-right">
+                <button mat-icon-button color="warn" (click)="removeAssignment(assign.id)">
+                  <i-tabler name="trash" class="icon-16"></i-tabler>
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="(assignments$ | async)?.length === 0">
+              <td colspan="6" class="empty-state">
+                <i-tabler name="unlink" class="icon-32 text-muted m-b-8"></i-tabler>
+                <p>No templates assigned yet. Fill out the assignment form to allocate responsibility.</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

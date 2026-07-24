@@ -1,0 +1,112 @@
+<div class="task-table-wrapper" *ngIf="day">
+  <!-- Toolbar -->
+  <div class="table-toolbar">
+    <div class="toolbar-left">
+      <button class="tool-btn">
+        <i-tabler name="filter" class="tool-icon"></i-tabler>
+        Filter
+      </button>
+      <button class="tool-btn" (click)="toggleSortByPriority()" [class.active-filter]="currentSort === 'priority'">
+        <i-tabler name="arrows-sort" class="tool-icon"></i-tabler>
+        Sort by Priority
+      </button>
+      <button class="tool-btn" (click)="toggleGroupByStatus()" [class.active-filter]="currentGroup === 'status'">
+        <i-tabler name="chart-bubble" class="tool-icon"></i-tabler>
+        Group by Status
+      </button>
+    </div>
+    
+    <div class="toolbar-right">
+      <span class="task-count-text m-r-12">{{ tasks.length }} of {{ tasks.length }} tasks</span>
+      <button mat-flat-button color="primary" class="add-task-btn" (click)="openAddWordDrawer()">
+        <i-tabler name="plus" class="icon-14 m-r-4"></i-tabler>
+        Add Task
+      </button>
+    </div>
+  </div>
+
+  <!-- Table Content -->
+  <div class="table-container">
+    <table class="clickup-table">
+      <thead>
+        <tr>
+          <th class="col-task-name">TASK</th>
+          <th class="col-priority">PRIORITY</th>
+          <th class="col-status">STATUS</th>
+          <th class="col-actual">ACTUAL</th>
+          <th class="col-comment">COMMENT</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr 
+          *ngFor="let task of tasks" 
+          (click)="selectTask(task)"
+          [class.active-row]="selectedTask?.id === task.id"
+          class="task-row"
+        >
+          <!-- Task Name with Icon -->
+          <td class="col-task-name">
+            <div class="task-title-cell">
+              <div class="task-icon-container">
+                <i-tabler [name]="getTaskTypeIcon(task.type)" class="task-type-icon"></i-tabler>
+              </div>
+              <span class="task-name-text">{{ task.name }}</span>
+            </div>
+          </td>
+
+          <!-- Priority Badge -->
+          <td class="col-priority">
+            <span class="priority-badge" [ngClass]="getPriorityColorClass(task.priority)">
+              <i-tabler name="flag" class="priority-icon"></i-tabler>
+              {{ task.priority }}
+            </span>
+          </td>
+
+          <!-- Status Badge -->
+          <td class="col-status">
+            <span class="status-badge" [ngClass]="getStatusColorClass(task.status)">
+              {{ task.status }}
+            </span>
+          </td>
+
+          <!-- Actual -->
+          <td class="col-actual">
+            <!-- Numeric Stacked Display -->
+            <div class="actual-numeric-display" *ngIf="task.type === 'NUMERIC'">
+              <span class="numeric-actual-bold">{{ getNumericActual(task.actualValue) }}</span>
+              <div class="numeric-stacked-info">
+                <span class="numeric-target">{{ getNumericTarget(task.actualValue) }}</span>
+                <span class="numeric-unit">{{ getNumericUnit(task.name) }}</span>
+              </div>
+              <div class="progress-bar-wrapper">
+                <div class="progress-bar-track">
+                  <div class="progress-bar-fill" [style.width.%]="getAchievementPercentage(task)"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Non-Numeric Simple Display -->
+            <div class="actual-simple-display" *ngIf="task.type !== 'NUMERIC'">
+              <span class="actual-value-text" [class.empty-value]="task.actualValue === '—'">
+                {{ task.actualValue }}
+              </span>
+            </div>
+          </td>
+
+          <!-- Comment -->
+          <td class="col-comment">
+            <span class="comment-text" [class.no-comment]="!task.comment || task.comment === '—'">
+              {{ task.comment || '—' }}
+            </span>
+          </td>
+        </tr>
+
+        <tr *ngIf="tasks.length === 0">
+          <td colspan="5" class="empty-table-row">
+            No tasks configured for this day. Click "+ Add task" to create one.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

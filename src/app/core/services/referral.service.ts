@@ -1,16 +1,19 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class ReferralService {
   private apiUrl = `${environment.apiUrl}/referral`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getReferralTypes(): Observable<string[]> {
-    return this.http.get<string[]>(`${this.apiUrl}/types`);
+    return this.http.get<{ success: boolean; data: string[] }>(`${this.apiUrl}/types`).pipe(
+      map(res => res.data || [])
+    );
   }
 
   getReferrals(page: number, size: number, referralType?: string | null, branchId?: number | null): Observable<any> {

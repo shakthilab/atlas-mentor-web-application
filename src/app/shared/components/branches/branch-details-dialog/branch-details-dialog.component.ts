@@ -59,7 +59,7 @@ import { Branch } from '../branches.component';
             <img [src]="getManagerAvatar(branch.manager?.id)" class="rounded-circle m-r-8 object-cover" width="32" height="32" />
             <div>
               <span class="detail-value d-block">{{ branch.manager?.name || 'N/A' }}</span>
-              <span class="f-s-12 text-muted">{{ branch.manager?.email }}</span>
+              <span class="f-s-12 text-muted" *ngIf="branch.manager?.email">{{ branch.manager?.email }}</span>
             </div>
           </div>
         </div>

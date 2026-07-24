@@ -1,0 +1,111 @@
+<div class="dashboard-wrapper">
+  <!-- Center panel (Scrollable content area) -->
+  <div class="center-panel">
+    <div class="center-scrollable-content">
+      <!-- Breadcrumbs & Header -->
+      <div class="dashboard-header" *ngIf="day && employee">
+        <div class="header-left">
+          <div class="breadcrumbs">
+            <span class="parent-link">Accountability</span>
+            <span class="slash">/</span>
+            <span class="parent-link">{{ branch?.name }}</span>
+            <span class="slash">/</span>
+            <span class="parent-link">{{ employee?.name }}</span>
+            <span class="slash">/</span>
+            <span class="active-link">{{ month?.name }} {{ year?.yearNumber }}</span>
+          </div>
+          
+          <div class="day-title-row">
+            <h1>{{ day.name }} — {{ day.dateLabel }}</h1>
+          </div>
+
+          <div class="employee-meta-row">
+            <div class="employee-avatar" [style.background-color]="employee.id === 'emp-rohith' ? '#22c55e' : '#f43f5e'">
+              {{ employee.initials || 'EE' }}
+            </div>
+            <span class="employee-name">{{ employee.name }}</span>
+            <span class="meta-dot">•</span>
+            <span class="employee-role">{{ employee.role }}</span>
+            <span class="meta-dot">•</span>
+            <span class="streak-text" *ngIf="employee.streak">
+              <span class="fire-emoji">🔥</span>
+              <span class="streak-count">{{ employee.streak }}-day streak</span>
+            </span>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <button class="btn-outline-blue" (click)="submitDay()">
+            Submit Day
+          </button>
+          <button class="btn-solid-blue" (click)="markDayComplete()">
+            Mark Day Complete
+          </button>
+        </div>
+      </div>
+
+      <!-- Completion Stats Cards Row -->
+      <div class="stats-cards-row" *ngIf="day && employee">
+        <!-- Daily Completion Card -->
+        <div class="stat-card">
+          <div class="card-header-row">
+            <span class="card-title">DAILY COMPLETION</span>
+            <span class="card-percentage">{{ day.completionRate }}%</span>
+          </div>
+          <div class="card-count-row">
+            <span class="count-bold">{{ completedTasksCount }}</span>
+            <span class="count-total">/ {{ totalTasksCount }} tasks</span>
+          </div>
+          <div class="card-progress-bar">
+            <div class="progress-track">
+              <div class="progress-fill blue-fill" [style.width.%]="day.completionRate"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Weekly Completion Card -->
+        <div class="stat-card">
+          <div class="card-header-row">
+            <span class="card-title">WEEKLY COMPLETION</span>
+            <span class="card-percentage">94%</span>
+          </div>
+          <div class="card-count-row">
+            <span class="count-bold">132</span>
+            <span class="count-total">/ 140 tasks</span>
+          </div>
+          <div class="card-progress-bar">
+            <div class="progress-track">
+              <div class="progress-fill green-fill" [style.width.%]="94"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Monthly Completion Card -->
+        <div class="stat-card">
+          <div class="card-header-row">
+            <span class="card-title">MONTHLY COMPLETION</span>
+            <span class="card-percentage">76%</span>
+          </div>
+          <div class="card-count-row">
+            <span class="count-bold">168</span>
+            <span class="count-total">/ 220 tasks</span>
+          </div>
+          <div class="card-progress-bar">
+            <div class="progress-track">
+              <div class="progress-fill blue-fill" [style.width.%]="76"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Workflow Progress Widget -->
+      <app-workflow-progress class="workflow-widget"></app-workflow-progress>
+
+      <!-- Task Table Widget -->
+      <app-task-table class="table-widget"></app-task-table>
+    </div>
+  </div>
+
+  <!-- Right panel (Details Drawer sliding in from right) -->
+  <app-task-details-drawer></app-task-details-drawer>
+</div>

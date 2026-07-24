@@ -1,0 +1,151 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.workflow-container {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.workflow-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+
+  h4 {
+    margin: 0;
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.5px;
+  }
+
+  .current-status-info {
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 500;
+
+    .status-name {
+      color: #2563eb;
+      font-weight: 700;
+    }
+  }
+}
+
+.workflow-steps {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  row-gap: 12px;
+}
+
+.workflow-step-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.step-badge {
+  display: flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  border: 1px solid transparent;
+
+  .step-label {
+    margin-left: 6px;
+  }
+}
+
+.step-indicator-circle {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 700;
+  flex-shrink: 0;
+
+  &.check {
+    background-color: #22c55e;
+    color: #ffffff;
+
+    .check-icon {
+      width: 10px;
+      height: 10px;
+      stroke-width: 3.5;
+    }
+  }
+}
+
+/* Completed Steps */
+.step-completed {
+  background-color: #f0fdf4;
+  border: 1px solid #22c55e;
+  color: #15803d;
+
+  &:hover {
+    background-color: #dcfce7;
+  }
+}
+
+/* Active Step */
+.step-active {
+  background-color: #2563eb;
+  border: 1px solid #2563eb;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
+
+  .step-indicator-circle.number {
+    background-color: #1d4ed8;
+    color: #ffffff;
+  }
+
+  &:hover {
+    background-color: #1d4ed8;
+    border-color: #1d4ed8;
+  }
+}
+
+/* Pending Steps */
+.step-pending {
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #64748b;
+
+  .step-indicator-circle.number {
+    background-color: #f1f5f9;
+    color: #64748b;
+  }
+
+  &:hover {
+    background-color: #f8fafc;
+    border-color: #94a3b8;
+    color: #334155;
+  }
+}
+
+/* Connectors */
+.step-connector {
+  width: 12px;
+  height: 2px;
+  background-color: #e2e8f0;
+  margin: 0 4px;
+  flex-shrink: 0;
+
+  &.completed {
+    background-color: #22c55e;
+  }
+}
+

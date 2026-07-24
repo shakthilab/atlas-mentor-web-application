@@ -1,0 +1,106 @@
+<div class="tree-container">
+  <div class="tree-header">
+    <div class="header-left">
+      <h3>Employee Tree</h3>
+      <span class="subtext">3 branches · 42 people</span>
+    </div>
+    <button class="expand-all-btn" (click)="expandAll()">
+      {{ isAllExpanded ? 'Collapse all' : 'Expand all' }}
+    </button>
+  </div>
+
+  <!-- Sticky Search Box -->
+  <div class="tree-search-wrapper">
+    <div class="tree-search-container">
+      <i-tabler name="search" class="search-icon"></i-tabler>
+      <input type="text" [(ngModel)]="searchQuery" (input)="onSearchChange()" placeholder="Search employees..." class="tree-search-input" />
+    </div>
+  </div>
+
+  <div class="tree-body">
+    <!-- Branch Node -->
+    <div class="tree-node branch-node" *ngFor="let branch of branches">
+      <div class="node-row" (click)="toggleExpand(branch)" [class.active-branch]="selectedBranch?.id === branch.id">
+        <i-tabler [name]="branch.expanded ? 'chevron-down' : 'chevron-right'" class="caret-icon"></i-tabler>
+        <i-tabler name="building" class="node-icon branch-icon"></i-tabler>
+        <span class="node-name">{{ branch.name }}</span>
+        <span class="node-count">{{ branch.count }}</span>
+      </div>
+
+      <!-- Roles Nested -->
+      <div class="nested-container" *ngIf="branch.expanded">
+        <div class="tree-node role-node" *ngFor="let role of branch.roles">
+          <div class="node-row" (click)="toggleExpand(role)">
+            <i-tabler [name]="role.expanded ? 'chevron-down' : 'chevron-right'" class="caret-icon"></i-tabler>
+            <span class="node-name">{{ role.name }}</span>
+            <span class="node-count">{{ role.count }}</span>
+          </div>
+
+          <!-- Employees Nested -->
+          <div class="nested-container" *ngIf="role.expanded">
+            <div class="tree-node employee-node" *ngFor="let employee of role.employees">
+              <div class="node-row employee-row" (click)="toggleExpand(employee)" [class.active-employee]="selectedEmployee?.id === employee.id">
+                <i-tabler [name]="employee.expanded ? 'chevron-down' : 'chevron-right'" class="caret-icon" *ngIf="employee.years && employee.years.length > 0"></i-tabler>
+                <span class="caret-placeholder" *ngIf="!employee.years || employee.years.length === 0"></span>
+                
+                <span class="employee-avatar" [style.background-color]="employee.id === 'emp-rohith' ? '#4ade80' : '#f43f5e'">
+                  {{ employee.initials || 'EE' }}
+                </span>
+                <span class="node-name employee-name">{{ employee.name }}</span>
+                <span class="completion-rate-badge" [class.high]="employee.completionRate >= 85">
+                  {{ employee.completionRate }}%
+                </span>
+              </div>
+
+              <!-- Years Nested -->
+              <div class="nested-container" *ngIf="employee.expanded && employee.years">
+                <div class="tree-node year-node" *ngFor="let year of employee.years">
+                  <div class="node-row" (click)="toggleExpand(year)">
+                    <i-tabler [name]="year.expanded ? 'chevron-down' : 'chevron-right'" class="caret-icon"></i-tabler>
+                    <i-tabler name="calendar" class="node-icon year-icon"></i-tabler>
+                    <span class="node-name">{{ year.yearNumber }}</span>
+                  </div>
+
+                  <!-- Months Nested -->
+                  <div class="nested-container" *ngIf="year.expanded && year.months">
+                    <div class="tree-node month-node" *ngFor="let month of year.months">
+                      <div class="node-row" (click)="toggleExpand(month)">
+                        <i-tabler [name]="month.expanded ? 'chevron-down' : 'chevron-right'" class="caret-icon"></i-tabler>
+                        <span class="node-name">{{ month.name }}</span>
+                        <span class="live-badge" *ngIf="month.isLive">live</span>
+                      </div>
+
+                      <!-- Days Nested -->
+                      <div class="nested-container" *ngIf="month.expanded && month.days">
+                        <div 
+                          class="tree-node day-node" 
+                          *ngFor="let day of month.days"
+                          [class.selected-day]="selectedDay?.id === day.id"
+                          [class.weekly-row]="day.isWeekly"
+                          (click)="onSelectDay(day, month, year, employee, role, branch)"
+                        >
+                          <div class="node-row day-row">
+                            <span class="status-indicator-dot" *ngIf="!day.isWeekly" [style.background-color]="getDayStatusColor(day)"></span>
+                            <i-tabler name="file-text" class="weekly-icon" *ngIf="day.isWeekly"></i-tabler>
+                            
+                            <span class="node-name day-name" *ngIf="!day.isWeekly">{{ day.name }}</span>
+                            <span class="node-name day-name weekly-title" *ngIf="day.isWeekly">
+                              {{ day.name }}
+                            </span>
+                            
+                            <span class="day-percentage" *ngIf="day.completionRate > 0 || !day.isWeekly">{{ day.completionRate }}%</span>
+                            <span class="day-percentage" *ngIf="day.isWeekly && day.completionRate === 0">-</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,214 @@
+<div class="drawer-wrapper" [class.open]="task !== null" [style.width.px]="width">
+  <!-- Resizing Drag Bar -->
+  <div class="resize-divider" (mousedown)="onMouseDownResize($event)" *ngIf="task"></div>
+
+  <div class="drawer-container" *ngIf="task">
+    <!-- Header -->
+    <div class="drawer-header">
+      <div class="header-left">
+        <span class="task-type-header">TASK · {{ task.type }}</span>
+        <h2 class="task-title-heading">{{ task.name }}</h2>
+        
+        <div class="header-badges">
+          <span class="badge priority-badge" [ngClass]="getPriorityColorClass(task.priority)">
+            <i-tabler name="flag" class="badge-icon"></i-tabler>
+            {{ task.priority }}
+          </span>
+          <span class="badge status-badge" [ngClass]="getStatusColorClass(task.status)">
+            {{ task.status }}
+          </span>
+        </div>
+      </div>
+      <button class="close-btn" (click)="closeDrawer()">
+        <i-tabler name="x" class="close-icon"></i-tabler>
+      </button>
+    </div>
+
+    <!-- Scrollable Content -->
+    <div class="drawer-body">
+      <!-- Approval Workflow Timeline -->
+      <div class="section-container workflow-section">
+        <h3>APPROVAL WORKFLOW</h3>
+        <div class="workflow-slider">
+          <div class="workflow-step-wrapper" *ngFor="let step of workflowSteps; let i = index">
+            <div class="step-badge" [ngClass]="getStepClass(i)">
+              <span class="step-indicator-circle check" *ngIf="getStepClass(i) === 'step-completed'">
+                <i-tabler name="check" class="check-icon"></i-tabler>
+              </span>
+              <span class="step-indicator-circle number" *ngIf="getStepClass(i) !== 'step-completed'">
+                {{ i + 1 }}
+              </span>
+              <span class="step-label">{{ step.label }}</span>
+            </div>
+            <div class="step-connector" *ngIf="i < workflowSteps.length - 1" [class.completed]="isStepCompleted(step.value)"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="section-container description-section">
+        <h3>DESCRIPTION</h3>
+        <p class="description-text">{{ task.description }}</p>
+      </div>
+
+      <!-- Statistics Grid -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-label">TARGET</span>
+          <span class="stat-value">{{ task.targetValue }}</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">ACTUAL</span>
+          <span class="stat-value">{{ task.actualValue }}</span>
+        </div>
+        <div class="stat-card highlight-card">
+          <span class="stat-label">ACHIEVED</span>
+          <span class="stat-value achievement-percent">{{ getAchievementPercentage(task) }}%</span>
+        </div>
+      </div>
+
+      <!-- Meta Info Fields -->
+      <div class="meta-fields-list">
+        <div class="meta-row">
+          <span class="meta-label">
+            <i-tabler name="user" class="meta-icon"></i-tabler> ASSIGNED TO
+          </span>
+          <span class="meta-value font-semibold">
+            <span class="avatar-circle green">{{ task.assignedTo.substring(0,2).toUpperCase() }}</span>
+            {{ task.assignedTo }}
+          </span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">
+            <i-tabler name="user-check" class="meta-icon"></i-tabler> ASSIGNED BY
+          </span>
+          <span class="meta-value font-semibold">
+            <span class="avatar-circle rose">{{ task.assignedBy.substring(0,2).toUpperCase() }}</span>
+            {{ task.assignedBy }}
+          </span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">
+            <i-tabler name="clock" class="meta-icon"></i-tabler> DUE TIME
+          </span>
+          <span class="meta-value">{{ task.dueTime }}</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">
+            <i-tabler name="bookmark" class="meta-icon"></i-tabler> TASK TYPE
+          </span>
+          <span class="meta-value">{{ task.type }}</span>
+        </div>
+      </div>
+
+      <!-- Comments Section -->
+      <div class="section-container comments-section">
+        <h3>
+          <i-tabler name="message-2" class="section-icon"></i-tabler> COMMENTS
+        </h3>
+        
+        <div class="comments-list">
+          <div class="comment-item" *ngFor="let comment of task.comments">
+            <span class="avatar-circle comment-avatar blue">
+              {{ comment.authorName.substring(0,2).toUpperCase() }}
+            </span>
+            <div class="comment-content" [class.manager-comment]="comment.authorRole === 'Branch Manager' || comment.authorRole === 'Manager'">
+              <div class="comment-header-row">
+                <span class="author-name">{{ comment.authorName }}</span>
+                <span class="author-role">{{ comment.authorRole }}</span>
+                <span class="comment-time">{{ comment.timestamp }}</span>
+              </div>
+              <p class="comment-body-text">{{ comment.text }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="add-comment-box">
+          <textarea 
+            placeholder="Add a comment..." 
+            [(ngModel)]="newCommentText"
+            (keyup.enter)="submitComment()"
+            class="comment-textarea"
+          ></textarea>
+          <div class="comment-box-footer">
+            <button class="comment-submit-btn" (click)="submitComment()">
+              Submit
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Attachments -->
+      <div class="section-container attachments-section">
+        <h3>
+          <i-tabler name="paperclip" class="section-icon"></i-tabler> ATTACHMENTS
+        </h3>
+        
+        <div class="drop-upload-zone">
+          <i-tabler name="paperclip" class="upload-icon"></i-tabler>
+          <span>
+            Drop files or click to upload
+            <span class="attached-file-name" *ngFor="let att of task.attachments">
+              · {{ att.name }} ({{ att.size }})
+            </span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Activity Timeline -->
+      <div class="section-container activity-section">
+        <h3>
+          <i-tabler name="history" class="section-icon"></i-tabler> ACTIVITY TIMELINE
+        </h3>
+        <div class="activity-feed">
+          <div class="activity-feed-item" *ngFor="let act of task.activities">
+            <span class="activity-bullet"></span>
+            <div class="activity-details">
+              <span class="activity-text">{{ act.text }}</span>
+              <span class="activity-time">{{ act.timestamp }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sticky Manager Review Footer -->
+    <div class="drawer-footer">
+      <div class="footer-section review-actions">
+        <span class="footer-lbl">MANAGER REVIEW</span>
+        <div class="btn-group">
+          <button class="btn-approve" (click)="approveTask()">Approve</button>
+          <button class="btn-reject" (click)="rejectTask()">Reject</button>
+          <button class="btn-return" (click)="returnTask()">Return</button>
+        </div>
+      </div>
+      
+      <div class="footer-section review-rating">
+        <span class="footer-lbl">PERFORMANCE RATING</span>
+        <div class="rating-btn-group">
+          <button 
+            class="btn-rating rate-excellent" 
+            [class.selected]="task.rating === 'Excellent'"
+            (click)="setRating('Excellent')"
+          >
+            Excellent
+          </button>
+          <button 
+            class="btn-rating rate-good" 
+            [class.selected]="task.rating === 'Good'"
+            (click)="setRating('Good')"
+          >
+            Good
+          </button>
+          <button 
+            class="btn-rating rate-needs-imp" 
+            [class.selected]="task.rating === 'Needs Improvement'"
+            (click)="setRating('Needs Improvement')"
+          >
+            Needs Improvement
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
