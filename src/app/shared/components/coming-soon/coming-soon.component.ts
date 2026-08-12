@@ -24,6 +24,6 @@ export class ComingSoonComponent implements OnInit {
   constructor(private route: ActivatedRoute) {}
 
   ngOnInit(): void {
-    this.pageTitle = this.route.snapshot.data['title'] ?? 'Coming Soon';
+    this.pageTitle = this.route.snapshot?.data?.['title'] ?? 'Coming Soon';
   }
 }

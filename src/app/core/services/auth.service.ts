@@ -34,9 +34,35 @@ export class AuthService {
     }
 
     const stored = localStorage.getItem(this.USER_KEY);
-    const user: User | null = stored ? JSON.parse(stored) : null;
+    let user: User | null = stored ? JSON.parse(stored) : null;
+    if (user && !user.roleName) {
+      user.roleName = this.formatRoleName(user.role);
+    }
     this.currentUserSubject = new BehaviorSubject<User | null>(user);
     this.currentUser$ = this.currentUserSubject.asObservable();
+  }
+
+  formatRoleName(roleStr?: string | null): string {
+    if (!roleStr) return '';
+    if (roleStr.includes(' ')) return roleStr;
+
+    const map: Record<string, string> = {
+      ADMIN: 'Admin',
+      STUDENT: 'Student',
+      EMPLOYEE: 'Employee',
+      SENIOR_COUNSELLOR: 'Senior Counsellor',
+      JUNIOR_COUNSELLOR: 'Junior Counsellor',
+      VIDEO_EDITOR: 'Video Editor',
+      WEB_DEV: 'Web Developer',
+      MANAGER: 'Manager',
+      BRANCH_PARTNER: 'Branch Partner',
+      ADMINISTRATIVE_ASSISTANT: 'Administrative Assistant',
+      COMPANY: 'Company',
+      REFERRAL: 'Referral'
+    };
+
+    const key = roleStr.toUpperCase().trim();
+    return map[key] || roleStr.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   }
 
   get currentUserValue(): User | null {
@@ -64,6 +90,7 @@ export class AuthService {
             name: d.name,
             email: d.email,
             role: d.role,
+            roleName: d.roleName || this.formatRoleName(d.role),
             status: 'ACTIVE', // successful login always means active
             isEmployee: d.employee,
             token: d.token,

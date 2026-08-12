@@ -194,13 +194,13 @@ export const MOCK_BRANCHES: BranchNode[] = [
     id: 'b-chennai',
     name: 'Chennai',
     count: 5,
-    expanded: true,
+    expanded: false,
     roles: [
       {
         id: 'r-chennai-sr-counsellors',
         name: 'Senior Counsellors',
         count: 2,
-        expanded: true,
+        expanded: false,
         employees: [
           {
             id: 'emp-sandhya',
@@ -234,21 +234,21 @@ export const MOCK_BRANCHES: BranchNode[] = [
             completionRate: 85,
             initials: 'RK',
             streak: 8,
-            expanded: true,
+            expanded: false,
             years: [
               {
                 id: 'y-rohith-2026',
                 yearNumber: 2026,
-                expanded: true,
+                expanded: false,
                 months: [
                   {
                     id: 'm-rohith-2026-april',
                     name: 'April',
                     isLive: true,
-                    expanded: true,
+                    expanded: false,
                     days: [
                       { id: 'd-rohith-1', name: 'Day 1', dateLabel: 'Apr 01, 2026', completionRate: 88, progressRate: 88, status: 'Verified' },
-                      { id: 'd-rohith-2', name: 'Day 2', dateLabel: 'Apr 02, 2026', completionRate: 91, progressRate: 91, status: 'Manager Review', tasks: MOCK_TASKS_DAY_2 },
+                      { id: 'd-rohith-2', name: 'Day 2', dateLabel: 'Apr 02, 2026', completionRate: 91, progressRate: 91, status: 'Manager Review', tasks: [] },
                       { id: 'd-rohith-3', name: 'Day 3', dateLabel: 'Apr 03, 2026', completionRate: 94, progressRate: 94, status: 'Counsellor Approved' },
                       { id: 'd-rohith-4', name: 'Day 4', dateLabel: 'Apr 04, 2026', completionRate: 87, progressRate: 87, status: 'Completed' },
                       { id: 'd-rohith-5', name: 'Day 5', dateLabel: 'Apr 05, 2026', completionRate: 90, progressRate: 90, status: 'Employee' },

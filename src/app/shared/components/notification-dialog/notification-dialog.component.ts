@@ -7,7 +7,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
     <div class="dialog-container" [ngClass]="data.type">
       <div class="dialog-header-graphic">
         <div class="icon-circle">
-          <i-tabler [name]="data.type === 'success' ? 'circle-check' : 'alert-triangle'" class="dialog-icon"></i-tabler>
+          <i-tabler [name]="data.icon || (data.type === 'success' ? 'mail' : 'alert-circle')" class="dialog-icon"></i-tabler>
         </div>
       </div>
       
@@ -17,58 +17,68 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
       </div>
 
       <div class="dialog-actions" [style.flex-direction]="data.showResend ? 'column' : 'row'" [style.gap]="data.showResend ? '8px' : '0'">
-        <button mat-flat-button [color]="data.type === 'success' ? 'primary' : 'warn'" class="action-btn" (click)="dialogRef.close(true)">
+        <button mat-flat-button class="action-btn" (click)="dialogRef.close(true)">
           {{ data.buttonText || 'OK' }}
         </button>
-        <button *ngIf="data.showResend" mat-button color="primary" class="action-btn resend-btn" (click)="dialogRef.close('resend')">
+        <button *ngIf="data.showResend" mat-button class="action-btn resend-btn" (click)="dialogRef.close('resend')">
           Resend Verification Link
         </button>
       </div>
     </div>
   `,
   styles: [`
+    @keyframes bob-and-pulse {
+      0% { transform: scale(1) translateY(0); }
+      50% { transform: scale(1.08) translateY(-4px); }
+      100% { transform: scale(1) translateY(0); }
+    }
+
     .dialog-container {
-      padding: 32px 24px 24px;
+      padding: 36px 32px 28px;
       width: 100%;
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
       align-items: center;
+      background-color: #ffffff;
     }
 
     .dialog-header-graphic {
-      margin-bottom: 20px;
+      margin-bottom: 24px;
       
       .icon-circle {
-        width: 64px;
-        height: 64px;
+        width: 56px;
+        height: 56px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        border: 2px solid #000000;
+        background-color: #ffffff;
       }
     }
 
     .success {
       .icon-circle {
-        background-color: rgba(19, 222, 185, 0.15);
-        color: #13deb9;
+        border-color: #000000;
+        color: #000000;
       }
       .dialog-icon {
-        width: 36px;
-        height: 36px;
+        width: 28px;
+        height: 28px;
+        animation: bob-and-pulse 3s ease-in-out infinite;
       }
     }
 
     .error {
       .icon-circle {
-        background-color: rgba(250, 137, 107, 0.15);
-        color: #fa896b;
+        border-color: #000000;
+        color: #000000;
       }
       .dialog-icon {
-        width: 36px;
-        height: 36px;
+        width: 28px;
+        height: 28px;
+        animation: bob-and-pulse 3s ease-in-out infinite;
       }
     }
 
@@ -76,14 +86,17 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
       font-size: 20px;
       font-weight: 700;
       margin-bottom: 12px;
-      color: #1e293b;
+      color: #000000;
+      font-family: 'Outfit', 'Inter', sans-serif;
+      letter-spacing: -0.3px;
     }
 
     .dialog-message {
       font-size: 14px;
       color: #64748b;
       line-height: 1.5;
-      margin-bottom: 24px;
+      margin-bottom: 28px;
+      font-family: 'Inter', sans-serif;
     }
 
     .dialog-actions {
@@ -93,41 +106,70 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
       
       .action-btn {
         width: 100%;
-        padding: 10px;
-        font-weight: 600;
-        font-size: 14px;
-        border-radius: 8px;
-        height: 42px;
+        padding: 12px 0;
+        font-weight: 700;
+        font-size: 13px;
+        border-radius: 4px !important;
+        height: 46px;
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        border: none !important;
+        box-shadow: none !important;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        font-family: 'Inter', sans-serif;
+        transition: background-color 0.2s ease;
+        
+        &:hover {
+          background-color: #222222 !important;
+        }
       }
 
       .resend-btn {
-        color: #5d87ff;
-        font-weight: 600;
-        text-decoration: underline;
+        background-color: transparent !important;
+        color: #000000 !important;
+        border: 1px solid #cbd5e1 !important;
+        margin-top: 8px;
         
         &:hover {
-          background-color: rgba(93, 135, 255, 0.04);
+          background-color: #f1f5f9 !important;
         }
       }
     }
 
     :host-context(.dark-theme) {
+      .dialog-container {
+        background-color: #1e293b;
+      }
       .dialog-title {
-        color: #f8fafc;
+        color: #ffffff;
       }
       .dialog-message {
         color: #94a3b8;
       }
       .success .icon-circle {
-        background-color: rgba(19, 222, 185, 0.25);
-        color: #80f1d4;
+        border-color: #ffffff;
+        color: #ffffff;
+        background-color: transparent;
       }
       .error .icon-circle {
-        background-color: rgba(250, 137, 107, 0.25);
-        color: #ffb4a2;
+        border-color: #ffffff;
+        color: #ffffff;
+        background-color: transparent;
+      }
+      .dialog-actions .action-btn {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        &:hover {
+          background-color: #e2e8f0 !important;
+        }
       }
       .dialog-actions .resend-btn {
-        color: #ecf2ff;
+        color: #ffffff !important;
+        border-color: #475569 !important;
+        &:hover {
+          background-color: rgba(255, 255, 255, 0.05) !important;
+        }
       }
     }
   `]
@@ -140,6 +182,7 @@ export class NotificationDialogComponent {
       message: string; 
       buttonText?: string;
       showResend?: boolean;
+      icon?: string;
     },
     public dialogRef: MatDialogRef<NotificationDialogComponent>
   ) {}

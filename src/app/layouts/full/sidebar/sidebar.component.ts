@@ -14,6 +14,8 @@ import { TranslateService } from '@ngx-translate/core';
 export class SidebarComponent implements OnInit {
   @Output() closeSidebar = new EventEmitter<void>();
   filteredNavItems: NavItem[] = [];
+  normalNavItems: NavItem[] = [];
+  settingsItem: NavItem | null = null;
   currentLang = 'en';
 
   languages = [
@@ -35,6 +37,8 @@ export class SidebarComponent implements OnInit {
 
   ngOnInit(): void {
     this.filteredNavItems = this.getNavItemsForCurrentUser();
+    this.settingsItem = this.filteredNavItems.find(item => item.displayName === 'nav.settings') || null;
+    this.normalNavItems = this.filteredNavItems.filter(item => item.displayName !== 'nav.settings');
   }
 
   get isDarkMode(): boolean {
@@ -62,14 +66,23 @@ export class SidebarComponent implements OnInit {
 
     const role = user.role.toUpperCase() as UserRole;
 
+    // Check if the user has a specific role that has its own menu items
+    const hasSpecificRoleItems = navItems.some(item => 
+      item.roles && item.roles.map(r => r.toUpperCase()).includes(role)
+    );
+
     return navItems.filter((item) => {
       if (!item.roles || item.roles.length === 0) return true;
       const normalizedRoles = item.roles.map((r) => r.toUpperCase());
 
-      // Employee fallback
-      if (normalizedRoles.includes('EMPLOYEE') && user.isEmployee) return true;
+      if (normalizedRoles.includes(role)) return true;
 
-      return normalizedRoles.includes(role);
+      // Special employee fallback: only apply if the user does NOT have their own specific role items
+      if (!hasSpecificRoleItems && normalizedRoles.includes('EMPLOYEE') && user.isEmployee) {
+        return true;
+      }
+
+      return false;
     });
   }
 }

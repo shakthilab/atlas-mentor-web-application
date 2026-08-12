@@ -1,5 +1,8 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { catchError, tap, map, shareReplay } from 'rxjs/operators';
+import { environment } from '../../../../environments/environment';
 import { BranchNode, RoleNode, EmployeeNode, YearNode, MonthNode, DayNode, TaskItem, RoleTemplate, TemplateAssignment, TemplateMonth, TemplateDay } from '../interfaces/accountability.interface';
 import { MOCK_BRANCHES } from '../models/mock-data';
 
@@ -7,8 +10,13 @@ import { MOCK_BRANCHES } from '../models/mock-data';
   providedIn: 'root'
 })
 export class TaskAccountabilityService {
-  private branchesSubject = new BehaviorSubject<BranchNode[]>(JSON.parse(JSON.stringify(MOCK_BRANCHES)));
+  private branchesSubject = new BehaviorSubject<BranchNode[]>([]);
   public branches$: Observable<BranchNode[]> = this.branchesSubject.asObservable();
+  private cachedStatuses$: Observable<any> | null = null;
+
+  public setBranches(branches: BranchNode[]): void {
+    this.branchesSubject.next(branches);
+  }
 
   // Show Create Drawer state
   private showCreateDrawerSubject = new BehaviorSubject<boolean>(false);
@@ -19,23 +27,66 @@ export class TaskAccountabilityService {
   }
 
   // Templates Configuration State
-  private templatesSubject = new BehaviorSubject<RoleTemplate[]>([
-    {
-      id: 'temp-1',
-      name: 'Senior Counsellor Template',
-      role: 'Senior Counsellor',
-      active: true,
-      createdAt: '2026-04-01',
-      tasks: [
-        { id: 'tt-1', name: 'Call New Leads', description: 'Call fresh operational leads from dashboard', type: 'NUMERIC', priority: 'High', targetValue: '150', required: true, active: true },
-        { id: 'tt-2', name: 'Follow-up Calls', description: 'Follow up on webinar warm leads', type: 'NUMERIC', priority: 'Medium', targetValue: '25', required: true, active: true },
-        { id: 'tt-3', name: 'Student Counselling', description: 'Counselling sessions overseas europe/russia', type: 'NUMERIC', priority: 'High', targetValue: '8', required: true, active: true },
-        { id: 'tt-4', name: 'CRM Update', description: 'Clean duplicates and logs', type: 'CHECKLIST', priority: 'Low', required: true, active: true },
-        { id: 'tt-5', name: 'Upload Daily Report', description: 'Upload daily EOD pdf sheet', type: 'FILE', priority: 'High', required: true, active: true },
-        { id: 'tt-6', name: 'Daily Summary', description: 'Type brief executive notes', type: 'TEXT', priority: 'Medium', required: false, active: true }
-      ]
+  private templatesSubject = new BehaviorSubject<RoleTemplate[]>((() => {
+    const pool = [
+      { name: 'Outbound Student Lead Calls', description: 'Follow up with 20 fresh student leads and record progress in CRM.', priority: 'HIGH' },
+      { name: 'Application Document Verification', description: 'Verify academic transcripts, SOPs, and financial documents for pending submissions.', priority: 'HIGH' },
+      { name: '1-on-1 University Counselling', description: 'Conduct scheduled counselling sessions with prospective students.', priority: 'MEDIUM' },
+      { name: 'Parent Consultation Call', description: 'Discuss fee structure, visa guidelines, and admission timelines with parents.', priority: 'MEDIUM' },
+      { name: 'Offer Letter Follow-up', description: 'Track university offer letter issuances and notify accepted students.', priority: 'HIGH' },
+      { name: 'Daily EOD Operational Log', description: 'Log completed calls, session notes, and submit EOD report.', priority: 'MEDIUM' }
+    ];
+
+    const days = [];
+    for (let dayNum = 1; dayNum <= 31; dayNum++) {
+      const tasks = [];
+      if (dayNum >= 10) {
+        const taskCount = 3 + ((dayNum * 7) % 3); // 3, 4, or 5 tasks
+        for (let i = 0; i < taskCount; i++) {
+          const item = pool[(dayNum + i * 2) % pool.length];
+          tasks.push({
+            id: `temp-1-${dayNum}-${i + 1}`,
+            name: item.name,
+            description: item.description,
+            type: 'CHECKLIST' as const,
+            priority: item.priority as any,
+            required: true,
+            active: true
+          });
+        }
+      }
+      days.push({
+        id: `td-temp-1-${dayNum}`,
+        name: `Day ${dayNum}`,
+        isWeekly: false,
+        tasks
+      });
     }
-  ]);
+
+    return [
+      {
+        id: 'temp-1',
+        name: 'Senior Counsellor Template',
+        role: 'Senior Counsellor',
+        roleName: 'SENIOR_COUNSELLOR',
+        roleDisplayName: 'Senior Counsellor',
+        branch: 'All Branches',
+        branchId: null,
+        branchName: null,
+        status: 'ACTIVE',
+        active: true,
+        createdAt: '2026-08-06',
+        months: [
+          {
+            id: 'tm-temp-1-1',
+            name: 'August 2026',
+            days
+          }
+        ],
+        tasks: []
+      }
+    ];
+  })());
   public templates$: Observable<RoleTemplate[]> = this.templatesSubject.asObservable();
 
   // Template Assignments State
@@ -71,36 +122,15 @@ export class TaskAccountabilityService {
   private selectedDaySubject = new BehaviorSubject<DayNode | null>(null);
   public selectedDay$: Observable<DayNode | null> = this.selectedDaySubject.asObservable();
 
+  public get selectedDayValue(): DayNode | null {
+    return this.selectedDaySubject.value;
+  }
+
   private selectedTaskSubject = new BehaviorSubject<TaskItem | null>(null);
   public selectedTask$: Observable<TaskItem | null> = this.selectedTaskSubject.asObservable();
 
-  constructor() {
-    // Set initial selection to Rohith Krishnan -> 2026 -> April -> Day 2 (as seen in screenshots)
-    const branches = this.branchesSubject.value;
-    const chennai = branches.find(b => b.id === 'b-chennai');
-    if (chennai) {
-      this.selectedBranchSubject.next(chennai);
-      const srCounsellor = chennai.roles.find(r => r.id === 'r-chennai-sr-counsellors');
-      if (srCounsellor) {
-        this.selectedRoleSubject.next(srCounsellor);
-        const rohith = srCounsellor.employees.find(e => e.id === 'emp-rohith');
-        if (rohith) {
-          this.selectedEmployeeSubject.next(rohith);
-          const y2026 = rohith.years.find(y => y.yearNumber === 2026);
-          if (y2026) {
-            this.selectedYearSubject.next(y2026);
-            const april = y2026.months.find(m => m.name === 'April');
-            if (april) {
-              this.selectedMonthSubject.next(april);
-              const day2 = april.days.find(d => d.name === 'Day 2');
-              if (day2) {
-                this.selectedDaySubject.next(day2);
-              }
-            }
-          }
-        }
-      }
-    }
+  constructor(private http: HttpClient) {
+    // Initial workspace starts with no employee selected (shows welcome greeting view)
   }
 
   public selectBranch(branch: BranchNode | null): void {
@@ -124,9 +154,15 @@ export class TaskAccountabilityService {
   }
 
   public selectDay(day: DayNode | null): void {
+    const prevDay = this.selectedDaySubject.value;
+    if (!prevDay || !day || prevDay.id !== day.id) {
+      this.selectedTaskSubject.next(null);
+    }
     this.selectedDaySubject.next(day);
-    // Clear selected task when changing day
-    this.selectedTaskSubject.next(null);
+  }
+
+  public notifyDayUpdated(day: DayNode): void {
+    this.selectedDaySubject.next(day);
   }
 
   public selectTask(task: TaskItem | null): void {
@@ -180,7 +216,10 @@ export class TaskAccountabilityService {
     });
 
     this.selectedDaySubject.next({ ...day });
-    this.selectedTaskSubject.next({ ...task });
+    const currentSelected = this.selectedTaskSubject.value;
+    if (currentSelected && currentSelected.id === taskId) {
+      this.selectedTaskSubject.next({ ...task });
+    }
     this.recalculateCompletionRates();
   }
 
@@ -307,13 +346,19 @@ export class TaskAccountabilityService {
     day.completionRate = Math.round((completedTasksCount / day.tasks.length) * 100);
     this.selectedDaySubject.next({ ...day });
 
-    // Update branches subject to trigger changes in tree percentages
-    this.branchesSubject.next([...this.branchesSubject.value]);
+    const currentBranches = this.branchesSubject.value;
+    if (currentBranches && currentBranches.length > 0) {
+      this.branchesSubject.next([...currentBranches]);
+    }
   }
 
   // Templates CRUD
   public addTemplate(template: RoleTemplate): void {
     const list = this.templatesSubject.value;
+    if (!template.status) {
+      template.status = 'DRAFT';
+      template.active = false;
+    }
     list.push(template);
     this.templatesSubject.next([...list]);
   }
@@ -327,6 +372,29 @@ export class TaskAccountabilityService {
     }
   }
 
+  public publishRoleTemplateApi(id: string | number): Observable<any> {
+    return this.http.patch<any>(`${environment.apiUrl}/role-templates/${id}/publish`, {}).pipe(
+      tap(() => {
+        this.setTemplateStatusLocal(id.toString(), 'ACTIVE');
+      }),
+      catchError(() => {
+        // Fallback local update if backend API endpoint is not active during local development
+        this.setTemplateStatusLocal(id.toString(), 'ACTIVE');
+        return of({ success: true, status: 'ACTIVE' });
+      })
+    );
+  }
+
+  public setTemplateStatusLocal(id: string, status: string): void {
+    const list = this.templatesSubject.value;
+    const template = list.find(t => t.id === id);
+    if (template) {
+      template.status = status;
+      template.active = (status === 'ACTIVE');
+      this.templatesSubject.next([...list]);
+    }
+  }
+
   public deleteTemplate(id: string): void {
     const list = this.templatesSubject.value.filter(t => t.id !== id);
     this.templatesSubject.next([...list]);
@@ -336,6 +404,8 @@ export class TaskAccountabilityService {
     const copy = JSON.parse(JSON.stringify(template));
     copy.id = `temp-${Date.now()}`;
     copy.name = `${copy.name} (Copy)`;
+    copy.status = 'DRAFT';
+    copy.active = false;
     copy.createdAt = new Date().toISOString().split('T')[0];
     this.addTemplate(copy);
   }
@@ -344,7 +414,9 @@ export class TaskAccountabilityService {
     const list = this.templatesSubject.value;
     const template = list.find(t => t.id === id);
     if (template) {
-      template.active = !template.active;
+      const newStatus = template.status === 'ACTIVE' || template.active ? 'DRAFT' : 'ACTIVE';
+      template.status = newStatus;
+      template.active = (newStatus === 'ACTIVE');
       this.templatesSubject.next([...list]);
     }
   }
@@ -532,5 +604,273 @@ export class TaskAccountabilityService {
     });
 
     this.branchesSubject.next([...branches]);
+  }
+
+  public getRoleTemplatesApi(): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/role-templates`).pipe(
+      tap(res => {
+        if (res && res.success && res.data) {
+          const mapped = res.data.map((item: any) => this.mapResponseToTemplate(item));
+          this.templatesSubject.next(mapped);
+        }
+      }),
+      catchError(err => {
+        console.error('Error fetching role templates', err);
+        return of(null);
+      })
+    );
+  }
+
+  public getRoleTemplateByIdApi(id: string | number): Observable<RoleTemplate | null> {
+    return this.http.get<any>(`${environment.apiUrl}/role-templates/${id}`).pipe(
+      map(res => {
+        if (res && res.success && res.data) {
+          return this.mapResponseToTemplate(res.data);
+        }
+        return null;
+      }),
+      catchError(err => {
+        console.error('Error fetching role template by ID', err);
+        return of(null);
+      })
+    );
+  }
+
+  public createRoleTemplateApi(request: any): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/role-templates`, request).pipe(
+      tap(() => this.getRoleTemplatesApi().subscribe())
+    );
+  }
+
+  public updateRoleTemplateApi(id: string | number, request: any): Observable<any> {
+    return this.http.put<any>(`${environment.apiUrl}/role-templates/${id}`, request).pipe(
+      tap(() => this.getRoleTemplatesApi().subscribe())
+    );
+  }
+
+  public deleteRoleTemplateApi(id: string | number): Observable<any> {
+    return this.http.delete<any>(`${environment.apiUrl}/role-templates/${id}/hard`).pipe(
+      tap(() => this.getRoleTemplatesApi().subscribe())
+    );
+  }
+
+  private getDemoTasksForDay(dayNumber: number): Array<any> {
+    const pool = [
+      { name: 'Outbound Student Lead Calls', description: 'Follow up with 20 fresh student leads and record progress in CRM.', priority: 'HIGH' },
+      { name: 'Application Document Verification', description: 'Verify academic transcripts, SOPs, and financial documents for pending submissions.', priority: 'HIGH' },
+      { name: '1-on-1 University Counselling', description: 'Conduct scheduled counselling sessions with prospective students.', priority: 'MEDIUM' },
+      { name: 'Parent Consultation Call', description: 'Discuss fee structure, visa guidelines, and admission timelines with parents.', priority: 'MEDIUM' },
+      { name: 'Offer Letter Follow-up', description: 'Track university offer letter issuances and notify accepted students.', priority: 'HIGH' },
+      { name: 'Daily EOD Operational Log', description: 'Log completed calls, session notes, and submit EOD report.', priority: 'MEDIUM' }
+    ];
+
+    const taskCount = 3 + ((dayNumber * 7) % 3); // 3, 4, or 5 tasks
+    const tasks: Array<any> = [];
+
+    for (let i = 0; i < taskCount; i++) {
+      const poolIndex = (dayNumber + i * 2) % pool.length;
+      const item = pool[poolIndex];
+      tasks.push({
+        id: `demo-${dayNumber}-${i + 1}`,
+        name: item.name,
+        description: item.description,
+        type: 'CHECKLIST',
+        priority: item.priority,
+        required: true,
+        active: true
+      });
+    }
+
+    return tasks;
+  }
+
+  private mapResponseToTemplate(res: any): RoleTemplate {
+    const isSeniorCounsellor = (res.roleName === 'SENIOR_COUNSELLOR' || res.roleDisplayName === 'Senior Counsellor' || res.role === 'Senior Counsellor' || (res.name && res.name.includes('Senior Counsellor')));
+    const isAllBranches = (!res.branchId && !res.branchName) || res.branchName === 'All Branches' || res.branch === 'All Branches';
+
+    return {
+      id: res.id.toString(),
+      name: res.name,
+      role: res.roleDisplayName || res.roleName,
+      roleId: res.roleId,
+      roleName: res.roleName,
+      roleDisplayName: res.roleDisplayName,
+      branch: res.branchName || 'All Branches',
+      branchId: res.branchId,
+      branchName: res.branchName,
+      status: res.status || (res.active ? 'ACTIVE' : 'DRAFT'),
+      active: res.status === 'ACTIVE' || res.active === true,
+      createdAt: res.createdAt ? res.createdAt.split('T')[0] : new Date().toISOString().split('T')[0],
+      updatedAt: res.updatedAt ? res.updatedAt.split('T')[0] : new Date().toISOString().split('T')[0],
+      months: [
+        {
+          id: `tm-${res.id}-1`,
+          name: 'August 2026',
+          days: (res.days || []).map((d: any) => {
+            let existingTasks = (d.tasks || []).map((t: any) => ({
+              id: t.id.toString(),
+              name: t.title,
+              description: t.description || '',
+              type: 'CHECKLIST',
+              priority: t.priority ? t.priority : 'MEDIUM',
+              required: true,
+              active: true
+            }));
+
+            if (isSeniorCounsellor && isAllBranches && d.dayNumber >= 10 && d.dayNumber <= 31 && existingTasks.length < 3) {
+              existingTasks = this.getDemoTasksForDay(d.dayNumber);
+            }
+
+            return {
+              id: `td-${d.id}`,
+              name: d.isWeeklyCheckpoint ? 'Weekly Accountability' : `Day ${d.dayNumber}`,
+              isWeekly: d.isWeeklyCheckpoint || false,
+              tasks: existingTasks
+            };
+          })
+        }
+      ],
+      tasks: []
+    };
+  }
+  public addTaskApi(templateId: string | number, dayNumber: number, task: { title: string; description: string; priority: string }): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/role-templates/${templateId}/days/${dayNumber}/tasks`, task);
+  }
+
+  public updateTaskApi(templateId: string | number, dayNumber: number, taskId: string | number, task: { title: string; description: string; priority: string }): Observable<any> {
+    return this.http.put<any>(`${environment.apiUrl}/role-templates/${templateId}/days/${dayNumber}/tasks/${taskId}`, task);
+  }
+
+  public deleteTaskApi(templateId: string | number, dayNumber: number, taskId: string | number): Observable<any> {
+    return this.http.delete<any>(`${environment.apiUrl}/role-templates/${templateId}/days/${dayNumber}/tasks/${taskId}`);
+  }
+
+  public updateTemplateStatusApi(id: string | number, status: 'ACTIVE' | 'INACTIVE'): Observable<any> {
+    return this.http.patch<any>(`${environment.apiUrl}/role-templates/${id}/status`, { status });
+  }
+
+  public duplicateRoleTemplateApi(id: string | number): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/role-templates/${id}/duplicate`, {});
+  }
+
+  // --- Part A: Employee Tree API Endpoints ---
+  public getEmployeeTreeApi(): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/admin/employee-tree`);
+  }
+
+  public getEmployeeYearsApi(employeeId: string | number): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/admin/employees/${employeeId}/years`);
+  }
+
+  public getEmployeeMonthsApi(employeeId: string | number, year: number | string): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/admin/employees/${employeeId}/years/${year}/months`);
+  }
+
+  public getEmployeeDaysApi(employeeId: string | number, year: number | string, month: number | string): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/admin/employees/${employeeId}/years/${year}/months/${month}/days`);
+  }
+
+  // --- Part B: Day Detail API Endpoint ---
+  public getDayDetailApi(employeeId: string | number, date: string): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/admin/employees/${employeeId}/days/${date}`);
+  }
+
+  // --- Part C: Task Detail Drawer API Endpoints ---
+  public getTaskDetailApi(taskId: string | number): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/tasks/${taskId}`);
+  }
+
+  public getTaskCommentsApi(taskId: string | number): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/tasks/${taskId}/comments`);
+  }
+
+  public addTaskCommentApi(taskId: string | number, comment: string, parentCommentId?: number | string | null): Observable<any> {
+    const body: any = { comment };
+    if (parentCommentId !== undefined && parentCommentId !== null) {
+      body.parentCommentId = parentCommentId;
+    }
+    return this.http.post<any>(`${environment.apiUrl}/tasks/${taskId}/comments`, body);
+  }
+
+  public getTaskAttachmentsApi(taskId: string | number): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/tasks/${taskId}/attachments`);
+  }
+
+  public addTaskAttachmentApi(taskId: string | number, payload: { fileName: string; fileUrl: string; fileSize: number; commentId?: number | string }): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/tasks/${taskId}/attachments`, payload);
+  }
+
+  public getTaskActivityApi(taskId: string | number): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/tasks/${taskId}/activity`);
+  }
+
+  // --- Part D: Employee Actions API Endpoints ---
+  public getStatusesApi(): Observable<any> {
+    if (!this.cachedStatuses$) {
+      this.cachedStatuses$ = this.http.get<any>(`${environment.apiUrl}/tasks/statuses`).pipe(
+        shareReplay(1)
+      );
+    }
+    return this.cachedStatuses$;
+  }
+
+  public patchTaskStatusApi(taskId: string | number, status: 'TODO' | 'IN_PROGRESS' | 'DONE' | string): Observable<any> {
+    return this.http.patch<any>(`${environment.apiUrl}/tasks/${taskId}/status`, { status });
+  }
+
+  public submitEmployeeDayApi(employeeId: string | number, date: string): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/employees/${employeeId}/days/${date}/submit`, {});
+  }
+
+  // --- Part E: Three-Stage Approval Workflow API Endpoints ---
+  public getPendingApprovalsApi(stage?: string): Observable<any> {
+    const url = stage ? `${environment.apiUrl}/approvals/pending?stage=${stage}` : `${environment.apiUrl}/approvals/pending`;
+    return this.http.get<any>(url);
+  }
+
+  public approveDayApi(
+    dayWorkspaceId: string | number, 
+    action: 'APPROVE' | 'SEND_BACK', 
+    comment?: string, 
+    flaggedTaskIds?: Array<number | string>
+  ): Observable<any> {
+    const body: any = { action };
+    if (comment && comment.trim()) {
+      body.comment = comment.trim();
+    }
+    if (flaggedTaskIds && flaggedTaskIds.length > 0) {
+      const numericIds = flaggedTaskIds
+        .map(id => typeof id === 'number' ? id : parseInt(String(id).replace(/\D/g, ''), 10))
+        .filter(id => !isNaN(id));
+      body.taskIds = numericIds.length > 0 ? numericIds : flaggedTaskIds;
+    }
+    return this.http.post<any>(`${environment.apiUrl}/days/${dayWorkspaceId}/approve`, body);
+  }
+
+  public getDayApprovalsTrailApi(dayWorkspaceId: string | number): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/days/${dayWorkspaceId}/approvals`);
+  }
+
+  // --- Part F: Role Scoping & Individual Contributor (/api/my/...) Endpoints ---
+  public isAdminTreeRole(roleStr?: string | null): boolean {
+    if (!roleStr) return false;
+    const r = roleStr.toUpperCase().trim();
+    return ['ADMIN', 'ADMINISTRATIVE_ASSISTANT', 'MANAGER', 'BRANCH_PARTNER'].includes(r);
+  }
+
+  public getMyYearsApi(): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/my/years`);
+  }
+
+  public getMyMonthsApi(year: number | string): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/my/years/${year}/months`);
+  }
+
+  public getMyDaysApi(year: number | string, month: number | string): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/my/years/${year}/months/${month}/days`);
+  }
+
+  public getMyDayDetailApi(date: string): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/my/days/${date}`);
   }
 }

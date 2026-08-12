@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { TaskAccountabilityService } from '../../services/task-accountability.service';
 import { Router } from '@angular/router';
+import { AuthService } from '../../../../core/services/auth.service';
 import { BranchNode, RoleNode, EmployeeNode, DayNode } from '../../interfaces/accountability.interface';
 
 interface PendingReviewItem {
@@ -71,7 +72,11 @@ export class ReportsComponent implements OnInit {
     }
   ];
 
-  constructor(private service: TaskAccountabilityService, private router: Router) {}
+  constructor(
+    private service: TaskAccountabilityService, 
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.service.branches$.subscribe(branches => {
@@ -80,57 +85,35 @@ export class ReportsComponent implements OnInit {
       const emps: string[] = [];
       branches.forEach(b => {
         b.roles.forEach(r => {
-          r.employees.forEach(e => {
-            if (!emps.includes(e.name)) {
-              emps.push(e.name);
-            }
-          });
+          r.employees.forEach(e => emps.push(e.name));
         });
       });
-      this.employeesList = emps;
+      this.employeesList = Array.from(new Set(emps));
     });
-
-    this.updateTargetDefault();
   }
 
   onFilterTypeChange(): void {
-    this.updateTargetDefault();
-    this.recalculateRates();
-  }
-
-  updateTargetDefault(): void {
     if (this.filterType === 'branch') {
-      this.selectedTarget = this.branchesList[0] || '';
+      this.selectedTarget = this.branchesList[0] || 'Chennai';
     } else if (this.filterType === 'role') {
-      this.selectedTarget = this.rolesList[0] || '';
+      this.selectedTarget = 'Senior Counsellor';
     } else {
-      this.selectedTarget = this.employeesList[0] || '';
+      this.selectedTarget = this.employeesList[0] || 'Rohith Krishnan';
     }
   }
 
   onTargetChange(): void {
-    this.recalculateRates();
+    // Target change handler for report filtering
   }
 
-  recalculateRates(): void {
-    // Generate different progress rates based on filter choices for realism
-    if (this.selectedTarget === 'Chennai' || this.selectedTarget === 'Rohith Krishnan') {
-      this.dailyRate = 91;
-      this.weeklyRate = 94;
-      this.monthlyRate = 88;
-    } else if (this.selectedTarget === 'Mumbai' || this.selectedTarget === 'Junior Counsellor') {
-      this.dailyRate = 78;
-      this.weeklyRate = 82;
-      this.monthlyRate = 80;
-    } else {
-      this.dailyRate = 85;
-      this.weeklyRate = 87;
-      this.monthlyRate = 84;
-    }
+  getStageBadgeClass(stage: string): string {
+    if (stage.includes('Senior')) return 'badge-senior';
+    if (stage.includes('Manager')) return 'badge-manager';
+    return 'badge-default';
   }
 
   reviewItem(item: PendingReviewItem): void {
-    // Locate employee node and select in service to sync pages
+    // Find item details and set selections
     this.service.branches$.subscribe(branches => {
       let foundBranch: BranchNode | null = null;
       let foundRole: RoleNode | null = null;
@@ -139,25 +122,25 @@ export class ReportsComponent implements OnInit {
 
       for (const b of branches) {
         for (const r of b.roles) {
-          const emp = r.employees.find(e => e.id === item.employeeId);
-          if (emp) {
-            foundBranch = b;
-            foundRole = r;
-            foundEmp = emp;
-            
-            // Search for day or create simulated node
-            for (const y of emp.years) {
-              for (const m of y.months) {
-                const day = m.days.find(d => d.id === item.dayId);
-                if (day) {
-                  foundDay = day;
-                } else if (item.isWeekly) {
-                  // Fallback simulation for weekly node
-                  foundDay = m.days.find(d => d.isWeekly) || null;
+          for (const e of r.employees) {
+            if (e.id === item.employeeId || e.name === item.employeeName) {
+              foundBranch = b;
+              foundRole = r;
+              foundEmp = e;
+
+              // Search day
+              for (const y of e.years) {
+                for (const m of y.months) {
+                  for (const d of m.days) {
+                    if (d.id === item.dayId || d.isWeekly === item.isWeekly) {
+                      foundDay = d;
+                      break;
+                    }
+                  }
                 }
               }
+              break;
             }
-            break;
           }
         }
       }
@@ -170,11 +153,14 @@ export class ReportsComponent implements OnInit {
           this.service.selectDay(foundDay);
         }
 
+        const user = this.authService.currentUserValue;
+        const rolePrefix = user ? this.authService.getRoleRoute(user.role as any) : '/admin';
+
         // Route to execution screen
         if (item.isWeekly) {
-          this.router.navigate(['/admin/task-accountability/weekly']);
+          this.router.navigate([`${rolePrefix}/task-accountability/weekly`]);
         } else {
-          this.router.navigate(['/admin/task-accountability/daily']);
+          this.router.navigate([`${rolePrefix}/task-accountability/daily`]);
         }
       }
     }).unsubscribe();

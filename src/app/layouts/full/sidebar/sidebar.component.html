@@ -1,9 +1,6 @@
-<div class="flex-layout">
+<div class="flex-layout sidebar-wrapper">
   <div class="sidebar-header d-flex align-items-center justify-content-between">
     <app-branding></app-branding>
-    <button mat-icon-button (click)="closeSidebar.emit()" class="mobile-close-btn">
-      <i-tabler name="x" class="icon-20 d-flex"></i-tabler>
-    </button>
   </div>
 
   <!-- Mobile Controls (Search) -->
@@ -15,7 +12,18 @@
     </div>
   </div>
 
-  <mat-nav-list class="sidebar-list">
-    <app-nav-item *ngFor="let item of filteredNavItems" [item]="item"> </app-nav-item>
-  </mat-nav-list>
+  <!-- Scrollable Nav Items list -->
+  <div class="sidebar-nav-container">
+    <mat-nav-list class="sidebar-list">
+      <app-nav-item *ngFor="let item of normalNavItems" [item]="item"> </app-nav-item>
+    </mat-nav-list>
+  </div>
+
+  <!-- Fixed Settings Item at the bottom -->
+  <div class="sidebar-footer" *ngIf="settingsItem">
+    <div class="footer-divider"></div>
+    <mat-nav-list class="sidebar-list footer-list">
+      <app-nav-item [item]="settingsItem"></app-nav-item>
+    </mat-nav-list>
+  </div>
 </div>

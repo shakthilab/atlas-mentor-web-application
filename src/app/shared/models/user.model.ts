@@ -4,6 +4,8 @@ export type UserRole =
   | 'EMPLOYEE'
   | 'SENIOR_COUNSELLOR'
   | 'JUNIOR_COUNSELLOR'
+  | 'VIDEO_EDITOR'
+  | 'WEB_DEV'
   | 'MANAGER'
   | 'BRANCH_PARTNER'
   | 'COMPANY'
@@ -17,6 +19,7 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  roleName?: string;
   status: UserStatus;
   isEmployee?: boolean;
   avatar?: string;
@@ -39,6 +42,7 @@ export interface ApiLoginResponse {
     name: string;
     email: string;
     role: UserRole;
+    roleName?: string;
     employee: boolean;
     type: string;
   };

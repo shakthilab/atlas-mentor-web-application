@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { SharedModule } from '../../shared/shared.module';
 import { TaskAccountabilityRoutingModule } from './task-accountability-routing.module';
+import { DropdownModule } from 'primeng/dropdown';
 
 // Pages
 import { TaskAccountabilityDashboardComponent } from './pages/task-accountability-dashboard/task-accountability-dashboard.component';
@@ -16,6 +17,7 @@ import { TaskTableComponent } from './components/task-table/task-table.component
 import { TaskDetailsDrawerComponent } from './components/task-details-drawer/task-details-drawer.component';
 import { TaskAccountabilityShellComponent } from './components/task-accountability-shell/task-accountability-shell.component';
 import { TaskCreateDrawerComponent } from './components/task-create-drawer/task-create-drawer.component';
+import { SendBackReasonDialogComponent } from './components/send-back-reason-dialog/send-back-reason-dialog.component';
 
 @NgModule({
   declarations: [
@@ -29,11 +31,13 @@ import { TaskCreateDrawerComponent } from './components/task-create-drawer/task-
     TaskTableComponent,
     TaskDetailsDrawerComponent,
     TaskAccountabilityShellComponent,
-    TaskCreateDrawerComponent
+    TaskCreateDrawerComponent,
+    SendBackReasonDialogComponent
   ],
   imports: [
     SharedModule,
-    TaskAccountabilityRoutingModule
+    TaskAccountabilityRoutingModule,
+    DropdownModule
   ]
 })
 export class TaskAccountabilityModule { }

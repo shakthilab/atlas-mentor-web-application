@@ -2,6 +2,10 @@ import { Component, OnInit, OnDestroy, HostListener, ElementRef } from '@angular
 import { TaskAccountabilityService } from '../../services/task-accountability.service';
 import { TaskItem } from '../../interfaces/accountability.interface';
 import { Subscription } from 'rxjs';
+import { AuthService } from '../../../../core/services/auth.service';
+
+import { MatDialog } from '@angular/material/dialog';
+import { SendBackReasonDialogComponent } from '../send-back-reason-dialog/send-back-reason-dialog.component';
 
 @Component({
   selector: 'app-task-details-drawer',
@@ -11,6 +15,7 @@ import { Subscription } from 'rxjs';
 export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
   task: TaskItem | null = null;
   newCommentText = '';
+  activeTab: 'comments' | 'activity' = 'comments';
 
   // Resizing State
   width = 500; // default initial width in pixels
@@ -28,12 +33,88 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
     { label: 'Closed', value: 'Closed' }
   ];
 
+  statusesList: { value: string; label: string }[] = [
+    { value: 'TODO', label: 'To Do' },
+    { value: 'IN_PROGRESS', label: 'In Progress' },
+    { value: 'DONE', label: 'Done' },
+    { value: 'REFLECT', label: 'Reflect' }
+  ];
+
   private sub = new Subscription();
 
   constructor(
     private service: TaskAccountabilityService,
-    private elRef: ElementRef
+    private authService: AuthService,
+    private elRef: ElementRef,
+    private dialog: MatDialog
   ) {}
+
+  loadStatuses(): void {
+    this.service.getStatusesApi().subscribe({
+      next: (res) => {
+        const data = res?.data || res;
+        if (Array.isArray(data) && data.length > 0) {
+          this.statusesList = data.map((item: any) => {
+            if (typeof item === 'string') {
+              return { value: item, label: this.formatStatusLabel(item) };
+            }
+            return {
+              value: item.value || item.status || item.name || item,
+              label: item.label || item.name || this.formatStatusLabel(item.value || item.status || item)
+            };
+          });
+        }
+      },
+      error: (err) => {
+        console.warn('Could not load status list from API in drawer, using defaults:', err);
+      }
+    });
+  }
+
+  formatStatusLabel(status?: string): string {
+    if (!status) return 'To Do';
+    const s = status.toUpperCase().trim();
+    if (s === 'TODO' || s === 'TO DO' || s === 'NOT_STARTED') return 'To Do';
+    if (s === 'IN_PROGRESS' || s === 'IN PROGRESS') return 'In Progress';
+    if (s === 'DONE' || s === 'COMPLETED') return 'Done';
+    if (s === 'VERIFIED' || s === 'APPROVED') return 'Verified';
+    if (s === 'CLOSED') return 'Closed';
+    return status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  get canShowReviewActions(): boolean {
+    const user = this.authService.currentUserValue;
+    if (!user || !user.role) return false;
+
+    const role = user.role.toUpperCase().trim();
+    const approvalRoles = [
+      'ADMIN',
+      'MANAGER',
+      'BRANCH_PARTNER',
+      'ADMINISTRATIVE_ASSISTANT'
+    ];
+
+    return approvalRoles.includes(role);
+  }
+
+  getReviewStageLabel(): string {
+    const user = this.authService.currentUserValue;
+    if (!user || !user.role) return 'MANAGER REVIEW';
+
+    const role = user.role.toUpperCase().trim();
+    switch (role) {
+      case 'ADMIN':
+        return 'ADMIN REVIEW';
+      case 'MANAGER':
+        return 'MANAGER REVIEW';
+      case 'BRANCH_PARTNER':
+        return 'BRANCH PARTNER REVIEW';
+      case 'ADMINISTRATIVE_ASSISTANT':
+        return 'ADMINISTRATIVE ASSISTANT REVIEW';
+      default:
+        return 'MANAGER REVIEW';
+    }
+  }
 
   getWorkflowStepIndex(status: string): number {
     return this.workflowSteps.findIndex(s => s.value === status);
@@ -65,38 +146,327 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
     }
   }
 
+  replyingToComment: any = null;
+
+  displayTask: TaskItem | null = null;
+  private closeTimer: any = null;
+
   ngOnInit(): void {
+    this.loadStatuses();
+
     this.sub.add(
       this.service.selectedTask$.subscribe(t => {
-        this.task = t;
-        this.newCommentText = '';
+        if (t) {
+          if (this.closeTimer) {
+            clearTimeout(this.closeTimer);
+            this.closeTimer = null;
+          }
+          this.task = t;
+          this.displayTask = t;
+          this.newCommentText = '';
+          this.replyingToComment = null;
+          if (t.id && !t.id.startsWith('demo-') && !t.id.startsWith('tt-')) {
+            this.loadRealTaskDetails(t.id);
+          }
+        } else {
+          this.task = null;
+          // Keep displayTask populated during the 350ms slide-out animation
+          this.closeTimer = setTimeout(() => {
+            this.displayTask = null;
+          }, 350);
+        }
       })
     );
-  }
-
-  ngOnDestroy(): void {
-    this.sub.unsubscribe();
   }
 
   closeDrawer(): void {
     this.service.selectTask(null);
   }
 
+  @HostListener('document:keydown.escape', ['$event'])
+  onEscapeKey(event: KeyboardEvent): void {
+    if (this.task) {
+      event.preventDefault();
+      this.closeDrawer();
+    }
+  }
+
+  accessForbidden = false;
+  accessForbiddenMessage = '';
+
+  loadRealTaskDetails(taskId: string | number): void {
+    this.accessForbidden = false;
+    this.accessForbiddenMessage = '';
+
+    // 1. Fetch Task Detail
+    this.service.getTaskDetailApi(taskId).subscribe({
+      next: (res) => {
+        if (res && res.data && this.task) {
+          this.task.displayId = res.data.displayId || this.task.displayId;
+          this.task.name = res.data.title || this.task.name;
+          this.task.description = res.data.description || this.task.description;
+          this.task.status = res.data.status || this.task.status;
+          this.task.priority = res.data.priority || this.task.priority;
+          this.task.assignedTo = res.data.assigneeName || this.task.assignedTo;
+          this.task.createdByName = res.data.createdByName || this.task.createdByName;
+        }
+      },
+      error: (err) => {
+        if (err.status === 403) {
+          this.accessForbidden = true;
+          this.accessForbiddenMessage = "You don't have access to view this task's details.";
+        } else {
+          console.log('Task detail API offline/error', err);
+        }
+      }
+    });
+
+    // 2. Fetch Nested Comments Tree
+    this.loadComments(taskId);
+
+    // 3. Fetch Attachments
+    this.loadAttachments(taskId);
+
+    // 4. Fetch Activity Logs
+    this.loadActivityLogs(taskId);
+  }
+
+  loadComments(taskId: string | number): void {
+    this.service.getTaskCommentsApi(taskId).subscribe({
+      next: (res) => {
+        if (res && res.data && this.task) {
+          const rawComments = res.data || [];
+          this.task.comments = rawComments.map((c: any) => ({
+            id: c.id.toString(),
+            authorName: c.commentedByName || 'User',
+            authorRole: c.commentedByRole || '',
+            text: c.comment,
+            timestamp: c.createdAt ? new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now',
+            parentCommentId: c.parentCommentId,
+            replies: (c.replies || []).map((r: any) => ({
+              id: r.id.toString(),
+              authorName: r.commentedByName || 'User',
+              authorRole: r.commentedByRole || '',
+              text: r.comment,
+              timestamp: r.createdAt ? new Date(r.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now',
+              parentCommentId: r.parentCommentId
+            }))
+          }));
+        }
+      },
+      error: (err) => {
+        if (err.status === 403) {
+          this.accessForbidden = true;
+          this.accessForbiddenMessage = "You don't have access to view this task's comments.";
+        } else {
+          console.log('Comments API offline/error', err);
+        }
+      }
+    });
+  }
+
+  loadAttachments(taskId: string | number): void {
+    this.service.getTaskAttachmentsApi(taskId).subscribe({
+      next: (res) => {
+        if (res && res.data && this.task) {
+          this.task.attachments = (res.data || []).map((att: any) => ({
+            id: att.id.toString(),
+            name: att.fileName,
+            size: att.fileSizeFormatted || `${Math.round((att.fileSize || 0) / 1024)} KB`,
+            fileUrl: att.fileUrl,
+            uploadedByName: att.uploadedByName,
+            uploadedAt: att.uploadedAt
+          }));
+        }
+      },
+      error: (err) => {
+        if (err.status === 403) {
+          this.accessForbidden = true;
+          this.accessForbiddenMessage = "You don't have access to view this task's attachments.";
+        } else {
+          console.log('Attachments API offline/error', err);
+        }
+      }
+    });
+  }
+
+  loadActivityLogs(taskId: string | number): void {
+    this.service.getTaskActivityApi(taskId).subscribe({
+      next: (res) => {
+        if (res && res.data && this.task) {
+          this.task.activities = (res.data || []).map((act: any) => ({
+            id: (act.id || Math.random()).toString(),
+            text: act.message || `${act.doneByName || 'User'} performed ${act.action}`,
+            timestamp: act.createdAt ? new Date(act.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now',
+            action: act.action,
+            oldValue: act.oldValue,
+            newValue: act.newValue,
+            doneByName: act.doneByName
+          }));
+        }
+      },
+      error: (err) => console.log('Activity API offline/error', err)
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.sub.unsubscribe();
+  }
+
+  setReplyTo(comment: any): void {
+    this.replyingToComment = comment;
+  }
+
+  cancelReply(): void {
+    this.replyingToComment = null;
+  }
+
   submitComment(): void {
     if (!this.task || !this.newCommentText.trim()) return;
-    this.service.addComment(this.task.id, this.newCommentText.trim());
-    this.newCommentText = '';
+    const text = this.newCommentText.trim();
+    const parentId = this.replyingToComment ? this.replyingToComment.id : null;
+
+    if (this.task.id && !this.task.id.startsWith('demo-') && !this.task.id.startsWith('tt-')) {
+      this.service.addTaskCommentApi(this.task.id, text, parentId).subscribe(() => {
+        this.newCommentText = '';
+        this.replyingToComment = null;
+        if (this.task) {
+          this.loadComments(this.task.id);
+          this.loadActivityLogs(this.task.id);
+        }
+      });
+    } else {
+      this.service.addComment(this.task.id, text);
+      this.newCommentText = '';
+      this.replyingToComment = null;
+    }
+  }
+
+  onFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (!file || !this.task) return;
+
+    const payload = {
+      fileName: file.name,
+      fileUrl: `https://cdn.atlasmentor.com/uploads/${file.name}`,
+      fileSize: file.size
+    };
+
+    if (this.task.id && !this.task.id.startsWith('demo-') && !this.task.id.startsWith('tt-')) {
+      this.service.addTaskAttachmentApi(this.task.id, payload).subscribe(() => {
+        if (this.task) {
+          this.loadAttachments(this.task.id);
+          this.loadActivityLogs(this.task.id);
+        }
+      });
+    } else {
+      const sizeStr = `${Math.round(file.size / 1024)} KB`;
+      this.task.attachments.push({
+        id: `att-${Date.now()}`,
+        name: file.name,
+        size: sizeStr
+      });
+    }
+  }
+
+  changeTaskStatus(taskOrStatus: TaskItem | string, newStatusStr?: string, event?: MouseEvent): void {
+    if (event) event.stopPropagation();
+    let targetTask: TaskItem | null = null;
+    let newStatus = '';
+
+    if (typeof taskOrStatus === 'object' && taskOrStatus !== null) {
+      targetTask = taskOrStatus;
+      newStatus = newStatusStr || '';
+    } else if (typeof taskOrStatus === 'string') {
+      targetTask = this.task;
+      newStatus = taskOrStatus;
+    }
+
+    if (!targetTask || !newStatus || targetTask.status === newStatus) return;
+
+    // Optimistically update
+    targetTask.status = newStatus;
+    this.service.updateTaskStatus(targetTask.id, newStatus);
+
+    if (targetTask.id && !targetTask.id.startsWith('demo-') && !targetTask.id.startsWith('tt-')) {
+      this.service.patchTaskStatusApi(targetTask.id, newStatus).subscribe({
+        next: () => {
+          if (targetTask) {
+            this.loadActivityLogs(targetTask.id);
+          }
+        },
+        error: (err) => {
+          console.error('Error patching task status from drawer:', err);
+        }
+      });
+    }
   }
 
   // Manager Actions
   approveTask(): void {
     if (!this.task) return;
-    this.service.updateTaskStatus(this.task.id, 'Verified');
+    const currentDay = this.service.selectedDayValue;
+    const dayWorkspaceId = (currentDay as any)?.rawDayWorkspaceId || currentDay?.id?.replace('d-', '');
+
+    if (dayWorkspaceId && !isNaN(Number(dayWorkspaceId))) {
+      // Per-task resubmitted approval (hasTaskIds: true)
+      this.service.approveDayApi(dayWorkspaceId, 'APPROVE', undefined, [this.task.id]).subscribe({
+        next: (res) => {
+          console.log('Per-task approval executed successfully:', res);
+          if (this.task) {
+            this.task.status = 'DONE';
+            this.loadActivityLogs(this.task.id);
+          }
+        },
+        error: (err) => {
+          console.error('Per-task approval API error:', err);
+          this.changeTaskStatus('DONE');
+        }
+      });
+    } else {
+      this.changeTaskStatus('DONE');
+    }
   }
 
   rejectTask(): void {
     if (!this.task) return;
-    this.service.updateTaskStatus(this.task.id, 'Manager Feedback');
+    const currentDay = this.service.selectedDayValue;
+    const dayWorkspaceId = (currentDay as any)?.rawDayWorkspaceId || currentDay?.id?.replace('d-', '');
+    const taskIdNum = parseInt(String(this.task.id).replace(/\D/g, ''), 10);
+    const targetTaskId = isNaN(taskIdNum) ? this.task.id : taskIdNum;
+
+    const dialogRef = this.dialog.open(SendBackReasonDialogComponent, {
+      width: '460px',
+      data: {
+        title: 'Send Back Task',
+        description: 'Please provide a feedback reason for sending back this task for rework.',
+        placeholder: 'Enter feedback comment...'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(reason => {
+      if (reason && typeof reason === 'string' && reason.trim()) {
+        const commentText = reason.trim();
+        if (dayWorkspaceId && !isNaN(Number(dayWorkspaceId))) {
+          this.service.approveDayApi(dayWorkspaceId, 'SEND_BACK', commentText, [targetTaskId]).subscribe({
+            next: (res) => {
+              console.log('Single task sent back successfully:', res);
+              if (this.task) {
+                this.task.status = 'REFLECT';
+                this.service.updateTaskStatus(this.task.id, 'REFLECT');
+                this.loadActivityLogs(this.task.id);
+              }
+            },
+            error: (err) => {
+              console.error('Error sending back single task:', err);
+              this.changeTaskStatus('REFLECT');
+            }
+          });
+        } else {
+          this.changeTaskStatus('REFLECT');
+        }
+      }
+    });
   }
 
   returnTask(): void {
@@ -138,7 +508,7 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
 
   // Helpers
   getAchievementPercentage(task: TaskItem): number {
-    if (task.type !== 'NUMERIC') return 100;
+    if (task.type !== 'NUMERIC' || !task.actualValue) return 100;
     const parts = task.actualValue.split('/');
     if (parts.length === 2) {
       const act = parseFloat(parts[0]);
@@ -151,23 +521,35 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
   }
 
   getPriorityColorClass(priority: string): string {
-    switch (priority) {
-      case 'Urgent': return 'priority-urgent';
-      case 'High': return 'priority-high';
-      case 'Medium': return 'priority-medium';
-      case 'Low': return 'priority-low';
-      default: return '';
-    }
+    if (!priority) return 'priority-medium';
+    const p = priority.toUpperCase().trim();
+    if (p === 'URGENT') return 'priority-urgent';
+    if (p === 'HIGH') return 'priority-high';
+    if (p === 'MEDIUM') return 'priority-medium';
+    if (p === 'LOW') return 'priority-low';
+    return 'priority-medium';
   }
 
   getStatusColorClass(status: string): string {
-    switch (status) {
-      case 'Verified': return 'status-verified';
-      case 'Completed': return 'status-completed';
-      case 'Manager Review': return 'status-review';
-      case 'Closed': return 'status-closed';
-      case 'Counsellor Approved': return 'status-approved';
-      default: return 'status-employee';
-    }
+    if (!status) return 'status-todo';
+    const s = status.toUpperCase().trim();
+    if (s === 'VERIFIED' || s === 'APPROVED') return 'status-verified';
+    if (s === 'COMPLETED' || s === 'DONE') return 'status-completed';
+    if (s === 'MANAGER REVIEW' || s === 'SUBMITTED' || s === 'COUNSELLOR REVIEW') return 'status-review';
+    if (s === 'COUNSELLOR APPROVED' || s === 'BRANCH APPROVED') return 'status-approved';
+    if (s === 'REJECTED' || s === 'RETURNED' || s === 'MANAGER FEEDBACK' || s === 'ACTION NEEDED') return 'status-feedback';
+    if (s === 'IN_PROGRESS' || s === 'IN PROGRESS') return 'status-in-progress';
+    if (s === 'TODO' || s === 'TO DO' || s === 'NOT_STARTED') return 'status-todo';
+    if (s === 'CLOSED') return 'status-closed';
+    return 'status-todo';
+  }
+
+  getFormattedDisplayId(task: TaskItem | null): string {
+    if (!task) return 'Task';
+    const id = task.displayId || task.id;
+    if (!id) return 'Task';
+    if (id.toLowerCase().startsWith('task -')) return id;
+    if (id.toLowerCase().startsWith('task-')) return `Task - ${id.substring(5)}`;
+    return `Task - ${id}`;
   }
 }

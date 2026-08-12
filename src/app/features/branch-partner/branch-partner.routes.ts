@@ -23,6 +23,13 @@ export const branchPartnerRoutes: Routes = [
   { path: 'companies', component: CompaniesComponent, data: { title: 'Companies' } },
   { path: 'resources', component: ResourcesComponent, data: { title: 'Resources' } },
   { path: 'branches', component: BranchesComponent, data: { title: 'Branches' } },
+  {
+    path: 'task-accountability',
+    loadChildren: () =>
+      import('../task-accountability/task-accountability.module').then(
+        (m) => m.TaskAccountabilityModule
+      ),
+  },
   { path: 'documents', component: ComingSoonComponent, data: { title: 'Documents' } },
   { path: 'settings', component: SettingsComponent, data: { title: 'Settings' } },
 ];

@@ -1,205 +1,398 @@
 .auth-wrapper {
-  min-height: 100vh;
+  min-height: calc(100vh - 54px);
+  height: calc(100vh - 54px);
   width: 100%;
+  display: flex;
+  align-items: stretch;
+  background-color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  
+  @media (max-width: 768px) {
+    min-height: 100vh;
+    height: auto;
+  }
+}
+
+// Left side panel
+.auth-left {
+  flex: 1;
+  background-color: #f4f6fa; // light grayish-blue background
+  position: relative;
+  overflow: hidden;
+  padding: 64px;
+  display: flex;
+  flex-direction: column;
+
+  .world-map-bg {
+    position: absolute;
+    top: 10%;
+    left: 5%;
+    width: 90%;
+    height: 80%;
+    opacity: 0.08;
+    background: url('/assets/images/backgrounds/world-map.svg') no-repeat center/contain;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .auth-left-content {
+    position: relative;
+    z-index: 2;
+    max-width: 620px;
+    margin: auto; // centers vertically & horizontally
+    width: 100%;
+    text-align: center;
+  }
+
+  .brand-header {
+    margin-bottom: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .brand-name {
+      font-size: 40px;
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      gap: 8px;
+    }
+
+    .brand-atlas {
+      color: #0c1b33; // dark navy/black
+    }
+
+    .brand-mentor {
+      color: #efa130; // orange/gold matching logo
+    }
+  }
+
+  .brand-title {
+    font-size: 54px;
+    font-weight: 800;
+    line-height: 1.15;
+    color: #0f172a;
+    margin-bottom: 24px;
+    letter-spacing: -2px;
+  }
+
+  .brand-description {
+    font-size: 18px;
+    line-height: 1.6;
+    color: #475569;
+    margin: 0 auto 48px auto;
+    max-width: 540px;
+  }
+
+  .stats-container {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    max-width: 520px;
+    margin: 0 auto;
+  }
+
+  .stats-card {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 4px;
+
+    .stats-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #64748b;
+      letter-spacing: 0.5px;
+    }
+
+    .stats-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+  }
+}
+
+// Right side panel
+.auth-right {
+  flex: 1;
+  background-color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #fdfbfb 0%, #eaedee 50%, #fdfbfb 100%);
-  background-size: 400% 400%;
-  animation: gradientBG 15s ease infinite;
-  position: relative;
-  overflow: hidden;
+  padding: 64px 40px;
 
-  // Animated background shapes
-  &::before, &::after {
-    content: '';
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(80px);
-    z-index: 0;
+  .auth-form-container {
+    width: 100%;
+    max-width: 400px;
   }
 
-  &::before {
-    width: 400px;
-    height: 400px;
-    background: rgba(255, 60, 100, 0.15);
-    top: -100px;
-    left: -100px;
-    animation: float 8s ease-in-out infinite;
-  }
-
-  &::after {
-    width: 500px;
-    height: 500px;
-    background: rgba(60, 120, 255, 0.1);
-    bottom: -150px;
-    right: -100px;
-    animation: float 12s ease-in-out infinite reverse;
-  }
-}
-
-.auth-card {
-  width: 100%;
-  max-width: 480px;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  border-radius: 24px;
-  padding: 40px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
-  position: relative;
-  z-index: 1;
-  color: #212529;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.15);
-  }
-}
-
-.auth-logo-container {
-  text-align: center;
-  margin-bottom: 32px;
-
-  .brand-name {
-    font-size: 32px;
+  .auth-title {
+    font-size: 40px;
     font-weight: 800;
-    margin: 0;
-    background: linear-gradient(to right, #1e202d, #5a607d);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    letter-spacing: -0.5px;
-    font-family: 'Inter', sans-serif;
+    color: #0f172a;
+    margin-bottom: 12px;
+    letter-spacing: -1px;
   }
 
-  .brand-subtitle {
-    font-size: 14px;
-    color: #5a607d;
-    margin-top: 8px;
+  .auth-subtitle {
+    font-size: 15px;
+    color: #64748b;
+    margin-bottom: 40px;
+    line-height: 1.5;
+  }
+
+  .form-field-group {
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .auth-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .forgot-link {
+    font-size: 13px;
+    color: #64748b;
+    text-decoration: none;
     font-weight: 500;
+    transition: color 0.2s;
+
+    &:hover {
+      color: #0f172a;
+    }
   }
-}
 
-.auth-form {
-  ::ng-deep {
-    .mat-mdc-text-field-wrapper {
-      background-color: rgba(0, 0, 0, 0.03) !important;
-      border-radius: 12px;
-      border: 1px solid rgba(0, 0, 0, 0.1);
-      transition: all 0.2s ease;
+  .form-divider {
+    border: none;
+    border-top: 1px solid #e2e8f0;
+  }
 
-      &.mdc-text-field--focused {
-        border-color: rgba(0, 0, 0, 0.2);
-        background-color: rgba(0, 0, 0, 0.05) !important;
+  .auth-footer {
+    text-align: center;
+    color: #475569;
+    font-size: 14px;
+    font-weight: 500;
+
+    .footer-link {
+      color: #0f172a;
+      font-weight: 700;
+      text-decoration: none;
+      
+      &:hover {
+        text-decoration: underline;
       }
     }
+
+    .footer-link-back {
+      color: #64748b;
+      font-weight: 600;
+      text-decoration: none;
+      transition: color 0.2s;
+
+      &:hover {
+        color: #0f172a;
+      }
+    }
+  }
+}
+
+// Angular Material field overrides
+::ng-deep {
+  .custom-form-field {
+    width: 100%;
+
+    .mat-mdc-text-field-wrapper {
+      background-color: #ffffff !important;
+      border-radius: 8px !important;
+      border: 1px solid #e2e8f0 !important;
+      transition: all 0.2s ease !important;
+      padding: 0 !important;
+
+      &.mdc-text-field--focused {
+        border-color: #000000 !important;
+        box-shadow: 0 0 0 1px #000000 !important;
+      }
+
+      &:hover:not(.mdc-text-field--focused) {
+        border-color: #cbd5e1 !important;
+      }
+    }
+
     .mdc-notched-outline__leading,
     .mdc-notched-outline__notch,
     .mdc-notched-outline__trailing {
       border: none !important;
     }
+
     .mat-mdc-form-field-infix {
-      padding-top: 10px !important;
-      padding-bottom: 10px !important;
-      min-height: 44px !important;
+      padding-top: 14px !important;
+      padding-bottom: 14px !important;
+      min-height: 48px !important;
+      display: flex !important;
+      align-items: center !important;
     }
+
     input.mat-mdc-input-element {
-      color: #212529 !important;
+      color: #0f172a !important;
+      font-size: 15px !important;
+      font-family: 'Inter', sans-serif !important;
+
       &::placeholder {
-        color: rgba(0, 0, 0, 0.4) !important;
+        color: #94a3b8 !important;
       }
     }
-    .mat-mdc-form-field-subscript-wrapper {
-      color: #ff5252;
-    }
-    .mdc-icon-button {
-      color: rgba(0, 0, 0, 0.6) !important;
-    }
-    .mat-mdc-checkbox {
-      .mdc-checkbox__native-control:enabled:not(:checked):not(:indeterminate):not([data-indeterminate=true]) ~ .mdc-checkbox__background {
-        border-color: rgba(0,0,0,0.4);
+
+    .prefix-icon-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-left: 14px;
+      padding-right: 8px;
+      
+      i-tabler {
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
-      label {
-        color: rgba(0,0,0,0.8);
+    }
+
+    .password-toggle-btn {
+      width: 36px !important;
+      height: 36px !important;
+      padding: 0 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      color: #64748b;
+      margin-right: 6px;
+
+      &:hover {
+        color: #0f172a;
+      }
+      
+      .mat-mdc-button-touch-target {
+        display: none !important;
       }
     }
   }
 
-  .auth-label {
-    color: rgba(0, 0, 0, 0.8);
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 8px;
-    display: block;
+  .remember-me-row {
+    .mat-mdc-checkbox {
+      .mdc-checkbox__native-control:enabled:not(:checked):not(:indeterminate):not([data-indeterminate=true]) ~ .mdc-checkbox__background {
+        border-color: #cbd5e1 !important;
+        border-radius: 4px;
+      }
+      .mdc-checkbox__native-control:enabled:checked ~ .mdc-checkbox__background {
+        background-color: #000000 !important;
+        border-color: #000000 !important;
+        border-radius: 4px;
+      }
+      
+      label {
+        font-size: 14px !important;
+        color: #475569 !important;
+        font-family: 'Inter', sans-serif !important;
+        font-weight: 500 !important;
+      }
+    }
+  }
+}
+
+// Accent/Submit Button Styling
+.auth-btn-submit {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border-radius: 8px !important;
+  padding: 24px 0 !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  font-family: 'Inter', sans-serif !important;
+  letter-spacing: 0.2px;
+  transition: all 0.2s ease !important;
+
+  &:hover:not([disabled]) {
+    background-color: #1e293b !important;
+    
+    i-tabler {
+      transform: translateX(4px);
+    }
+  }
+
+  &[disabled] {
+    background-color: #e2e8f0 !important;
+    color: #94a3b8 !important;
+    cursor: not-allowed;
+  }
+
+  i-tabler {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease-in-out !important;
+  }
+}
+
+// Media Queries for Mobile Responsiveness
+@media (max-width: 992px) {
+  .auth-left {
+    display: none;
+  }
+
+  .auth-right {
+    padding: 48px 24px;
+    
+    .auth-form-container {
+      max-width: 440px;
+    }
+  }
+}
+
+// Reset Password Strength Meter
+.reset-strength-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  .strength-bar-track {
+    width: 100%;
+    height: 4px;
+    background-color: #e2e8f0;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .strength-bar-fill {
+    height: 100%;
+    width: 0%;
+    transition: width 0.3s ease, background-color 0.3s ease;
+    border-radius: 2px;
+
+    &.weak  { width: 25%; background-color: #ef4444; }
+    &.fair  { width: 50%; background-color: #f97316; }
+    &.good  { width: 75%; background-color: #3b82f6; }
+    &.strong { width: 100%; background-color: #22c55e; }
+  }
+
+  .strength-label {
+    font-size: 11px;
+    color: #64748b;
     font-family: 'Inter', sans-serif;
   }
 }
 
-.auth-btn-primary {
-  background: linear-gradient(135deg, #5d87ff 0%, #44b7f7 100%) !important;
-  color: white !important;
-  border-radius: 12px !important;
-  padding: 24px 0 !important;
-  font-size: 16px !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.5px;
-  box-shadow: 0 8px 20px rgba(93, 135, 255, 0.3) !important;
-  transition: all 0.3s ease !important;
-  margin-top: 16px;
 
-  &:hover:not([disabled]) {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 24px rgba(93, 135, 255, 0.4) !important;
-  }
-  
-  &[disabled] {
-    background: rgba(0,0,0,0.1) !important;
-    color: rgba(0,0,0,0.3) !important;
-    box-shadow: none !important;
-  }
-}
-
-
-.auth-footer {
-  text-align: center;
-  margin-top: 32px;
-  color: rgba(0, 0, 0, 0.6);
-  font-size: 14px;
-
-  a {
-    color: #5d87ff;
-    font-weight: 600;
-    text-decoration: none;
-    transition: color 0.2s;
-
-    &:hover {
-      color: #44b7f7;
-      text-decoration: underline;
-    }
-  }
-}
-
-@keyframes gradientBG {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-@keyframes float {
-  0% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-20px) scale(1.05); }
-  100% { transform: translateY(0) scale(1); }
-}
-
-// Media Queries for Mobile
-@media (max-width: 576px) {
-  .auth-card {
-    padding: 32px 24px;
-    border-radius: 20px;
-    border: none;
-    background: rgba(255, 255, 255, 0.95);
-  }
-
-}

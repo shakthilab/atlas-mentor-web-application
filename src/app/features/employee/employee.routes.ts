@@ -13,5 +13,12 @@ export const employeeRoutes: Routes = [
   { path: 'leads', component: LeadsComponent, data: { title: 'Leads' } },
   { path: 'students', component: StudentsComponent, data: { title: 'Students' } },
   { path: 'resources', component: ResourcesComponent, data: { title: 'Resources' } },
+  {
+    path: 'task-accountability',
+    loadChildren: () =>
+      import('../task-accountability/task-accountability.module').then(
+        (m) => m.TaskAccountabilityModule
+      ),
+  },
   { path: 'settings', component: SettingsComponent, data: { title: 'Settings' } },
 ];

@@ -17,7 +17,7 @@
     "employees": "Employees",
     "leads": "Leads",
     "tasks": "Tasks",
-    "taskAccountability": "Task Accountability",
+    "taskAccountability": "Tasks",
     "dailyAccountability": "Daily Accountability",
     "roleTemplates": "Role Templates",
     "templateAssignment": "Template Assignment",
@@ -48,13 +48,14 @@
     "yesterday": "Yesterday",
     "userProfile": "User Profile",
     "role": "Designer",
-    "myProfile": "My Profile",
+    "myProfile": "Profile",
     "accountSettings": "Account Settings",
     "myInbox": "My Inbox",
     "messagesEmail": "Messages & Email",
     "myTasks": "My Tasks",
     "todoDaily": "To-do and Daily Tasks",
-    "logout": "Logout"
+    "logout": "Sign Out",
+    "searchPlaceholder": "Search leads, students, or tasks..."
   },
   "sidebar": {
     "unlimitedAccess": "Unlimited Access",

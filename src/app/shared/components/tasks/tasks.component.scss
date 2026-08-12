@@ -201,8 +201,8 @@ i-tabler {
 
   &:focus-within {
     background-color: #ffffff;
-    border-color: #5d87ff;
-    box-shadow: 0 0 0 3px rgba(93, 135, 255, 0.12);
+    border-color: #000000;
+    box-shadow: 0 0 0 1px #000000;
   }
 
   .search-icon {
@@ -286,7 +286,7 @@ i-tabler {
   }
 
   .filter-value {
-    color: #5d87ff;
+    color: #000000;
     font-weight: 600;
   }
 
@@ -383,7 +383,7 @@ i-tabler {
       }
 
       &.mat-button-toggle-checked {
-        background-color: #5d87ff !important;
+        background-color: #000000 !important;
         color: #ffffff !important;
 
         i-tabler {
@@ -531,8 +531,8 @@ table {
   letter-spacing: 0.5px;
 
   &.development {
-    background-color: rgba(93, 135, 255, 0.15);
-    color: #5d87ff;
+    background-color: rgba(0, 0, 0, 0.08);
+    color: #000000;
   }
 
   &.design {
@@ -572,8 +572,8 @@ table {
   }
 
   &.in-progress {
-    background-color: rgba(93, 135, 255, 0.12);
-    color: #5d87ff;
+    background-color: rgba(0, 0, 0, 0.08);
+    color: #000000;
   }
 
   &.review {
@@ -622,7 +622,7 @@ table {
   user-select: none;
 
   &:hover {
-    color: #5d87ff;
+    color: #000000;
   }
 }
 
@@ -651,7 +651,7 @@ table {
     }
 
     &.in-progress {
-      background-color: #5d87ff;
+      background-color: #000000;
     }
 
     &.review {
@@ -1017,7 +1017,7 @@ table {
   text-decoration: none;
 
   &:hover {
-    color: #5d87ff;
+    color: #000000;
   }
 }
 
@@ -1315,7 +1315,7 @@ table {
     }
 
     .filter-value {
-      color: #5d87ff;
+      color: #ffffff;
     }
   }
 
@@ -1346,7 +1346,7 @@ table {
         color: #94a3b8;
 
         &.mat-button-toggle-checked {
-          background-color: #5d87ff !important;
+          background-color: #000000 !important;
           color: #ffffff !important;
         }
       }

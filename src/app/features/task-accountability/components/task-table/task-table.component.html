@@ -2,10 +2,6 @@
   <!-- Toolbar -->
   <div class="table-toolbar">
     <div class="toolbar-left">
-      <button class="tool-btn">
-        <i-tabler name="filter" class="tool-icon"></i-tabler>
-        Filter
-      </button>
       <button class="tool-btn" (click)="toggleSortByPriority()" [class.active-filter]="currentSort === 'priority'">
         <i-tabler name="arrows-sort" class="tool-icon"></i-tabler>
         Sort by Priority
@@ -17,11 +13,7 @@
     </div>
     
     <div class="toolbar-right">
-      <span class="task-count-text m-r-12">{{ tasks.length }} of {{ tasks.length }} tasks</span>
-      <button mat-flat-button color="primary" class="add-task-btn" (click)="openAddWordDrawer()">
-        <i-tabler name="plus" class="icon-14 m-r-4"></i-tabler>
-        Add Task
-      </button>
+      <span class="task-count-text">{{ tasks.length }} of {{ tasks.length }} tasks</span>
     </div>
   </div>
 
@@ -33,77 +25,139 @@
           <th class="col-task-name">TASK</th>
           <th class="col-priority">PRIORITY</th>
           <th class="col-status">STATUS</th>
-          <th class="col-actual">ACTUAL</th>
           <th class="col-comment">COMMENT</th>
         </tr>
       </thead>
       <tbody>
-        <tr 
-          *ngFor="let task of tasks" 
-          (click)="selectTask(task)"
-          [class.active-row]="selectedTask?.id === task.id"
-          class="task-row"
-        >
-          <!-- Task Name with Icon -->
-          <td class="col-task-name">
-            <div class="task-title-cell">
-              <div class="task-icon-container">
-                <i-tabler [name]="getTaskTypeIcon(task.type)" class="task-type-icon"></i-tabler>
-              </div>
-              <span class="task-name-text">{{ task.name }}</span>
-            </div>
-          </td>
-
-          <!-- Priority Badge -->
-          <td class="col-priority">
-            <span class="priority-badge" [ngClass]="getPriorityColorClass(task.priority)">
-              <i-tabler name="flag" class="priority-icon"></i-tabler>
-              {{ task.priority }}
-            </span>
-          </td>
-
-          <!-- Status Badge -->
-          <td class="col-status">
-            <span class="status-badge" [ngClass]="getStatusColorClass(task.status)">
-              {{ task.status }}
-            </span>
-          </td>
-
-          <!-- Actual -->
-          <td class="col-actual">
-            <!-- Numeric Stacked Display -->
-            <div class="actual-numeric-display" *ngIf="task.type === 'NUMERIC'">
-              <span class="numeric-actual-bold">{{ getNumericActual(task.actualValue) }}</span>
-              <div class="numeric-stacked-info">
-                <span class="numeric-target">{{ getNumericTarget(task.actualValue) }}</span>
-                <span class="numeric-unit">{{ getNumericUnit(task.name) }}</span>
-              </div>
-              <div class="progress-bar-wrapper">
-                <div class="progress-bar-track">
-                  <div class="progress-bar-fill" [style.width.%]="getAchievementPercentage(task)"></div>
+        <ng-container *ngIf="currentGroup === 'status'; else flatList">
+          <ng-container *ngFor="let group of taskGroups">
+            <tr class="status-group-header-row">
+              <td colspan="4">
+                <div class="status-group-title">
+                  <span class="status-badge" [ngClass]="group.statusClass">{{ group.statusName }}</span>
+                  <span class="group-count-tag">{{ group.count }} {{ group.count === 1 ? 'task' : 'tasks' }}</span>
                 </div>
+              </td>
+            </tr>
+            <tr 
+              *ngFor="let task of group.tasks" 
+              (click)="selectTask(task)"
+              [class.active-row]="selectedTask?.id === task.id"
+              class="task-row"
+            >
+              <!-- Task Name with Display ID Badge -->
+              <td class="col-task-name">
+                <div class="task-title-cell">
+                  <span class="task-display-id-badge" *ngIf="task.displayId || task.id">
+                    {{ getRawDisplayId(task) }}
+                  </span>
+                  <span class="task-name-text">{{ task.name }}</span>
+                </div>
+              </td>
+
+              <!-- Priority Badge -->
+              <td class="col-priority">
+                <span class="priority-badge" [ngClass]="getPriorityColorClass(task.priority)">
+                  <i-tabler name="flag" class="priority-icon"></i-tabler>
+                  {{ task.priority }}
+                </span>
+              </td>
+
+              <!-- Status Badge (Interactive Dropdown) -->
+              <td class="col-status" (click)="$event.stopPropagation()">
+                <button 
+                  class="status-badge-btn" 
+                  [matMenuTriggerFor]="groupStatusMenu"
+                  [ngClass]="getStatusColorClass(task.status)"
+                >
+                  <span>{{ formatStatusLabel(task.status) }}</span>
+                  <i-tabler name="chevron-down" class="icon-12 ml-1"></i-tabler>
+                </button>
+
+                <mat-menu #groupStatusMenu="matMenu" class="status-options-menu">
+                  <button 
+                    mat-menu-item 
+                    *ngFor="let st of statusesList" 
+                    (click)="changeTaskStatus(task, st.value, $event)"
+                  >
+                    <span class="status-badge" [ngClass]="getStatusColorClass(st.value)">{{ st.label }}</span>
+                  </button>
+                </mat-menu>
+              </td>
+
+              <!-- Comment -->
+              <td class="col-comment">
+                <span class="comment-text" [class.no-comment]="!task.latestCommentPreview && (!task.comment || task.comment === '—')">
+                  {{ task.latestCommentPreview || task.comment || '—' }}
+                </span>
+              </td>
+            </tr>
+          </ng-container>
+        </ng-container>
+
+        <ng-template #flatList>
+          <tr 
+            *ngFor="let task of tasks" 
+            (click)="selectTask(task)"
+            [class.active-row]="selectedTask?.id === task.id"
+            class="task-row"
+          >
+            <!-- Task Name with Display ID Badge -->
+            <td class="col-task-name">
+              <div class="task-title-cell">
+                <span class="task-display-id-badge" *ngIf="task.displayId || task.id">
+                  {{ getRawDisplayId(task) }}
+                </span>
+                <span class="task-name-text">{{ task.name }}</span>
               </div>
-            </div>
+            </td>
 
-            <!-- Non-Numeric Simple Display -->
-            <div class="actual-simple-display" *ngIf="task.type !== 'NUMERIC'">
-              <span class="actual-value-text" [class.empty-value]="task.actualValue === '—'">
-                {{ task.actualValue }}
+            <!-- Priority Badge -->
+            <td class="col-priority">
+              <span class="priority-badge" [ngClass]="getPriorityColorClass(task.priority)">
+                <i-tabler name="flag" class="priority-icon"></i-tabler>
+                {{ task.priority }}
               </span>
-            </div>
-          </td>
+            </td>
 
-          <!-- Comment -->
-          <td class="col-comment">
-            <span class="comment-text" [class.no-comment]="!task.comment || task.comment === '—'">
-              {{ task.comment || '—' }}
-            </span>
-          </td>
-        </tr>
+            <!-- Status Badge (Interactive Dropdown) -->
+            <td class="col-status" (click)="$event.stopPropagation()">
+              <button 
+                class="status-badge-btn" 
+                [matMenuTriggerFor]="flatStatusMenu"
+                [ngClass]="getStatusColorClass(task.status)"
+              >
+                <span>{{ formatStatusLabel(task.status) }}</span>
+                <i-tabler name="chevron-down" class="icon-12 ml-1"></i-tabler>
+              </button>
+
+              <mat-menu #flatStatusMenu="matMenu" class="status-options-menu">
+                <button 
+                  mat-menu-item 
+                  *ngFor="let st of statusesList" 
+                  (click)="changeTaskStatus(task, st.value, $event)"
+                >
+                  <span class="status-badge" [ngClass]="getStatusColorClass(st.value)">{{ st.label }}</span>
+                </button>
+              </mat-menu>
+            </td>
+
+            <!-- Comment -->
+            <td class="col-comment">
+              <span class="comment-text" [class.no-comment]="!task.latestCommentPreview && (!task.comment || task.comment === '—')">
+                {{ task.latestCommentPreview || task.comment || '—' }}
+              </span>
+            </td>
+          </tr>
+        </ng-template>
 
         <tr *ngIf="tasks.length === 0">
-          <td colspan="5" class="empty-table-row">
-            No tasks configured for this day. Click "+ Add task" to create one.
+          <td colspan="4" class="empty-table-row">
+            <div class="empty-state-container">
+              <i-tabler name="clipboard-off" class="empty-state-icon"></i-tabler>
+              <h4 class="empty-state-title">No data found</h4>
+              <p class="empty-state-subtitle">No tasks found for this selected day.</p>
+            </div>
           </td>
         </tr>
       </tbody>

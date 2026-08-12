@@ -24,10 +24,10 @@ export interface Branch {
   id: number;
   name: string;
   location: string;
-  manager: BranchManager;
-  status: string;
-  userCounts: BranchUserCounts;
-  createdAt: string;
+  manager?: BranchManager | null;
+  status?: string | null;
+  userCounts?: BranchUserCounts | null;
+  createdAt?: string | null;
 }
 
 @Component({
@@ -120,7 +120,7 @@ export interface Branch {
                 <ng-container matColumnDef="status">
                   <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Status</th>
                   <td mat-cell *matCellDef="let element">
-                    <span class="status-badge" [ngClass]="element.status.toLowerCase()">
+                    <span class="status-badge" [ngClass]="(element.status || '').toLowerCase()">
                       {{ element.status | titlecase }}
                     </span>
                   </td>
@@ -173,7 +173,7 @@ export interface Branch {
                     </div>
                     <div>
                       <h6 class="mat-subtitle-1 f-w-600 m-b-0">{{ element.name }}</h6>
-                      <span class="status-badge mt-1 d-inline-block" [ngClass]="element.status.toLowerCase()">{{ element.status | titlecase }}</span>
+                      <span class="status-badge mt-1 d-inline-block" [ngClass]="(element.status || '').toLowerCase()">{{ element.status | titlecase }}</span>
                     </div>
                     <div class="m-l-auto">
                       <button mat-icon-button [matMenuTriggerFor]="cardMenu" class="text-muted" (click)="$event.stopPropagation()">

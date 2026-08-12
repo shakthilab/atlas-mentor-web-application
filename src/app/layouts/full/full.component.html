@@ -33,12 +33,20 @@
       (toggleMobileNav)="handleSidebarToggle()"
     ></app-header>
 
-    <main class="pageWrapper">
+    <main class="pageWrapper flex-grow-1">
       <!-- ============================================================== -->
       <!-- Outlet -->
       <!-- ============================================================== -->
       <router-outlet></router-outlet>
     </main>
+
+    <div class="shared-web-footer">
+      <div class="footer-container" style="justify-content: center; text-align: center;">
+        <div class="footer-left">
+          Copyright © 2024 Atlas Mentor ( Operated by ELITESTUDY ABROAD PVT. LTD. ) , All rights reserved. Powered by ATLASMENTOR ( ELITESTUDY ABROAD PVT. LTD. )
+        </div>
+      </div>
+    </div>
 
     <!-- Mobile Bottom Navigation Footer Bar -->
     <div class="mobile-footer-nav d-show-mobile-flex">

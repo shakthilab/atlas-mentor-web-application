@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError, BehaviorSubject } from 'rxjs';
+import { Observable, throwError, BehaviorSubject, from, firstValueFrom } from 'rxjs';
 import { catchError, filter, take, switchMap } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
 import { MatDialog } from '@angular/material/dialog';
@@ -44,6 +44,21 @@ export class AuthInterceptor implements HttpInterceptor {
 
     return next.handle(clonedReq).pipe(
       catchError((error: HttpErrorResponse) => {
+        // Detect malformed/invalid JWT token error format
+        const isMalformedToken =
+          error.error?.error === 'Malformed JWT token' ||
+          error.error?.error === 'Invalid JWT signature' ||
+          (typeof error.error?.message === 'string' &&
+            (error.error.message.includes('Invalid JWT format') ||
+             error.error.message.includes('Token must contain exactly 2 period separators') ||
+             error.error.message.includes('Token signature is invalid') ||
+             error.error.message.includes('Invalid JWT signature')));
+
+        if (isMalformedToken) {
+          this.triggerSessionTimeout();
+          return throwError(() => error);
+        }
+
         // ── 401 Unauthorized ──────────────────────────────────────────────────
         if (error.status === 401) {
           const apiErrorCode = error.error?.code;
@@ -64,6 +79,16 @@ export class AuthInterceptor implements HttpInterceptor {
 
         // ── 403 Forbidden ─────────────────────────────────────────────────────
         if (error.status === 403) {
+          // Check for signature verification failure on 403 (fallback if backend not updated)
+          const isSignatureError =
+            error.error?.error === 'Invalid JWT signature' ||
+            (typeof error.error?.message === 'string' && error.error.message.includes('Token signature is invalid'));
+
+          if (isSignatureError) {
+            this.triggerSessionTimeout();
+            return throwError(() => error);
+          }
+
           const warningMessage = error.error?.message || 'Access Denied';
           this.notificationService.showWarningToast(warningMessage, 'Access Denied');
           return throwError(() => error);
@@ -91,11 +116,11 @@ export class AuthInterceptor implements HttpInterceptor {
       this.isRefreshing = true;
       this.refreshTokenSubject.next(null);
 
-      return this.authService.refreshToken().pipe(
-        switchMap((res) => {
+      return from(this.refreshAcrossTabs(refreshToken)).pipe(
+        switchMap((accessToken) => {
           this.isRefreshing = false;
-          this.refreshTokenSubject.next(res.token);
-          return next.handle(this.addTokenHeader(request, res.token));
+          this.refreshTokenSubject.next(accessToken);
+          return next.handle(this.addTokenHeader(request, accessToken));
         }),
         catchError((refreshError) => {
           this.isRefreshing = false;
@@ -120,6 +145,31 @@ export class AuthInterceptor implements HttpInterceptor {
         })
       );
     }
+  }
+
+  /**
+   * Serializes /api/auth/refresh calls across every tab, not just this one.
+   * The backend rotates refresh tokens and treats reuse of an already-rotated
+   * token as theft (revoking every session for the user), so two tabs racing
+   * to refresh with the same stale token would otherwise nuke the whole
+   * session. If another tab already refreshed while we waited for the lock,
+   * we reuse its result instead of sending a second, now-stale request.
+   */
+  private async refreshAcrossTabs(staleRefreshToken: string): Promise<string> {
+    const doRefresh = () => firstValueFrom(this.authService.refreshToken()).then((res) => res.token);
+
+    if (!('locks' in navigator)) {
+      return doRefresh();
+    }
+
+    return (navigator as any).locks.request('auth-refresh-lock', async () => {
+      const currentRefreshToken = localStorage.getItem('refreshToken');
+      const currentAccessToken = localStorage.getItem('accessToken');
+      if (currentRefreshToken !== staleRefreshToken && currentAccessToken) {
+        return currentAccessToken;
+      }
+      return doRefresh();
+    });
   }
 
   private triggerSessionTimeout(): void {

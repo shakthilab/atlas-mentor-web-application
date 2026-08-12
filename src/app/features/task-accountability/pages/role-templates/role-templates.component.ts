@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { TaskAccountabilityService } from '../../services/task-accountability.service';
 import { RoleTemplate, TemplateMonth, TemplateDay, TemplateQuestion, EmployeeNode, TemplateTask } from '../../interfaces/accountability.interface';
 import { Observable } from 'rxjs';
+import { MasterDataService } from '../../../../core/services/master-data.service';
 
 @Component({
   selector: 'app-role-templates',
@@ -14,6 +15,38 @@ export class RoleTemplatesComponent implements OnInit {
   showPublishModal = false;
   editingTemplate: RoleTemplate | null = null;
   publishingTemplate: RoleTemplate | null = null;
+
+  // Redesigned template days state
+  selectedDayIndex = 0;
+  selectedDaysForDuplication = new Set<number>();
+  multiSelectMode = false;
+  branchesList: any[] = [];
+  isSidebarOpen = false;
+  showAddForm = false;
+  showDescField = false;
+  newTaskTitle = '';
+  newTaskDescription = '';
+  newTaskPriority = 'MEDIUM';
+  pastDayTooltip = "Can't add tasks to past days";
+  toastMessage = '';
+  showDuplicateDayModal = false;
+  selectedTargetDaysForDuplication = new Set<number>();
+  monthsList: string[] = (() => {
+    const names = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const list: string[] = [];
+    const date = new Date();
+    let m = date.getMonth();
+    let y = date.getFullYear();
+    for (let i = 0; i < 12; i++) {
+      list.push(`${names[m]} ${y}`);
+      m++;
+      if (m > 11) {
+        m = 0;
+        y++;
+      }
+    }
+    return list;
+  })();
 
   // Task Drawer State
   selectedEditingTask: TemplateTask | null = null;
@@ -40,13 +73,8 @@ export class RoleTemplatesComponent implements OnInit {
   selectedYear = 2026;
   employeesList: Array<{ id: string; name: string; role: string; branchId: string }> = [];
 
-  availableRoles = [
-    'Senior Counsellor',
-    'Junior Counsellor',
-    'Video Editor',
-    'Web Developer',
-    'Administrative Assistant'
-  ];
+  availableRoles: string[] = [];
+  rolesApiList: any[] = [];
 
   taskTypes = [
     { value: 'CHECKLIST', label: 'Checklist' },
@@ -59,9 +87,12 @@ export class RoleTemplatesComponent implements OnInit {
     { value: 'APPROVAL', label: 'Approval/Review' }
   ];
 
-  priorities = ['Low', 'Medium', 'High', 'Urgent'];
+  priorities = ['LOW', 'MEDIUM', 'HIGH'];
 
-  constructor(private service: TaskAccountabilityService) {
+  constructor(
+    private service: TaskAccountabilityService,
+    private masterDataService: MasterDataService
+  ) {
     this.templates$ = this.service.templates$;
   }
 
@@ -85,45 +116,85 @@ export class RoleTemplatesComponent implements OnInit {
       });
       this.employeesList = emps;
     });
+
+    // Fetch role templates from API
+    this.service.getRoleTemplatesApi().subscribe();
+  }
+
+  loadDropdownData(): void {
+    // Load available roles from Master Data API
+    this.masterDataService.getRoles().subscribe(res => {
+      if (res && res.success && res.data) {
+        this.rolesApiList = res.data;
+        this.availableRoles = res.data.map(r => r.name);
+      }
+    });
+
+    // Load branches from Master Data API
+    this.masterDataService.getBranches().subscribe(res => {
+      if (res && res.success && res.data) {
+        this.branchesList = res.data;
+      }
+    });
   }
 
   openNewTemplateModal(): void {
+    this.loadDropdownData();
+    this.selectedDayIndex = 0;
+    this.selectedDaysForDuplication.clear();
+    this.multiSelectMode = false;
+    this.isSidebarOpen = false;
+
+    const currentMonthName = this.monthsList[0];
+
     this.editingTemplate = {
       id: '',
       name: '',
-      role: 'Senior Counsellor',
-      active: true,
+      role: '',
+      branch: 'All Branches',
+      branchId: null,
+      branchName: null,
+      status: 'DRAFT',
+      active: false,
       createdAt: new Date().toISOString().split('T')[0],
       months: [
         {
           id: `tm-${Date.now()}-1`,
-          name: 'July',
-          days: [
-            {
-              id: `td-${Date.now()}-1`,
-              name: 'Day 1',
-              isWeekly: false,
-              tasks: []
-            }
-          ]
+          name: currentMonthName,
+          days: []
         }
       ],
       tasks: []
     };
+
+    this.adjustDaysForMonth(currentMonthName);
     this.showModal = true;
   }
 
   openEditTemplateModal(template: RoleTemplate): void {
+    this.loadDropdownData();
+    this.selectedDayIndex = 0;
+    this.selectedDaysForDuplication.clear();
+    this.multiSelectMode = false;
+    this.isSidebarOpen = false;
+
     // Deep clone to avoid mutating directly
     const clone = JSON.parse(JSON.stringify(template));
-    
+
+    // Ensure template has default branch
+    if (!clone.branch) {
+      clone.branch = 'All Branches';
+    }
+
+    const currentMonthName = this.monthsList[0];
+
     // Ensure hierarchical properties exist
     if (!clone.months || clone.months.length === 0) {
       // Migrate legacy tasks
       clone.months = [
         {
           id: `tm-${Date.now()}-1`,
-          name: 'Month 1',
+          name: currentMonthName,
           days: [
             {
               id: `td-${Date.now()}-1`,
@@ -137,12 +208,157 @@ export class RoleTemplatesComponent implements OnInit {
     }
 
     this.editingTemplate = clone;
+    if (clone.months && clone.months[0]) {
+      this.adjustDaysForMonth(clone.months[0].name);
+    }
     this.showModal = true;
+  }
+
+  getMonthAbbreviation(): string {
+    if (!this.editingTemplate || !this.editingTemplate.months || this.editingTemplate.months.length === 0) return '';
+    const name = this.editingTemplate.months[0].name || '';
+    const firstWord = name.split(' ')[0] || '';
+    return firstWord.substring(0, 3).toUpperCase();
+  }
+
+  isSaturday(dayIdx: number): boolean {
+    if (!this.editingTemplate || !this.editingTemplate.months || this.editingTemplate.months.length === 0) return false;
+    const val = this.editingTemplate.months[0].name || '';
+    const parts = val.split(' ');
+    const monthName = parts[0];
+    const year = parts[1] ? parseInt(parts[1], 10) : new Date().getFullYear();
+    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const monthIndex = months.indexOf(monthName);
+    if (monthIndex === -1) return false;
+    const date = new Date(year, monthIndex, dayIdx + 1);
+    return date.getDay() === 6; // 6 is Saturday
+  }
+
+  getMonthStartOffset(): number {
+    if (!this.editingTemplate || !this.editingTemplate.months || this.editingTemplate.months.length === 0) return 0;
+    const val = this.editingTemplate.months[0].name || '';
+    const parts = val.split(' ');
+    const monthName = parts[0];
+    const year = parts[1] ? parseInt(parts[1], 10) : new Date().getFullYear();
+    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const monthIndex = months.indexOf(monthName);
+    if (monthIndex === -1) return 0;
+    const date = new Date(year, monthIndex, 1);
+    return date.getDay();
+  }
+
+  getStartOffsetArray(): number[] {
+    const offset = this.getMonthStartOffset();
+    return Array(offset).fill(0);
+  }
+
+  get roleOptions(): Array<{ label: string; value: string }> {
+    return this.availableRoles.map(r => ({ label: r, value: r }));
+  }
+
+  get branchOptions(): Array<{ label: string; value: string }> {
+    const opts = [{ label: 'All Branches', value: 'All Branches' }];
+    if (this.branchesList) {
+      this.branchesList.forEach(b => {
+        opts.push({ label: b.name, value: b.name });
+      });
+    }
+    return opts;
+  }
+
+  get selectedMonthName(): string {
+    if (this.editingTemplate && this.editingTemplate.months && this.editingTemplate.months.length > 0) {
+      return this.editingTemplate.months[0].name;
+    }
+    return '';
+  }
+
+  set selectedMonthName(val: string) {
+    if (this.editingTemplate && this.editingTemplate.months && this.editingTemplate.months.length > 0) {
+      this.editingTemplate.months[0].name = val;
+      this.adjustDaysForMonth(val);
+    }
+  }
+
+  adjustDaysForMonth(monthNameWithYear: string): void {
+    if (!this.editingTemplate || !this.editingTemplate.months || this.editingTemplate.months.length === 0) return;
+    const parts = monthNameWithYear.split(' ');
+    const monthName = parts[0];
+    const year = parts[1] ? parseInt(parts[1], 10) : new Date().getFullYear();
+
+    const targetDaysCount = this.getDaysInMonth(monthName, year);
+    const days = this.editingTemplate.months[0].days;
+    const currentDaysCount = days.length;
+
+    if (currentDaysCount < targetDaysCount) {
+      const diff = targetDaysCount - currentDaysCount;
+      for (let i = 0; i < diff; i++) {
+        const startNum = currentDaysCount + 1 + i;
+        days.push({
+          id: `td-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+          name: `Day ${startNum}`,
+          isWeekly: false,
+          tasks: []
+        });
+      }
+    } else if (currentDaysCount > targetDaysCount) {
+      days.splice(targetDaysCount);
+    }
+
+    this.populateDemoTasksForSeniorCounsellor(this.editingTemplate);
+  }
+
+  populateDemoTasksForSeniorCounsellor(template: RoleTemplate | null): void {
+    if (!template || !template.months || template.months.length === 0) return;
+    const isSeniorCounsellor = (template.role === 'Senior Counsellor' || template.roleName === 'SENIOR_COUNSELLOR' || template.roleDisplayName === 'Senior Counsellor' || (template.name && template.name.includes('Senior Counsellor')));
+    const isAllBranches = (!template.branchId && !template.branchName) || template.branch === 'All Branches' || template.branchName === 'All Branches';
+
+    if (!isSeniorCounsellor || !isAllBranches) return;
+
+    const days = template.months[0].days;
+    const pool = [
+      { name: 'Outbound Student Lead Calls', description: 'Follow up with 20 fresh student leads and record progress in CRM.', priority: 'HIGH' },
+      { name: 'Application Document Verification', description: 'Verify academic transcripts, SOPs, and financial documents for pending submissions.', priority: 'HIGH' },
+      { name: '1-on-1 University Counselling', description: 'Conduct scheduled counselling sessions with prospective students.', priority: 'MEDIUM' },
+      { name: 'Parent Consultation Call', description: 'Discuss fee structure, visa guidelines, and admission timelines with parents.', priority: 'MEDIUM' },
+      { name: 'Offer Letter Follow-up', description: 'Track university offer letter issuances and notify accepted students.', priority: 'HIGH' },
+      { name: 'Daily EOD Operational Log', description: 'Log completed calls, session notes, and submit EOD report.', priority: 'MEDIUM' }
+    ];
+
+    days.forEach((d, idx) => {
+      const dayNum = idx + 1;
+      if (dayNum >= 10 && dayNum <= 31) {
+        if (!d.tasks || d.tasks.length < 3) {
+          const taskCount = 3 + ((dayNum * 7) % 3);
+          d.tasks = [];
+          for (let i = 0; i < taskCount; i++) {
+            const item = pool[(dayNum + i * 2) % pool.length];
+            d.tasks.push({
+              id: `demo-${dayNum}-${i + 1}`,
+              name: item.name,
+              description: item.description,
+              type: 'CHECKLIST',
+              priority: item.priority as any,
+              required: true,
+              active: true
+            });
+          }
+        }
+      }
+    });
+  }
+
+  getDaysInMonth(monthName: string, year: number): number {
+    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const monthIndex = months.indexOf(monthName);
+    if (monthIndex === -1) return 30; // fallback
+    return new Date(year, monthIndex + 1, 0).getDate();
   }
 
   closeModal(): void {
     this.showModal = false;
     this.editingTemplate = null;
+    this.isSidebarOpen = false;
   }
 
   // Publish Handlers
@@ -223,7 +439,7 @@ export class RoleTemplatesComponent implements OnInit {
       name: 'New Task',
       description: '',
       type: 'CHECKLIST',
-      priority: 'Medium',
+      priority: 'MEDIUM',
       required: true,
       active: true,
       comments: [],
@@ -245,18 +461,50 @@ export class RoleTemplatesComponent implements OnInit {
   }
 
   removeTaskFromDay(day: TemplateDay, tIndex: number): void {
+    if (!day || tIndex < 0 || tIndex >= day.tasks.length) return;
     const deletedTask = day.tasks[tIndex];
+
     if (this.selectedEditingTask && this.selectedEditingTask.id === deletedTask.id) {
       this.closeTaskDrawer();
     }
+
+    const templateId = this.editingTemplate?.id;
+    const dayNumber = this.selectedDayIndex + 1;
+
+    // Immediately remove locally for responsive UI update
     day.tasks.splice(tIndex, 1);
+
+    if (templateId && templateId !== '' && !templateId.startsWith('temp-') && deletedTask && deletedTask.id && !deletedTask.id.startsWith('t-')) {
+      this.service.deleteTaskApi(templateId, dayNumber, deletedTask.id).subscribe({
+        next: () => {
+          this.showToast('Task deleted successfully');
+          // Call GET API to update UI with latest server state
+          this.service.getRoleTemplateByIdApi(templateId).subscribe(updatedTemplate => {
+            if (updatedTemplate && this.editingTemplate) {
+              const currentMonthName = this.editingTemplate.months?.[0]?.name || this.monthsList[0];
+              this.editingTemplate.months = updatedTemplate.months;
+              if (this.editingTemplate.months?.[0]) {
+                this.editingTemplate.months[0].name = currentMonthName;
+              }
+            }
+          });
+          this.service.getRoleTemplatesApi().subscribe();
+        },
+        error: (err) => {
+          console.error('Failed to delete task via API:', err);
+          this.showToast('Failed to delete task via server.');
+        }
+      });
+    } else {
+      this.showToast('Task deleted successfully');
+    }
   }
 
   openTaskDrawer(task: TemplateTask, day: TemplateDay, monthName: string): void {
     this.selectedEditingTask = task;
     this.selectedEditingTaskDay = day;
     this.selectedEditingTaskMonthName = monthName;
-    
+
     // Initialize properties if they don't exist
     if (!task.comments) task.comments = [];
     if (!task.attachments) task.attachments = [];
@@ -322,7 +570,7 @@ export class RoleTemplatesComponent implements OnInit {
     };
     this.selectedEditingTask.comments = this.selectedEditingTask.comments || [];
     this.selectedEditingTask.comments.push(comment);
-    
+
     this.selectedEditingTask.activities = this.selectedEditingTask.activities || [];
     this.selectedEditingTask.activities.push({
       id: `act-${Date.now()}`,
@@ -417,7 +665,7 @@ export class RoleTemplatesComponent implements OnInit {
     const old = this.selectedEditingTask.type;
     if (old === type) return;
     this.selectedEditingTask.type = type;
-    
+
     // Reset target value if type changes to non-numeric
     if (type !== 'NUMERIC') {
       delete this.selectedEditingTask.targetValue;
@@ -466,30 +714,776 @@ export class RoleTemplatesComponent implements OnInit {
     }
   }
 
+  // Grid config & summary helpers
+  getConfiguredDaysCount(): number {
+    if (!this.editingTemplate || !this.editingTemplate.months || this.editingTemplate.months.length === 0) return 0;
+    return this.editingTemplate.months[0].days.filter(d => d.tasks && d.tasks.length > 0).length;
+  }
+
+  getDaysCount(): number {
+    if (!this.editingTemplate || !this.editingTemplate.months || this.editingTemplate.months.length === 0) return 0;
+    return this.editingTemplate.months[0].days.length;
+  }
+
+  getTotalTasksCount(): number {
+    if (!this.editingTemplate || !this.editingTemplate.months || this.editingTemplate.months.length === 0) return 0;
+    return this.editingTemplate.months[0].days.reduce((acc, d) => acc + (d.tasks ? d.tasks.length : 0), 0);
+  }
+
+  getDaysList(): TemplateDay[] {
+    if (!this.editingTemplate || !this.editingTemplate.months || this.editingTemplate.months.length === 0) return [];
+    return this.editingTemplate.months[0].days;
+  }
+
+  getSelectedDay(): TemplateDay | null {
+    if (!this.editingTemplate || !this.editingTemplate.months || this.editingTemplate.months.length === 0) return null;
+    const days = this.editingTemplate.months[0].days;
+    if (this.selectedDayIndex >= 0 && this.selectedDayIndex < days.length) {
+      return days[this.selectedDayIndex];
+    }
+    return null;
+  }
+
+  isTemplateUnsaved(): boolean {
+    const id = this.editingTemplate?.id;
+    return !id || id === '' || id.startsWith('temp-');
+  }
+
+  isPastDay(idx: number): boolean {
+    if (!this.editingTemplate || !this.editingTemplate.months || this.editingTemplate.months.length === 0) {
+      return false;
+    }
+    const monthStr = this.editingTemplate.months[0].name;
+    if (!monthStr) return false;
+
+    const parts = monthStr.trim().split(' ');
+    if (parts.length < 2) return false;
+
+    const monthName = parts[0];
+    const year = parseInt(parts[1], 10);
+
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const monthIndex = monthNames.indexOf(monthName);
+    if (monthIndex === -1 || isNaN(year)) return false;
+
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth();
+    const currentDay = today.getDate();
+
+    const dayNumber = idx + 1;
+
+    if (year < currentYear) {
+      return true;
+    } else if (year > currentYear) {
+      return false;
+    } else {
+      if (monthIndex < currentMonth) {
+        return true;
+      } else if (monthIndex > currentMonth) {
+        return false;
+      } else {
+        return dayNumber < currentDay;
+      }
+    }
+  }
+
+  toggleMultiSelectMode(): void {
+    this.multiSelectMode = !this.multiSelectMode;
+    this.selectedDaysForDuplication.clear();
+  }
+
+  addTemplateDays(count: number): void {
+    if (!this.editingTemplate || !this.editingTemplate.months || this.editingTemplate.months.length === 0) return;
+    const days = this.editingTemplate.months[0].days;
+    const startNum = days.length + 1;
+    for (let i = 0; i < count; i++) {
+      days.push({
+        id: `td-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+        name: `Day ${startNum + i}`,
+        isWeekly: false,
+        tasks: []
+      });
+    }
+  }
+
+  removeTemplateDay(idx: number, event: MouseEvent): void {
+    event.stopPropagation();
+    if (!this.editingTemplate || !this.editingTemplate.months || this.editingTemplate.months.length === 0) return;
+    const days = this.editingTemplate.months[0].days;
+    days.splice(idx, 1);
+
+    // Adjust day names contiguously
+    days.forEach((d, i) => {
+      d.name = `Day ${i + 1}`;
+    });
+
+    // Adjust selection index
+    if (this.selectedDayIndex >= days.length) {
+      this.selectedDayIndex = Math.max(0, days.length - 1);
+    }
+    this.selectedDaysForDuplication.delete(idx);
+  }
+
+  onDayCardClick(idx: number, event: MouseEvent): void {
+    if (this.isPastDay(idx)) {
+      event.stopPropagation();
+      event.preventDefault();
+      return;
+    }
+
+    if (event.shiftKey || this.multiSelectMode) {
+      this.multiSelectMode = true;
+      if (this.selectedDaysForDuplication.has(idx)) {
+        this.selectedDaysForDuplication.delete(idx);
+      } else {
+        this.selectedDaysForDuplication.add(idx);
+      }
+    } else {
+      this.selectedDayIndex = idx;
+      this.isSidebarOpen = true;
+      this.showAddForm = false;
+      this.showDescField = false;
+      this.newTaskTitle = '';
+      this.newTaskDescription = '';
+      this.newTaskPriority = 'MEDIUM';
+    }
+  }
+
+  closeSidebar(): void {
+    this.isSidebarOpen = false;
+  }
+
+  toggleAddForm(show: boolean): void {
+    if (show && this.isPastDay(this.selectedDayIndex)) {
+      return;
+    }
+    this.showAddForm = show;
+    if (show) {
+      this.newTaskTitle = '';
+      this.newTaskPriority = 'MEDIUM';
+      this.newTaskDescription = '';
+      this.showDescField = false;
+    }
+  }
+
+  quickAddTask(day: TemplateDay): void {
+    if (!this.newTaskTitle.trim()) return;
+
+    if (this.isPastDay(this.selectedDayIndex)) {
+      return;
+    }
+
+    const title = this.newTaskTitle.trim();
+    const description = this.newTaskDescription.trim();
+    const priority = this.newTaskPriority || 'MEDIUM';
+    const dayNumber = this.selectedDayIndex + 1;
+    const taskPayload = { title, description, priority };
+
+    const executeAddTaskApi = (tempId: string | number) => {
+      this.service.addTaskApi(tempId, dayNumber, taskPayload).subscribe({
+        next: () => {
+          this.showToast('Task added successfully via API!');
+          // Call GET API to update UI with latest server data
+          this.service.getRoleTemplateByIdApi(tempId).subscribe(updatedTemplate => {
+            if (updatedTemplate && this.editingTemplate) {
+              const currentMonthName = this.editingTemplate.months?.[0]?.name || this.monthsList[0];
+              this.editingTemplate.months = updatedTemplate.months;
+              if (this.editingTemplate.months?.[0]) {
+                this.editingTemplate.months[0].name = currentMonthName;
+              }
+            }
+          });
+          this.service.getRoleTemplatesApi().subscribe();
+        },
+        error: (err) => {
+          console.error('Task API call failed:', err);
+          // Fallback to local state if backend endpoint fails
+          const newTask: TemplateTask = {
+            id: `t-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+            name: title,
+            description,
+            type: 'CHECKLIST',
+            priority: priority as any,
+            required: true,
+            active: true,
+            comments: [],
+            attachments: [],
+            activities: [{ id: `act-${Date.now()}`, text: 'Task created', timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }],
+            status: 'Active',
+            dueTime: '6:00 PM',
+            employeeInstructions: '',
+            expectedOutput: ''
+          };
+          day.tasks.push(newTask);
+          this.showToast('Task added locally.');
+        }
+      });
+    };
+
+    const templateId = this.editingTemplate?.id;
+
+    if (templateId && templateId !== '' && !templateId.startsWith('temp-')) {
+      // Template already exists in backend DB
+      executeAddTaskApi(templateId);
+    } else if (this.editingTemplate && this.editingTemplate.name && this.editingTemplate.name.trim()) {
+      // Template is new/unsaved, but has a name. Create template in DB first!
+      const selectedRole = this.rolesApiList.find(r => r.name === this.editingTemplate?.role);
+      const selectedBranch = this.branchesList.find(b => b.name === this.editingTemplate?.branch);
+
+      const createPayload = {
+        name: this.editingTemplate.name.trim(),
+        description: this.editingTemplate.name.trim(),
+        roleId: selectedRole ? selectedRole.id : null,
+        branchId: selectedBranch ? selectedBranch.id : null,
+        days: []
+      };
+
+      this.service.createRoleTemplateApi(createPayload).subscribe({
+        next: (res) => {
+          const realId = res?.data?.id ? res.data.id.toString() : null;
+          if (realId && this.editingTemplate) {
+            this.editingTemplate.id = realId;
+            executeAddTaskApi(realId);
+          } else {
+            // Fallback to local state
+            const newTask: TemplateTask = {
+              id: `t-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+              name: title,
+              description,
+              type: 'CHECKLIST',
+              priority: priority as any,
+              required: true,
+              active: true,
+              comments: [],
+              attachments: [],
+              activities: [{ id: `act-${Date.now()}`, text: 'Task created', timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }],
+              status: 'Active',
+              dueTime: '6:00 PM',
+              employeeInstructions: '',
+              expectedOutput: ''
+            };
+            day.tasks.push(newTask);
+          }
+        },
+        error: (err) => {
+          console.error('Failed to create template before adding task:', err);
+          // Fallback to local state
+          const newTask: TemplateTask = {
+            id: `t-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+            name: title,
+            description,
+            type: 'CHECKLIST',
+            priority: priority as any,
+            required: true,
+            active: true,
+            comments: [],
+            attachments: [],
+            activities: [{ id: `act-${Date.now()}`, text: 'Task created', timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }],
+            status: 'Active',
+            dueTime: '6:00 PM',
+            employeeInstructions: '',
+            expectedOutput: ''
+          };
+          day.tasks.push(newTask);
+        }
+      });
+    } else {
+      // Template has no name specified yet
+      this.showToast('Please enter a Template name before adding tasks.');
+      const newTask: TemplateTask = {
+        id: `t-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+        name: title,
+        description,
+        type: 'CHECKLIST',
+        priority: priority as any,
+        required: true,
+        active: true,
+        comments: [],
+        attachments: [],
+        activities: [{ id: `act-${Date.now()}`, text: 'Task created', timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }],
+        status: 'Active',
+        dueTime: '6:00 PM',
+        employeeInstructions: '',
+        expectedOutput: ''
+      };
+      day.tasks.push(newTask);
+    }
+
+    // Clear fields but keep form open for subsequent entries
+    this.newTaskTitle = '';
+    this.newTaskDescription = '';
+    this.showDescField = false;
+  }
+
+  openDuplicateDayModal(): void {
+    const day = this.getSelectedDay();
+    if (!day || day.tasks.length === 0) {
+      this.showToast('No tasks to duplicate on this day.');
+      return;
+    }
+    this.selectedTargetDaysForDuplication.clear();
+    this.showDuplicateDayModal = true;
+  }
+
+  closeDuplicateDayModal(): void {
+    this.showDuplicateDayModal = false;
+    this.selectedTargetDaysForDuplication.clear();
+  }
+
+  toggleTargetDaySelection(idx: number): void {
+    if (idx === this.selectedDayIndex || this.isPastDay(idx)) return;
+    if (this.selectedTargetDaysForDuplication.has(idx)) {
+      this.selectedTargetDaysForDuplication.delete(idx);
+    } else {
+      this.selectedTargetDaysForDuplication.add(idx);
+    }
+  }
+
+  selectAllValidTargetDays(): void {
+    const days = this.getDaysList();
+    days.forEach((_, idx) => {
+      if (idx !== this.selectedDayIndex && !this.isPastDay(idx)) {
+        this.selectedTargetDaysForDuplication.add(idx);
+      }
+    });
+  }
+
+  deselectAllTargetDays(): void {
+    this.selectedTargetDaysForDuplication.clear();
+  }
+
+  confirmDuplicateDayToSelected(): void {
+    const sourceDay = this.getSelectedDay();
+    if (!sourceDay || sourceDay.tasks.length === 0) {
+      this.showToast('No tasks to duplicate in this day.');
+      this.closeDuplicateDayModal();
+      return;
+    }
+
+    if (this.selectedTargetDaysForDuplication.size === 0) {
+      this.showToast('Please select at least one target day.');
+      return;
+    }
+
+    const days = this.getDaysList();
+    const templateId = this.editingTemplate?.id;
+    const isSaved = templateId && templateId !== '' && !templateId.startsWith('temp-');
+
+    const targetIndices = Array.from(this.selectedTargetDaysForDuplication);
+    let countCopied = 0;
+
+    targetIndices.forEach(targetIdx => {
+      if (targetIdx >= 0 && targetIdx < days.length && !this.isPastDay(targetIdx)) {
+        const targetDay = days[targetIdx];
+        sourceDay.tasks.forEach(t => {
+          const clonedTask: TemplateTask = JSON.parse(JSON.stringify(t));
+          clonedTask.id = `t-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+          targetDay.tasks.push(clonedTask);
+        });
+        countCopied++;
+
+        if (isSaved) {
+          const dayNumber = targetIdx + 1;
+          sourceDay.tasks.forEach(t => {
+            const payload = { title: t.name, description: t.description || '', priority: t.priority || 'MEDIUM' };
+            this.service.addTaskApi(templateId, dayNumber, payload).subscribe();
+          });
+        }
+      }
+    });
+
+    if (isSaved) {
+      setTimeout(() => {
+        this.service.getRoleTemplateByIdApi(templateId).subscribe(updatedTemplate => {
+          if (updatedTemplate && this.editingTemplate) {
+            const currentMonthName = this.editingTemplate.months?.[0]?.name || this.monthsList[0];
+            this.editingTemplate.months = updatedTemplate.months;
+            if (this.editingTemplate.months?.[0]) {
+              this.editingTemplate.months[0].name = currentMonthName;
+            }
+          }
+        });
+        this.service.getRoleTemplatesApi().subscribe();
+      }, 300);
+    }
+
+    this.showToast(`Tasks duplicated successfully to ${countCopied} day(s)!`);
+    this.closeDuplicateDayModal();
+  }
+
+  duplicateDayTasks(sourceDay: TemplateDay, targetDay: TemplateDay): void {
+    if (!sourceDay || !targetDay) return;
+    const targetIdx = this.editingTemplate?.months?.[0]?.days.indexOf(targetDay);
+    if (targetIdx !== undefined && targetIdx !== -1 && this.isPastDay(targetIdx)) {
+      return;
+    }
+    sourceDay.tasks.forEach(t => {
+      const clonedTask = JSON.parse(JSON.stringify(t));
+      clonedTask.id = `t-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+      targetDay.tasks.push(clonedTask);
+    });
+    this.showToast(`Tasks duplicated successfully to ${targetDay.name}!`);
+  }
+
+  duplicateSingleTask(task: TemplateTask, targetDay: TemplateDay): void {
+    if (!task || !targetDay) return;
+    const targetIdx = this.editingTemplate?.months?.[0]?.days.indexOf(targetDay);
+    if (targetIdx !== undefined && targetIdx !== -1 && this.isPastDay(targetIdx)) {
+      return;
+    }
+    const clonedTask = JSON.parse(JSON.stringify(task));
+    clonedTask.id = `t-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+    targetDay.tasks.push(clonedTask);
+    this.showToast(`Copied task to ${targetDay.name}`);
+  }
+
+  duplicateTaskToSameDay(task: TemplateTask, day: TemplateDay): void {
+    if (!task || !day) return;
+    if (this.isPastDay(this.selectedDayIndex)) {
+      return;
+    }
+    if (this.isTemplateUnsaved()) {
+      this.showToast('Please save template first before duplicating tasks.');
+      return;
+    }
+
+    const templateId = this.editingTemplate!.id;
+    const dayNumber = this.selectedDayIndex + 1;
+    const taskPayload = {
+      title: task.name,
+      description: task.description || '',
+      priority: task.priority || 'MEDIUM'
+    };
+
+    this.service.addTaskApi(templateId, dayNumber, taskPayload).subscribe({
+      next: () => {
+        this.showToast('Task duplicated successfully!');
+        this.service.getRoleTemplateByIdApi(templateId).subscribe(updatedTemplate => {
+          if (updatedTemplate && this.editingTemplate) {
+            const currentMonthName = this.editingTemplate.months?.[0]?.name || this.monthsList[0];
+            this.editingTemplate.months = updatedTemplate.months;
+            if (this.editingTemplate.months?.[0]) {
+              this.editingTemplate.months[0].name = currentMonthName;
+            }
+          }
+        });
+        this.service.getRoleTemplatesApi().subscribe();
+      },
+      error: (err) => {
+        console.error('Failed to duplicate task via API:', err);
+        this.showToast('Failed to duplicate task.');
+      }
+    });
+  }
+
+  openTaskDetails(task: TemplateTask, day: TemplateDay): void {
+    const month = this.editingTemplate?.months?.[0];
+    const monthName = month ? month.name : 'July';
+    this.openTaskDrawer(task, day, monthName);
+  }
+
+  showToast(msg: string): void {
+    this.toastMessage = msg;
+    setTimeout(() => {
+      if (this.toastMessage === msg) {
+        this.toastMessage = '';
+      }
+    }, 3000);
+  }
+
+  duplicateSelectedDaysTo(targetDay: TemplateDay): void {
+    if (!this.editingTemplate || !this.editingTemplate.months || this.editingTemplate.months.length === 0) return;
+    const days = this.editingTemplate.months[0].days;
+    this.selectedDaysForDuplication.forEach(idx => {
+      if (idx >= 0 && idx < days.length) {
+        const sourceDay = days[idx];
+        sourceDay.tasks.forEach(t => {
+          const clonedTask = JSON.parse(JSON.stringify(t));
+          clonedTask.id = `t-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+          targetDay.tasks.push(clonedTask);
+        });
+      }
+    });
+    this.selectedDaysForDuplication.clear();
+    this.multiSelectMode = false;
+  }
+
+  deleteSelectedDays(): void {
+    if (!this.editingTemplate || !this.editingTemplate.months || this.editingTemplate.months.length === 0) return;
+    const days = this.editingTemplate.months[0].days;
+    const filteredDays = days.filter((_, idx) => !this.selectedDaysForDuplication.has(idx));
+
+    filteredDays.forEach((d, i) => {
+      d.name = `Day ${i + 1}`;
+    });
+
+    this.editingTemplate.months[0].days = filteredDays;
+    this.selectedDaysForDuplication.clear();
+    this.multiSelectMode = false;
+    this.selectedDayIndex = 0;
+  }
+
+  // Selected Day tasks helpers
+  addTaskToSelectedDay(): void {
+    const day = this.getSelectedDay();
+    const month = this.editingTemplate?.months?.[0];
+    if (day && month) {
+      this.addTaskToDay(day, month);
+    }
+  }
+
+  removeTaskFromSelectedDay(tIdx: number): void {
+    const day = this.getSelectedDay();
+    if (day) {
+      this.removeTaskFromDay(day, tIdx);
+    }
+  }
+
+  moveTaskInSelectedDay(tIdx: number, direction: 'up' | 'down'): void {
+    const day = this.getSelectedDay();
+    if (day) {
+      this.moveTask(day, tIdx, direction);
+    }
+  }
+
+  openTaskDrawerForSelectedDay(task: TemplateTask): void {
+    const day = this.getSelectedDay();
+    const month = this.editingTemplate?.months?.[0];
+    if (day && month) {
+      this.openTaskDrawer(task, day, month.name);
+    }
+  }
+
+  // Helper methods for status & branch chip
+  getBranchDisplayName(template: RoleTemplate): string {
+    if (!template) return 'All Branches';
+    if (template.branchId === null || template.branchId === undefined) {
+      if (!template.branchName && (!template.branch || template.branch === 'All Branches')) {
+        return 'All Branches';
+      }
+    }
+    if (template.branchName) return template.branchName;
+    if (template.branch && template.branch !== 'All Branches') return template.branch;
+    return 'All Branches';
+  }
+
+  getRoleDisplayName(template: RoleTemplate): string {
+    if (!template) return 'Role';
+    if (template.roleDisplayName) return template.roleDisplayName;
+    if (template.roleName) {
+      return template.roleName.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+    }
+    if (template.role) {
+      if (template.role.includes('_')) {
+        return template.role.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+      }
+      return template.role;
+    }
+    return 'Role';
+  }
+
+  getTemplateTasksCount(template: RoleTemplate): number {
+    if (!template) return 0;
+    if (template.months && template.months.length > 0) {
+      return template.months.reduce((acc, m) => {
+        return acc + (m.days ? m.days.reduce((dAcc, d) => dAcc + (d.tasks ? d.tasks.length : 0), 0) : 0);
+      }, 0);
+    }
+    return template.tasks ? template.tasks.length : 0;
+  }
+
+  canPublish(template: RoleTemplate | null): boolean {
+    if (!template || !template.name || !template.name.trim()) return false;
+    return this.getTemplateTasksCount(template) >= 1;
+  }
+
+  publishRoleTemplate(template: RoleTemplate): void {
+    if (!this.canPublish(template)) return;
+
+    const selectedRole = this.rolesApiList.find(r => r.name === template.role);
+    const selectedBranch = this.branchesList.find(b => b.name === template.branch);
+
+    const payload = {
+      name: template.name,
+      description: template.name,
+      roleId: selectedRole ? selectedRole.id : null,
+      branchId: selectedBranch ? selectedBranch.id : null,
+      days: (template.months?.[0]?.days || []).map((d, index) => ({
+        dayNumber: index + 1,
+        isWeeklyCheckpoint: d.isWeekly || false,
+        tasks: (d.tasks || []).map((t, tIndex) => ({
+          title: t.name,
+          description: t.description || '',
+          priority: t.priority ? t.priority.toUpperCase() : 'MEDIUM',
+          displayOrder: tIndex
+        }))
+      }))
+    };
+
+    if (template.id && !template.id.startsWith('temp-')) {
+      this.service.updateRoleTemplateApi(template.id, payload).subscribe({
+        next: () => {
+          this.service.publishRoleTemplateApi(template.id).subscribe({
+            next: () => {
+              this.showToast(`Template "${template.name}" published successfully!`);
+              this.closeModal();
+            },
+            error: () => {
+              this.showToast('Failed to publish template');
+            }
+          });
+        },
+        error: () => {
+          this.showToast('Failed to save template edits before publishing');
+        }
+      });
+    } else {
+      this.service.createRoleTemplateApi(payload).subscribe({
+        next: (res) => {
+          if (res && res.success && res.data) {
+            const newId = res.data.id;
+            this.service.publishRoleTemplateApi(newId).subscribe({
+              next: () => {
+                this.showToast(`Template "${template.name}" published successfully!`);
+                this.closeModal();
+              },
+              error: () => {
+                this.showToast('Failed to publish new template');
+              }
+            });
+          } else {
+            this.showToast('Failed to create template before publishing');
+          }
+        },
+        error: () => {
+          this.showToast('Failed to create template before publishing');
+        }
+      });
+    }
+  }
+
+  // Footer Actions
+  saveTemplateDraft(): void {
+    if (this.editingTemplate) {
+      this.editingTemplate.status = 'DRAFT';
+      this.editingTemplate.active = false;
+      this.saveTemplate();
+    }
+  }
+
+  publishTemplateFromModal(): void {
+    if (!this.editingTemplate || !this.canPublish(this.editingTemplate)) return;
+    this.publishRoleTemplate(this.editingTemplate);
+  }
+
   // Save actions
   saveTemplate(): void {
     if (!this.editingTemplate || !this.editingTemplate.name) return;
 
-    if (this.editingTemplate.id) {
-      this.service.updateTemplate(this.editingTemplate);
-    } else {
-      this.editingTemplate.id = `temp-${Date.now()}`;
-      this.service.addTemplate(this.editingTemplate);
+    if (!this.editingTemplate.status) {
+      this.editingTemplate.status = 'DRAFT';
+      this.editingTemplate.active = false;
     }
-    this.closeModal();
+
+    const selectedRole = this.rolesApiList.find(r => r.name === this.editingTemplate?.role);
+    const selectedBranch = this.branchesList.find(b => b.name === this.editingTemplate?.branch);
+
+    const payload = {
+      name: this.editingTemplate.name,
+      description: this.editingTemplate.name,
+      roleId: selectedRole ? selectedRole.id : null,
+      branchId: selectedBranch ? selectedBranch.id : null,
+      days: (this.editingTemplate.months?.[0]?.days || []).map((d, index) => ({
+        dayNumber: index + 1,
+        isWeeklyCheckpoint: d.isWeekly || false,
+        tasks: (d.tasks || []).map((t, tIndex) => ({
+          title: t.name,
+          description: t.description || '',
+          priority: t.priority ? t.priority.toUpperCase() : 'MEDIUM',
+          displayOrder: tIndex
+        }))
+      }))
+    };
+
+    if (this.editingTemplate.id && !this.editingTemplate.id.startsWith('temp-')) {
+      this.service.updateRoleTemplateApi(this.editingTemplate.id, payload).subscribe({
+        next: () => {
+          this.showToast('Template saved successfully!');
+          this.closeModal();
+        },
+        error: () => {
+          this.showToast('Failed to save template');
+        }
+      });
+    } else {
+      this.service.createRoleTemplateApi(payload).subscribe({
+        next: () => {
+          this.showToast('Template created successfully!');
+          this.closeModal();
+        },
+        error: () => {
+          this.showToast('Failed to create template');
+        }
+      });
+    }
   }
 
   duplicateTemplate(template: RoleTemplate): void {
-    this.service.duplicateTemplate(template);
+    if (!template) return;
+    if (template.id && !template.id.startsWith('temp-')) {
+      this.service.duplicateRoleTemplateApi(template.id).subscribe({
+        next: () => {
+          this.showToast(`Template "${template.name}" duplicated successfully!`);
+          this.service.getRoleTemplatesApi().subscribe();
+        },
+        error: (err) => {
+          console.error('Failed to duplicate template via API:', err);
+          this.showToast('Failed to duplicate template.');
+        }
+      });
+    } else {
+      this.service.duplicateTemplate(template);
+      this.showToast(`Template "${template.name}" duplicated locally.`);
+    }
   }
 
   deleteTemplate(id: string): void {
     if (confirm('Are you sure you want to delete this template?')) {
-      this.service.deleteTemplate(id);
+      if (id.startsWith('temp-')) {
+        this.service.deleteTemplate(id);
+      } else {
+        this.service.deleteRoleTemplateApi(id).subscribe({
+          next: () => {
+            this.showToast('Template deleted successfully!');
+            // Re-fetch templates list via GET API to update UI
+            this.service.getRoleTemplatesApi().subscribe();
+          },
+          error: () => this.showToast('Failed to delete template')
+        });
+      }
     }
   }
 
   toggleActive(template: RoleTemplate): void {
-    this.service.toggleTemplateActive(template.id);
+    if (!template) return;
+    const isCurrentlyActive = template.status === 'ACTIVE' || template.active;
+    const targetStatus: 'ACTIVE' | 'INACTIVE' = isCurrentlyActive ? 'INACTIVE' : 'ACTIVE';
+
+    if (template.id && !template.id.startsWith('temp-')) {
+      this.service.updateTemplateStatusApi(template.id, targetStatus).subscribe({
+        next: () => {
+          this.showToast(`Template ${targetStatus === 'ACTIVE' ? 'activated' : 'deactivated'} successfully!`);
+          this.service.getRoleTemplatesApi().subscribe();
+        },
+        error: (err) => {
+          console.error('Failed to update template status via API:', err);
+          this.showToast('Failed to update template status.');
+        }
+      });
+    } else {
+      this.service.toggleTemplateActive(template.id);
+      this.showToast(`Template status changed to ${targetStatus}`);
+    }
   }
 }

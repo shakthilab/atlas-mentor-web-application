@@ -2,7 +2,7 @@
   <div class="workflow-title-row">
     <h4>DAY APPROVAL WORKFLOW</h4>
     <div class="current-status-info">
-      Currently at <span class="status-name">{{ day.status }}</span>
+      Currently at <span class="status-name">{{ getFormattedStatus(day.status) }}</span>
     </div>
   </div>
 
@@ -10,8 +10,6 @@
     <div 
       class="workflow-step-wrapper" 
       *ngFor="let step of steps; let i = index"
-      (click)="changeStatus(step.value)"
-      title="Change Day status to {{ step.label }}"
     >
       <div class="step-badge" [ngClass]="getStepClass(i)">
         <span class="step-indicator-circle check" *ngIf="getStepClass(i) === 'step-completed'">

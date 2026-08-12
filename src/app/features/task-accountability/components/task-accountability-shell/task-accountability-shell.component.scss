@@ -1,9 +1,10 @@
 .workspace-layout {
   display: flex;
   height: calc(100vh - 70px);
-  background-color: #f8fafc;
+  background-color: #FBFBFC;
   overflow: hidden;
   margin: -24px; // Full bleed
+  position: relative;
 }
 
 .tree-sidebar-panel {
@@ -26,6 +27,10 @@
   background-color: #ffffff;
   border-bottom: 1px solid #e2e8f0;
   padding: 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .workspace-nav {
@@ -44,12 +49,12 @@
   transition: all 0.2s ease;
 
   &:hover {
-    color: #0f172a;
+    color: #2D2E32;
   }
 
   &.active {
-    color: #3b82f6;
-    border-bottom-color: #3b82f6;
+    color: #2D2E32;
+    border-bottom-color: #2D2E32;
   }
 }
 
@@ -57,4 +62,93 @@
   flex-grow: 1;
   padding: 24px;
   overflow-y: auto;
+}
+
+.tree-toggle-mobile-btn {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  background-color: #F1F5F9;
+  border: 1px solid #cbd5e1;
+  color: #2D2E32;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: #e2e8f0;
+  }
+}
+
+@media (max-width: 992px) {
+  .tree-toggle-mobile-btn {
+    display: inline-flex;
+    flex-shrink: 0;
+    white-space: nowrap;
+    margin-left: auto;
+  }
+
+  .tree-sidebar-panel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 290px;
+    max-width: 85vw;
+    z-index: 400;
+    box-shadow: 4px 0 16px rgba(0, 0, 0, 0.15);
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &.tree-open {
+      transform: translateX(0);
+    }
+  }
+
+  .tree-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(2px);
+    z-index: 390;
+  }
+
+  .workspace-header {
+    padding: 0 12px;
+    gap: 8px;
+  }
+
+  .workspace-nav {
+    flex: 1;
+    min-width: 0;
+    gap: 12px;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding-right: 6px;
+    
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .workspace-body {
+    padding: 12px 8px;
+  }
+}
+
+@media (max-width: 600px) {
+  .workspace-layout {
+    margin: -16px;
+  }
+
+  .workspace-body {
+    padding: 8px 4px;
+  }
 }
