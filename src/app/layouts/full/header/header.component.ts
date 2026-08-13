@@ -5,6 +5,7 @@ import {
   Input,
   ViewEncapsulation,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
 import { TranslateService } from '@ngx-translate/core';
 import { ThemeService } from '../../../core/services/theme.service';
@@ -44,7 +45,7 @@ export class HeaderComponent {
     this.currentLang = saved;
     this.translate.use(saved);
 
-    this.authService.currentUser$.subscribe(user => {
+    this.authService.currentUser$.pipe(takeUntilDestroyed()).subscribe(user => {
       this.currentUser = user;
     });
   }

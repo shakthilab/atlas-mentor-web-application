@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { NavItem } from './nav-item';
 import { Router } from '@angular/router';
 import { NavService } from '../../../../core/services/nav.service';
@@ -8,7 +8,7 @@ import { NavService } from '../../../../core/services/nav.service';
   templateUrl: './nav-item.component.html',
   styleUrls: [],
 })
-export class AppNavItemComponent implements OnChanges {
+export class AppNavItemComponent {
   @Input() item: NavItem | any;
   @Input() depth: any;
 
@@ -16,13 +16,6 @@ export class AppNavItemComponent implements OnChanges {
     if (this.depth === undefined) {
       this.depth = 0;
     }
-  }
-
-  ngOnChanges() {
-    this.navService.currentUrl.subscribe((url: string) => {
-      if (this.item.route && url) {
-      }
-    });
   }
 
   onItemSelected(item: NavItem) {
