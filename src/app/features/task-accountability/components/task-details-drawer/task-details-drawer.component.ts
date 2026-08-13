@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, HostListener, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, Renderer2 } from '@angular/core';
 import { TaskAccountabilityService } from '../../services/task-accountability.service';
 import { TaskItem } from '../../interfaces/accountability.interface';
 import { Subscription } from 'rxjs';
@@ -32,7 +32,7 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
 
   constructor(
     private service: TaskAccountabilityService,
-    private elRef: ElementRef
+    private renderer: Renderer2
   ) {}
 
   getWorkflowStepIndex(status: string): number {
@@ -115,8 +115,8 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
     this.isResizing = true;
     this.startX = event.clientX;
     this.startWidth = this.width;
-    document.body.style.cursor = 'ew-resize';
-    document.body.style.userSelect = 'none';
+    this.renderer.setStyle(document.body, 'cursor', 'ew-resize');
+    this.renderer.setStyle(document.body, 'userSelect', 'none');
   }
 
   @HostListener('document:mousemove', ['$event'])
@@ -131,8 +131,8 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
   onMouseUpResize(): void {
     if (this.isResizing) {
       this.isResizing = false;
-      document.body.style.cursor = 'default';
-      document.body.style.userSelect = 'auto';
+      this.renderer.setStyle(document.body, 'cursor', 'default');
+      this.renderer.setStyle(document.body, 'userSelect', 'auto');
     }
   }
 

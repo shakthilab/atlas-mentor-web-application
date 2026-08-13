@@ -1,4 +1,4 @@
-import { Component, Directive, ElementRef, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Directive, ElementRef, Input, OnInit, Renderer2, ViewEncapsulation } from '@angular/core';
 import { EChartsOption } from 'echarts';
 import * as echarts from 'echarts';
 import { DashboardService } from '../../../core/services/dashboard.service';
@@ -14,7 +14,7 @@ export class AnimatedNumberDirective implements OnInit {
   @Input() prefix: string = '';
   @Input() isDecimal: boolean = false;
 
-  constructor(private el: ElementRef) { }
+  constructor(private el: ElementRef, private renderer: Renderer2) { }
 
   ngOnInit() {
     this.animateValue();
@@ -39,7 +39,7 @@ export class AnimatedNumberDirective implements OnInit {
       let currentVal = ease * (target - start) + start;
       if (!this.isDecimal) currentVal = Math.floor(currentVal);
       let displayValue = this.isDecimal ? currentVal.toFixed(1) : currentVal.toLocaleString();
-      this.el.nativeElement.innerHTML = `${this.prefix}${displayValue}${inputSuffix}${this.suffix}`;
+      this.renderer.setProperty(this.el.nativeElement, 'textContent', `${this.prefix}${displayValue}${inputSuffix}${this.suffix}`);
       if (progress < 1) window.requestAnimationFrame(step);
     };
     window.requestAnimationFrame(step);
