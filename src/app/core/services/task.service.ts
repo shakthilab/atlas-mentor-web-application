@@ -140,6 +140,18 @@ export const MOCK_BUNDLES: TaskBundle[] = [
 
 const STORAGE_KEY = 'enterprise_tasks';
 
+/**
+ * KNOWN LIMITATION: this service mixes two persistence layers. Methods suffixed
+ * `Http`/`Api` (e.g. updateTaskStatusHttp, createTaskApi, getTaskById, deleteTask,
+ * task-bundle methods) call the real backend. The rest — createTask, updateTask,
+ * updateTaskStatus, bulkUpdateTasks, bulkDeleteTasks, addComment's sibling
+ * deleteComment/editComment, addAttachment, deleteAttachment — read/write only
+ * `localStorage` under STORAGE_KEY and never reach the server, because the backend
+ * has no bulk-update, comment-edit/delete, or attachment endpoints today. Bulk
+ * status/priority/reassign actions and comment/attachment edits in `tasks.component.ts`
+ * therefore do not sync across devices or survive a localStorage clear. This is
+ * intentional/known (not a regression) — see REFACTORING_CHANGES.md.
+ */
 @Injectable({
   providedIn: 'root',
 })
