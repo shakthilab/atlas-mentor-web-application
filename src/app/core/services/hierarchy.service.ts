@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { normalizeListEnvelope } from '../utils/api-response.util';
 
 export interface BranchResponse {
   success: boolean;
@@ -78,14 +79,7 @@ export class HierarchyService {
 
   getBranches(includeInactive: boolean = true): Observable<BranchResponse> {
     return this.http.get<any>(`${this.apiUrl}/branches?includeInactive=${includeInactive}`).pipe(
-      map(res => {
-        if (res && res.data) {
-          const rawData = res.data;
-          const branchesList = Array.isArray(rawData) ? rawData : (rawData.content || []);
-          return { ...res, data: branchesList };
-        }
-        return { success: res?.success || false, message: res?.message || '', data: [] };
-      })
+      map(res => normalizeListEnvelope<Branch>(res, { message: res?.message || '' }))
     );
   }
 

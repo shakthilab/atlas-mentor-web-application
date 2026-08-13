@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { extractListData } from '../utils/api-response.util';
 
 @Injectable({ providedIn: 'root' })
 export class ReferralService {
@@ -12,10 +13,7 @@ export class ReferralService {
 
   getReferralTypes(): Observable<string[]> {
     return this.http.get<any>(`${this.apiUrl}/types`).pipe(
-      map(res => {
-        const rawData = res?.data ?? res;
-        return Array.isArray(rawData) ? rawData : [];
-      })
+      map(res => extractListData<string>(res))
     );
   }
 

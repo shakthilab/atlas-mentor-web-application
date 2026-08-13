@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { normalizeListEnvelope } from '../utils/api-response.util';
 
 export interface Role {
   id: number;
@@ -52,14 +53,7 @@ export class MasterDataService {
       params = params.set('includeInactive', 'true');
     }
     return this.http.get<any>(`${this.apiUrl}/branches`, { params }).pipe(
-      map(res => {
-        if (res && res.data) {
-          const rawData = res.data;
-          const branchesList = Array.isArray(rawData) ? rawData : (rawData.content || []);
-          return { ...res, data: branchesList };
-        }
-        return { success: res?.success || false, data: [] };
-      })
+      map(res => normalizeListEnvelope<Branch>(res))
     );
   }
 
