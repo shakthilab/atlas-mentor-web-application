@@ -8,10 +8,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { TablerIconsModule } from 'angular-tabler-icons';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { NotificationService } from '../../../../core/services/notification.service';
-import { AuthService } from '../../../../core/services/auth.service';
-import { environment } from '../../../../../environments/environment';
+import { HierarchyService } from '../../../../core/services/hierarchy.service';
 
 export interface BranchManager {
   id: number;
@@ -185,8 +183,7 @@ export class AddBranchDialogComponent implements OnInit {
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<AddBranchDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
-    private http: HttpClient,
-    private authService: AuthService,
+    private hierarchyService: HierarchyService,
     private notificationService: NotificationService
   ) {
     this.branchForm = this.fb.group({
@@ -210,11 +207,6 @@ export class AddBranchDialogComponent implements OnInit {
     this.loadManagers();
   }
 
-  private getHeaders(): HttpHeaders {
-    const token = this.authService.getToken();
-    return new HttpHeaders({ 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' });
-  }
-
   getManagerAvatar(managerId?: number): string {
     if (!managerId) return '/assets/images/profile/user-1.jpg';
     return `/assets/images/profile/user-${(managerId % 4) + 1}.jpg`;
@@ -222,7 +214,7 @@ export class AddBranchDialogComponent implements OnInit {
 
   loadManagers(): void {
     this.isLoadingManagers = true;
-    this.http.get<any>(`${environment.apiUrl}/branches/managers`, { headers: this.getHeaders() }).subscribe({
+    this.hierarchyService.getBranchManagers().subscribe({
       next: (res) => {
         this.isLoadingManagers = false;
         this.managers = res?.data || res || [];
@@ -254,11 +246,7 @@ export class AddBranchDialogComponent implements OnInit {
     }
 
     if (this.isEditMode) {
-      this.http.put<any>(
-        `${environment.apiUrl}/branches/${this.data.id}`,
-        payload,
-        { headers: this.getHeaders() }
-      ).subscribe({
+      this.hierarchyService.updateBranch(this.data.id, payload).subscribe({
         next: (res) => {
           this.isSubmitting = false;
           this.notificationService.showSuccessToast('Branch updated successfully.', 'Success');
@@ -271,11 +259,7 @@ export class AddBranchDialogComponent implements OnInit {
         }
       });
     } else {
-      this.http.post<any>(
-        `${environment.apiUrl}/branches`,
-        payload,
-        { headers: this.getHeaders() }
-      ).subscribe({
+      this.hierarchyService.createBranch(payload).subscribe({
         next: (res) => {
           this.isSubmitting = false;
           this.notificationService.showSuccessToast('Branch created successfully.', 'Success');

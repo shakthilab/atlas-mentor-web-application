@@ -83,6 +83,30 @@ export class HierarchyService {
     );
   }
 
+  getBranchesPaginated(page: number, size: number, includeInactive: boolean = true): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/branches?page=${page}&size=${size}&includeInactive=${includeInactive}`);
+  }
+
+  getBranchManagers(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/branches/managers`);
+  }
+
+  createBranch(payload: { name: string; location: string; managerId: number | null; status: string }): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/branches`, payload);
+  }
+
+  updateBranch(branchId: number, payload: { name: string; location: string; managerId: number | null; status: string }): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/branches/${branchId}`, payload);
+  }
+
+  updateBranchStatus(branchId: number, status: 'ACTIVE' | 'INACTIVE'): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/branches/${branchId}/status`, { status });
+  }
+
+  deleteBranch(branchId: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/branches/${branchId}`);
+  }
+
   getUnassignedEmployees(managerId?: number): Observable<any> {
     const url = managerId 
       ? `${this.apiUrl}/branches/unassigned-employees?managerId=${managerId}`

@@ -1,11 +1,10 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { MatDialog } from '@angular/material/dialog';
 import { NotificationService } from '../../../core/services/notification.service';
-import { AuthService } from '../../../core/services/auth.service';
-import { environment } from '../../../../environments/environment';
+import { HierarchyService } from '../../../core/services/hierarchy.service';
+import { extractListData } from '../../../core/utils/api-response.util';
 import { BranchDetailsDialogComponent } from './branch-details-dialog/branch-details-dialog.component';
 import { AddBranchDialogComponent } from './add-branch-dialog/add-branch-dialog.component';
 
@@ -337,8 +336,7 @@ export class BranchesComponent implements OnInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor(
-    private http: HttpClient,
-    private authService: AuthService,
+    private hierarchyService: HierarchyService,
     private notificationService: NotificationService,
     private dialog: MatDialog
   ) {}
@@ -352,22 +350,12 @@ export class BranchesComponent implements OnInit {
     return `/assets/images/profile/user-${(managerId % 4) + 1}.jpg`;
   }
 
-  private getHeaders(): HttpHeaders {
-    const token = this.authService.getToken();
-    return new HttpHeaders({
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    });
-  }
-
   loadBranches(): void {
     this.isLoading = true;
-    const url = `${environment.apiUrl}/branches?page=${this.currentPage}&size=${this.pageSize}&includeInactive=true`;
 
-    this.http.get<any>(url, { headers: this.getHeaders() }).subscribe({
+    this.hierarchyService.getBranchesPaginated(this.currentPage, this.pageSize, true).subscribe({
       next: (res) => {
-        const rawData = res?.data ?? res;
-        const branchesList = Array.isArray(rawData) ? rawData : (rawData?.content || []);
+        const branchesList = extractListData<Branch>(res);
         this.branches = branchesList;
         this.dataSource.data = this.branches;
         this.totalElements = res?.totalElements ?? res?.data?.totalElements ?? branchesList.length;
@@ -430,11 +418,7 @@ export class BranchesComponent implements OnInit {
     const newStatus = currentStatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
     const actionText = newStatus === 'ACTIVE' ? 'activate' : 'deactivate';
 
-    this.http.put<any>(
-      `${environment.apiUrl}/branches/${branch.id}/status`,
-      { status: newStatus },
-      { headers: this.getHeaders() }
-    ).subscribe({
+    this.hierarchyService.updateBranchStatus(branch.id, newStatus).subscribe({
       next: () => {
         this.notificationService.showSuccessToast(
           `Branch "${branch.name}" ${actionText}d successfully.`,
@@ -454,10 +438,7 @@ export class BranchesComponent implements OnInit {
     ).subscribe((confirmed) => {
       if (!confirmed) return;
 
-      this.http.delete<any>(
-        `${environment.apiUrl}/branches/${branch.id}`,
-        { headers: this.getHeaders() }
-      ).subscribe({
+      this.hierarchyService.deleteBranch(branch.id).subscribe({
         next: () => {
           this.notificationService.showSuccessToast(`Branch "${branch.name}" deleted successfully.`, 'Deleted');
           this.loadBranches();
