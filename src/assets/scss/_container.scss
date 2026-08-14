@@ -49,6 +49,11 @@ html .mat-drawer-container {
   }
 }
 
+main.pageWrapper {
+  flex: 1 0 auto !important;
+  height: auto !important;
+}
+
 // Mobile Bottom Navigation Footer Bar
 .mobile-footer-nav {
   display: none;

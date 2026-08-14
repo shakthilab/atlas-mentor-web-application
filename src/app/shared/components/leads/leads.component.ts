@@ -8,6 +8,7 @@ import { LeadService } from '../../../core/services/lead.service';
 import { LeadDetailsDialogComponent } from './lead-details-dialog/lead-details-dialog.component';
 import { ReasonDialogComponent } from './reason-dialog/reason-dialog.component';
 import { AddLeadDialogComponent } from './add-lead-dialog/add-lead-dialog.component';
+import { ImportLeadsDialogComponent } from './import-leads-dialog/import-leads-dialog.component';
 
 export interface Lead {
   id?: number;
@@ -56,6 +57,10 @@ export interface Lead {
                 <i-tabler name="layout-grid" class="icon-18"></i-tabler>
               </button>
             </div>
+            <button mat-stroked-button color="primary" class="d-flex align-items-center import-btn desktop-import-btn m-r-8" (click)="openImportDialog()" style="border-radius: 8px; border-width: 1.5px; height: 38px;">
+              <i-tabler name="upload" class="icon-18 m-r-4"></i-tabler>
+              <span class="import-btn-text">Import Data</span>
+            </button>
             <button mat-flat-button color="primary" class="d-flex align-items-center add-btn desktop-add-btn" (click)="addLead()">
               <i-tabler name="plus" class="icon-18 m-r-4"></i-tabler>
               <span class="add-btn-text">Add Lead</span>
@@ -297,6 +302,7 @@ export interface Lead {
         justify-content: space-between;
       }
 
+      button.desktop-import-btn,
       button.desktop-add-btn {
         white-space: nowrap;
         flex-shrink: 0;
@@ -530,7 +536,7 @@ export class LeadsComponent implements OnInit, AfterViewInit {
   isLoading = true;
   hasError = false;
 
-  availableStatuses = ['LEAD', 'REGISTERED', 'LOST', 'STUDENT', 'PROSPECTIVE'];
+  availableStatuses = ['LEAD', 'REGISTERED', 'LOST', 'PROSPECTIVE'];
 
   displayedColumns: string[] = [
     'lead',
@@ -631,6 +637,26 @@ export class LeadsComponent implements OnInit, AfterViewInit {
   applyFilter(event: Event): void {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
+  }
+
+  openImportDialog(): void {
+    const dialogRef = this.dialog.open(ImportLeadsDialogComponent, {
+      width: '760px',
+      maxWidth: '95vw',
+      panelClass: 'import-leads-dialog-panel',
+      disableClose: true
+    });
+
+    // Refresh immediately when import succeeds, while dialog is still open
+    dialogRef.componentInstance.importSuccess.subscribe(() => {
+      this.loadLeads();
+    });
+
+    dialogRef.afterClosed().subscribe(hasUploaded => {
+      if (hasUploaded) {
+        this.loadLeads();
+      }
+    });
   }
 
   addLead(): void {
@@ -740,8 +766,7 @@ export class LeadsComponent implements OnInit, AfterViewInit {
       next: () => {
         lead.isUpdatingStatus = false;
         this.notificationService.showSuccessToast(`Status updated to ${status}.`, 'Success');
-        lead.status = status.toLowerCase(); // Optimistically update the UI
-        // Optionally, call this.loadLeads() to get fresh data
+        this.loadLeads();
       },
       error: (err) => {
         lead.isUpdatingStatus = false;

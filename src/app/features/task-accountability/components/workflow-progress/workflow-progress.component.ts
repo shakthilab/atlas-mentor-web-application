@@ -16,7 +16,7 @@ export class WorkflowProgressComponent implements OnInit, OnDestroy {
     { label: 'Employee', value: 'COMPLETED' },
     { label: 'Branch Partner', value: 'PARTNER_REVIEW' },
     { label: 'Manager Review', value: 'MANAGER_REVIEW' },
-    { label: 'Admin Verified', value: 'ADMIN_VERIFIED' }
+    { label: 'Admin Review', value: 'ADMIN_VERIFIED' }
   ];
 
   private sub = new Subscription();
@@ -40,19 +40,33 @@ export class WorkflowProgressComponent implements OnInit, OnDestroy {
     if (!this.day) return 0;
     const dayObj = this.day as any;
 
+    const nextRole = (dayObj.nextActionRole || '').toString().toUpperCase().trim();
+    const stage = (dayObj.approvalStage || dayObj.currentStep || dayObj.status || '').toString().toUpperCase().trim();
+
+    if ((stage === 'COMPLETED' || stage === 'APPROVED' || stage === 'CLOSED' || stage === 'VERIFIED') && !nextRole) {
+      return 4;
+    }
+
+    if (nextRole === 'ADMIN') {
+      return 3;
+    }
+
+    if (nextRole === 'MANAGER') {
+      return 2;
+    }
+
+    if (nextRole === 'BRANCH_PARTNER') {
+      return 1;
+    }
+
     if (typeof dayObj.currentStepNumber === 'number' && dayObj.currentStepNumber >= 1) {
       return dayObj.currentStepNumber - 1;
     }
-
-    const stage = (dayObj.approvalStage || dayObj.currentStep || dayObj.status || '').toString().toUpperCase().trim();
-    if (!stage) return 0;
 
     if (stage === 'ADMIN_VERIFIED' || stage === 'ADMIN' || stage === 'VERIFIED') return 3;
     if (stage === 'MANAGER_REVIEW' || stage === 'BRANCH_MANAGER' || stage === 'MANAGER') return 2;
     if (stage === 'PARTNER_REVIEW' || stage === 'BRANCH_PARTNER' || stage === 'PARTNER') return 1;
     if (stage === 'EMPLOYEE' || stage === 'SUBMITTED' || stage === 'DRAFT') return 0;
-
-    if (stage === 'COMPLETED' || stage === 'APPROVED' || stage === 'CLOSED') return 3;
 
     return 0;
   }
@@ -61,13 +75,23 @@ export class WorkflowProgressComponent implements OnInit, OnDestroy {
     if (!this.day) return 'Employee';
     const dayObj = this.day as any;
 
+    const nextRole = (dayObj.nextActionRole || '').toString().toUpperCase().trim();
+    const stage = (dayObj.approvalStage || dayObj.status || status || '').toString().toUpperCase().trim();
+
+    if ((stage === 'COMPLETED' || stage === 'APPROVED' || stage === 'CLOSED' || stage === 'VERIFIED') && !nextRole) {
+      return 'Completed';
+    }
+
+    if (nextRole === 'ADMIN') return 'Admin Review';
+    if (nextRole === 'MANAGER') return 'Manager Review';
+    if (nextRole === 'BRANCH_PARTNER') return 'Branch Partner Review';
+
     if (dayObj.currentStep) return dayObj.currentStep;
 
-    const stage = (dayObj.approvalStage || dayObj.status || status || '').toString().toUpperCase().trim();
     if (stage === 'EMPLOYEE' || stage === 'SUBMITTED' || stage === 'DRAFT') return 'Employee';
-    if (stage === 'PARTNER_REVIEW' || stage === 'BRANCH_PARTNER' || stage === 'PARTNER') return 'Branch Partner';
+    if (stage === 'PARTNER_REVIEW' || stage === 'BRANCH_PARTNER' || stage === 'PARTNER') return 'Branch Partner Review';
     if (stage === 'MANAGER_REVIEW' || stage === 'BRANCH_MANAGER' || stage === 'MANAGER') return 'Manager Review';
-    if (stage === 'ADMIN_VERIFIED' || stage === 'ADMIN' || stage === 'VERIFIED') return 'Admin Verified';
+    if (stage === 'ADMIN_VERIFIED' || stage === 'ADMIN' || stage === 'VERIFIED') return 'Admin Review';
     if (stage === 'COMPLETED') return 'Completed';
 
     return stage.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());

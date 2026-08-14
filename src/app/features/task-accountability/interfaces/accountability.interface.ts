@@ -64,6 +64,9 @@ export interface CommentItem {
   timestamp: string;
   parentCommentId?: number | string | null;
   replies?: CommentItem[];
+  commentedByUserId?: number | string | null;
+  createdAtRaw?: Date | string | null;
+  createdAtDate?: Date | null;
 }
 
 export interface AttachmentItem {
@@ -107,6 +110,12 @@ export interface TaskItem {
   activities: ActivityItem[];
   rating?: 'Excellent' | 'Good' | 'Needs Improvement';
   latestCommentPreview?: string;
+  currentStep?: string | null;
+  nextStep?: string | null;
+  reflectState?: 'FLAGGED' | 'RESUBMITTED' | string | null;
+  reflectStage?: string | null;
+  reflectComment?: string | null;
+  reflectFlaggedByName?: string | null;
 }
 
 export interface PendingApproval {

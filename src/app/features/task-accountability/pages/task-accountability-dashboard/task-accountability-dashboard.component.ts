@@ -44,21 +44,21 @@ export class TaskAccountabilityDashboardComponent implements OnInit, OnDestroy {
 
   isIndividualContributor = false;
   myDaysList: any[] = [];
-  selectedMyDayDate: string = '2026-08-11';
+  selectedMyDayDate: string = '';
 
   // Non-approval user screen properties
   weekDaysList: WeeklyStripDay[] = [];
-  selectedDateFormattedTitle = 'Tuesday, 11 August';
-  selectedWeekRangeLabel = '10 Aug – 16 Aug 2026';
-  selectedDateButtonLabel = '11 Aug 2026';
-  userSubtitleMeta = 'Sandhya D · Junior Counsellor · Bengaluru — Indiranagar';
-  private currentWeekCenterDate = new Date(2026, 7, 11); // Aug 11, 2026
+  selectedDateFormattedTitle = '';
+  selectedWeekRangeLabel = '';
+  selectedDateButtonLabel = '';
+  userSubtitleMeta = '';
+  private currentWeekCenterDate = new Date();
 
   // Calendar Dropdown Popover Properties
   isDatePickerOpen = false;
-  pickerYear = 2026;
-  pickerMonth = 7; // August (0-indexed)
-  pickerMonthLabel = 'August 2026';
+  pickerYear = new Date().getFullYear();
+  pickerMonth = new Date().getMonth();
+  pickerMonthLabel = '';
   calendarGridDays: CalendarDayCell[] = [];
 
   private subs = new Subscription();
@@ -142,7 +142,7 @@ export class TaskAccountabilityDashboardComponent implements OnInit, OnDestroy {
     }
 
     // 2. Days in current month
-    const todayStr = '2026-08-11';
+    const todayStr = this.getLocalDateString();
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr = `${this.pickerYear}-${String(this.pickerMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 
@@ -185,6 +185,12 @@ export class TaskAccountabilityDashboardComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    const todayStr = this.getLocalDateString();
+    this.selectedMyDayDate = todayStr;
+    this.currentWeekCenterDate = new Date();
+    this.pickerYear = this.currentWeekCenterDate.getFullYear();
+    this.pickerMonth = this.currentWeekCenterDate.getMonth();
+
     const user = this.authService.currentUserValue;
     const userRole = user?.role || '';
     this.isIndividualContributor = !this.service.isAdminTreeRole(userRole);
@@ -228,6 +234,11 @@ export class TaskAccountabilityDashboardComponent implements OnInit, OnDestroy {
     );
     this.subs.add(
       this.service.selectedTask$.subscribe(t => this.selectedTask = t)
+    );
+    this.subs.add(
+      this.service.refreshRequested$.subscribe(() => {
+        this.loadDayDetailAndTasks();
+      })
     );
   }
 
@@ -274,7 +285,7 @@ export class TaskAccountabilityDashboardComponent implements OnInit, OnDestroy {
   }
 
   generateWeeklyStrip(targetDateStr?: string): void {
-    const activeDateStr = targetDateStr || this.selectedMyDayDate || '2026-08-11';
+    const activeDateStr = targetDateStr || this.selectedMyDayDate || this.getLocalDateString();
     this.selectedMyDayDate = activeDateStr;
 
     // Safely parse activeDateStr into YYYY, MM (0-indexed), DD
@@ -364,7 +375,7 @@ export class TaskAccountabilityDashboardComponent implements OnInit, OnDestroy {
         taskCountText: countText,
         hasDot,
         isActive: isSelected,
-        isToday: isoStr === '2026-08-11'
+        isToday: isoStr === this.getLocalDateString()
       });
     }
 
@@ -376,7 +387,7 @@ export class TaskAccountabilityDashboardComponent implements OnInit, OnDestroy {
   }
 
   loadMyWorkspaceInitialData(): void {
-    const todayStr = '2026-08-11';
+    const todayStr = this.getLocalDateString();
     this.selectedMyDayDate = todayStr;
 
     // Load /api/my/years
@@ -516,6 +527,8 @@ export class TaskAccountabilityDashboardComponent implements OnInit, OnDestroy {
             type: t.type || 'CHECKLIST',
             priority: t.priority ? t.priority : 'MEDIUM',
             status: t.status || 'TODO',
+            currentStep: t.currentStep || null,
+            nextStep: t.nextStep || null,
             latestCommentPreview: t.latestCommentPreview || null,
             comment: t.latestCommentPreview || t.comment || '',
             actualValue: t.actualValue || '1/1',
@@ -534,7 +547,11 @@ export class TaskAccountabilityDashboardComponent implements OnInit, OnDestroy {
               }
             ] : [],
             attachments: [],
-            activities: []
+            activities: [],
+            reflectState: t.reflectState ?? null,
+            reflectStage: t.reflectStage ?? null,
+            reflectComment: t.reflectComment || t.comment || null,
+            reflectFlaggedByName: t.reflectFlaggedByName || t.flaggedByName || null
           }));
         } else {
           this.day.tasks = [];
@@ -658,15 +675,18 @@ export class TaskAccountabilityDashboardComponent implements OnInit, OnDestroy {
   submitDay(): void {
     if (!this.isAllTasksCompleted) return;
     if (!this.employee || !this.day) return;
-    const dateStr = this.day.dateLabel && this.day.dateLabel.includes('-') ? this.day.dateLabel : new Date().toISOString().split('T')[0];
-    
+    const dateStr = this.day.dateLabel && this.day.dateLabel.includes('-') ? this.day.dateLabel : this.getLocalDateString();
+
     if (this.employee.id && !this.employee.id.startsWith('emp-')) {
       this.service.submitEmployeeDayApi(this.employee.id, dateStr).subscribe({
         next: (res) => {
-          if (this.day) this.day.status = 'COMPLETED';
+          this.loadDayDetailAndTasks();
         },
-        error: () => {
-          if (this.day) this.day.status = 'Counsellor Approved';
+        error: (err) => {
+          console.error('Error submitting day:', err);
+          const errorMsg = err?.error?.message || 'Submission failed. Please try again.';
+          alert(errorMsg);
+          this.loadDayDetailAndTasks();
         }
       });
     } else {
@@ -746,6 +766,11 @@ export class TaskAccountabilityDashboardComponent implements OnInit, OnDestroy {
     this.service.approveDayApi(dayWorkspaceId, 'SEND_BACK', comment, taskIds).subscribe({
       next: (res) => {
         console.log(taskIds && taskIds.length > 0 ? 'Tasks sent back successfully:' : 'Whole day sent back successfully:', res);
+
+        // approveDayApi's SEND_BACK already persists `comment` as a task comment for every
+        // flagged task server-side (DayApprovalService#sendBackTasks) - the addTaskCommentApi
+        // loop that used to run here duplicated it. loadDayDetailAndTasks() below picks up
+        // what the backend already saved.
         this.loadDayDetailAndTasks();
       },
       error: (err) => {
@@ -813,5 +838,12 @@ export class TaskAccountabilityDashboardComponent implements OnInit, OnDestroy {
     if (hour < 12) return 'Morning';
     if (hour < 17) return 'Afternoon';
     return 'Evening';
+  }
+
+  getLocalDateString(d: Date = new Date()): string {
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
   }
 }

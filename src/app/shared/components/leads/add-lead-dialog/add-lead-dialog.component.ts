@@ -10,6 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { MasterDataService, MobileCountryCode, Branch } from '../../../../core/services/master-data.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-add-lead-dialog',
@@ -634,7 +635,8 @@ export class AddLeadDialogComponent implements OnInit {
     private fb: FormBuilder,
     public dialogRef: MatDialogRef<AddLeadDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
-    private masterData: MasterDataService
+    private masterData: MasterDataService,
+    private authService: AuthService
   ) {
     this.onboardingForm = this.fb.group({
       personalInfo: this.fb.group({
@@ -686,7 +688,7 @@ export class AddLeadDialogComponent implements OnInit {
       const phone = u.phone || this.data.phone || '';
       const email = u.email || this.data.email || '';
       const branchId = this.data.branch?.id || this.data.branchId || u.branchId || null;
-      const counsellorId = this.data.assignedTo?.id || this.data.assignedBy?.id || this.data.counsellorId || null;
+      const counsellorId = this.data.assignedById || this.data.assignedTo?.id || this.data.assignedEmployee?.id || this.data.counsellor?.id || this.data.assignedBy?.id || this.data.counsellorId || null;
       const countryCode = this.data.mobileCountryCode?.mobileCode || u.mobileCountryCode?.mobileCode || '+91';
 
       // Destination details
@@ -750,6 +752,44 @@ export class AddLeadDialogComponent implements OnInit {
             (match as any).serverDoc = doc;
           }
         });
+      }
+    }
+
+    // Pre-fill and disable branch/counsellor for JUNIOR_COUNSELLOR and SENIOR_COUNSELLOR
+    const user = this.authService.currentUserValue;
+    if (user && user.token) {
+      const role = user.role?.toUpperCase() || '';
+      const isCounsellor = (role === 'JUNIOR_COUNSELLOR' || role === 'SENIOR_COUNSELLOR');
+      
+      if (isCounsellor) {
+        const tokenPayload = this.decodeJwt(user.token);
+        if (tokenPayload) {
+          const branchId = tokenPayload.branchId;
+          const employeeId = tokenPayload.userId;
+          
+          if (!this.isEditMode) {
+            if (branchId) {
+              const branchControl = this.onboardingForm.get('personalInfo.branchId');
+              branchControl?.setValue(branchId);
+              branchControl?.disable();
+              
+              // Directly populate counsellor option list with the current user only
+              this.counsellors = [{
+                id: employeeId,
+                name: user.name,
+                roleLabel: role === 'SENIOR_COUNSELLOR' ? 'Senior' : 'Junior'
+              }];
+              
+              const counsellorControl = this.onboardingForm.get('personalInfo.counsellor');
+              if (employeeId) {
+                counsellorControl?.setValue(employeeId);
+                counsellorControl?.disable();
+              }
+            }
+          } else {
+            this.onboardingForm.get('personalInfo.branchId')?.disable();
+          }
+        }
       }
     }
   }
@@ -855,8 +895,22 @@ export class AddLeadDialogComponent implements OnInit {
           roleLabel: this.formatCounsellorRole(c.role)
         }));
         this.counsellorLoading = false;
+        
+        const ctrl = this.onboardingForm.get('personalInfo.counsellor');
         if (preselectCounsellorId) {
-          this.onboardingForm.get('personalInfo.counsellor')?.setValue(preselectCounsellorId);
+          ctrl?.setValue(Number(preselectCounsellorId));
+        }
+        
+        // Defer disabling to here to allow Angular Material select to match the option correctly
+        const currentUser = this.authService.currentUserValue;
+        if (currentUser) {
+          const role = (currentUser.role || '').toUpperCase();
+          const roleName = (currentUser.roleName || '').toUpperCase();
+          const isCounsellor = role.includes('COUNSELLOR') || roleName.includes('COUNSELLOR');
+          if (isCounsellor) {
+            ctrl?.disable();
+            this.onboardingForm.get('personalInfo.branchId')?.disable();
+          }
         }
       },
       error: () => { this.counsellorLoading = false; }
@@ -890,7 +944,23 @@ export class AddLeadDialogComponent implements OnInit {
 
   submit(): void {
     if (this.onboardingForm.valid) {
-      this.dialogRef.close(this.onboardingForm.value);
+      this.dialogRef.close(this.onboardingForm.getRawValue());
+    }
+  }
+
+  decodeJwt(token: string): any {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        window.atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      return JSON.parse(jsonPayload);
+    } catch (e) {
+      return null;
     }
   }
 }

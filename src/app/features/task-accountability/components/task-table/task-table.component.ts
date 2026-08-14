@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { TaskAccountabilityService } from '../../services/task-accountability.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { TaskItem, DayNode } from '../../interfaces/accountability.interface';
 import { Subscription } from 'rxjs';
 
@@ -33,7 +34,21 @@ export class TaskTableComponent implements OnInit, OnDestroy {
 
   private subs = new Subscription();
 
-  constructor(private service: TaskAccountabilityService) {}
+  constructor(
+    private service: TaskAccountabilityService,
+    private authService: AuthService
+  ) {}
+
+  get isReviewerRole(): boolean {
+    const user = this.authService.currentUserValue;
+    if (!user || !user.role) return false;
+    const r = user.role.toUpperCase().trim();
+    return ['ADMIN', 'MANAGER', 'BRANCH_PARTNER', 'ADMINISTRATIVE_ASSISTANT'].includes(r);
+  }
+
+  get canResubmitTask(): boolean {
+    return !this.isReviewerRole;
+  }
 
   ngOnInit(): void {
     this.loadStatuses();
@@ -72,9 +87,48 @@ export class TaskTableComponent implements OnInit, OnDestroy {
     });
   }
 
+  isTaskStatusChangeDisabled(task?: TaskItem | null): boolean {
+    if (!task) return false;
+    const currentStepLower = (task.currentStep || '').toLowerCase();
+    const statusLower = (task.status || '').toLowerCase();
+    return currentStepLower.includes('verified') || 
+           statusLower === 'verified' || 
+           statusLower === 'closed';
+  }
+
+  isReflectTask(task: TaskItem): boolean {
+    if (!task || !task.status) return false;
+    const s = task.status.toUpperCase().trim();
+    return s === 'REFLECT' || s === 'REJECTED';
+  }
+
+  resubmitTask(task: TaskItem, event?: MouseEvent): void {
+    if (event) event.stopPropagation();
+    if (!task || !task.id) return;
+
+    this.service.resubmitTaskApi(task.id).subscribe({
+      next: (res) => {
+        const updatedStatus = res?.data?.status || 'DONE';
+        task.status = updatedStatus;
+        task.reflectState = 'RESUBMITTED';
+        this.service.updateTaskStatus(task.id, updatedStatus);
+        this.applySortingAndGrouping();
+        this.service.triggerRefresh();
+      },
+      error: (err) => {
+        console.error('Error resubmitting task:', err);
+      }
+    });
+  }
+
   changeTaskStatus(task: TaskItem, newStatus: string, event?: MouseEvent): void {
     if (event) event.stopPropagation();
     if (task.status === newStatus) return;
+
+    if (this.isReflectTask(task)) {
+      this.resubmitTask(task, event);
+      return;
+    }
 
     // Optimistically update
     task.status = newStatus;
@@ -85,6 +139,7 @@ export class TaskTableComponent implements OnInit, OnDestroy {
     this.service.patchTaskStatusApi(task.id, newStatus).subscribe({
       next: (res) => {
         console.log('Task status patched successfully:', res);
+        this.service.triggerRefresh();
       },
       error: (err) => {
         console.error('Error patching task status via API:', err);
@@ -92,7 +147,7 @@ export class TaskTableComponent implements OnInit, OnDestroy {
     });
   }
 
-  formatStatusLabel(status?: string): string {
+  formatStatusLabel(status?: string, task?: TaskItem): string {
     if (!status) return 'To Do';
     const s = status.toUpperCase().trim();
     if (s === 'TODO' || s === 'TO DO' || s === 'NOT_STARTED') return 'To Do';

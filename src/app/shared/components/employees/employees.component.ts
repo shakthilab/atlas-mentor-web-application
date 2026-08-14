@@ -13,6 +13,7 @@ import { NotificationService } from '../../../core/services/notification.service
 import { EmployeeService, Employee, Page } from '../../../core/services/employee.service';
 import { EmployeeDetailsDialogComponent } from './employee-details-dialog/employee-details-dialog.component';
 import { AddEmployeeDialogComponent } from './add-employee-dialog/add-employee-dialog.component';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-employees',
@@ -66,7 +67,7 @@ import { AddEmployeeDialogComponent } from './add-employee-dialog/add-employee-d
               <ng-container matColumnDef="role">
                 <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Role</th>
                 <td mat-cell *matCellDef="let element" class="f-w-500 text-dark f-s-13">
-                  {{ element.role?.name || element.role || 'Role ' + element.roleId }}
+                  {{ getRoleDisplayName(element) }}
                 </td>
               </ng-container>
 
@@ -142,7 +143,7 @@ import { AddEmployeeDialogComponent } from './add-employee-dialog/add-employee-d
                   <img [src]="getAvatar(element)" class="rounded-circle m-r-12 object-cover avatar-animated" width="48" height="48" />
                   <div>
                     <h6 class="mat-subtitle-1 f-w-600 m-b-0">{{ element.firstName }} {{ element.lastName }}</h6>
-                    <span class="f-s-13 text-muted">{{ element.role?.name || element.role || 'Role ' + element.roleId }}</span>
+                    <span class="f-s-13 text-muted">{{ getRoleDisplayName(element) }}</span>
                   </div>
                   <div class="m-l-auto">
                     <button mat-icon-button [matMenuTriggerFor]="cardMenu" class="text-muted" (click)="$event.stopPropagation()">
@@ -501,8 +502,16 @@ export class EmployeesComponent implements OnInit, AfterViewInit {
   constructor(
     private notificationService: NotificationService,
     private employeeService: EmployeeService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private authService: AuthService
   ) {}
+
+  getRoleDisplayName(element: any): string {
+    if (!element) return '';
+    const roleObj = element.role;
+    const rawRole = roleObj?.displayName || roleObj?.name || roleObj || ('Role ' + element.roleId);
+    return this.authService.formatRoleName(rawRole);
+  }
 
   ngOnInit(): void {
     this.loadEmployees();

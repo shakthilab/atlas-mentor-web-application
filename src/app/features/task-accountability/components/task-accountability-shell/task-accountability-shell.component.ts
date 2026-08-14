@@ -26,6 +26,7 @@ export class TaskAccountabilityShellComponent implements OnInit, OnDestroy {
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => {
       this.isTreeVisible = false; // Auto-close sidebar on screen navigation/employee selection
+      this.checkAndResetSelections();
     });
   }
 
@@ -34,6 +35,22 @@ export class TaskAccountabilityShellComponent implements OnInit, OnDestroy {
     if (user) {
       this.isAdminOrManager = user.role === 'ADMIN' || user.role === 'MANAGER';
       this.isAdminTreeRole = this.service.isAdminTreeRole(user.role);
+    }
+    this.checkAndResetSelections();
+  }
+
+  private checkAndResetSelections(): void {
+    const currentUrl = this.router.url;
+    const isBaseRoute = currentUrl === '/admin/task-accountability' ||
+                        currentUrl === '/admin/task-accountability/' ||
+                        currentUrl === '/employee/task-accountability' ||
+                        currentUrl === '/employee/task-accountability/' ||
+                        currentUrl === '/manager/task-accountability' ||
+                        currentUrl === '/manager/task-accountability/' ||
+                        currentUrl === '/branch-partner/task-accountability' ||
+                        currentUrl === '/branch-partner/task-accountability/';
+    if (isBaseRoute) {
+      this.service.resetSelections();
     }
   }
 

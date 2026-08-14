@@ -40,8 +40,8 @@ export class AppSideRegisterComponent implements OnInit {
 
   // Step 1 — Account
   step1 = this.fb.group({
-    firstName: ['', [Validators.required, Validators.minLength(2)]],
-    lastName:  ['', [Validators.required, Validators.minLength(2)]],
+    firstName: ['', [Validators.required]],
+    lastName:  ['', [Validators.required]],
     email:     ['', [Validators.required, Validators.email]],
     mobileCountryCodeId: [null as number | null, Validators.required],
     phone:     ['', [Validators.required]],
@@ -225,13 +225,33 @@ export class AppSideRegisterComponent implements OnInit {
   next(): void {
     if (this.currentStep === 1) {
       this.step1.markAllAsTouched();
-      if (this.step1.invalid) return;
+      if (this.step1.invalid) {
+        console.warn('Step 1 form is invalid:', this.getFormValidationErrors(this.step1));
+        return;
+      }
     }
     if (this.currentStep === 2) {
       this.step2.markAllAsTouched();
-      if (this.step2.invalid) return;
+      if (this.step2.invalid) {
+        console.warn('Step 2 form is invalid:', this.getFormValidationErrors(this.step2));
+        return;
+      }
     }
     this.currentStep++;
+  }
+
+  getFormValidationErrors(form: FormGroup): any {
+    const result: any = {};
+    Object.keys(form.controls).forEach(key => {
+      const controlErrors = form.get(key)?.errors;
+      if (controlErrors != null) {
+        result[key] = controlErrors;
+      }
+    });
+    if (form.errors != null) {
+      result['_group'] = form.errors;
+    }
+    return result;
   }
 
   back(): void {

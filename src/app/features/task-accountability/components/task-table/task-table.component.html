@@ -25,6 +25,8 @@
           <th class="col-task-name">TASK</th>
           <th class="col-priority">PRIORITY</th>
           <th class="col-status">STATUS</th>
+          <th class="col-current-step">CURRENT STEP</th>
+          <th class="col-next-step">NEXT STEP</th>
           <th class="col-comment">COMMENT</th>
         </tr>
       </thead>
@@ -32,7 +34,7 @@
         <ng-container *ngIf="currentGroup === 'status'; else flatList">
           <ng-container *ngFor="let group of taskGroups">
             <tr class="status-group-header-row">
-              <td colspan="4">
+              <td colspan="6">
                 <div class="status-group-title">
                   <span class="status-badge" [ngClass]="group.statusClass">{{ group.statusName }}</span>
                   <span class="group-count-tag">{{ group.count }} {{ group.count === 1 ? 'task' : 'tasks' }}</span>
@@ -66,30 +68,75 @@
               <!-- Status Badge (Interactive Dropdown) -->
               <td class="col-status" (click)="$event.stopPropagation()">
                 <button 
+                  class="status-badge-btn readonly-badge" 
+                  *ngIf="isTaskStatusChangeDisabled(task)"
+                  [ngClass]="getStatusColorClass(task.status)"
+                >
+                  <span>{{ formatStatusLabel(task.status, task) }}</span>
+                </button>
+
+                <button 
                   class="status-badge-btn" 
+                  *ngIf="!isTaskStatusChangeDisabled(task)"
                   [matMenuTriggerFor]="groupStatusMenu"
                   [ngClass]="getStatusColorClass(task.status)"
                 >
-                  <span>{{ formatStatusLabel(task.status) }}</span>
+                  <span>{{ formatStatusLabel(task.status, task) }}</span>
                   <i-tabler name="chevron-down" class="icon-12 ml-1"></i-tabler>
                 </button>
 
                 <mat-menu #groupStatusMenu="matMenu" class="status-options-menu">
-                  <button 
-                    mat-menu-item 
-                    *ngFor="let st of statusesList" 
-                    (click)="changeTaskStatus(task, st.value, $event)"
-                  >
-                    <span class="status-badge" [ngClass]="getStatusColorClass(st.value)">{{ st.label }}</span>
-                  </button>
+                  <ng-container *ngIf="isReflectTask(task) && canResubmitTask; else normalGroupMenu">
+                    <button mat-menu-item (click)="resubmitTask(task, $event)">
+                      <i-tabler name="send" class="icon-14 text-primary mr-2"></i-tabler>
+                      <span><strong>Resubmit for review</strong></span>
+                    </button>
+                  </ng-container>
+                  <ng-template #normalGroupMenu>
+                    <button 
+                      mat-menu-item 
+                      *ngFor="let st of statusesList" 
+                      (click)="changeTaskStatus(task, st.value, $event)"
+                    >
+                      <span class="status-badge" [ngClass]="getStatusColorClass(st.value)">{{ st.label }}</span>
+                    </button>
+                  </ng-template>
                 </mat-menu>
+              </td>
+
+              <!-- Current Step -->
+              <td class="col-current-step">
+                <span class="step-badge-tag current-step-tag" *ngIf="task.currentStep">
+                  {{ task.currentStep }}
+                </span>
+                <span class="reflect-pill-tag" *ngIf="!task.currentStep && task.status === 'REFLECT'">
+                  Returned for rework
+                </span>
+                <span class="no-step-text" *ngIf="!task.currentStep && task.status !== 'REFLECT'">—</span>
+              </td>
+
+              <!-- Next Step -->
+              <td class="col-next-step">
+                <span class="step-badge-tag next-step-tag" *ngIf="task.nextStep">
+                  {{ task.nextStep }}
+                </span>
+                <span class="resubmitted-pill-tag" *ngIf="!task.nextStep && task.reflectState === 'RESUBMITTED'">
+                  Awaiting re-review
+                </span>
+                <span class="no-step-text" *ngIf="!task.nextStep && task.reflectState !== 'RESUBMITTED'">—</span>
               </td>
 
               <!-- Comment -->
               <td class="col-comment">
-                <span class="comment-text" [class.no-comment]="!task.latestCommentPreview && (!task.comment || task.comment === '—')">
-                  {{ task.latestCommentPreview || task.comment || '—' }}
-                </span>
+                <div class="comment-cell-container">
+                  <span class="comment-text" [class.no-comment]="!task.latestCommentPreview && (!task.comment || task.comment === '—')">
+                    {{ task.latestCommentPreview || task.comment || '—' }}
+                  </span>
+                  <div class="reflect-reason-note" *ngIf="task.status === 'REFLECT'">
+                    <i-tabler name="alert-circle" class="icon-12 text-warn"></i-tabler>
+                    Flagged by {{ task.reflectFlaggedByName || 'Reviewer' }}: "{{ task.reflectComment || task.comment || 'Needs rework' }}"
+                  </div>
+                </div>
               </td>
             </tr>
           </ng-container>
@@ -123,23 +170,62 @@
             <!-- Status Badge (Interactive Dropdown) -->
             <td class="col-status" (click)="$event.stopPropagation()">
               <button 
+                class="status-badge-btn readonly-badge" 
+                *ngIf="isTaskStatusChangeDisabled(task)"
+                [ngClass]="getStatusColorClass(task.status)"
+              >
+                <span>{{ formatStatusLabel(task.status, task) }}</span>
+              </button>
+
+              <button 
                 class="status-badge-btn" 
+                *ngIf="!isTaskStatusChangeDisabled(task)"
                 [matMenuTriggerFor]="flatStatusMenu"
                 [ngClass]="getStatusColorClass(task.status)"
               >
-                <span>{{ formatStatusLabel(task.status) }}</span>
+                <span>{{ formatStatusLabel(task.status, task) }}</span>
                 <i-tabler name="chevron-down" class="icon-12 ml-1"></i-tabler>
               </button>
 
               <mat-menu #flatStatusMenu="matMenu" class="status-options-menu">
-                <button 
-                  mat-menu-item 
-                  *ngFor="let st of statusesList" 
-                  (click)="changeTaskStatus(task, st.value, $event)"
-                >
-                  <span class="status-badge" [ngClass]="getStatusColorClass(st.value)">{{ st.label }}</span>
-                </button>
+                <ng-container *ngIf="isReflectTask(task) && canResubmitTask; else normalFlatMenu">
+                  <button mat-menu-item (click)="resubmitTask(task, $event)">
+                    <i-tabler name="send" class="icon-14 text-primary mr-2"></i-tabler>
+                    <span><strong>Resubmit for review</strong></span>
+                  </button>
+                </ng-container>
+                <ng-template #normalFlatMenu>
+                  <button 
+                    mat-menu-item 
+                    *ngFor="let st of statusesList" 
+                    (click)="changeTaskStatus(task, st.value, $event)"
+                  >
+                    <span class="status-badge" [ngClass]="getStatusColorClass(st.value)">{{ st.label }}</span>
+                  </button>
+                </ng-template>
               </mat-menu>
+            </td>
+
+            <!-- Current Step -->
+            <td class="col-current-step">
+              <span class="step-badge-tag current-step-tag" *ngIf="task.currentStep">
+                {{ task.currentStep }}
+              </span>
+              <span class="reflect-pill-tag" *ngIf="!task.currentStep && task.status === 'REFLECT'">
+                Returned for rework
+              </span>
+              <span class="no-step-text" *ngIf="!task.currentStep && task.status !== 'REFLECT'">—</span>
+            </td>
+
+            <!-- Next Step -->
+            <td class="col-next-step">
+              <span class="step-badge-tag next-step-tag" *ngIf="task.nextStep">
+                {{ task.nextStep }}
+              </span>
+              <span class="resubmitted-pill-tag" *ngIf="!task.nextStep && task.reflectState === 'RESUBMITTED'">
+                Awaiting re-review
+              </span>
+              <span class="no-step-text" *ngIf="!task.nextStep && task.reflectState !== 'RESUBMITTED'">—</span>
             </td>
 
             <!-- Comment -->
@@ -152,7 +238,7 @@
         </ng-template>
 
         <tr *ngIf="tasks.length === 0">
-          <td colspan="4" class="empty-table-row">
+          <td colspan="6" class="empty-table-row">
             <div class="empty-state-container">
               <i-tabler name="clipboard-off" class="empty-state-icon"></i-tabler>
               <h4 class="empty-state-title">No data found</h4>

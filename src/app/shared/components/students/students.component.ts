@@ -60,9 +60,28 @@ export interface Student {
         </mat-card-header>
         
         <mat-card-content class="p-0">
-          <mat-progress-bar *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>
+          <!-- Loading State -->
+          <div *ngIf="isLoading" class="d-flex justify-content-center align-items-center p-24">
+            <i-tabler name="loader" class="icon-24 spinning text-primary m-r-8"></i-tabler>
+            <span class="f-s-14 text-muted">Loading students...</span>
+          </div>
 
-          <div *ngIf="viewMode === 'table'" class="table-responsive view-container">
+          <!-- Error State -->
+          <div *ngIf="!isLoading && hasError" class="d-flex flex-column justify-content-center align-items-center p-24">
+            <i-tabler name="alert-circle" class="icon-48 text-danger m-b-8"></i-tabler>
+            <h6 class="mat-subtitle-1 m-b-4">Failed to load students</h6>
+            <span class="f-s-14 text-muted m-b-16">There was an error communicating with the server.</span>
+            <button mat-stroked-button color="primary" (click)="loadStudents(0, 10)">Try Again</button>
+          </div>
+
+          <!-- Empty State -->
+          <div *ngIf="!isLoading && !hasError && dataSource.data.length === 0" class="d-flex flex-column justify-content-center align-items-center p-24">
+            <i-tabler name="inbox" class="icon-48 text-muted m-b-8"></i-tabler>
+            <h6 class="mat-subtitle-1 m-b-4">No students found</h6>
+            <span class="f-s-14 text-muted">No registered students found.</span>
+          </div>
+
+          <div *ngIf="!isLoading && !hasError && dataSource.data.length > 0 && viewMode === 'table'" class="table-responsive view-container">
             <table mat-table [dataSource]="dataSource" class="w-100">
               
               <!-- Student Column -->
@@ -185,7 +204,7 @@ export interface Student {
           </div>
 
           <!-- Card View -->
-          <div *ngIf="viewMode === 'card'" class="card-grid view-container p-24">
+          <div *ngIf="!isLoading && !hasError && dataSource.data.length > 0 && viewMode === 'card'" class="card-grid view-container p-24">
             <mat-card *ngFor="let element of dataSource.filteredData" class="student-card cardWithShadow cursor-pointer" (click)="viewProfile(element)">
               <mat-card-content class="p-16">
                 <div class="d-flex align-items-center m-b-16">
@@ -526,6 +545,7 @@ export interface Student {
 export class StudentsComponent implements OnInit, AfterViewInit, OnDestroy {
   viewMode: 'table' | 'card' = 'table';
   isLoading = false;
+  hasError = false;
   totalElements = 0;
 
   displayedColumns: string[] = [
@@ -570,16 +590,19 @@ export class StudentsComponent implements OnInit, AfterViewInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  private loadStudents(page: number, size: number): void {
+  loadStudents(page: number, size: number): void {
     this.isLoading = true;
+    this.hasError = false;
     this.studentService.getRegisteredStudents(page, size).subscribe({
       next: (res) => {
         this.dataSource.data = res.content.map(mapToStudent);
         this.totalElements = res.totalElements;
         this.isLoading = false;
+        this.hasError = false;
       },
       error: () => {
         this.isLoading = false;
+        this.hasError = true;
         this.notificationService.showErrorToast('Failed to load students.', 'Error');
       }
     });

@@ -182,6 +182,17 @@ app-task-accountability-shell {
   transition: all 0.15s ease;
   background: transparent;
 
+  &.readonly-badge {
+    cursor: default !important;
+    pointer-events: none;
+
+    &:hover {
+      filter: none !important;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+  }
+
   &:hover {
     filter: brightness(0.95);
     transform: translateY(-1px);

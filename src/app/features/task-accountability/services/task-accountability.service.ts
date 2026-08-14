@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, of } from 'rxjs';
 import { catchError, tap, map, shareReplay } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { BranchNode, RoleNode, EmployeeNode, YearNode, MonthNode, DayNode, TaskItem, RoleTemplate, TemplateAssignment, TemplateMonth, TemplateDay } from '../interfaces/accountability.interface';
@@ -129,8 +129,15 @@ export class TaskAccountabilityService {
   private selectedTaskSubject = new BehaviorSubject<TaskItem | null>(null);
   public selectedTask$: Observable<TaskItem | null> = this.selectedTaskSubject.asObservable();
 
+  private refreshRequestedSubject = new Subject<void>();
+  public refreshRequested$: Observable<void> = this.refreshRequestedSubject.asObservable();
+
   constructor(private http: HttpClient) {
     // Initial workspace starts with no employee selected (shows welcome greeting view)
+  }
+
+  public triggerRefresh(): void {
+    this.refreshRequestedSubject.next();
   }
 
   public selectBranch(branch: BranchNode | null): void {
@@ -139,6 +146,16 @@ export class TaskAccountabilityService {
 
   public selectRole(role: RoleNode | null): void {
     this.selectedRoleSubject.next(role);
+  }
+
+  public resetSelections(): void {
+    this.selectedBranchSubject.next(null);
+    this.selectedRoleSubject.next(null);
+    this.selectedEmployeeSubject.next(null);
+    this.selectedYearSubject.next(null);
+    this.selectedMonthSubject.next(null);
+    this.selectedDaySubject.next(null);
+    this.selectedTaskSubject.next(null);
   }
 
   public selectEmployee(employee: EmployeeNode | null): void {
@@ -814,7 +831,20 @@ export class TaskAccountabilityService {
     return this.cachedStatuses$;
   }
 
+  public resubmitTaskApi(taskId: string | number, comment?: string): Observable<any> {
+    const body: any = {};
+    if (comment && comment.trim()) {
+      body.comment = comment.trim();
+    }
+    return this.http.post<any>(`${environment.apiUrl}/tasks/${taskId}/resubmit`, body);
+  }
+
   public patchTaskStatusApi(taskId: string | number, status: 'TODO' | 'IN_PROGRESS' | 'DONE' | string): Observable<any> {
+    const day = this.selectedDaySubject.value;
+    const currentTask = day?.tasks?.find(t => String(t.id) === String(taskId));
+    if (currentTask && (currentTask.status === 'REFLECT' || currentTask.status === 'REJECTED')) {
+      return this.resubmitTaskApi(taskId);
+    }
     return this.http.patch<any>(`${environment.apiUrl}/tasks/${taskId}/status`, { status });
   }
 

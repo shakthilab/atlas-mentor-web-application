@@ -83,4 +83,18 @@ export class LeadService {
   deleteLead(id: number): Observable<void> {
     return this.http.delete<void>(`${environment.apiUrl}/students/${id}`);
   }
+
+  importLeadsViaLink(link: string): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/leads/import/link`, { link });
+  }
+
+  importLeadsViaFile(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<any>(`${environment.apiUrl}/leads/import/file`, formData);
+  }
+
+  downloadImportTemplate(): Observable<Blob> {
+    return this.http.get(`${environment.apiUrl}/leads/import/template`, { responseType: 'blob' });
+  }
 }

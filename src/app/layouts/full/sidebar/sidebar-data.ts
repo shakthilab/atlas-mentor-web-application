@@ -39,7 +39,6 @@ export const navItems: NavItem[] = [
   // { displayName: 'nav.tasks', iconName: 'checklist', route: '/employee/tasks', roles: ['EMPLOYEE', 'SENIOR_COUNSELLOR', 'JUNIOR_COUNSELLOR', 'VIDEO_EDITOR', 'WEB_DEV'] },
   { displayName: 'nav.taskAccountability', iconName: 'checkbox', route: '/employee/task-accountability', roles: ['EMPLOYEE', 'SENIOR_COUNSELLOR', 'JUNIOR_COUNSELLOR', 'VIDEO_EDITOR', 'WEB_DEV'] },
   { displayName: 'nav.resources', iconName: 'books', route: '/employee/resources', roles: ['EMPLOYEE', 'SENIOR_COUNSELLOR', 'JUNIOR_COUNSELLOR', 'VIDEO_EDITOR', 'WEB_DEV'] },
-  { navCap: 'nav.account', roles: ['EMPLOYEE', 'SENIOR_COUNSELLOR', 'JUNIOR_COUNSELLOR', 'VIDEO_EDITOR', 'WEB_DEV'] },
   { displayName: 'nav.settings', iconName: 'settings', route: '/employee/settings', roles: ['EMPLOYEE', 'SENIOR_COUNSELLOR', 'JUNIOR_COUNSELLOR', 'VIDEO_EDITOR', 'WEB_DEV'] },
 
   // ── MANAGER ────────────────────────────────────────────────────────────────

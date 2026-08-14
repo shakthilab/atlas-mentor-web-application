@@ -23,7 +23,16 @@
           </span>
           
           <button 
+            class="badge status-badge-btn readonly-badge" 
+            *ngIf="isTaskStatusChangeDisabled(displayTask)"
+            [ngClass]="getStatusColorClass(displayTask.status)"
+          >
+            <span>{{ formatStatusLabel(displayTask.status) }}</span>
+          </button>
+
+          <button 
             class="badge status-badge-btn" 
+            *ngIf="!isTaskStatusChangeDisabled(displayTask)"
             [matMenuTriggerFor]="drawerStatusMenu"
             [ngClass]="getStatusColorClass(displayTask.status)"
           >
@@ -31,14 +40,26 @@
             <i-tabler name="chevron-down" class="icon-12 ml-1"></i-tabler>
           </button>
 
+          <span class="resubmitted-pill-tag ml-1" *ngIf="displayTask.reflectState === 'RESUBMITTED'">
+            Awaiting re-review
+          </span>
+
           <mat-menu #drawerStatusMenu="matMenu" class="status-options-menu">
-            <button 
-              mat-menu-item 
-              *ngFor="let st of statusesList" 
-              (click)="changeTaskStatus(displayTask, st.value, $event)"
-            >
-              <span class="status-badge" [ngClass]="getStatusColorClass(st.value)">{{ st.label }}</span>
-            </button>
+            <ng-container *ngIf="isReflectTask(displayTask) && canResubmitTask; else normalDrawerStatusMenu">
+              <button mat-menu-item (click)="resubmitTask(displayTask)">
+                <i-tabler name="send" class="icon-14 text-primary mr-2"></i-tabler>
+                <span><strong>Resubmit for review</strong></span>
+              </button>
+            </ng-container>
+            <ng-template #normalDrawerStatusMenu>
+              <button 
+                mat-menu-item 
+                *ngFor="let st of statusesList" 
+                (click)="changeTaskStatus(displayTask, st.value, $event)"
+              >
+                <span class="status-badge" [ngClass]="getStatusColorClass(st.value)">{{ st.label }}</span>
+              </button>
+            </ng-template>
           </mat-menu>
         </div>
       </div>
@@ -49,6 +70,21 @@
 
     <!-- Scrollable Content -->
     <div class="drawer-body">
+      <!-- Reflect / Rework Flagged Banner -->
+      <div class="reflect-rework-banner" *ngIf="isReflectTask(displayTask)">
+        <div class="banner-header">
+          <i-tabler name="alert-circle" class="banner-icon"></i-tabler>
+          <span>Returned for Rework by <strong>{{ displayTask.reflectFlaggedByName || 'Reviewer' }}</strong></span>
+        </div>
+        <div class="banner-reason-text" *ngIf="displayTask.reflectComment || displayTask.comment">
+          {{ displayTask.reflectComment || displayTask.comment }}
+        </div>
+        <button class="btn-resubmit-now" *ngIf="canResubmitTask" (click)="resubmitTask(displayTask)">
+          <i-tabler name="send" class="btn-icon"></i-tabler>
+          Resubmit for Review
+        </button>
+      </div>
+
       <!-- Description -->
       <div class="section-container description-section">
         <h3>DESCRIPTION</h3>
@@ -105,36 +141,36 @@
 
       <!-- Tab Content: Comments -->
       <div class="tab-panel-content" *ngIf="activeTab === 'comments'">
-        <div class="comments-list">
-          <div class="comment-group" *ngFor="let comment of displayTask.comments">
-            <div class="comment-item">
-              <span class="avatar-circle comment-avatar blue">
-                {{ (comment.authorName || 'User').substring(0,2).toUpperCase() }}
-              </span>
-              <div class="comment-content-bubble">
-                <div class="comment-header-row">
-                  <span class="author-name">{{ comment.authorName }}</span>
-                  <span class="comment-time">{{ comment.timestamp }}</span>
-                </div>
-                <p class="comment-body-text">{{ comment.text }}</p>
-              </div>
+        <div class="chat-messages-container" #chatContainer>
+          <div class="chat-date-group" *ngFor="let group of groupedComments">
+            <div class="chat-date-divider">
+              <span>{{ group.dateLabel }}</span>
             </div>
 
-            <!-- Nested Replies -->
-            <div class="nested-replies-list" *ngIf="comment.replies && comment.replies.length > 0">
-              <div class="comment-item reply-item" *ngFor="let reply of comment.replies">
-                <span class="avatar-circle comment-avatar green">
-                  {{ (reply.authorName || 'User').substring(0,2).toUpperCase() }}
-                </span>
-                <div class="comment-content-bubble">
-                  <div class="comment-header-row">
-                    <span class="author-name">{{ reply.authorName }}</span>
-                    <span class="comment-time">{{ reply.timestamp }}</span>
-                  </div>
-                  <p class="comment-body-text">{{ reply.text }}</p>
+            <div 
+              class="chat-bubble-row" 
+              *ngFor="let comment of group.comments"
+              [class.my-message]="isMyComment(comment)"
+              [class.other-message]="!isMyComment(comment)"
+            >
+              <span class="avatar-circle comment-avatar blue" *ngIf="!isMyComment(comment)">
+                {{ (comment.authorName || 'User').substring(0,2).toUpperCase() }}
+              </span>
+
+              <div class="comment-content-bubble">
+                <div class="comment-header-row" *ngIf="!isMyComment(comment)">
+                  <span class="author-name">{{ comment.authorName }}</span>
+                </div>
+                <p class="comment-body-text">{{ comment.text }}</p>
+                <div class="comment-time-row">
+                  <span class="comment-time">{{ comment.timestamp }}</span>
                 </div>
               </div>
             </div>
+          </div>
+
+          <div class="empty-comments-note" *ngIf="!displayTask.comments || displayTask.comments.length === 0">
+            No comments yet. Start the conversation!
           </div>
         </div>
 
@@ -195,8 +231,8 @@
       <div class="footer-section review-actions" *ngIf="canShowReviewActions">
         <span class="footer-lbl">{{ getReviewStageLabel() }}</span>
         <div class="btn-group">
-          <button class="btn-approve" (click)="approveTask()">Approve</button>
-          <button class="btn-reject" (click)="rejectTask()">Send back</button>
+          <button class="btn-approve" [disabled]="!canCurrentUserAct" (click)="approveTask()">Approve</button>
+          <button class="btn-reject" [disabled]="!canCurrentUserAct" (click)="rejectTask()">Send back</button>
         </div>
       </div>
     </div>

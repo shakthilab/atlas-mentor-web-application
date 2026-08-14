@@ -16,6 +16,9 @@ const PUBLIC_ENDPOINTS = [
   '/api/students/register',
   '/api/auth/refresh',
   '/api/auth/logout',
+  '/api/mobile-country-codes',
+  '/api/countries',
+  '/api/universities',
 ];
 
 @Injectable()

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, HostListener, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, ElementRef, ViewChild } from '@angular/core';
 import { TaskAccountabilityService } from '../../services/task-accountability.service';
 import { TaskItem } from '../../interfaces/accountability.interface';
 import { Subscription } from 'rxjs';
@@ -13,6 +13,8 @@ import { SendBackReasonDialogComponent } from '../send-back-reason-dialog/send-b
   styleUrls: ['./task-details-drawer.component.scss']
 })
 export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
+  @ViewChild('chatContainer') chatContainer?: ElementRef;
+
   task: TaskItem | null = null;
   newCommentText = '';
   activeTab: 'comments' | 'activity' = 'comments';
@@ -82,6 +84,14 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
     return status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   }
 
+  get canCurrentUserAct(): boolean {
+    const currentDay = this.service.selectedDayValue;
+    if (currentDay && typeof (currentDay as any).canCurrentUserAct === 'boolean') {
+      return (currentDay as any).canCurrentUserAct;
+    }
+    return true;
+  }
+
   get canShowReviewActions(): boolean {
     const user = this.authService.currentUserValue;
     if (!user || !user.role) return false;
@@ -99,7 +109,7 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
 
   getReviewStageLabel(): string {
     const user = this.authService.currentUserValue;
-    if (!user || !user.role) return 'MANAGER REVIEW';
+    if (!user || !user.role) return 'REVIEW';
 
     const role = user.role.toUpperCase().trim();
     switch (role) {
@@ -112,7 +122,7 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
       case 'ADMINISTRATIVE_ASSISTANT':
         return 'ADMINISTRATIVE ASSISTANT REVIEW';
       default:
-        return 'MANAGER REVIEW';
+        return 'REVIEW';
     }
   }
 
@@ -231,6 +241,79 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
     this.loadActivityLogs(taskId);
   }
 
+  scrollToBottom(): void {
+    try {
+      if (this.chatContainer && this.chatContainer.nativeElement) {
+        this.chatContainer.nativeElement.scrollTop = this.chatContainer.nativeElement.scrollHeight;
+      }
+    } catch (err) {}
+  }
+
+  isMyComment(comment: any): boolean {
+    if (!comment) return false;
+    const user: any = this.authService.currentUserValue;
+    if (!user) return false;
+
+    const currentUserId = user.userId || user.id;
+    if (comment.commentedByUserId && currentUserId) {
+      return String(comment.commentedByUserId) === String(currentUserId);
+    }
+
+    if (comment.authorName && user.name) {
+      const author = comment.authorName.toLowerCase().trim();
+      const userName = user.name.toLowerCase().trim();
+      if (author === userName) return true;
+      if (userName.includes('admin') && author.includes('admin')) return true;
+      if (userName.includes('manager') && author.includes('manager')) return true;
+    }
+    return false;
+  }
+
+  formatDateDivider(rawDate?: Date | string | null): string {
+    if (!rawDate) return 'Today';
+    const d = new Date(rawDate);
+    if (isNaN(d.getTime())) return 'Today';
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const targetDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+    if (targetDate.getTime() === today.getTime()) {
+      return 'Today';
+    } else if (targetDate.getTime() === yesterday.getTime()) {
+      return 'Yesterday';
+    } else {
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+  }
+
+  get groupedComments(): { dateLabel: string; comments: any[] }[] {
+    if (!this.displayTask || !this.displayTask.comments || this.displayTask.comments.length === 0) return [];
+
+    const sorted = [...this.displayTask.comments].sort((a: any, b: any) => {
+      const timeA = a.createdAtDate ? a.createdAtDate.getTime() : (a.id ? Number(a.id) || 0 : 0);
+      const timeB = b.createdAtDate ? b.createdAtDate.getTime() : (b.id ? Number(b.id) || 0 : 0);
+      return timeA - timeB;
+    });
+
+    const groups: { dateLabel: string; comments: any[] }[] = [];
+    let currentGroup: { dateLabel: string; comments: any[] } | null = null;
+
+    for (const c of sorted) {
+      const label = this.formatDateDivider(c.createdAtRaw || c.createdAtDate);
+      if (!currentGroup || currentGroup.dateLabel !== label) {
+        currentGroup = { dateLabel: label, comments: [] };
+        groups.push(currentGroup);
+      }
+      currentGroup.comments.push(c);
+    }
+
+    return groups;
+  }
+
   loadComments(taskId: string | number): void {
     this.service.getTaskCommentsApi(taskId).subscribe({
       next: (res) => {
@@ -238,20 +321,23 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
           const rawComments = res.data || [];
           this.task.comments = rawComments.map((c: any) => ({
             id: c.id.toString(),
-            authorName: c.commentedByName || 'User',
-            authorRole: c.commentedByRole || '',
-            text: c.comment,
-            timestamp: c.createdAt ? new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now',
-            parentCommentId: c.parentCommentId,
-            replies: (c.replies || []).map((r: any) => ({
-              id: r.id.toString(),
-              authorName: r.commentedByName || 'User',
-              authorRole: r.commentedByRole || '',
-              text: r.comment,
-              timestamp: r.createdAt ? new Date(r.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now',
-              parentCommentId: r.parentCommentId
-            }))
+            authorName: c.commentedByName || c.authorName || 'User',
+            authorRole: c.commentedByRole || c.authorRole || '',
+            commentedByUserId: c.commentedByUserId || c.userId || null,
+            text: c.comment || c.text || '',
+            createdAtRaw: c.createdAt || c.timestamp || null,
+            createdAtDate: c.createdAt ? new Date(c.createdAt) : new Date(),
+            timestamp: c.createdAt ? new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now'
           }));
+
+          // Sort chronologically (oldest at top, newest at bottom)
+          this.task.comments.sort((a: any, b: any) => {
+            const timeA = a.createdAtDate ? a.createdAtDate.getTime() : 0;
+            const timeB = b.createdAtDate ? b.createdAtDate.getTime() : 0;
+            return timeA - timeB;
+          });
+
+          setTimeout(() => this.scrollToBottom(), 100);
         }
       },
       error: (err) => {
@@ -334,11 +420,13 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
           this.loadComments(this.task.id);
           this.loadActivityLogs(this.task.id);
         }
+        this.service.triggerRefresh();
       });
     } else {
       this.service.addComment(this.task.id, text);
       this.newCommentText = '';
       this.replyingToComment = null;
+      this.service.triggerRefresh();
     }
   }
 
@@ -358,6 +446,7 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
           this.loadAttachments(this.task.id);
           this.loadActivityLogs(this.task.id);
         }
+        this.service.triggerRefresh();
       });
     } else {
       const sizeStr = `${Math.round(file.size / 1024)} KB`;
@@ -366,7 +455,55 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
         name: file.name,
         size: sizeStr
       });
+      this.service.triggerRefresh();
     }
+  }
+
+  get isReviewerRole(): boolean {
+    const user = this.authService.currentUserValue;
+    if (!user || !user.role) return false;
+    const r = user.role.toUpperCase().trim();
+    return ['ADMIN', 'MANAGER', 'BRANCH_PARTNER', 'ADMINISTRATIVE_ASSISTANT'].includes(r);
+  }
+
+  isTaskStatusChangeDisabled(task?: TaskItem | null): boolean {
+    if (!task) return false;
+    const currentStepLower = (task.currentStep || '').toLowerCase();
+    const statusLower = (task.status || '').toLowerCase();
+    return currentStepLower.includes('verified') || 
+           statusLower === 'verified' || 
+           statusLower === 'closed';
+  }
+
+  get canResubmitTask(): boolean {
+    return !this.isReviewerRole;
+  }
+
+  isReflectTask(task?: TaskItem | null): boolean {
+    if (!task || !task.status) return false;
+    const s = task.status.toUpperCase().trim();
+    return s === 'REFLECT' || s === 'REJECTED';
+  }
+
+  resubmitTask(task?: TaskItem | null): void {
+    const target = task || this.task;
+    if (!target || !target.id) return;
+
+    this.service.resubmitTaskApi(target.id).subscribe({
+      next: (res) => {
+        const updatedStatus = res?.data?.status || 'DONE';
+        target.status = updatedStatus;
+        target.reflectState = 'RESUBMITTED';
+        this.service.updateTaskStatus(target.id, updatedStatus);
+        if (target.id) {
+          this.loadActivityLogs(target.id);
+        }
+        this.service.triggerRefresh();
+      },
+      error: (err) => {
+        console.error('Error resubmitting task from drawer:', err);
+      }
+    });
   }
 
   changeTaskStatus(taskOrStatus: TaskItem | string, newStatusStr?: string, event?: MouseEvent): void {
@@ -384,9 +521,15 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
 
     if (!targetTask || !newStatus || targetTask.status === newStatus) return;
 
+    if (this.isReflectTask(targetTask)) {
+      this.resubmitTask(targetTask);
+      return;
+    }
+
     // Optimistically update
     targetTask.status = newStatus;
     this.service.updateTaskStatus(targetTask.id, newStatus);
+    this.service.triggerRefresh();
 
     if (targetTask.id && !targetTask.id.startsWith('demo-') && !targetTask.id.startsWith('tt-')) {
       this.service.patchTaskStatusApi(targetTask.id, newStatus).subscribe({
@@ -394,6 +537,7 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
           if (targetTask) {
             this.loadActivityLogs(targetTask.id);
           }
+          this.service.triggerRefresh();
         },
         error: (err) => {
           console.error('Error patching task status from drawer:', err);
@@ -417,6 +561,7 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
             this.task.status = 'DONE';
             this.loadActivityLogs(this.task.id);
           }
+          this.service.triggerRefresh();
         },
         error: (err) => {
           console.error('Per-task approval API error:', err);
@@ -453,9 +598,18 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
               console.log('Single task sent back successfully:', res);
               if (this.task) {
                 this.task.status = 'REFLECT';
+                this.task.reflectComment = commentText;
+                this.task.reflectFlaggedByName = this.authService.currentUserValue?.name || 'Reviewer';
                 this.service.updateTaskStatus(this.task.id, 'REFLECT');
+
+                // The SEND_BACK call above already persists `commentText` as a task comment
+                // server-side (DayApprovalService#sendBackTasks) - posting it again here via
+                // addTaskCommentApi duplicated every send-back comment. Just refresh from what
+                // the backend already saved.
+                this.loadComments(this.task.id);
                 this.loadActivityLogs(this.task.id);
               }
+              this.service.triggerRefresh();
             },
             error: (err) => {
               console.error('Error sending back single task:', err);
