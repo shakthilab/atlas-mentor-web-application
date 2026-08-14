@@ -97,4 +97,8 @@ export class LeadService {
   downloadImportTemplate(): Observable<Blob> {
     return this.http.get(`${environment.apiUrl}/leads/import/template`, { responseType: 'blob' });
   }
+
+  getStudentStatuses(): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/students/statuses`);
+  }
 }

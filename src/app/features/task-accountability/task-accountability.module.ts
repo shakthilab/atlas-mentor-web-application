@@ -9,6 +9,8 @@ import { RoleTemplatesComponent } from './pages/role-templates/role-templates.co
 import { TemplateAssignmentComponent } from './pages/template-assignment/template-assignment.component';
 import { WeeklyAccountabilityComponent } from './pages/weekly-accountability/weekly-accountability.component';
 import { ReportsComponent } from './pages/reports/reports.component';
+import { WeeklyTemplatesComponent } from './pages/weekly-templates/weekly-templates.component';
+import { WeeklyTemplateEditDialogComponent } from './pages/weekly-templates/weekly-template-edit-dialog.component';
 
 // Components
 import { EmployeeTreeComponent } from './components/employee-tree/employee-tree.component';
@@ -32,7 +34,9 @@ import { SendBackReasonDialogComponent } from './components/send-back-reason-dia
     TaskDetailsDrawerComponent,
     TaskAccountabilityShellComponent,
     TaskCreateDrawerComponent,
-    SendBackReasonDialogComponent
+    SendBackReasonDialogComponent,
+    WeeklyTemplatesComponent,
+    WeeklyTemplateEditDialogComponent
   ],
   imports: [
     SharedModule,

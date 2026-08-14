@@ -28,6 +28,7 @@ export interface Student {
   joinedDate: string;
   rawStatus?: string;
   isActive?: boolean;
+  source?: string;
 }
 
 @Component({
@@ -114,6 +115,14 @@ export interface Student {
                   <span class="status-badge" [ngClass]="element.status">
                     {{ element.status === 'enrolled' ? 'Enrolled' : element.status === 'pending' ? 'Pending' : 'Completed' }}
                   </span>
+                </td>
+              </ng-container>
+
+              <!-- Source Column -->
+              <ng-container matColumnDef="source">
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Source</th>
+                <td mat-cell *matCellDef="let element">
+                  <span class="f-w-600 text-dark f-s-13">{{ element.source || '—' }}</span>
                 </td>
               </ng-container>
 
@@ -267,9 +276,12 @@ export interface Student {
                 </div>
                 
                 <mat-divider class="m-b-12"></mat-divider>
-                <div class="d-flex align-items-center justify-content-between text-muted f-s-12">
+                <div class="d-flex align-items-center justify-content-between text-muted f-s-12 m-b-8">
                   <span class="d-flex align-items-center"><i-tabler name="map-pin" class="icon-14 m-r-4"></i-tabler> {{ element.country }}</span>
                   <span class="d-flex align-items-center"><i-tabler name="calendar" class="icon-14 m-r-4"></i-tabler> {{ element.joinedDate }}</span>
+                </div>
+                <div class="d-flex align-items-center text-muted f-s-12">
+                  <span class="d-flex align-items-center"><i-tabler name="world" class="icon-14 m-r-4"></i-tabler> Source: {{ element.source || '—' }}</span>
                 </div>
               </mat-card-content>
             </mat-card>
@@ -552,6 +564,7 @@ export class StudentsComponent implements OnInit, AfterViewInit, OnDestroy {
     'student',
     'contactInfo',
     'status',
+    'source',
     'activeStatus',
     'counsellor',
     'addedBy',
@@ -643,8 +656,17 @@ export class StudentsComponent implements OnInit, AfterViewInit, OnDestroy {
 
         dialogRef.afterClosed().subscribe(result => {
           if (result) {
-            this.notificationService.showSuccessToast(`Profile updates saved for ${student.name}.`, 'Changes Saved');
-            this.loadStudents(this.paginator?.pageIndex || 0, this.paginator?.pageSize || 10);
+            this.leadService.updateLead(student.id!, result).subscribe({
+              next: () => {
+                this.notificationService.showSuccessToast(`Profile updates saved for ${student.name}.`, 'Changes Saved');
+                this.loadStudents(this.paginator?.pageIndex || 0, this.paginator?.pageSize || 10);
+              },
+              error: (err) => {
+                console.error('Failed to update student profile:', err);
+                const errorMessage = err.error?.message || err.message || 'Failed to save student profile updates.';
+                this.notificationService.showErrorPopup(errorMessage, 'Update Failed', 'Close').subscribe();
+              }
+            });
           }
         });
       },
@@ -717,6 +739,7 @@ function mapToStudent(dto: RegisteredStudentDto): Student {
     joinedDate,
     rawStatus: dto.status,
     isActive: dto.isActive,
+    source: dto.source || '—',
   };
 }
 

@@ -903,4 +903,56 @@ export class TaskAccountabilityService {
   public getMyDayDetailApi(date: string): Observable<any> {
     return this.http.get<any>(`${environment.apiUrl}/my/days/${date}`);
   }
+
+  // --- Weekly Accountability APIs ---
+
+  // Employee Check-in (Part 1)
+  public getMyWeeklyTemplate(): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/weekly-accountability/my-template`);
+  }
+
+  public getMyWeeklyResponses(checkpointDate: string): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/weekly-accountability/responses`, {
+      params: { checkpointDate }
+    });
+  }
+
+  public submitMyWeeklyResponses(payload: { checkpointDate: string; answers: { questionId: number; answerText: string }[] }): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/weekly-accountability/responses`, payload);
+  }
+
+  // Reviewer (Part 2)
+  public getEmployeeWeeklyResponses(employeeId: string | number, checkpointDate: string): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/admin/weekly-accountability/responses`, {
+      params: { employeeId: String(employeeId), checkpointDate }
+    });
+  }
+
+  // Admin Weekly Templates Management (Part 3)
+  public getWeeklyTemplates(roleId?: number | string | null, status?: string | null): Observable<any> {
+    const params: any = {};
+    if (roleId) params.roleId = String(roleId);
+    if (status) params.status = status;
+    return this.http.get<any>(`${environment.apiUrl}/weekly-accountability-templates`, { params });
+  }
+
+  public getWeeklyTemplate(id: number | string): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/weekly-accountability-templates/${id}`);
+  }
+
+  public createWeeklyTemplate(payload: { name: string; roleId: number; questions: { questionText: string; displayOrder: number }[] }): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/weekly-accountability-templates`, payload);
+  }
+
+  public updateWeeklyTemplate(id: number | string, payload: { name: string; roleId: number; questions: { id?: number; questionText: string; displayOrder: number }[] }): Observable<any> {
+    return this.http.put<any>(`${environment.apiUrl}/weekly-accountability-templates/${id}`, payload);
+  }
+
+  public publishWeeklyTemplate(id: number | string): Observable<any> {
+    return this.http.patch<any>(`${environment.apiUrl}/weekly-accountability-templates/${id}/publish`, {});
+  }
+
+  public deleteWeeklyTemplate(id: number | string): Observable<any> {
+    return this.http.delete<any>(`${environment.apiUrl}/weekly-accountability-templates/${id}`);
+  }
 }

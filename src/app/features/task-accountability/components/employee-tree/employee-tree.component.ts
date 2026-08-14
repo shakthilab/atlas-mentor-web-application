@@ -287,7 +287,8 @@ export class EmployeeTreeComponent implements OnInit, OnDestroy {
     const rolePrefix = user ? this.authService.getRoleRoute(user.role as any) : '/admin';
 
     if (day.isWeekly) {
-      this.router.navigate([`${rolePrefix}/task-accountability/weekly`]);
+      // Temporarily disabled weekly accountability page redirect
+      // this.router.navigate([`${rolePrefix}/task-accountability/weekly`]);
     } else {
       this.router.navigate([`${rolePrefix}/task-accountability/daily`]);
     }

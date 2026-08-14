@@ -23,6 +23,7 @@ export interface RegisteredStudentDto {
   createdAt?: string;
   createdByName?: string;
   assignedByName?: string | null;
+  source?: string | null;
 }
 
 export interface Payout {

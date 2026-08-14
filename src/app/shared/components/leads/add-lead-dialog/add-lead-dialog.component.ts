@@ -169,6 +169,25 @@ import { AuthService } from '../../../../core/services/auth.service';
                 </mat-select>
               </mat-form-field>
             </div>
+
+            <div class="m-b-16">
+              <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block">Lead Source</mat-label>
+              <mat-form-field appearance="outline" class="w-100" subscriptSizing="dynamic">
+                <mat-select formControlName="leadSourceSelect" placeholder="Select Lead Source" (selectionChange)="onLeadSourceChange($event.value)">
+                  <mat-option *ngFor="let source of leadSources" [value]="source.enum">{{ source.displayName }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+
+            <div class="m-b-16" *ngIf="onboardingForm.get('personalInfo.leadSourceSelect')?.value === 'PERSON' || onboardingForm.get('personalInfo.leadSourceSelect')?.value === 'OTHER'">
+              <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block">
+                {{ onboardingForm.get('personalInfo.leadSourceSelect')?.value === 'PERSON' ? 'Person Referral Name' : 'Specify Other Source' }} <span class="text-danger">*</span>
+              </mat-label>
+              <mat-form-field appearance="outline" class="w-100" subscriptSizing="dynamic">
+                <input matInput formControlName="sourceCustomText" [placeholder]="onboardingForm.get('personalInfo.leadSourceSelect')?.value === 'PERSON' ? 'Enter referrer name' : 'Enter source details'">
+                <mat-error *ngIf="onboardingForm.get('personalInfo.sourceCustomText')?.invalid">This field is required</mat-error>
+              </mat-form-field>
+            </div>
           </ng-container>
 
           <!-- STEP 2: Destination Details -->
@@ -646,7 +665,9 @@ export class AddLeadDialogComponent implements OnInit {
         phone: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
         email: ['', [Validators.email]],
         branchId: ['', Validators.required],
-        counsellor: ['']
+        counsellor: [''],
+        leadSourceSelect: [''],
+        sourceCustomText: ['']
       }),
       destinationDetails: this.fb.group({
         countryId: [''],
@@ -674,6 +695,7 @@ export class AddLeadDialogComponent implements OnInit {
     this.loadMCC();
     this.loadBranches();
     this.loadCountries();
+    this.loadLeadSources();
 
     if (this.data) {
       this.isEditMode = true;
@@ -942,9 +964,81 @@ export class AddLeadDialogComponent implements OnInit {
     if (this.currentStep > 1) this.currentStep--;
   }
 
+  leadSources: any[] = [];
+
+  loadLeadSources(): void {
+    this.masterData.getLeadSources().subscribe({
+      next: (res) => {
+        if (res && res.success) {
+          this.leadSources = res.data || [];
+          
+          // If in edit mode, auto-populate source now that list is loaded
+          if (this.isEditMode && this.data && this.data.source) {
+            const sourceVal = this.data.source.trim();
+            const matchedSource = this.leadSources.find(s => 
+              s.displayName.toLowerCase() === sourceVal.toLowerCase() ||
+              s.enum.toLowerCase() === sourceVal.toLowerCase()
+            );
+            
+            if (matchedSource && !['PERSON', 'OTHER'].includes(matchedSource.enum)) {
+              this.onboardingForm.patchValue({
+                personalInfo: {
+                  leadSourceSelect: matchedSource.enum,
+                  sourceCustomText: ''
+                }
+              });
+              this.onLeadSourceChange(matchedSource.enum);
+            } else {
+              this.onboardingForm.patchValue({
+                personalInfo: {
+                  leadSourceSelect: 'OTHER',
+                  sourceCustomText: sourceVal
+                }
+              });
+              this.onLeadSourceChange('OTHER');
+            }
+          }
+        }
+      },
+      error: (err) => {
+        console.error('Failed to load lead sources:', err);
+      }
+    });
+  }
+
+  onLeadSourceChange(value: string): void {
+    const customCtrl = this.onboardingForm.get('personalInfo.sourceCustomText');
+    if (value === 'PERSON' || value === 'OTHER') {
+      customCtrl?.setValidators([Validators.required]);
+    } else {
+      customCtrl?.clearValidators();
+      customCtrl?.setValue('');
+    }
+    customCtrl?.updateValueAndValidity();
+  }
+
   submit(): void {
     if (this.onboardingForm.valid) {
-      this.dialogRef.close(this.onboardingForm.getRawValue());
+      const raw = this.onboardingForm.getRawValue();
+      const sourceSelect = raw.personalInfo.leadSourceSelect;
+      const customText = raw.personalInfo.sourceCustomText;
+      let finalSource = '';
+      
+      if (sourceSelect === 'PERSON' || sourceSelect === 'OTHER') {
+        finalSource = customText;
+      } else if (sourceSelect) {
+        const matched = this.leadSources.find(s => s.enum === sourceSelect);
+        finalSource = matched ? matched.displayName : sourceSelect;
+      }
+      
+      // Inject source into both personalInfo and root levels for safety
+      raw.personalInfo.source = finalSource;
+      raw.source = finalSource;
+      
+      delete raw.personalInfo.leadSourceSelect;
+      delete raw.personalInfo.sourceCustomText;
+      
+      this.dialogRef.close(raw);
     }
   }
 
