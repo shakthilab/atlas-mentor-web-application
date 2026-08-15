@@ -1,6 +1,7 @@
 :host {
   display: block;
   width: 100%;
+  margin-bottom: 24px;
 }
 
 .workflow-container {
@@ -9,6 +10,7 @@
   border-radius: 12px;
   padding: 24px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  margin-bottom: 24px;
 }
 
 .workflow-title-row {
@@ -31,7 +33,7 @@
     font-weight: 500;
 
     .status-name {
-      color: #2563eb;
+      color: #2D2E32;
       font-weight: 700;
     }
   }
@@ -56,7 +58,7 @@
   border-radius: 20px;
   font-size: 12px;
   font-weight: 600;
-  cursor: pointer;
+  cursor: default;
   transition: all 0.2s ease;
   user-select: none;
   border: 1px solid transparent;
@@ -102,19 +104,19 @@
 
 /* Active Step */
 .step-active {
-  background-color: #2563eb;
-  border: 1px solid #2563eb;
+  background-color: #2D2E32;
+  border: 1px solid #2D2E32;
   color: #ffffff;
-  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 2px 6px rgba(45, 46, 50, 0.2);
 
   .step-indicator-circle.number {
-    background-color: #1d4ed8;
+    background-color: #1d1e21;
     color: #ffffff;
   }
 
   &:hover {
-    background-color: #1d4ed8;
-    border-color: #1d4ed8;
+    background-color: #1d1e21;
+    border-color: #1d1e21;
   }
 }
 
@@ -146,6 +148,35 @@
 
   &.completed {
     background-color: #22c55e;
+  }
+}
+
+@media (max-width: 768px) {
+  .workflow-container {
+    padding: 14px 16px;
+  }
+
+  .workflow-title-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    margin-bottom: 12px;
+  }
+
+  .workflow-steps {
+    overflow-x: auto;
+    white-space: nowrap;
+    flex-wrap: nowrap;
+    padding-bottom: 6px;
+    -webkit-overflow-scrolling: touch;
+
+    &::-webkit-scrollbar {
+      height: 3px;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
   }
 }
 

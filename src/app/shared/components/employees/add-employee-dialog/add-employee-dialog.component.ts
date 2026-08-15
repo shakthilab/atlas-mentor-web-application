@@ -11,6 +11,7 @@ import { TablerIconsModule } from 'angular-tabler-icons';
 import { MasterDataService, Role, Branch, MobileCountryCode } from '../../../../core/services/master-data.service';
 import { EmployeeService } from '../../../../core/services/employee.service';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-add-employee-dialog',
@@ -118,7 +119,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
               <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100 theme-input">
                 <mat-select formControlName="roleId" placeholder="Select Role">
                   <mat-option *ngFor="let role of roles" [value]="role.id">
-                    {{ role.name }}
+                    {{ getRoleDisplayName(role) }}
                   </mat-option>
                 </mat-select>
                 <mat-error *ngIf="employeeForm.get('roleId')?.hasError('required')">Role is required</mat-error>
@@ -280,7 +281,8 @@ export class AddEmployeeDialogComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: any,
     private masterDataService: MasterDataService,
     private employeeService: EmployeeService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private authService: AuthService
   ) {
     this.employeeForm = this.fb.group({
       firstName: ['', Validators.required],
@@ -453,5 +455,10 @@ export class AddEmployeeDialogComponent implements OnInit {
         }
       });
     }
+  }
+
+  getRoleDisplayName(role: Role): string {
+    if (!role) return '';
+    return role.displayName || this.authService.formatRoleName(role.name);
   }
 }

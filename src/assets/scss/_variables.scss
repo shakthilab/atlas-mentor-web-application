@@ -5,11 +5,11 @@ $font-family: 'Inter', sans-serif;
 
 // light color variable
 $sidebarbg: white;
-$background: white;
+$background: #FBFBFC;
 $cardbg: white;
 $toolbar: white;
-$cardshadow: rgb(145 158 171 / 30%) 0px 0px 2px 0px, rgb(145 158 171 / 12%) 0px 12px 24px -4px;
-$hoverBgColor: #f6f9fc;
+$cardshadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+$hoverBgColor: #f8fafc;
 
 // Dark color variable
 $darksidebarbg: #121214;
@@ -33,23 +33,23 @@ $header-height: 70px !default;
 
 
 //BorderColor
-$borderColor: #e5eaef;
-$borderformColor: #dfe5ef;
+$borderColor: #e2e8f0;
+$borderformColor: #cbd5e1;
 
 // custom
-$primary: #5d87ff;
-$accent: #49beff;
+$primary: #2D2E32;
+$accent: #64748B;
 $warning: #ffae1f;
 $error: #fa896b;
 $success: #13deb9;
 $white: #ffffff;
 
-$light: #f2f6fa;
+$light: #FBFBFC;
 
-$gray-100:  #7c8fac;
+$gray-100:  #64748b;
 
-$light-primary: #ecf2ff;
-$light-accent: #e8f7ff;
+$light-primary: #f1f5f9;
+$light-accent: #FBFBFC;
 $light-warning: #fef5e5;
 $light-error: #fdede8;
 $light-success: #e6fffa;
@@ -57,7 +57,7 @@ $light-success: #e6fffa;
 // layout
 $boxedWidth: 1200px;
 
-$border-radius: 7px;
+$border-radius: 8px;
 
 // text color
-$textPrimary: #2a3547;
+$textPrimary: #2D2E32;

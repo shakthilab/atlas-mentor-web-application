@@ -1,116 +1,155 @@
 <div class="weekly-workspace">
   <!-- Center Content Panel -->
   <div class="weekly-content-panel">
-    <!-- Breadcrumbs & Meta -->
-    <div class="meta-breadcrumbs m-b-8">
+    
+    <!-- Meta Breadcrumbs -->
+    <div class="meta-breadcrumbs m-b-16" *ngIf="selectedEmployee || !isAdminTreeRole">
       <span>Accountability</span>
       <span class="separator">/</span>
-      <span>{{ selectedBranchName }}</span>
-      <span class="separator">/</span>
-      <span>{{ selectedEmployee?.name }}</span>
-      <span class="separator">/</span>
+      <span *ngIf="isAdminTreeRole && selectedBranch">{{ selectedBranch.name }}</span>
+      <span class="separator" *ngIf="isAdminTreeRole && selectedBranch">/</span>
+      <span *ngIf="isAdminTreeRole">{{ selectedEmployee?.name }}</span>
+      <span class="separator" *ngIf="isAdminTreeRole">/</span>
       <span class="current">Weekly Accountability</span>
     </div>
 
-    <!-- Header Actions Row -->
-    <div class="weekly-header-row m-b-24" *ngIf="selectedEmployee">
+    <!-- 1. Reviewer Dashboard Header (When Employee Selected) -->
+    <div class="weekly-header-row m-b-24" *ngIf="isAdminTreeRole && selectedEmployee">
       <div class="emp-profile-info">
-        <div class="avatar" [style.background-color]="selectedEmployee.id === 'emp-rohith' ? '#4ade80' : '#f43f5e'">
+        <div class="avatar" [style.background-color]="selectedEmployee.id.toString().includes('rohith') ? '#4ade80' : '#f43f5e'">
           {{ selectedEmployee.initials || 'EE' }}
         </div>
         <div>
           <h2 class="emp-name">{{ selectedEmployee.name }}</h2>
-          <p class="emp-meta">{{ selectedEmployee.role }} • Weekly Summary Review</p>
+          <p class="emp-meta">{{ selectedEmployee.role || 'Employee' }} • Review Workspace</p>
         </div>
-      </div>
-      <div class="header-actions">
-        <button mat-stroked-button class="outline-btn" (click)="saveWeeklyForm()">
-          <i-tabler name="device-floppy" class="icon-16 m-r-8"></i-tabler>
-          Save Progress
-        </button>
-        <button mat-flat-button color="primary" class="premium-btn" (click)="submitWeekly()">
-          Submit Week
-        </button>
-        <button mat-flat-button color="accent" class="approve-btn" (click)="approveWeekly()" *ngIf="selectedDay?.status === 'Manager Review'">
-          <i-tabler name="circle-check" class="icon-16 m-r-8"></i-tabler>
-          Approve & Verify
-        </button>
       </div>
     </div>
 
-    <!-- Status Alert Saved Banner -->
-    <div class="saved-banner m-b-16" *ngIf="isSaved">
-      <i-tabler name="circle-check" class="icon-18 m-r-8"></i-tabler>
-      Progress saved successfully.
+    <!-- 2. Employee Dashboard Header (Self) -->
+    <div class="weekly-header-row m-b-24" *ngIf="!isAdminTreeRole">
+      <div>
+        <h2 class="emp-name">Weekly Accountability Check-in</h2>
+        <p class="emp-meta">Complete and submit your weekly check-in questionnaires.</p>
+      </div>
     </div>
 
-    <!-- Dynamic Workflow Timeline Card -->
-    <div class="workflow-card m-b-24">
-      <h3 class="card-title m-b-16">Weekly Review Status</h3>
-      <app-workflow-progress></app-workflow-progress>
+    <!-- Checkpoint Navigation Strip (Day 7, 14, 21, 28) -->
+    <div class="checkpoint-navigation m-b-24" *ngIf="selectedEmployee || !isAdminTreeRole">
+      <h4 class="f-s-12 text-muted text-uppercase font-semibold letter-spacing-1 m-b-12">Select Weekly Checkpoint</h4>
+      <div class="checkpoint-chips-strip d-flex gap-12">
+        <button 
+          *ngFor="let num of [7, 14, 21, 28]"
+          class="checkpoint-chip"
+          [class.active]="selectedDayNum === num"
+          (click)="selectCheckpoint(num)"
+        >
+          <i-tabler name="checkbox" class="icon-16 m-r-4" *ngIf="selectedDayNum === num"></i-tabler>
+          <span>Day {{ num }} Check-in</span>
+        </button>
+      </div>
+      <p class="checkpoint-date-meta m-t-8 text-muted f-s-12">
+        Checkpoint date corresponding to this selection: <strong class="text-dark">{{ checkpointDate }}</strong>
+      </p>
     </div>
 
-    <!-- Weekly Metrics & Form Grid -->
-    <div class="weekly-grid">
-      <!-- Left Forms Column -->
-      <div class="form-inputs-column">
-        <div class="input-card m-b-20">
-          <label class="card-label">Weekly Achievements & Milestones</label>
-          <textarea [(ngModel)]="achievements" rows="4" placeholder="List key objectives met, lead conversions, client satisfaction, etc..." class="form-textarea"></textarea>
-        </div>
+    <!-- Loading Indicator -->
+    <div class="text-center p-40" *ngIf="isLoading">
+      <mat-spinner diameter="40" class="m-x-auto"></mat-spinner>
+      <p class="text-muted m-t-16">Loading checkpoint details...</p>
+    </div>
 
-        <div class="input-card m-b-20">
-          <label class="card-label">Key Challenges & Blockers</label>
-          <textarea [(ngModel)]="challenges" rows="4" placeholder="Outline hurdles in lead calling, portal downtime, client queries, etc..." class="form-textarea"></textarea>
-        </div>
+    <!-- Main Workspace Content (When Not Loading) -->
+    <ng-container *ngIf="!isLoading">
 
-        <div class="input-card m-b-20">
-          <label class="card-label">Support or Tools Needed</label>
-          <textarea [(ngModel)]="supportNeeded" rows="3" placeholder="Specify resources, team approvals, or tool updates required..." class="form-textarea"></textarea>
-        </div>
-
-        <div class="input-card m-b-20">
-          <label class="card-label">Next Week Focus & Commitments</label>
-          <textarea [(ngModel)]="nextWeekPlan" rows="3" placeholder="Detail high priority tasks and expected KPI targets for next week..." class="form-textarea"></textarea>
-        </div>
+      <!-- ==================== A. ERROR STATES ==================== -->
+      <div class="alert alert-danger m-b-20" *ngIf="hasError">
+        <i-tabler name="alert-triangle" class="icon-18 m-r-8"></i-tabler>
+        <span>{{ errorMessage }}</span>
       </div>
 
-      <!-- Right Metrics & Feedback Column -->
-      <div class="metrics-feedback-column">
-        <!-- KPI Stats Card -->
-        <div class="metric-card m-b-20" *ngIf="selectedEmployee">
-          <h3 class="card-title m-b-16">Weekly KPIs Summary</h3>
-          <div class="stat-big">
-            <span class="stat-number">94%</span>
-            <span class="stat-label">Completion rate</span>
-          </div>
-          <div class="progress-bar-container m-b-16">
-            <div class="progress-fill green" style="width: 94%"></div>
-          </div>
-          <div class="stat-details">
-            <div class="detail-row">
-              <span class="detail-label">Tasks Completed</span>
-              <span class="detail-value font-semibold">132 / 140 tasks</span>
+      <div class="alert alert-warning m-b-20" *ngIf="noTemplateAssigned">
+        <i-tabler name="info-circle" class="icon-18 m-r-8"></i-tabler>
+        <span>No weekly check-in assigned to your role right now.</span>
+      </div>
+
+      <div class="alert alert-info m-b-20" *ngIf="isAdminTreeRole && !selectedEmployee">
+        <i-tabler name="user-check" class="icon-18 m-r-8"></i-tabler>
+        <span>Select an employee from the hierarchy tree on the left to review their weekly accountability.</span>
+      </div>
+
+      <div class="alert alert-warning m-b-20" *ngIf="isAdminTreeRole && selectedEmployee && notYetAnswered">
+        <i-tabler name="help" class="icon-18 m-r-8"></i-tabler>
+        <span>Employee {{ selectedEmployee.name }} has not submitted their responses for the Day {{ selectedDayNum }} checkpoint yet.</span>
+      </div>
+
+      <div class="alert alert-info m-b-20" *ngIf="!isAdminTreeRole && isReadOnly && !hasError && !noTemplateAssigned">
+        <i-tabler name="lock" class="icon-18 m-r-8"></i-tabler>
+        <span>Historical Checkpoint: Viewing answers for <strong>{{ checkpointDate }}</strong> in read-only mode. Forms are locked.</span>
+      </div>
+
+      <div class="alert alert-success m-b-20" *ngIf="isSuccess">
+        <i-tabler name="circle-check" class="icon-18 m-r-8"></i-tabler>
+        <span>Your weekly accountability answers have been successfully submitted.</span>
+      </div>
+
+
+      <!-- ==================== B. EMPLOYEE / EDITABLE FORM MODE ==================== -->
+      <div class="weekly-form-card cardWithShadow p-24" *ngIf="!isAdminTreeRole && template && !noTemplateAssigned">
+        <h3 class="card-title m-b-8 text-dark">{{ template.name }}</h3>
+        <p class="text-muted f-s-13 m-b-24">Please answer each question honestly. Answers can be resubmitted today.</p>
+
+        <div class="questions-list">
+          <div class="question-item m-b-24" *ngFor="let q of questions; let i = index">
+            <div class="d-flex align-items-center justify-content-between m-b-8">
+              <label class="question-label text-dark font-semibold f-s-14">
+                {{ i + 1 }}. {{ q.questionText }}
+              </label>
+              
+              <!-- Saved Confirmation Badge -->
+              <span class="saved-badge d-flex align-items-center text-success f-s-11 font-semibold" *ngIf="savedTimestamps[q.id]">
+                <i-tabler name="check" class="icon-12 m-r-4"></i-tabler>
+                Saved ({{ savedTimestamps[q.id] | date:'shortTime' }})
+              </span>
             </div>
-            <div class="detail-row">
-              <span class="detail-label">Streaks</span>
-              <span class="detail-value text-orange font-semibold">🔥 8-day streak</span>
-            </div>
+            
+            <textarea 
+              [(ngModel)]="answers[q.id]" 
+              rows="4" 
+              class="form-textarea w-100" 
+              placeholder="Type your detailed weekly response here..."
+              [disabled]="isReadOnly"
+            ></textarea>
           </div>
         </div>
 
-        <!-- Manager Feedback Card (Highlighted) -->
-        <div class="feedback-card" [class.highlighted]="selectedDay?.status === 'Manager Review'">
-          <div class="card-header-icon m-b-12">
-            <i-tabler name="message-dots" class="icon-18 text-primary m-r-8"></i-tabler>
-            <h3 class="card-title">Manager Feedback</h3>
-          </div>
-          <p class="manager-tip m-b-12" *ngIf="selectedDay?.status === 'Manager Review'">
-            Attention: Employee has submitted this week. Please review details and provide evaluation feedback below.
-          </p>
-          <textarea [(ngModel)]="managerFeedback" rows="6" placeholder="Provide professional manager assessment, ratings, and action points..." class="form-textarea feedback-textarea"></textarea>
+        <div class="form-actions d-flex justify-content-end gap-12 border-top p-t-16" *ngIf="!isReadOnly">
+          <button mat-flat-button color="primary" class="submit-btn" (click)="submitAnswers()" [disabled]="isSaving">
+            <i-tabler name="send" class="icon-16 m-r-8"></i-tabler>
+            {{ isSaving ? 'Submitting...' : 'Submit Responses' }}
+          </button>
         </div>
       </div>
-    </div>
+
+
+      <!-- ==================== C. REVIEWER / READ-ONLY DISPLAY MODE ==================== -->
+      <div class="reviewer-responses-list" *ngIf="isAdminTreeRole && selectedEmployee && !notYetAnswered && !isForbidden && questions.length > 0">
+        <div class="cardWithShadow p-24 m-b-16" *ngFor="let q of questions; let i = index">
+          <div class="d-flex justify-content-between align-items-start m-b-12">
+            <h4 class="font-semibold text-dark f-s-14 m-b-0">{{ i + 1 }}. {{ q.questionText }}</h4>
+            <span class="timestamp-badge f-s-11 text-muted d-flex align-items-center" *ngIf="savedTimestamps[q.id]">
+              <i-tabler name="clock" class="icon-12 m-r-4"></i-tabler>
+              Submitted at: {{ savedTimestamps[q.id] | date:'medium' }}
+            </span>
+          </div>
+
+          <div class="answer-box p-16 rounded bg-light border-start border-primary border-3">
+            <p class="answer-text text-dark m-b-0" style="white-space: pre-wrap;">{{ answers[q.id] }}</p>
+          </div>
+        </div>
+      </div>
+
+    </ng-container>
+
   </div>
 </div>

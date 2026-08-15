@@ -8,6 +8,7 @@ import { LeadService } from '../../../core/services/lead.service';
 import { LeadDetailsDialogComponent } from './lead-details-dialog/lead-details-dialog.component';
 import { ReasonDialogComponent } from './reason-dialog/reason-dialog.component';
 import { AddLeadDialogComponent } from './add-lead-dialog/add-lead-dialog.component';
+import { ImportLeadsDialogComponent } from './import-leads-dialog/import-leads-dialog.component';
 
 export interface Lead {
   id?: number;
@@ -32,6 +33,7 @@ export interface Lead {
   universityId?: number;
   course?: string;
   intake?: string;
+  source?: string;
 }
 
 @Component({
@@ -56,6 +58,10 @@ export interface Lead {
                 <i-tabler name="layout-grid" class="icon-18"></i-tabler>
               </button>
             </div>
+            <button mat-stroked-button color="primary" class="d-flex align-items-center import-btn desktop-import-btn m-r-8" (click)="openImportDialog()" style="border-radius: 8px; border-width: 1.5px; height: 38px;">
+              <i-tabler name="upload" class="icon-18 m-r-4"></i-tabler>
+              <span class="import-btn-text">Import Data</span>
+            </button>
             <button mat-flat-button color="primary" class="d-flex align-items-center add-btn desktop-add-btn" (click)="addLead()">
               <i-tabler name="plus" class="icon-18 m-r-4"></i-tabler>
               <span class="add-btn-text">Add Lead</span>
@@ -116,16 +122,24 @@ export interface Lead {
               <ng-container matColumnDef="status">
                 <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Status</th>
                 <td mat-cell *matCellDef="let element" (click)="$event.stopPropagation()">
-                  <span class="status-badge cursor-pointer d-inline-flex align-items-center" [ngClass]="element.status" [matMenuTriggerFor]="element.isUpdatingStatus ? null : statusMenu">
-                    {{ element.status | titlecase }}
+                  <span class="status-badge cursor-pointer d-inline-flex align-items-center" [ngClass]="getStatusClass(element.status)" [matMenuTriggerFor]="element.isUpdatingStatus ? null : statusMenu">
+                    {{ getStatusDisplayName(element.status) }}
                     <i-tabler *ngIf="!element.isUpdatingStatus" name="chevron-down" class="icon-14 m-l-4"></i-tabler>
                     <i-tabler *ngIf="element.isUpdatingStatus" name="loader" class="icon-14 m-l-4 spinning"></i-tabler>
                   </span>
                   <mat-menu #statusMenu="matMenu" class="cardWithShadow">
-                    <button mat-menu-item *ngFor="let s of availableStatuses" (click)="changeStatus(element, s)">
-                      <span class="status-badge m-r-8" [ngClass]="s.toLowerCase()">{{ s | titlecase }}</span>
+                    <button mat-menu-item *ngFor="let s of availableStatuses" (click)="changeStatus(element, s.enum)">
+                      <span class="status-badge m-r-8" [ngClass]="getStatusClass(s.enum)">{{ s.displayName }}</span>
                     </button>
                   </mat-menu>
+                </td>
+              </ng-container>
+
+              <!-- Source Column -->
+              <ng-container matColumnDef="source">
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Source</th>
+                <td mat-cell *matCellDef="let element">
+                  <span class="f-w-600 text-dark f-s-13">{{ element.source || '—' }}</span>
                 </td>
               </ng-container>
 
@@ -240,14 +254,14 @@ export interface Lead {
                     <img [src]="element.assignedAvatar" class="rounded-circle m-r-8 object-cover" width="24" height="24" />
                     <span class="f-s-13 text-muted">{{ element.assignedTo }}</span>
                   </div>
-                  <span class="status-badge cursor-pointer d-inline-flex align-items-center" [ngClass]="element.status" [matMenuTriggerFor]="element.isUpdatingStatus ? null : cardStatusMenu" (click)="$event.stopPropagation()">
-                    {{ element.status | titlecase }}
+                  <span class="status-badge cursor-pointer d-inline-flex align-items-center" [ngClass]="getStatusClass(element.status)" [matMenuTriggerFor]="element.isUpdatingStatus ? null : cardStatusMenu" (click)="$event.stopPropagation()">
+                    {{ getStatusDisplayName(element.status) }}
                     <i-tabler *ngIf="!element.isUpdatingStatus" name="chevron-down" class="icon-14 m-l-4"></i-tabler>
                     <i-tabler *ngIf="element.isUpdatingStatus" name="loader" class="icon-14 m-l-4 spinning"></i-tabler>
                   </span>
                   <mat-menu #cardStatusMenu="matMenu" class="cardWithShadow">
-                    <button mat-menu-item *ngFor="let s of availableStatuses" (click)="changeStatus(element, s)">
-                      <span class="status-badge m-r-8" [ngClass]="s.toLowerCase()">{{ s | titlecase }}</span>
+                    <button mat-menu-item *ngFor="let s of availableStatuses" (click)="changeStatus(element, s.enum)">
+                      <span class="status-badge m-r-8" [ngClass]="getStatusClass(s.enum)">{{ s.displayName }}</span>
                     </button>
                   </mat-menu>
                 </div>
@@ -257,8 +271,9 @@ export interface Lead {
                   <span class="d-flex align-items-center"><i-tabler name="map-pin" class="icon-14 m-r-4"></i-tabler> {{ element.country || 'N/A' }}</span>
                   <span class="d-flex align-items-center"><i-tabler name="calendar" class="icon-14 m-r-4"></i-tabler> {{ element.leadDate || 'N/A' }}</span>
                 </div>
-                <div class="d-flex align-items-center text-muted f-s-12">
+                <div class="d-flex align-items-center justify-content-between text-muted f-s-12">
                   <span class="d-flex align-items-center"><i-tabler name="building" class="icon-14 m-r-4"></i-tabler> {{ element.university || 'N/A' }}</span>
+                  <span class="d-flex align-items-center"><i-tabler name="world" class="icon-14 m-r-4"></i-tabler> Source: {{ element.source || '—' }}</span>
                 </div>
               </mat-card-content>
             </mat-card>
@@ -297,6 +312,7 @@ export interface Lead {
         justify-content: space-between;
       }
 
+      button.desktop-import-btn,
       button.desktop-add-btn {
         white-space: nowrap;
         flex-shrink: 0;
@@ -407,7 +423,7 @@ export interface Lead {
       border-radius: 6px;
       text-transform: capitalize;
       
-      &.active, &.won, &.enrolled, &.registered {
+      &.active, &.won, &.enrolled, &.registered, &.contacted {
         background-color: rgba(19, 222, 185, 0.1);
         color: #13deb9;
       }
@@ -417,9 +433,14 @@ export interface Lead {
         color: #fa896b;
       }
       
-      &.pending, &.lead, &.prospective {
+      &.pending, &.lead, &.prospective, &.followup {
         background-color: rgba(255, 174, 31, 0.1);
         color: #ffae1f;
+      }
+
+      &.in-progress, &.document-submitted {
+        background-color: rgba(97, 93, 255, 0.1);
+        color: #615dff;
       }
     }
 
@@ -509,7 +530,7 @@ export interface Lead {
         }
       }
       .status-badge {
-        &.active, &.won, &.enrolled, &.registered {
+        &.active, &.won, &.enrolled, &.registered, &.contacted {
           background-color: rgba(19, 222, 185, 0.2);
           color: #80f1d4;
         }
@@ -517,9 +538,13 @@ export interface Lead {
           background-color: rgba(250, 137, 107, 0.2);
           color: #ffab91;
         }
-        &.pending, &.lead, &.prospective {
+        &.pending, &.lead, &.prospective, &.followup {
           background-color: rgba(255, 174, 31, 0.2);
           color: #ffca70;
+        }
+        &.in-progress, &.document-submitted {
+          background-color: rgba(97, 93, 255, 0.2);
+          color: #a5a2ff;
         }
       }
     }
@@ -530,12 +555,13 @@ export class LeadsComponent implements OnInit, AfterViewInit {
   isLoading = true;
   hasError = false;
 
-  availableStatuses = ['LEAD', 'REGISTERED', 'LOST', 'STUDENT', 'PROSPECTIVE'];
+  availableStatuses: { id: number; enum: string; displayName: string }[] = [];
 
   displayedColumns: string[] = [
     'lead',
     'contactInfo',
     'status',
+    'source',
     'assignedTo',
     'addedBy',
     'countryUniversity',
@@ -555,12 +581,47 @@ export class LeadsComponent implements OnInit, AfterViewInit {
   ) {}
 
   ngOnInit(): void {
+    this.loadStudentStatuses();
     this.loadLeads();
     this.route.queryParams.subscribe(params => {
       if (params['openAdd'] === 'true') {
         setTimeout(() => this.addLead(), 100);
       }
     });
+  }
+
+  loadStudentStatuses(): void {
+    this.leadService.getStudentStatuses().subscribe({
+      next: (res) => {
+        this.availableStatuses = res.data || [];
+      },
+      error: (err) => {
+        console.error('Failed to load student statuses:', err);
+        this.availableStatuses = [
+          { id: 1, enum: 'LEAD', displayName: 'Lead' },
+          { id: 2, enum: 'REGISTERED', displayName: 'Registered' },
+          { id: 3, enum: 'LOST', displayName: 'Lost' },
+          { id: 4, enum: 'PROSPECTIVE', displayName: 'Prospective' },
+          { id: 5, enum: 'CONTACTED', displayName: 'Contacted' },
+          { id: 6, enum: 'IN_PROGRESS', displayName: 'In Progress' },
+          { id: 7, enum: 'FOLLOWUP', displayName: 'Followup' },
+          { id: 8, enum: 'DOCUMENT_SUBMITTED', displayName: 'Document Submitted' }
+        ];
+      }
+    });
+  }
+
+  getStatusDisplayName(status: string): string {
+    if (!status) return 'N/A';
+    const cleanStatus = status.trim().toUpperCase();
+    const match = this.availableStatuses.find(s => s.enum === cleanStatus);
+    if (match) return match.displayName;
+    return status.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  getStatusClass(status: string): string {
+    if (!status) return 'lead';
+    return status.toLowerCase().replace(/_/g, '-');
   }
 
   ngAfterViewInit(): void {
@@ -623,6 +684,7 @@ export class LeadsComponent implements OnInit, AfterViewInit {
       counsellorId: l.assignedTo?.id || l.assignedBy?.id || l.counsellorId || null,
       countryId: l.country?.id || l.countryId || null,
       universityId: l.university?.id || l.universityId || null,
+      source: l.source || '—',
       course: l.courseName || l.course || '',
       intake: l.intakePeriod || l.intake || ''
     };
@@ -631,6 +693,26 @@ export class LeadsComponent implements OnInit, AfterViewInit {
   applyFilter(event: Event): void {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
+  }
+
+  openImportDialog(): void {
+    const dialogRef = this.dialog.open(ImportLeadsDialogComponent, {
+      width: '760px',
+      maxWidth: '95vw',
+      panelClass: 'import-leads-dialog-panel',
+      disableClose: true
+    });
+
+    // Refresh immediately when import succeeds, while dialog is still open
+    dialogRef.componentInstance.importSuccess.subscribe(() => {
+      this.loadLeads();
+    });
+
+    dialogRef.afterClosed().subscribe(hasUploaded => {
+      if (hasUploaded) {
+        this.loadLeads();
+      }
+    });
   }
 
   addLead(): void {
@@ -740,8 +822,7 @@ export class LeadsComponent implements OnInit, AfterViewInit {
       next: () => {
         lead.isUpdatingStatus = false;
         this.notificationService.showSuccessToast(`Status updated to ${status}.`, 'Success');
-        lead.status = status.toLowerCase(); // Optimistically update the UI
-        // Optionally, call this.loadLeads() to get fresh data
+        this.loadLeads();
       },
       error: (err) => {
         lead.isUpdatingStatus = false;

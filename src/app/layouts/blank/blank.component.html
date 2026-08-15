@@ -7,5 +7,16 @@
   autoFocus
   dir="ltr"
 >
-  <router-outlet></router-outlet>
+  <div class="d-flex flex-column min-vh-100 w-100">
+    <div class="flex-grow-1">
+      <router-outlet></router-outlet>
+    </div>
+    <div class="shared-web-footer">
+      <div class="footer-container" style="justify-content: center; text-align: center;">
+        <div class="footer-left">
+          Copyright © 2024 Atlas Mentor ( Operated by ELITESTUDY ABROAD PVT. LTD. ) , All rights reserved. Powered by ATLASMENTOR ( ELITESTUDY ABROAD PVT. LTD. )
+        </div>
+      </div>
+    </div>
+  </div>
 </mat-sidenav-container>

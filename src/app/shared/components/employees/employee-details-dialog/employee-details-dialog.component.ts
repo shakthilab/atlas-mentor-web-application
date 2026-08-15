@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { Employee } from '../../../../core/services/employee.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-employee-details-dialog',
@@ -31,7 +32,7 @@ import { Employee } from '../../../../core/services/employee.service';
         <img [src]="getAvatar(employee)" class="rounded-circle m-r-16 object-cover avatar-animated" width="64" height="64" />
         <div>
           <h3 class="mat-subtitle-1 f-w-600 m-b-4 f-s-18">{{ employee.firstName }} {{ employee.lastName }}</h3>
-          <span class="f-s-14 text-muted d-block">{{ employee.role?.name || employee.role || 'Role ' + employee.roleId }}</span>
+          <span class="f-s-14 text-muted d-block">{{ getRoleDisplayName(employee) }}</span>
           <span class="status-badge m-t-8" [ngClass]="(employee.status || 'ACTIVE').toLowerCase()">
             {{ employee.status || 'ACTIVE' | titlecase }}
           </span>
@@ -251,8 +252,16 @@ import { Employee } from '../../../../core/services/employee.service';
 export class EmployeeDetailsDialogComponent {
   constructor(
     public dialogRef: MatDialogRef<EmployeeDetailsDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public employee: Employee
+    @Inject(MAT_DIALOG_DATA) public employee: Employee,
+    private authService: AuthService
   ) {}
+
+  getRoleDisplayName(employee: any): string {
+    if (!employee) return '';
+    const roleObj = employee.role;
+    const rawRole = roleObj?.displayName || roleObj?.name || roleObj || ('Role ' + employee.roleId);
+    return this.authService.formatRoleName(rawRole);
+  }
 
   closeDialog(): void {
     this.dialogRef.close();

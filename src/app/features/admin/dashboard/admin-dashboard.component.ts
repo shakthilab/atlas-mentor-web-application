@@ -57,6 +57,7 @@ export class AdminDashboardComponent implements OnInit {
   public apiError: string | null = null;
   public greeting: string = '';
   public userName: string = '';
+  public isCounsellor: boolean = false;
 
   constructor(
     private dashboardService: DashboardService,
@@ -72,6 +73,8 @@ export class AdminDashboardComponent implements OnInit {
     const user = this.authService.currentUserValue;
     if (user) {
       this.userName = user.name || 'User';
+      const role = (user.role || '').toUpperCase().replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
+      this.isCounsellor = (role === 'JUNIOR COUNSELLOR' || role === 'SENIOR COUNSELLOR');
     }
     const hour = new Date().getHours();
     if (hour < 12) this.greeting = 'Good morning';
@@ -102,7 +105,8 @@ export class AdminDashboardComponent implements OnInit {
             res.data.metrics ??
             (Array.isArray(res.data) ? res.data : []);
           if (Array.isArray(rawCards) && rawCards.length > 0) {
-            this.summaryCards = rawCards.map((c: any) => ({
+            console.log('[Dashboard] KPI card[0] keys:', Object.keys(rawCards[0]));
+            let mappedCards = rawCards.map((c: any) => ({
               ...c,
               value: String(c.value ?? c.count ?? c.total ?? 0),
               title: c.title ?? c.label ?? c.name ?? '',
@@ -110,6 +114,18 @@ export class AdminDashboardComponent implements OnInit {
               trendColor: c.trendColor || c.color || '#198754',
               chartOptions: this.createSparkline(c.chartData || c.sparkline || c.data || [], c.trendColor || c.color || '#198754')
             }));
+            if (this.isCounsellor) {
+              mappedCards = mappedCards.filter(c =>
+                !c.title.toLowerCase().includes('revenue') &&
+                !c.title.toLowerCase().includes('payment') &&
+                !c.title.toLowerCase().includes('earning') &&
+                !c.title.toLowerCase().includes('sales') &&
+                !c.title.toLowerCase().includes('payout') &&
+                !c.title.toLowerCase().includes('employee') &&
+                !c.title.toLowerCase().includes('branch')
+              );
+            }
+            this.summaryCards = mappedCards;
           } else {
             console.warn('[Dashboard] KPI: no cards found in response. Available keys:', Object.keys(res.data));
           }

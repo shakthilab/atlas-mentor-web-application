@@ -1,13 +1,17 @@
 /* You can add global styles to this file, and also import other style files */
+@import "primeng/resources/themes/lara-light-blue/theme.css";
+@import "primeng/resources/primeng.min.css";
+@import "primeicons/primeicons.css";
 
 /* Global Custom Select Dropdown Panel */
-.custom-select-panel, .mat-mdc-select-panel {
+.custom-select-panel,
+.mat-mdc-select-panel {
   border-radius: 16px !important;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08) !important;
   margin-top: 8px !important;
   border: 1px solid #f1f5f9;
   background-color: white !important;
-  
+
   .mdc-list {
     padding: 8px !important;
   }
@@ -18,24 +22,25 @@
     margin-bottom: 2px !important;
     color: #475569 !important;
     font-size: 14px !important;
-    
-    &:hover, &.mat-mdc-option-active {
+
+    &:hover,
+    &.mat-mdc-option-active {
       background-color: #eff6ff !important;
       color: #2563eb !important;
-      
+
       .mdc-list-item__primary-text {
         color: #2563eb !important;
       }
     }
-    
+
     &.mdc-list-item--selected {
       background-color: #2563eb !important;
       color: #ffffff !important;
-      
+
       .mdc-list-item__primary-text {
         color: #ffffff !important;
       }
-      
+
       .mat-pseudo-checkbox {
         color: #ffffff !important;
       }
@@ -60,5 +65,405 @@
     box-shadow: none !important;
     padding: 0 !important;
     overflow: visible;
+  }
+}
+
+/* ==========================================================================
+   Component Host Display Block Definitions
+   ========================================================================== */
+app-employees,
+app-leads,
+app-students,
+app-tasks,
+app-branches,
+app-companies,
+app-payments,
+app-referrals,
+app-resources,
+app-admin-dashboard,
+app-partner-dashboard,
+app-student-dashboard,
+app-manager-dashboard,
+app-branch-partner-dashboard,
+app-company-dashboard,
+app-referral-dashboard,
+app-task-accountability-shell {
+  display: block !important;
+  width: 100% !important;
+}
+
+/* ==========================================================================
+   Vibrant Priority & Status Badge System (Global)
+   ========================================================================== */
+
+/* Priority Badges */
+.priority-badge,
+.task-priority-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  transition: all 0.2s ease;
+
+  .priority-icon,
+  .badge-icon {
+    width: 12px;
+    height: 12px;
+    stroke-width: 2.2;
+  }
+
+  &.priority-urgent,
+  &.urgent {
+    color: #dc2626 !important;
+    background-color: #fef2f2 !important;
+    border: 1px solid #fca5a5 !important;
+
+    .priority-icon,
+    .badge-icon {
+      color: #dc2626 !important;
+    }
+  }
+
+  &.priority-high,
+  &.high {
+    color: #ea580c !important;
+    background-color: #fff7ed !important;
+    border: 1px solid #fdba74 !important;
+
+    .priority-icon,
+    .badge-icon {
+      color: #ea580c !important;
+    }
+  }
+
+  &.priority-medium,
+  &.medium {
+    color: #2563eb !important;
+    background-color: #eff6ff !important;
+    border: 1px solid #93c5fd !important;
+
+    .priority-icon,
+    .badge-icon {
+      color: #2563eb !important;
+    }
+  }
+
+  &.priority-low,
+  &.low {
+    color: #059669 !important;
+    background-color: #f0fdf4 !important;
+    border: 1px solid #6ee7b7 !important;
+
+    .priority-icon,
+    .badge-icon {
+      color: #059669 !important;
+    }
+  }
+}
+
+/* Status Badges & Interactive Dropdown Buttons */
+.status-badge-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+  background: transparent;
+
+  &.readonly-badge {
+    cursor: default !important;
+    pointer-events: none;
+
+    &:hover {
+      filter: none !important;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+  }
+
+  &:hover {
+    filter: brightness(0.95);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+  }
+
+  &.status-verified {
+    color: #15803d;
+    background-color: #dcfce7;
+    border-color: #86efac;
+  }
+
+  &.status-completed {
+    color: #16a34a;
+    background-color: #f0fdf4;
+    border-color: #bbf7d0;
+  }
+
+  &.status-review {
+    color: #7c3aed;
+    background-color: #f5f3ff;
+    border-color: #ddd6fe;
+  }
+
+  &.status-approved {
+    color: #0891b2;
+    background-color: #ecfeff;
+    border-color: #a5f3fc;
+  }
+
+  &.status-closed {
+    color: #475569;
+    background-color: #f1f5f9;
+    border-color: #cbd5e1;
+  }
+
+  &.status-feedback {
+    color: #c2410c;
+    background-color: #fff7ed;
+    border-color: #ffedd5;
+  }
+
+  &.status-in-progress {
+    color: #0284c7;
+    background-color: #f0f9ff;
+    border-color: #bae6fd;
+  }
+
+  &.status-todo {
+    color: #475569;
+    background-color: #f8fafc;
+    border-color: #e2e8f0;
+  }
+}
+
+.status-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+
+  &.status-verified {
+    color: #15803d;
+    background-color: #dcfce7;
+  }
+
+  &.status-completed {
+    color: #16a34a;
+    background-color: #f0fdf4;
+  }
+
+  &.status-review {
+    color: #7c3aed;
+    background-color: #f5f3ff;
+  }
+
+  &.status-approved {
+    color: #0891b2;
+    background-color: #ecfeff;
+  }
+
+  &.status-closed {
+    color: #475569;
+    background-color: #f1f5f9;
+  }
+
+  &.status-feedback {
+    color: #c2410c;
+    background-color: #fff7ed;
+  }
+
+  &.status-in-progress {
+    color: #0284c7;
+    background-color: #f0f9ff;
+  }
+
+  &.status-todo {
+    color: #475569;
+    background-color: #f8fafc;
+  }
+}
+
+/* Priority Indicator Dots */
+.priority-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+
+  &.urgent {
+    background-color: #dc2626 !important;
+    box-shadow: 0 0 6px rgba(220, 38, 38, 0.4);
+  }
+
+  &.high {
+    background-color: #ea580c !important;
+    box-shadow: 0 0 6px rgba(234, 88, 12, 0.4);
+  }
+
+  &.medium {
+    background-color: #2563eb !important;
+    box-shadow: 0 0 6px rgba(37, 99, 235, 0.4);
+  }
+
+  &.low {
+    background-color: #059669 !important;
+    box-shadow: 0 0 6px rgba(5, 150, 105, 0.4);
+  }
+}
+
+/* Status Badges */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+
+  &.status-verified,
+  &.verified {
+    color: #15803d !important;
+    background-color: #dcfce7 !important;
+    border: 1px solid #86efac !important;
+  }
+
+  &.status-completed,
+  &.completed,
+  &.done {
+    color: #16a34a !important;
+    background-color: #f0fdf4 !important;
+    border: 1px solid #bbf7d0 !important;
+  }
+
+  &.status-review,
+  &.manager-review,
+  &.review {
+    color: #7c3aed !important;
+    background-color: #f5f3ff !important;
+    border: 1px solid #ddd6fe !important;
+  }
+
+  &.status-approved,
+  &.approved {
+    color: #0891b2 !important;
+    background-color: #ecfeff !important;
+    border: 1px solid #a5f3fc !important;
+  }
+
+  &.status-feedback,
+  &.rejected,
+  &.returned,
+  &.action-needed {
+    color: #e11d48 !important;
+    background-color: #fff1f2 !important;
+    border: 1px solid #fecdd3 !important;
+  }
+
+  &.status-in-progress,
+  &.in-progress {
+    color: #2563eb !important;
+    background-color: #eff6ff !important;
+    border: 1px solid #bfdbfe !important;
+  }
+
+  &.status-todo,
+  &.todo {
+    color: #d97706 !important;
+    background-color: #fef3c7 !important;
+    border: 1px solid #fde68a !important;
+  }
+
+  &.status-closed,
+  &.status-employee,
+  &.closed,
+  &.draft {
+    color: #475569 !important;
+    background-color: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+  }
+}
+
+/* ==========================================================================
+   Apple-Grade Mobile Bottom Navigation & Safe Area Spacing (Global)
+   ========================================================================== */
+@media (max-width: 768px) {
+
+  /* 1. Reset main.pageWrapper height constraints on mobile so height flows naturally */
+  main.pageWrapper {
+    min-height: auto !important;
+    height: auto !important;
+    flex: 1 0 auto !important;
+  }
+
+  /* 2. Primary Outer Page Scroll Container Clearance (76px total padding = 64px tab bar + 12px breathing room) */
+  .pageWrapper,
+  .contentWrapper,
+  mat-sidenav-content {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom)) !important;
+  }
+
+  /* 3. Nested View Containers (Prevent compounding padding) */
+  .workspace-body,
+  .workspace-main-panel,
+  .center-scrollable-content,
+  .main-content-container {
+    padding-bottom: 16px !important;
+  }
+
+  /* 4. Cards & Tables Bottom Margin */
+  .mat-mdc-card,
+  mat-card,
+  .card,
+  .table-responsive,
+  .widget-card {
+    margin-bottom: 16px !important;
+  }
+
+  /* 5. Angular Material Paginator & Table Footer Spacing */
+  .mat-mdc-paginator,
+  .mat-paginator,
+  .table-pagination,
+  .pagination-container,
+  .p-paginator,
+  .card-footer,
+  .shared-web-footer {
+    margin-bottom: 12px !important;
+  }
+
+  /* 6. Floating Action Buttons (FAB + Buttons) placed gracefully above tab bar */
+  .fab-btn,
+  .floating-btn,
+  .add-task-fab,
+  .mat-mdc-fab,
+  .mat-mdc-mini-fab,
+  button[mat-fab],
+  button[mat-mini-fab],
+  .create-task-fab,
+  .add-employee-fab,
+  .add-btn-floating {
+    bottom: calc(76px + env(safe-area-inset-bottom)) !important;
+    right: 16px !important;
+    z-index: 990 !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2) !important;
   }
 }

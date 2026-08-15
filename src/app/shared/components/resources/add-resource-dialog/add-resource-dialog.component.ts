@@ -105,7 +105,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
               <mat-label class="mat-subtitle-2 f-s-14 f-w-600 m-b-8 d-block">Role <span class="text-error">*</span></mat-label>
               <mat-form-field appearance="outline" class="w-100" subscriptSizing="dynamic">
                 <mat-select formControlName="roleId" placeholder="Select Role" (selectionChange)="onRoleChange()">
-                  <mat-option *ngFor="let role of roles" [value]="role.id">{{ role.name }}</mat-option>
+                  <mat-option *ngFor="let role of roles" [value]="role.id">{{ role.displayName || role.name }}</mat-option>
                 </mat-select>
               </mat-form-field>
             </div>

@@ -805,7 +805,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: #5d87ff;
+    background: #000000;
     color: #ffffff !important;
     border: none;
     border-radius: 8px;
@@ -813,13 +813,11 @@
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    transition: background 0.2s, transform 0.15s;
     text-decoration: none;
-    box-shadow: 0 2px 8px rgba(93, 135, 255, 0.35);
 
     &:hover {
-      background: #4b6ee6;
-      box-shadow: 0 4px 14px rgba(93, 135, 255, 0.45);
+      background: #1e293b;
       transform: translateY(-1px);
     }
 
@@ -909,20 +907,18 @@
     width: 100%;
     margin-top: 16px;
     padding: 11px;
-    background: #5d87ff;
+    background: #000000;
     border: none;
     border-radius: 8px;
     color: #ffffff;
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
-    box-shadow: 0 2px 8px rgba(93, 135, 255, 0.35);
+    transition: background 0.2s, transform 0.15s;
     text-transform: capitalize;
 
     &:hover {
-      background: #4b6ee6;
-      box-shadow: 0 4px 14px rgba(93, 135, 255, 0.45);
+      background: #1e293b;
       transform: translateY(-1px);
     }
 

@@ -8,6 +8,7 @@ import { normalizeListEnvelope } from '../utils/api-response.util';
 export interface Role {
   id: number;
   name: string;
+  displayName?: string;
   description?: string;
 }
 
@@ -89,5 +90,9 @@ export class MasterDataService {
 
   getUniversitiesByCountry(countryId: number): Observable<{ success: boolean; data: any[] }> {
     return this.http.get<{ success: boolean; data: any[] }>(`${this.apiUrl}/universities/country/${countryId}`);
+  }
+
+  getLeadSources(): Observable<{ success: boolean; data: any[] }> {
+    return this.http.get<{ success: boolean; data: any[] }>(`${this.apiUrl}/students/lead-sources`);
   }
 }

@@ -104,6 +104,14 @@ import { TablerIconsModule } from 'angular-tabler-icons';
             {{ student.joinedDate || 'Unknown Date' }}
           </span>
         </div>
+
+        <div class="detail-item">
+          <span class="detail-label">Source</span>
+          <span class="detail-value d-flex align-items-center">
+            <i-tabler name="world" class="icon-16 m-r-8 text-muted"></i-tabler>
+            {{ student.source || '—' }}
+          </span>
+        </div>
       </div>
 
       <div class="d-flex justify-content-end align-items-center m-t-24">
@@ -226,7 +234,7 @@ export class StudentDetailsDialogComponent {
   constructor(
     public dialogRef: MatDialogRef<StudentDetailsDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public student: any
-  ) {}
+  ) { }
 
   closeDialog(): void {
     this.dialogRef.close();

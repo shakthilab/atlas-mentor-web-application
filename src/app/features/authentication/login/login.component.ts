@@ -20,6 +20,7 @@ export class AppSideLoginComponent {
   hidePassword = true;
   hideConfirmPassword = true;
   token = '';
+  greeting = '';
 
   constructor(
     private fb: FormBuilder,
@@ -57,6 +58,19 @@ export class AppSideLoginComponent {
     if (this.mode === 'login' && this.authService.isAuthenticated()) {
       this.authService.redirectByRole();
     }
+
+    this.greeting = this.getGreeting();
+  }
+
+  getGreeting(): string {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) {
+      return 'Good Morning';
+    } else if (hour >= 12 && hour < 17) {
+      return 'Good Afternoon';
+    } else {
+      return 'Good Evening';
+    }
   }
 
   get email() { return this.form.get('email')!; }
@@ -67,8 +81,45 @@ export class AppSideLoginComponent {
 
   passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
     const password = control.get('password')?.value;
-    const confirm = control.get('confirmPassword')?.value;
-    return password && confirm && password !== confirm ? { passwordMismatch: true } : null;
+    const confirmControl = control.get('confirmPassword');
+    if (!confirmControl) return null;
+    const confirm = confirmControl.value;
+    if (password && confirm && password !== confirm) {
+      confirmControl.setErrors({ passwordMismatch: true });
+      return { passwordMismatch: true };
+    } else {
+      if (confirmControl.hasError('passwordMismatch')) {
+        confirmControl.setErrors(null);
+      }
+      return null;
+    }
+  }
+
+  getResetPasswordStrength(): number {
+    const val = this.resetPasswordInput?.value || '';
+    if (!val) return 0;
+    let score = 0;
+    if (val.length >= 8) score++;
+    if (/[A-Z]/.test(val)) score++;
+    if (/[0-9]/.test(val)) score++;
+    if (/[^A-Za-z0-9]/.test(val)) score++;
+    return score;
+  }
+
+  getResetStrengthClass(): string {
+    const score = this.getResetPasswordStrength();
+    if (score <= 1) return 'weak';
+    if (score === 2) return 'fair';
+    if (score === 3) return 'good';
+    return 'strong';
+  }
+
+  getResetStrengthLabel(): string {
+    const score = this.getResetPasswordStrength();
+    if (score <= 1) return 'Weak';
+    if (score === 2) return 'Fair';
+    if (score === 3) return 'Good';
+    return 'Strong';
   }
 
   onSubmit(): void {
@@ -138,8 +189,10 @@ export class AppSideLoginComponent {
           this.notificationService.showSuccessPopup(
             'We sent a reset link to your email. Please check your inbox.',
             'Recovery Email Sent',
-            'Dismiss'
-          );
+            'Back to Login'
+          ).subscribe(() => {
+            this.router.navigate(['/auth/login']);
+          });
         },
         error: (err) => {
           this.handleError(err);
@@ -165,14 +218,14 @@ export class AppSideLoginComponent {
           this.notificationService.showSuccessPopup(
             'Your account password has been updated. You can now log in.',
             'Password Reset Complete',
-            'Proceed to Login'
+            'Proceed to Login',
+            'check'
           ).subscribe(() => {
             this.router.navigate(['/auth/login']);
           });
         },
         error: (err) => {
           this.handleError(err);
-          this.notificationService.showErrorToast(this.error, 'Reset Failed');
         },
       });
     }

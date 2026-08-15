@@ -17,7 +17,7 @@
     "employees": "Xodimlar",
     "leads": "Lidlar",
     "tasks": "Vazifalar",
-    "taskAccountability": "Vazifalar hisobdorligi",
+    "taskAccountability": "Vazifalar",
     "payments": "To'lovlar",
     "approvals": "Tasdiqlashlar",
     "branches": "Filiallar",
@@ -43,13 +43,14 @@
     "yesterday": "Kecha",
     "userProfile": "Foydalanuvchi profili",
     "role": "Dizayner",
-    "myProfile": "Mening profilim",
+    "myProfile": "Profil",
     "accountSettings": "Hisob sozlamalari",
     "myInbox": "Xabarlarim",
     "messagesEmail": "Xabarlar va Email",
     "myTasks": "Vazifalarim",
     "todoDaily": "Kunlik vazifalar",
-    "logout": "Chiqish"
+    "logout": "Chiqish",
+    "searchPlaceholder": "Lidlar, talabalar yoki vazifalarni qidirish..."
   },
   "sidebar": {
     "unlimitedAccess": "Cheksiz kirish",

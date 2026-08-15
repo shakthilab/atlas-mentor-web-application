@@ -1,119 +1,187 @@
 <div class="auth-wrapper">
-  <div class="auth-card">
-    <div class="auth-logo-container">
-      <img src="/assets/logo/Atlas-Mentor-Pvt-Ltd.webp" alt="Atlas Mentor" width="220" class="m-b-8" />
-      <p class="brand-subtitle">Empowering your educational journey</p>
-    </div>
+  <!-- Left Side: Informational & Statistics -->
+  <div class="auth-left">
+    <div class="world-map-bg"></div>
+    <div class="auth-left-content">
+      <div class="brand-header">
+        <span class="brand-name">
+          <span class="brand-atlas">Atlas</span>
+          <span class="brand-mentor">Mentor</span>
+        </span>
+      </div>
+      <h1 class="brand-title">Your trusted gateway to MBBS abroad.</h1>
+      <p class="brand-description">
+        Empowering NEET-qualified aspirants to study medicine at top NMC & WHO-recognized government medical universities globally with end-to-end support.
+      </p>
 
-    <!-- Alert Messages -->
-    <div class="m-t-20 m-b-20" *ngIf="error || successMessage">
-      <!-- Error Alert -->
-      <div *ngIf="error" class="p-12 rounded bg-light-error text-error d-flex align-items-center gap-8" style="background: rgba(255, 60, 100, 0.1); border: 1px solid rgba(255, 60, 100, 0.3); color: #ff3c64;">
-        <i-tabler name="alert-circle" class="icon-18 d-flex"></i-tabler>
-        <span class="f-s-13 f-w-500">{{ error }}</span>
+      <div class="stats-container">
+        <div class="stats-card">
+          <span class="stats-label">GLOBAL REACH</span>
+          <span class="stats-value">7+ Countries</span>
+        </div>
+        <div class="stats-card">
+          <span class="stats-label">VISA SUCCESS</span>
+          <span class="stats-value">100% Success Rate</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Side: Forms -->
+  <div class="auth-right">
+    <div class="auth-form-container">
+      
+      <!-- Alert Messages -->
+      <div class="m-b-24" *ngIf="error || successMessage">
+        <!-- Error Alert -->
+        <div *ngIf="error" class="p-12 rounded bg-light-error text-error d-flex align-items-center gap-8" style="background: rgba(255, 60, 100, 0.1); border: 1px solid rgba(255, 60, 100, 0.3); color: #ff3c64;">
+          <i-tabler name="alert-circle" class="icon-18 d-flex"></i-tabler>
+          <span class="f-s-13 f-w-500">{{ error }}</span>
+        </div>
+
+        <!-- Success Alert -->
+        <div *ngIf="successMessage" class="p-12 rounded bg-light-success text-success d-flex align-items-center gap-8" style="background: rgba(60, 255, 120, 0.1); border: 1px solid rgba(60, 255, 120, 0.3); color: #3cff78;">
+          <i-tabler name="circle-check" class="icon-18 d-flex"></i-tabler>
+          <span class="f-s-13 f-w-500">{{ successMessage }}</span>
+        </div>
       </div>
 
-      <!-- Success Alert -->
-      <div *ngIf="successMessage" class="p-12 rounded bg-light-success text-success d-flex align-items-center gap-8" style="background: rgba(60, 255, 120, 0.1); border: 1px solid rgba(60, 255, 120, 0.3); color: #3cff78;">
-        <i-tabler name="circle-check" class="icon-18 d-flex"></i-tabler>
-        <span class="f-s-13 f-w-500">{{ successMessage }}</span>
+      <!-- Dynamic Forms Content -->
+      <div [ngSwitch]="mode" class="auth-form">
+        <!-- Sign In Form -->
+        <form *ngSwitchCase="'login'" [formGroup]="form" (ngSubmit)="onSubmit()">
+          <h2 class="auth-title">Welcome Back</h2>
+          <p class="auth-subtitle">{{ greeting }}, Sign in to continue your Atlas Mentor experience.</p>
+
+          <div class="form-field-group">
+            <label class="auth-label">{{ 'auth.email' | translate }}</label>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100 m-b-16 custom-form-field">
+              <span matPrefix class="prefix-icon-wrapper">
+                <i-tabler name="mail" class="icon-18 text-muted"></i-tabler>
+              </span>
+              <input matInput formControlName="email" type="email" autocomplete="email" placeholder="name@university.edu" />
+              <mat-error *ngIf="email.hasError('required')">Email is required</mat-error>
+              <mat-error *ngIf="email.hasError('email')">Enter a valid email</mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-field-group">
+            <div class="d-flex align-items-center justify-content-between m-b-8">
+              <label class="auth-label m-b-0">{{ 'auth.password' | translate }}</label>
+              <a [routerLink]="['/auth/forgot-password']" class="forgot-link">
+                Forgot Password?
+              </a>
+            </div>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100 m-b-8 custom-form-field">
+              <span matPrefix class="prefix-icon-wrapper">
+                <i-tabler name="lock" class="icon-18 text-muted"></i-tabler>
+              </span>
+              <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'" autocomplete="current-password" placeholder="••••••••" />
+              <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword" class="password-toggle-btn">
+                <i-tabler [name]="hidePassword ? 'eye-off' : 'eye'" class="icon-18 d-flex"></i-tabler>
+              </button>
+              <mat-error *ngIf="password.hasError('required')">Password is required</mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="d-flex align-items-center m-b-24 remember-me-row">
+            <mat-checkbox formControlName="rememberMe" color="primary" class="m-l-n8">{{ 'auth.rememberDevice' | translate }}</mat-checkbox>
+          </div>
+
+          <button mat-flat-button class="w-100 auth-btn-submit" type="submit" [disabled]="loading">
+            <span *ngIf="!loading" class="d-flex align-items-center justify-content-center gap-8">
+              Sign In <i-tabler name="arrow-right" class="icon-18"></i-tabler>
+            </span>
+            <span *ngIf="loading">Signing In...</span>
+          </button>
+
+          <hr class="form-divider m-y-24" />
+
+          <div class="auth-footer">
+            Planning to study abroad? <a [routerLink]="['/auth/register/student']" class="footer-link">Create your student account</a>
+          </div>
+        </form>
+
+        <!-- Forgot Password Form -->
+        <form *ngSwitchCase="'forgot-password'" [formGroup]="forgotForm" (ngSubmit)="onSubmit()">
+          <h2 class="auth-title">Recover Password</h2>
+          <p class="auth-subtitle">Enter your email address and we'll send you a recovery link.</p>
+
+          <div class="form-field-group">
+            <label class="auth-label">{{ 'auth.email' | translate }}</label>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100 m-b-16 custom-form-field">
+              <span matPrefix class="prefix-icon-wrapper">
+                <i-tabler name="mail" class="icon-18 text-muted"></i-tabler>
+              </span>
+              <input matInput formControlName="email" type="email" autocomplete="email" placeholder="name@university.edu" />
+              <mat-error *ngIf="forgotEmail.hasError('required')">Email is required</mat-error>
+              <mat-error *ngIf="forgotEmail.hasError('email')">Enter a valid email</mat-error>
+            </mat-form-field>
+          </div>
+
+          <button mat-flat-button class="w-100 auth-btn-submit" type="submit" [disabled]="loading">
+            <span *ngIf="!loading">Send Reset Link</span>
+            <span *ngIf="loading">Sending...</span>
+          </button>
+
+          <div class="auth-footer m-t-24">
+            <a [routerLink]="['/auth/login']" class="footer-link-back">← Back to Login</a>
+          </div>
+        </form>
+
+        <!-- Reset Password Form -->
+        <form *ngSwitchCase="'reset-password'" [formGroup]="resetForm" (ngSubmit)="onSubmit()">
+          <h2 class="auth-title">Reset Password</h2>
+          <p class="auth-subtitle">Enter your new secure password below.</p>
+
+          <div class="form-field-group">
+            <label class="auth-label">New Password</label>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100 m-b-8 custom-form-field">
+              <span matPrefix class="prefix-icon-wrapper">
+                <i-tabler name="lock" class="icon-18 text-muted"></i-tabler>
+              </span>
+              <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'" autocomplete="new-password" placeholder="••••••••" />
+              <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword" class="password-toggle-btn">
+                <i-tabler [name]="hidePassword ? 'eye-off' : 'eye'" class="icon-18 d-flex"></i-tabler>
+              </button>
+              <mat-error *ngIf="resetPasswordInput.hasError('required')">New password is required</mat-error>
+              <mat-error *ngIf="resetPasswordInput.hasError('minlength')">Password must be at least 8 characters long</mat-error>
+            </mat-form-field>
+
+            <div class="reset-strength-wrapper m-b-16" *ngIf="resetPasswordInput.value">
+              <div class="strength-bar-track">
+                <div class="strength-bar-fill" [ngClass]="getResetStrengthClass()"></div>
+              </div>
+              <span class="strength-label">Strength: <strong>{{ getResetStrengthLabel() }}</strong></span>
+            </div>
+          </div>
+
+          <div class="form-field-group">
+            <label class="auth-label">Confirm New Password</label>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100 m-b-16 custom-form-field">
+              <span matPrefix class="prefix-icon-wrapper">
+                <i-tabler name="lock" class="icon-18 text-muted"></i-tabler>
+              </span>
+              <input matInput formControlName="confirmPassword" [type]="hideConfirmPassword ? 'password' : 'text'" autocomplete="new-password" placeholder="••••••••" />
+              <button mat-icon-button matSuffix type="button" (click)="hideConfirmPassword = !hideConfirmPassword" class="password-toggle-btn">
+                <i-tabler [name]="hideConfirmPassword ? 'eye-off' : 'eye'" class="icon-18 d-flex"></i-tabler>
+              </button>
+              <mat-error *ngIf="confirmPasswordInput.hasError('required')">Please confirm your new password</mat-error>
+              <mat-error *ngIf="confirmPasswordInput.hasError('passwordMismatch')">Passwords do not match</mat-error>
+            </mat-form-field>
+          </div>
+
+          <button mat-flat-button class="w-100 auth-btn-submit" type="submit" [disabled]="loading">
+            <span *ngIf="!loading">Reset Password</span>
+            <span *ngIf="loading">Resetting...</span>
+          </button>
+
+          <div class="auth-footer m-t-24">
+            <a [routerLink]="['/auth/login']" class="footer-link-back">← Back to Login</a>
+          </div>
+        </form>
       </div>
-    </div>
-
-    <!-- Dynamic Forms Content -->
-    <div [ngSwitch]="mode" class="auth-form">
-      <!-- Sign In Form -->
-      <form *ngSwitchCase="'login'" [formGroup]="form" (ngSubmit)="onSubmit()">
-
-        <label class="auth-label">{{ 'auth.email' | translate }}</label>
-        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100 m-b-16">
-          <input matInput formControlName="email" type="email" autocomplete="email" placeholder="name@example.com" />
-          <mat-error *ngIf="email.hasError('required')">Email is required</mat-error>
-          <mat-error *ngIf="email.hasError('email')">Enter a valid email</mat-error>
-        </mat-form-field>
-
-        <label class="auth-label">{{ 'auth.password' | translate }}</label>
-        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100 m-b-8">
-          <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'" autocomplete="current-password" placeholder="••••••••" />
-          <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword">
-            <i-tabler [name]="hidePassword ? 'eye-off' : 'eye'" class="icon-18 d-flex"></i-tabler>
-          </button>
-          <mat-error *ngIf="password.hasError('required')">Password is required</mat-error>
-        </mat-form-field>
-
-        <div class="d-flex align-items-center m-b-24">
-          <mat-checkbox formControlName="rememberMe" color="primary" class="m-l-n8">{{ 'auth.rememberDevice' | translate }}</mat-checkbox>
-          <a [routerLink]="['/auth/forgot-password']" class="m-l-auto" style="color: #5a607d; font-size: 13px; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#212529'" onmouseout="this.style.color='#5a607d'">
-            Forgot Password?
-          </a>
-        </div>
-
-        <button mat-flat-button class="w-100 auth-btn-primary" type="submit" [disabled]="loading">
-          <span *ngIf="!loading">Sign In to Atlas</span>
-          <span *ngIf="loading">Signing In...</span>
-        </button>
-
-        <div class="auth-footer">
-          Don't have an account? <a [routerLink]="['/auth/register/student']">Create one</a>
-        </div>
-      </form>
-
-      <!-- Forgot Password Form -->
-      <form *ngSwitchCase="'forgot-password'" [formGroup]="forgotForm" (ngSubmit)="onSubmit()">
-        <h4 class="f-s-20 f-w-600 m-b-8" style="color: #212529;">Recover Password</h4>
-        <p class="f-s-14 m-b-24" style="color: rgba(0,0,0,0.6);">Enter your email address and we'll send you a recovery link.</p>
-
-        <label class="auth-label">{{ 'auth.email' | translate }}</label>
-        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100 m-b-16">
-          <input matInput formControlName="email" type="email" autocomplete="email" placeholder="name@example.com" />
-          <mat-error *ngIf="forgotEmail.hasError('required')">Email is required</mat-error>
-          <mat-error *ngIf="forgotEmail.hasError('email')">Enter a valid email</mat-error>
-        </mat-form-field>
-
-        <button mat-flat-button class="w-100 auth-btn-primary" type="submit" [disabled]="loading">
-          <span *ngIf="!loading">Send Reset Link</span>
-          <span *ngIf="loading">Sending...</span>
-        </button>
-
-        <div class="auth-footer">
-          <a [routerLink]="['/auth/login']">← Back to Login</a>
-        </div>
-      </form>
-
-      <!-- Reset Password Form -->
-      <form *ngSwitchCase="'reset-password'" [formGroup]="resetForm" (ngSubmit)="onSubmit()">
-        <h4 class="f-s-20 f-w-600 m-b-8" style="color: #212529;">Reset Password</h4>
-        <p class="f-s-14 m-b-24" style="color: rgba(0,0,0,0.6);">Enter your new secure password below.</p>
-
-        <label class="auth-label">New Password</label>
-        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100 m-b-16">
-          <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'" autocomplete="new-password" placeholder="••••••••" />
-          <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword">
-            <i-tabler [name]="hidePassword ? 'eye-off' : 'eye'" class="icon-18 d-flex"></i-tabler>
-          </button>
-          <mat-error *ngIf="resetPasswordInput.hasError('required')">New password is required</mat-error>
-          <mat-error *ngIf="resetPasswordInput.hasError('minlength')">Password must be at least 8 characters long</mat-error>
-        </mat-form-field>
-
-        <label class="auth-label">Confirm New Password</label>
-        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100 m-b-16">
-          <input matInput formControlName="confirmPassword" [type]="hideConfirmPassword ? 'password' : 'text'" autocomplete="new-password" placeholder="••••••••" />
-          <button mat-icon-button matSuffix type="button" (click)="hideConfirmPassword = !hideConfirmPassword">
-            <i-tabler [name]="hideConfirmPassword ? 'eye-off' : 'eye'" class="icon-18 d-flex"></i-tabler>
-          </button>
-          <mat-error *ngIf="confirmPasswordInput.hasError('required')">Please confirm your new password</mat-error>
-          <mat-error *ngIf="resetForm.hasError('passwordMismatch')">Passwords do not match</mat-error>
-        </mat-form-field>
-
-        <button mat-flat-button class="w-100 auth-btn-primary" type="submit" [disabled]="loading">
-          <span *ngIf="!loading">Reset Password</span>
-          <span *ngIf="loading">Resetting...</span>
-        </button>
-
-        <div class="auth-footer">
-          <a [routerLink]="['/auth/login']">← Back to Login</a>
-        </div>
-      </form>
     </div>
   </div>
 </div>
+

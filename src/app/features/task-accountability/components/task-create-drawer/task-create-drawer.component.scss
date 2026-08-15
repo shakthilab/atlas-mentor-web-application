@@ -47,8 +47,8 @@
     .title-icon {
       width: 20px;
       height: 20px;
-      color: #2563eb;
-      background-color: #eff6ff;
+      color: #2D2E32;
+      background-color: #F1F5F9;
       padding: 6px;
       border-radius: 8px;
     }
@@ -153,8 +153,8 @@
   font-family: inherit;
 
   &:focus {
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    border-color: #2D2E32;
+    box-shadow: 0 0 0 3px rgba(45, 46, 50, 0.12);
   }
 
   &::placeholder {
@@ -202,8 +202,8 @@
   transition: all 0.15s ease-in-out;
 
   &:hover {
-    border-color: #2563eb;
-    background-color: #eff6ff;
+    border-color: #2D2E32;
+    background-color: #F1F5F9;
   }
 
   .upload-icon {
@@ -245,15 +245,15 @@
   }
 
   .save-btn {
-    background-color: #2563eb !important;
+    background-color: #2D2E32 !important;
     color: #ffffff !important;
     border-radius: 8px !important;
     font-weight: 600;
     padding: 8px 20px !important;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+    box-shadow: 0 4px 12px rgba(45, 46, 50, 0.15);
 
     &:hover:not([disabled]) {
-      background-color: #1d4ed8 !important;
+      background-color: #1d1e21 !important;
     }
   }
 }

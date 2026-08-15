@@ -18,11 +18,25 @@ export class AppNavItemComponent {
     }
   }
 
+  isItemActive(route: string): boolean {
+    if (!route) return false;
+
+    // For main dashboards, require exact match to prevent false positives for sub-pages
+    const exactRoutes = ['/employee', '/admin', '/manager', '/student'];
+    if (exactRoutes.includes(route)) {
+      return this.router.isActive(route, true);
+    }
+
+    // For other routes (e.g., /employee/task-accountability), match if the current path starts with the route
+    const currentPath = this.router.url.split('?')[0];
+    return currentPath.startsWith(route);
+  }
+
   onItemSelected(item: NavItem) {
     if (!item.children || !item.children.length) {
       this.router.navigate([item.route]);
     }
-
+ 
     // scroll
     document.querySelector('.page-wrapper')?.scroll({
       top: 0,

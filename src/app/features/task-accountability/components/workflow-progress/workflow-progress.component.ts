@@ -13,12 +13,10 @@ export class WorkflowProgressComponent implements OnInit, OnDestroy {
   employee: EmployeeNode | null = null;
   
   steps = [
-    { label: 'Employee', value: 'Employee' },
-    { label: 'Completed', value: 'Completed' },
-    { label: 'Counsellor Approved', value: 'Counsellor Approved' },
-    { label: 'Manager Review', value: 'Manager Review' },
-    { label: 'Manager Feedback', value: 'Manager Feedback' },
-    { label: 'Verified', value: 'Verified' }
+    { label: 'Employee', value: 'COMPLETED' },
+    { label: 'Branch Partner', value: 'PARTNER_REVIEW' },
+    { label: 'Manager Review', value: 'MANAGER_REVIEW' },
+    { label: 'Admin Review', value: 'ADMIN_VERIFIED' }
   ];
 
   private sub = new Subscription();
@@ -30,12 +28,7 @@ export class WorkflowProgressComponent implements OnInit, OnDestroy {
       this.service.selectedDay$.subscribe(d => this.day = d)
     );
     this.sub.add(
-      this.service.selectedEmployee$.subscribe(emp => {
-        this.employee = emp;
-        if (emp) {
-          this.updateStepsForRole(emp.role);
-        }
-      })
+      this.service.selectedEmployee$.subscribe(emp => this.employee = emp)
     );
   }
 
@@ -43,49 +36,65 @@ export class WorkflowProgressComponent implements OnInit, OnDestroy {
     this.sub.unsubscribe();
   }
 
-  updateStepsForRole(roleName: string): void {
-    if (roleName === 'Junior Counsellor') {
-      this.steps = [
-        { label: 'Employee', value: 'Employee' },
-        { label: 'Completed', value: 'Completed' },
-        { label: 'Senior Review', value: 'Counsellor Approved' },
-        { label: 'Manager Review', value: 'Manager Review' },
-        { label: 'Admin Review', value: 'Manager Feedback' },
-        { label: 'Verified', value: 'Verified' }
-      ];
-    } else if (roleName === 'Senior Counsellor' || roleName === 'Video Editor' || roleName === 'Web Developer') {
-      this.steps = [
-        { label: 'Employee', value: 'Employee' },
-        { label: 'Completed', value: 'Completed' },
-        { label: 'Manager Review', value: 'Manager Review' },
-        { label: 'Admin Review', value: 'Manager Feedback' },
-        { label: 'Verified', value: 'Verified' }
-      ];
-    } else if (roleName === 'Manager') {
-      this.steps = [
-        { label: 'Employee', value: 'Employee' },
-        { label: 'Completed', value: 'Completed' },
-        { label: 'Admin Review', value: 'Manager Review' },
-        { label: 'Verified', value: 'Verified' }
-      ];
-    } else { // Administrative Assistant, etc.
-      this.steps = [
-        { label: 'Employee', value: 'Employee' },
-        { label: 'Completed', value: 'Completed' },
-        { label: 'Admin Review', value: 'Manager Review' },
-        { label: 'Verified', value: 'Verified' }
-      ];
-    }
-  }
-
-  getStepIndex(status: string): number {
-    return this.steps.findIndex(s => s.value === status);
-  }
-
   get currentStepIndex(): number {
     if (!this.day) return 0;
-    const idx = this.getStepIndex(this.day.status);
-    return idx === -1 ? 0 : idx;
+    const dayObj = this.day as any;
+
+    const nextRole = (dayObj.nextActionRole || '').toString().toUpperCase().trim();
+    const stage = (dayObj.approvalStage || dayObj.currentStep || dayObj.status || '').toString().toUpperCase().trim();
+
+    if ((stage === 'COMPLETED' || stage === 'APPROVED' || stage === 'CLOSED' || stage === 'VERIFIED') && !nextRole) {
+      return 4;
+    }
+
+    if (nextRole === 'ADMIN') {
+      return 3;
+    }
+
+    if (nextRole === 'MANAGER') {
+      return 2;
+    }
+
+    if (nextRole === 'BRANCH_PARTNER') {
+      return 1;
+    }
+
+    if (typeof dayObj.currentStepNumber === 'number' && dayObj.currentStepNumber >= 1) {
+      return dayObj.currentStepNumber - 1;
+    }
+
+    if (stage === 'ADMIN_VERIFIED' || stage === 'ADMIN' || stage === 'VERIFIED') return 3;
+    if (stage === 'MANAGER_REVIEW' || stage === 'BRANCH_MANAGER' || stage === 'MANAGER') return 2;
+    if (stage === 'PARTNER_REVIEW' || stage === 'BRANCH_PARTNER' || stage === 'PARTNER') return 1;
+    if (stage === 'EMPLOYEE' || stage === 'SUBMITTED' || stage === 'DRAFT') return 0;
+
+    return 0;
+  }
+
+  getFormattedStatus(status?: string): string {
+    if (!this.day) return 'Employee';
+    const dayObj = this.day as any;
+
+    const nextRole = (dayObj.nextActionRole || '').toString().toUpperCase().trim();
+    const stage = (dayObj.approvalStage || dayObj.status || status || '').toString().toUpperCase().trim();
+
+    if ((stage === 'COMPLETED' || stage === 'APPROVED' || stage === 'CLOSED' || stage === 'VERIFIED') && !nextRole) {
+      return 'Completed';
+    }
+
+    if (nextRole === 'ADMIN') return 'Admin Review';
+    if (nextRole === 'MANAGER') return 'Manager Review';
+    if (nextRole === 'BRANCH_PARTNER') return 'Branch Partner Review';
+
+    if (dayObj.currentStep) return dayObj.currentStep;
+
+    if (stage === 'EMPLOYEE' || stage === 'SUBMITTED' || stage === 'DRAFT') return 'Employee';
+    if (stage === 'PARTNER_REVIEW' || stage === 'BRANCH_PARTNER' || stage === 'PARTNER') return 'Branch Partner Review';
+    if (stage === 'MANAGER_REVIEW' || stage === 'BRANCH_MANAGER' || stage === 'MANAGER') return 'Manager Review';
+    if (stage === 'ADMIN_VERIFIED' || stage === 'ADMIN' || stage === 'VERIFIED') return 'Admin Review';
+    if (stage === 'COMPLETED') return 'Completed';
+
+    return stage.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
   }
 
   getStepClass(index: number): string {

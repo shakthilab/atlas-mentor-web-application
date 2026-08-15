@@ -52,12 +52,25 @@ export class FullComponent implements OnInit {
     if (!user) return [];
 
     const role = user.role.toUpperCase();
+    
+    // Check if the user has a specific role that has its own menu items
+    const hasSpecificRoleItems = navItems.some(item => 
+      item.roles && item.roles.map(r => r.toUpperCase()).includes(role)
+    );
+
     const items = navItems.filter((item) => {
       if (!item.displayName || !item.route) return false;
       if (!item.roles || item.roles.length === 0) return true;
       const normalizedRoles = item.roles.map((r) => r.toUpperCase());
-      if (normalizedRoles.includes('EMPLOYEE') && user.isEmployee) return true;
-      return normalizedRoles.includes(role);
+      
+      if (normalizedRoles.includes(role)) return true;
+
+      // Special employee fallback: only apply if the user does NOT have their own specific role items
+      if (!hasSpecificRoleItems && normalizedRoles.includes('EMPLOYEE') && user.isEmployee) {
+        return true;
+      }
+
+      return false;
     });
 
     // Take the top 5 dynamic navigation routes for this role

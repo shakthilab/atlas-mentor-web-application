@@ -11,71 +11,85 @@
     </button>
   </div>
 
-  <!-- Template Cards Grid -->
-  <div class="templates-grid" *ngIf="templates$ | async as templates">
-    <div class="template-card" *ngFor="let temp of templates">
-      <div class="card-top">
-        <div class="role-badge">{{ temp.role }}</div>
-        <div class="card-actions">
-          <button mat-icon-button [matMenuTriggerFor]="cardMenu">
-            <i-tabler name="dots-vertical" class="icon-18"></i-tabler>
-          </button>
-          <mat-menu #cardMenu="matMenu" xPosition="before">
-            <button mat-menu-item (click)="openPublishModal(temp)">
-              <i-tabler name="send" class="icon-16 m-r-8 text-primary"></i-tabler>
-              <span class="text-primary font-semibold">Publish Template</span>
+  <!-- Template Cards Grid or Empty State -->
+  <ng-container *ngIf="templates$ | async as templates">
+    <div class="templates-grid" *ngIf="templates.length > 0">
+      <div class="template-card" *ngFor="let temp of templates" (click)="openEditTemplateModal(temp)">
+        <div class="card-top">
+          <div class="card-top-badges">
+            <div class="role-badge">{{ getRoleDisplayName(temp) }}</div>
+            <div class="branch-chip">
+              <i-tabler name="building" class="icon-12 m-r-4"></i-tabler>
+              {{ getBranchDisplayName(temp) }}
+            </div>
+          </div>
+          <div class="card-actions" (click)="$event.stopPropagation()">
+            <button mat-icon-button [matMenuTriggerFor]="cardMenu">
+              <i-tabler name="dots-vertical" class="icon-18"></i-tabler>
             </button>
-            <mat-divider></mat-divider>
-            <button mat-menu-item (click)="openEditTemplateModal(temp)">
-              <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
-              <span>Edit Template</span>
-            </button>
-            <button mat-menu-item (click)="duplicateTemplate(temp)">
-              <i-tabler name="copy" class="icon-16 m-r-8"></i-tabler>
-              <span>Duplicate</span>
-            </button>
-            <button mat-menu-item (click)="toggleActive(temp)">
-              <i-tabler name="power" class="icon-16 m-r-8"></i-tabler>
-              <span>{{ temp.active ? 'Deactivate' : 'Activate' }}</span>
-            </button>
-            <mat-divider></mat-divider>
-            <button mat-menu-item class="text-danger" (click)="deleteTemplate(temp.id)">
-              <i-tabler name="trash" class="icon-16 m-r-8"></i-tabler>
-              <span>Delete</span>
-            </button>
-          </mat-menu>
+            <mat-menu #cardMenu="matMenu" xPosition="before">
+              <button mat-menu-item (click)="publishRoleTemplate(temp)"
+                [disabled]="!canPublish(temp) || temp.status === 'ACTIVE'">
+                <i-tabler name="send" class="icon-16 m-r-8 text-primary"></i-tabler>
+                <span class="text-primary font-semibold">{{ temp.status === 'ACTIVE' ? 'Published' : 'Publish Template'
+                  }}</span>
+              </button>
+              <mat-divider></mat-divider>
+              <button mat-menu-item (click)="openEditTemplateModal(temp)">
+                <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
+                <span>Edit Template</span>
+              </button>
+              <button mat-menu-item (click)="duplicateTemplate(temp)">
+                <i-tabler name="copy" class="icon-16 m-r-8"></i-tabler>
+                <span>Duplicate</span>
+              </button>
+              <button mat-menu-item (click)="toggleActive(temp)">
+                <i-tabler name="power" class="icon-16 m-r-8"></i-tabler>
+                <span>{{ temp.active ? 'Deactivate' : 'Activate' }}</span>
+              </button>
+              <mat-divider></mat-divider>
+              <button mat-menu-item class="text-danger" (click)="deleteTemplate(temp.id)">
+                <i-tabler name="trash" class="icon-16 m-r-8"></i-tabler>
+                <span>Delete</span>
+              </button>
+            </mat-menu>
+          </div>
         </div>
-      </div>
 
-      <h3 class="template-name">{{ temp.name }}</h3>
-      <div class="template-meta">
-        <span class="meta-item">
-          <i-tabler name="checklist" class="icon-14 m-r-4"></i-tabler>
-          {{ temp.months ? temp.months.length : 0 }} Months configured
-        </span>
-        <span class="meta-item">
-          <i-tabler name="calendar" class="icon-14 m-r-4"></i-tabler>
-          Created {{ temp.createdAt | date:'MMM d, y' }}
-        </span>
-      </div>
-
-      <div class="card-bottom">
-        <div class="status-indicator" [class.active]="temp.active">
-          <span class="dot"></span>
-          {{ temp.active ? 'Active' : 'Inactive' }}
+        <h3 class="template-name">{{ temp.name }}</h3>
+        <div class="template-meta">
+          <span class="meta-item">
+            <i-tabler name="checklist" class="icon-14 m-r-4"></i-tabler>
+            {{ getTemplateTasksCount(temp) }} Tasks configured
+          </span>
+          <span class="meta-item">
+            <i-tabler name="calendar" class="icon-14 m-r-4"></i-tabler>
+            Created {{ temp.createdAt | date:'MMM d, y' }}
+          </span>
         </div>
-        <div class="button-group">
-          <button mat-flat-button color="accent" class="action-btn publish-accent-btn" (click)="openPublishModal(temp)">
-            Publish
-          </button>
-          <button mat-button class="view-btn" (click)="openEditTemplateModal(temp)">
-            Configure
-            <i-tabler name="arrow-right" class="icon-14 m-l-4"></i-tabler>
-          </button>
+
+        <div class="card-bottom">
+          <div class="status-indicator" [ngClass]="(temp.status || (temp.active ? 'ACTIVE' : 'DRAFT')).toLowerCase()">
+            <span class="dot"></span>
+            {{ (temp.status || (temp.active ? 'ACTIVE' : 'DRAFT')) | uppercase }}
+          </div>
         </div>
       </div>
     </div>
-  </div>
+
+    <!-- Empty State when no templates exist -->
+    <div class="templates-empty-state" *ngIf="templates.length === 0">
+      <div class="empty-icon-wrapper">
+        <i-tabler name="layout-grid-add" class="empty-icon"></i-tabler>
+      </div>
+      <h3 class="empty-title">No Role Templates Found</h3>
+      <p class="empty-subtitle">Get started by creating your first daily operational role template.</p>
+      <button mat-flat-button color="primary" class="create-first-btn" (click)="openNewTemplateModal()">
+        <i-tabler name="plus" class="icon-18 m-r-8"></i-tabler>
+        Create Role Template
+      </button>
+    </div>
+  </ng-container>
 
   <!-- Publish Template modal overlay -->
   <div class="modal-overlay" *ngIf="showPublishModal && publishingTemplate">
@@ -88,7 +102,8 @@
       </div>
       <div class="modal-body">
         <p class="publish-desc">
-          Publishing template <strong>"{{ publishingTemplate.name }}"</strong> will construct the operational months, daily checklists, and weekly review cards directly into the chosen employee's workspace.
+          Publishing template <strong>"{{ publishingTemplate.name }}"</strong> will construct the operational months,
+          daily checklists, and weekly review cards directly into the chosen employee's workspace.
         </p>
         <div class="form-group m-b-16">
           <label class="required-label">Select Employee</label>
@@ -107,7 +122,8 @@
       </div>
       <div class="modal-footer">
         <button mat-button class="cancel-btn" (click)="closePublishModal()">Cancel</button>
-        <button mat-flat-button color="primary" class="save-btn" (click)="publishTemplate()" [disabled]="!selectedEmployeeId">
+        <button mat-flat-button color="primary" class="save-btn" (click)="publishTemplate()"
+          [disabled]="!selectedEmployeeId">
           <i-tabler name="send" class="icon-16 m-r-8"></i-tabler>
           Publish Now
         </button>
@@ -115,148 +131,345 @@
     </div>
   </div>
 
-  <!-- Add/Edit Hierarchical Template Modal -->
+  <!-- Add/Edit Redesigned Template Modal -->
   <div class="modal-overlay" *ngIf="showModal && editingTemplate">
-    <div class="modal-card hierarchical-modal">
-      <div class="modal-header">
-        <h3>{{ editingTemplate.id ? 'Edit Template' : 'Create Role Template' }}</h3>
-        <button mat-icon-button (click)="closeModal()">
-          <i-tabler name="x" class="icon-18"></i-tabler>
-        </button>
-      </div>
+    <div class="modal-card redesigned-role-template-modal"
+      [class.has-sidebar]="getSelectedDay() !== null && isSidebarOpen">
 
-      <div class="modal-body">
-        <!-- Main Form Fields -->
-        <div class="form-row m-b-24">
-          <div class="form-group flex-2">
-            <label>Template Name</label>
-            <input type="text" [(ngModel)]="editingTemplate.name" placeholder="e.g. Senior Counsellor Template" class="form-input" />
+      <!-- Left Side: Main content -->
+      <div class="modal-main-content">
+        <!-- Overlay overlay/dimmer when sidebar is open -->
+        <div class="main-content-overlay" *ngIf="getSelectedDay() !== null && isSidebarOpen" (click)="closeSidebar()">
+        </div>
+
+        <!-- Header -->
+        <div class="modal-header">
+          <div class="header-left">
+            <h3>{{ editingTemplate.id ? 'Edit Role Template' : 'Create Role Template' }}</h3>
+            <p class="subtitle">Define the daily accountability plan applied to everyone in this role.</p>
           </div>
-          <div class="form-group flex-1">
-            <label>Target Employee Role</label>
-            <select [(ngModel)]="editingTemplate.role" class="form-select">
-              <option *ngFor="let role of availableRoles" [value]="role">{{ role }}</option>
-            </select>
+          <div class="header-right">
+            <button mat-icon-button (click)="closeModal()" class="close-btn">
+              <i-tabler name="x" class="icon-18"></i-tabler>
+            </button>
           </div>
         </div>
 
-        <!-- Dynamic Hierarchy Section -->
-        <div class="hierarchy-section">
-          <div class="section-title-row">
-            <h4>Workspace Months Hierarchy</h4>
-            <button mat-button class="add-btn month-add-btn" (click)="addMonth()">
-              <i-tabler name="plus" class="icon-16 m-r-4"></i-tabler>
-              Add Month
-            </button>
-          </div>
+        <!-- Body -->
+        <div class="modal-body">
+          <!-- Parameters configuration card -->
+          <div class="params-card">
+            <div class="param-group">
+              <label>Template name</label>
+              <input type="text" [(ngModel)]="editingTemplate.name" placeholder="e.g. Senior Counsellor — 30 Day"
+                class="form-input" />
+            </div>
+            <div class="param-group">
+              <label>Target employee role</label>
+              <p-dropdown [options]="roleOptions" [(ngModel)]="editingTemplate.role" optionLabel="label"
+                optionValue="value" placeholder="Select Role" styleClass="prime-dropdown-custom">
+              </p-dropdown>
+            </div>
+            <div class="param-group">
+              <label>Branch</label>
+              <p-dropdown [options]="branchOptions" [(ngModel)]="editingTemplate.branch" optionLabel="label"
+                optionValue="value" placeholder="Select Branch" styleClass="prime-dropdown-custom">
+              </p-dropdown>
+            </div>
 
-          <!-- LEVEL 1: Month list -->
-          <div class="month-list">
-            <div class="month-card" *ngFor="let month of editingTemplate.months; let mIdx = index">
-              <div class="month-header">
-                <div class="header-left">
-                  <i-tabler name="calendar" class="month-icon"></i-tabler>
-                  <input type="text" [(ngModel)]="month.name" placeholder="e.g. July" class="month-title-input" />
-                </div>
-                
-                <div class="header-actions">
-                  <button mat-icon-button (click)="moveMonth(mIdx, 'up')" [disabled]="mIdx === 0" title="Move Up">
-                    <i-tabler name="arrow-up" class="icon-16"></i-tabler>
-                  </button>
-                  <button mat-icon-button (click)="moveMonth(mIdx, 'down')" [disabled]="mIdx === (editingTemplate.months?.length || 0) - 1" title="Move Down">
-                    <i-tabler name="arrow-down" class="icon-16"></i-tabler>
-                  </button>
-                  <button mat-button class="day-add-btn" (click)="addDay(month)">
-                    <i-tabler name="plus" class="icon-14 m-r-4"></i-tabler>
-                    Add Day
-                  </button>
-                  <button mat-icon-button color="warn" (click)="removeMonth(mIdx)">
-                    <i-tabler name="trash" class="icon-16"></i-tabler>
-                  </button>
-                </div>
-              </div>
-
-              <!-- LEVEL 2: Day list inside Month -->
-              <div class="day-list">
-                <div class="day-card" *ngFor="let day of month.days; let dIdx = index">
-                  <div class="day-header">
-                    <div class="header-left">
-                      <i-tabler [name]="day.isWeekly ? 'file-text' : 'square-check'" class="day-icon" [class.weekly-icon]="day.isWeekly"></i-tabler>
-                      <input type="text" [(ngModel)]="day.name" placeholder="e.g. Day 1" class="day-title-input" />
-                      
-                      <label class="weekly-checkbox-label">
-                        <input type="checkbox" [(ngModel)]="day.isWeekly" />
-                        <span>Weekly review checkpoint</span>
-                      </label>
-                    </div>
-
-                    <div class="header-actions">
-                      <button mat-icon-button (click)="moveDay(month, dIdx, 'up')" [disabled]="dIdx === 0" title="Move Up">
-                        <i-tabler name="arrow-up" class="icon-14"></i-tabler>
-                      </button>
-                      <button mat-icon-button (click)="moveDay(month, dIdx, 'down')" [disabled]="dIdx === month.days.length - 1" title="Move Down">
-                        <i-tabler name="arrow-down" class="icon-14"></i-tabler>
-                      </button>
-                      <button mat-icon-button color="warn" (click)="removeDay(month, dIdx)">
-                        <i-tabler name="trash" class="icon-14"></i-tabler>
-                      </button>
-                    </div>
-                  </div>
-
-                  <!-- LEVEL 3: ClickUp-style Tasks List -->
-                  <div class="clickup-tasks-list" *ngIf="day.tasks && day.tasks.length > 0">
-                    <div class="clickup-task-item" *ngFor="let t of day.tasks; let tIdx = index" (click)="openTaskDrawer(t, day, month.name)">
-                      <div class="task-left">
-                        <i-tabler [name]="getTaskIconName(t.type)" class="task-type-icon" [ngClass]="'icon-' + t.type.toLowerCase()"></i-tabler>
-                        <span class="task-title">{{ t.name || 'Untitled Task' }}</span>
-                      </div>
-                      
-                      <div class="task-actions" (click)="$event.stopPropagation()">
-                        <button mat-icon-button class="task-action-btn" (click)="moveTask(day, tIdx, 'up')" [disabled]="tIdx === 0" title="Move Up">
-                          <i-tabler name="chevron-up" class="icon-14"></i-tabler>
-                        </button>
-                        <button mat-icon-button class="task-action-btn" (click)="moveTask(day, tIdx, 'down')" [disabled]="tIdx === day.tasks.length - 1" title="Move Down">
-                          <i-tabler name="chevron-down" class="icon-14"></i-tabler>
-                        </button>
-                        <button mat-icon-button class="task-action-btn delete" (click)="removeTaskFromDay(day, tIdx)" title="Delete Task">
-                          <i-tabler name="trash" class="icon-14"></i-tabler>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- ClickUp-style + Add Task Button -->
-                  <div class="add-task-container">
-                    <button class="clickup-add-task-btn" (click)="addTaskToDay(day, month)">
-                      <i-tabler name="plus" class="icon-14 m-r-6"></i-tabler>
-                      Add Task
-                    </button>
-                  </div>
-
-                </div>
-              </div>
-
-              <div class="empty-days" *ngIf="!month.days || month.days.length === 0">
-                <p>No days defined for this month yet. Click "+ Add Day" to get started.</p>
-              </div>
-
+            <div class="params-summary">
+              {{ getConfiguredDaysCount() }} of {{ getDaysCount() }} days configured · {{ getTotalTasksCount() }} tasks
+              total
             </div>
           </div>
 
-          <div class="empty-months" *ngIf="!editingTemplate.months || editingTemplate.months.length === 0">
-            <i-tabler name="calendar-off" class="icon-40 text-muted m-b-12"></i-tabler>
-            <p>No operational months defined yet. Click "Add Month" above to start building the workflow hierarchy.</p>
+          <!-- Template Days Section -->
+          <div class="template-days-section">
+            <div class="section-header">
+              <div class="header-title-container">
+                <h4>Template days</h4>
+                <p class="description">Click a day to edit its tasks. Shift-click to multi-select for bulk duplication.
+                </p>
+              </div>
+              <div class="header-actions">
+                <!-- Month Selection Dropdown -->
+                <div class="month-select-wrapper">
+                  <i-tabler name="calendar" class="icon-16 month-icon"></i-tabler>
+                  <select [(ngModel)]="selectedMonthName" class="month-header-select">
+                    <option *ngFor="let m of monthsList" [value]="m">{{ m }}</option>
+                  </select>
+                  <i-tabler name="chevron-down" class="icon-14 month-chevron"></i-tabler>
+                </div>
+
+                <!-- Select button -->
+                <button mat-button class="select-btn" [class.active]="multiSelectMode"
+                  (click)="toggleMultiSelectMode()">
+                  <i-tabler name="pointer" class="icon-16 m-r-4"></i-tabler>
+                  Select
+                </button>
+
+
+
+                <!-- Bulk Actions -->
+                <button mat-flat-button color="primary" class="bulk-duplicate-btn"
+                  *ngIf="selectedDaysForDuplication.size > 0" [matMenuTriggerFor]="duplicateToMenu">
+                  Duplicate ({{ selectedDaysForDuplication.size }})
+                </button>
+                <mat-menu #duplicateToMenu="matMenu" xPosition="before">
+                  <button mat-menu-item *ngFor="let targetDay of getDaysList()"
+                    (click)="duplicateSelectedDaysTo(targetDay)">
+                    Duplicate tasks to {{ targetDay.name }}
+                  </button>
+                </mat-menu>
+
+                <button mat-button color="warn" class="bulk-delete-btn" *ngIf="selectedDaysForDuplication.size > 0"
+                  (click)="deleteSelectedDays()">
+                  Delete ({{ selectedDaysForDuplication.size }})
+                </button>
+              </div>
+            </div>
+
+            <!-- Calendar Grid Wrapper -->
+            <div class="calendar-grid-wrapper">
+              <div class="calendar-weekdays">
+                <div>Sun</div>
+                <div>Mon</div>
+                <div>Tue</div>
+                <div>Wed</div>
+                <div>Thu</div>
+                <div>Fri</div>
+                <div>Sat</div>
+              </div>
+              <div class="days-grid">
+                <!-- Empty offset cards -->
+                <div class="day-card empty-card" *ngFor="let empty of getStartOffsetArray()"></div>
+
+                <!-- Actual day cards -->
+                <div class="day-card" *ngFor="let day of getDaysList(); let idx = index"
+                  [class.active]="selectedDayIndex === idx && isSidebarOpen && !multiSelectMode"
+                  [class.selected]="selectedDaysForDuplication.has(idx) && multiSelectMode"
+                  [class.past-day]="isPastDay(idx)"
+                  [matTooltip]="isPastDay(idx) ? pastDayTooltip : ''"
+                  matTooltipPosition="above"
+                  [attr.title]="isPastDay(idx) ? pastDayTooltip : null"
+                  (click)="onDayCardClick(idx, $event)">
+                  <div class="day-card-header">
+                    <span class="month-label">{{ getMonthAbbreviation() }}</span>
+                    <i-tabler name="flag" class="icon-12 flag-icon" *ngIf="isSaturday(idx)"
+                      title="Weekly Checkpoint"></i-tabler>
+                  </div>
+                  <div class="day-card-body">
+                    <span class="day-number">{{ idx + 1 }}</span>
+                  </div>
+                  <div class="day-footer">
+                    <span class="tasks-count-text" *ngIf="day.tasks.length > 0">
+                      {{ day.tasks.length }} {{ (day.tasks.length === 1) ? 'Task' : 'Tasks' }}
+                    </span>
+                    <span class="tasks-count-text text-muted" *ngIf="day.tasks.length === 0">
+                      No tasks
+                    </span>
+                    <button class="delete-day-hover-btn" *ngIf="!isPastDay(idx)"
+                      (click)="removeTemplateDay(idx, $event)" title="Delete day">
+                      <i-tabler name="trash" class="icon-12"></i-tabler>
+                    </button>
+                  </div>
+                  <div class="selection-checkbox" *ngIf="multiSelectMode">
+                    <i-tabler [name]="selectedDaysForDuplication.has(idx) ? 'checkbox' : 'square'"
+                      class="icon-16"></i-tabler>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
+        <!-- Footer -->
+        <div class="modal-footer">
+          <div class="footer-left">
+            <span class="validation-message" *ngIf="!canPublish(editingTemplate)">
+              Add a name and at least one task to publish
+            </span>
+          </div>
+          <div class="footer-right">
+            <button mat-button class="cancel-btn" (click)="closeModal()">Cancel</button>
+            <button mat-flat-button color="primary" class="publish-btn" (click)="publishTemplateFromModal()"
+              [disabled]="!canPublish(editingTemplate)">
+              Publish
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div class="modal-footer">
-        <button mat-button class="cancel-btn" (click)="closeModal()">Cancel</button>
-        <button mat-flat-button color="primary" class="save-btn" (click)="saveTemplate()" [disabled]="!editingTemplate.name">
-          <i-tabler name="device-floppy" class="icon-16 m-r-8"></i-tabler>
-          Save Template
-        </button>
+      <!-- Right Side: Sidebar Panel (Day active/tasks panel) -->
+      <div class="modal-sidebar-panel" *ngIf="isSidebarOpen && getSelectedDay() as day" [class.open]="isSidebarOpen">
+        <!-- Sidebar Header -->
+        <div class="sidebar-header">
+          <div class="sidebar-header-left">
+            <h3>{{ day.name }}</h3>
+            <p class="subtitle">
+              {{ day.tasks?.length || 0 }} {{ (day.tasks?.length === 1) ? 'task' : 'tasks' }}
+              <span class="past-day-badge" *ngIf="isPastDay(selectedDayIndex)"> &bull; Past Day (Read-only)</span>
+            </p>
+          </div>
+          <button mat-icon-button (click)="closeSidebar()" class="close-btn">
+            <i-tabler name="x" class="icon-18"></i-tabler>
+          </button>
+        </div>
+
+        <!-- Sidebar Body -->
+        <div class="sidebar-body">
+
+          <!-- Tasks list in sidebar -->
+          <div class="sidebar-tasks-list" *ngIf="day.tasks && day.tasks.length > 0; else noTasksState">
+            <div class="sidebar-task-card" *ngFor="let task of day.tasks; let tIdx = index"
+              (click)="openTaskDetails(task, day)">
+              <div class="task-drag-handle">
+                <i-tabler name="grip-vertical" class="icon-14 text-muted"></i-tabler>
+              </div>
+              <span class="priority-dot" [class]="task.priority?.toLowerCase() || 'medium'"></span>
+
+              <div class="task-info">
+                <div class="task-title">{{ task.name }}</div>
+                <div class="task-desc" *ngIf="task.description">{{ task.description }}</div>
+                <div class="task-meta">
+                  <span class="task-priority-badge" [class]="task.priority?.toLowerCase() || 'medium'">
+                    {{ task.priority }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="task-row-actions" *ngIf="!isPastDay(selectedDayIndex)" (click)="$event.stopPropagation()">
+                <button class="task-action-btn copy-btn"
+                  [disabled]="isTemplateUnsaved()"
+                  [class.disabled]="isTemplateUnsaved()"
+                  [matTooltip]="isTemplateUnsaved() ? 'Save template first to duplicate tasks' : 'Duplicate task'"
+                  matTooltipPosition="above"
+                  (click)="duplicateTaskToSameDay(task, day)">
+                  <i-tabler name="copy" class="icon-14"></i-tabler>
+                </button>
+
+                <button class="task-action-btn delete-btn" (click)="removeTaskFromSelectedDay(tIdx)"
+                  title="Delete task">
+                  <i-tabler name="trash" class="icon-14"></i-tabler>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <ng-template #noTasksState>
+            <div class="empty-sidebar-tasks" *ngIf="!showAddForm">
+              <p>No tasks for this day yet.</p>
+              <button class="add-task-outline-btn" *ngIf="!isPastDay(selectedDayIndex)" (click)="toggleAddForm(true)">
+                <i-tabler name="plus" class="icon-14 m-r-4"></i-tabler> Add task
+              </button>
+              <p class="past-notice-text" *ngIf="isPastDay(selectedDayIndex)">
+                Can't add tasks to past days.
+              </p>
+            </div>
+          </ng-template>
+
+          <!-- Add Task Inline Form -->
+          <div class="add-task-form-card"
+            *ngIf="!isPastDay(selectedDayIndex) && (showAddForm || (day.tasks && day.tasks.length === 0))">
+            <div class="form-body">
+              <input type="text" [(ngModel)]="newTaskTitle" placeholder="Task title" class="task-title-input"
+                (keyup.enter)="quickAddTask(day)" />
+
+              <div class="description-section">
+                <a href="javascript:void(0)" class="add-desc-link" *ngIf="!showDescField"
+                  (click)="showDescField = true">
+                  + Add description
+                </a>
+                <textarea [(ngModel)]="newTaskDescription" placeholder="Description (optional)"
+                  class="task-desc-textarea" *ngIf="showDescField" rows="2"></textarea>
+              </div>
+            </div>
+            <div class="form-footer">
+              <select [(ngModel)]="newTaskPriority" class="priority-select">
+                <option value="LOW">Low</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="HIGH">High</option>
+              </select>
+              <div class="footer-actions">
+                <button mat-button class="done-btn" (click)="toggleAddForm(false)">Done</button>
+                <button mat-flat-button color="primary" class="add-btn" (click)="quickAddTask(day)"
+                  [disabled]="!newTaskTitle.trim()">Add</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Add task inline trigger button at bottom of list if tasks exist and form is not shown -->
+          <button class="add-task-bottom-trigger" *ngIf="day.tasks && day.tasks.length > 0 && !showAddForm"
+            (click)="toggleAddForm(true)">
+            <i-tabler name="plus" class="icon-14 m-r-4"></i-tabler> Add task
+          </button>
+        </div>
+
+        <!-- Sidebar Footer -->
+        <div class="sidebar-footer">
+          <button mat-button class="duplicate-day-btn" (click)="openDuplicateDayModal()">
+            <i-tabler name="copy" class="icon-14 m-r-6"></i-tabler>
+            Duplicate this day...
+          </button>
+        </div>
+      </div>
+
+      <!-- Multi-Select Duplicate Day Modal -->
+      <div class="duplicate-dialog-overlay" *ngIf="showDuplicateDayModal" (click)="closeDuplicateDayModal()">
+        <div class="duplicate-dialog-card" (click)="$event.stopPropagation()">
+          <div class="dialog-header">
+            <div class="header-titles">
+              <h3>Duplicate {{ getSelectedDay()?.name }} Tasks</h3>
+              <p class="subtitle">Select target days to copy {{ getSelectedDay()?.tasks?.length || 0 }} task(s) into</p>
+            </div>
+            <button mat-icon-button (click)="closeDuplicateDayModal()" class="close-btn">
+              <i-tabler name="x" class="icon-18"></i-tabler>
+            </button>
+          </div>
+
+          <div class="dialog-toolbar">
+            <button type="button" class="link-btn" (click)="selectAllValidTargetDays()">Select All Valid Days</button>
+            <span class="dot-separator">&bull;</span>
+            <button type="button" class="link-btn" (click)="deselectAllTargetDays()">Deselect All</button>
+            <span class="selected-badge" *ngIf="selectedTargetDaysForDuplication.size > 0">
+              {{ selectedTargetDaysForDuplication.size }} day(s) selected
+            </span>
+          </div>
+
+          <div class="dialog-body">
+            <div class="target-days-grid">
+              <div class="target-day-item"
+                   *ngFor="let otherDay of getDaysList(); let otherIdx = index"
+                   [class.disabled]="otherIdx === selectedDayIndex || isPastDay(otherIdx)"
+                   [class.selected]="selectedTargetDaysForDuplication.has(otherIdx)"
+                   (click)="toggleTargetDaySelection(otherIdx)">
+                <div class="item-checkbox">
+                  <i-tabler [name]="selectedTargetDaysForDuplication.has(otherIdx) ? 'checkbox' : 'square'" class="icon-16"></i-tabler>
+                </div>
+                <div class="item-label">
+                  <span class="day-name">{{ otherDay.name }}</span>
+                  <span class="status-tag current" *ngIf="otherIdx === selectedDayIndex">Current Day</span>
+                  <span class="status-tag past" *ngIf="isPastDay(otherIdx)">Past Day (Disabled)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="dialog-footer">
+            <button mat-button class="cancel-btn" (click)="closeDuplicateDayModal()">Cancel</button>
+            <button mat-flat-button color="primary" class="confirm-btn"
+                    [disabled]="selectedTargetDaysForDuplication.size === 0"
+                    (click)="confirmDuplicateDayToSelected()">
+              Duplicate to {{ selectedTargetDaysForDuplication.size }} Day(s)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toast notification when copying task -->
+      <div class="toast-notification" *ngIf="toastMessage">
+        <i-tabler name="circle-check" class="icon-16 text-success m-r-8"></i-tabler>
+        <span>{{ toastMessage }}</span>
       </div>
     </div>
   </div>
@@ -282,7 +495,8 @@
       <div class="drawer-body">
         <!-- Title Input (frameless and large) -->
         <div class="title-container">
-          <input type="text" [(ngModel)]="selectedEditingTask.name" placeholder="Task name..." class="task-title-input" />
+          <input type="text" [(ngModel)]="selectedEditingTask.name" placeholder="Task name..."
+            class="task-title-input" />
         </div>
 
         <!-- Properties Grid (ClickUp style) -->
@@ -291,7 +505,8 @@
           <div class="property-row">
             <span class="property-label">Status</span>
             <div class="property-value">
-              <select [ngModel]="selectedEditingTask.status || 'Active'" (ngModelChange)="updateTaskStatus($event)" class="property-select status-select">
+              <select [ngModel]="selectedEditingTask.status || 'Active'" (ngModelChange)="updateTaskStatus($event)"
+                class="property-select status-select">
                 <option value="Active">Active</option>
                 <option value="Inactive">Inactive</option>
               </select>
@@ -303,13 +518,9 @@
             <span class="property-label">Priority</span>
             <div class="property-value">
               <div class="priority-chips-group">
-                <button 
-                  *ngFor="let p of ['Low', 'Medium', 'High', 'Urgent']"
-                  class="priority-chip"
-                  [class.active]="selectedEditingTask.priority === p"
-                  [ngClass]="'chip-' + p.toLowerCase()"
-                  (click)="updateTaskPriority(p)"
-                >
+                <button *ngFor="let p of ['Low', 'Medium', 'High', 'Urgent']" class="priority-chip"
+                  [class.active]="selectedEditingTask.priority === p" [ngClass]="'chip-' + p.toLowerCase()"
+                  (click)="updateTaskPriority(p)">
                   <span class="dot"></span>
                   {{ p }}
                 </button>
@@ -332,7 +543,8 @@
           <div class="property-row">
             <span class="property-label">Due Time</span>
             <div class="property-value">
-              <input type="text" [(ngModel)]="selectedEditingTask.dueTime" placeholder="e.g. 6:00 PM" class="property-input time-input" />
+              <input type="text" [(ngModel)]="selectedEditingTask.dueTime" placeholder="e.g. 6:00 PM"
+                class="property-input time-input" />
             </div>
           </div>
 
@@ -341,7 +553,8 @@
             <span class="property-label">Required</span>
             <div class="property-value">
               <label class="switch-toggle">
-                <input type="checkbox" [ngModel]="selectedEditingTask.required" (ngModelChange)="updateTaskRequired($event)" />
+                <input type="checkbox" [ngModel]="selectedEditingTask.required"
+                  (ngModelChange)="updateTaskRequired($event)" />
                 <span class="slider"></span>
               </label>
             </div>
@@ -352,12 +565,8 @@
             <span class="property-label">Employee Response</span>
             <div class="property-value response-type-options">
               <div class="response-grid">
-                <button
-                  *ngFor="let rt of taskResponseTypes"
-                  class="response-type-btn"
-                  [class.active]="selectedEditingTask.type === rt.value"
-                  (click)="updateTaskResponseType(rt.value)"
-                >
+                <button *ngFor="let rt of taskResponseTypes" class="response-type-btn"
+                  [class.active]="selectedEditingTask.type === rt.value" (click)="updateTaskResponseType(rt.value)">
                   <i-tabler [name]="rt.icon" class="icon-16"></i-tabler>
                   <span>{{ rt.label }}</span>
                 </button>
@@ -370,7 +579,8 @@
             <span class="property-label highlight-label">Target Goal</span>
             <div class="property-value">
               <div class="target-input-wrapper">
-                <input type="text" [(ngModel)]="selectedEditingTask.targetValue" placeholder="e.g. 150" class="property-input target-input" />
+                <input type="text" [(ngModel)]="selectedEditingTask.targetValue" placeholder="e.g. 150"
+                  class="property-input target-input" />
                 <span class="target-suffix">numerical value</span>
               </div>
             </div>
@@ -387,12 +597,11 @@
           </h4>
           <p class="section-desc">Workflow is automatically generated based on the assigned role.</p>
           <div class="workflow-steps-path">
-            <div 
-              *ngFor="let step of getWorkflowStepsForRole(editingTemplate?.role || ''); let isLast = last" 
-              class="workflow-step-item"
-            >
+            <div *ngFor="let step of getWorkflowStepsForRole(editingTemplate?.role || ''); let isLast = last"
+              class="workflow-step-item">
               <div class="step-bubble">
-                <span class="step-index">{{ step === 'Employee' ? 'Emp' : (step === 'Admin' ? 'Adm' : step.substring(0, 3)) }}</span>
+                <span class="step-index">{{ step === 'Employee' ? 'Emp' : (step === 'Admin' ? 'Adm' : step.substring(0,
+                  3)) }}</span>
                 <span class="step-label">{{ step }}</span>
               </div>
               <i-tabler name="chevron-right" class="icon-14 step-connector" *ngIf="!isLast"></i-tabler>
@@ -406,17 +615,22 @@
         <div class="details-section">
           <div class="detail-field">
             <h4 class="section-heading">Description</h4>
-            <textarea [(ngModel)]="selectedEditingTask.description" placeholder="Add description..." class="clickup-textarea description-textarea"></textarea>
+            <textarea [(ngModel)]="selectedEditingTask.description" placeholder="Add description..."
+              class="clickup-textarea description-textarea"></textarea>
           </div>
 
           <div class="detail-field">
             <h4 class="section-heading">Employee Instructions</h4>
-            <textarea [(ngModel)]="selectedEditingTask.employeeInstructions" placeholder="Specific step-by-step instructions for the employee..." class="clickup-textarea instructions-textarea"></textarea>
+            <textarea [(ngModel)]="selectedEditingTask.employeeInstructions"
+              placeholder="Specific step-by-step instructions for the employee..."
+              class="clickup-textarea instructions-textarea"></textarea>
           </div>
 
           <div class="detail-field">
             <h4 class="section-heading">Expected Output</h4>
-            <textarea [(ngModel)]="selectedEditingTask.expectedOutput" placeholder="Specify what the output looks like (e.g., PDF template, CRM update logs)..." class="clickup-textarea output-textarea"></textarea>
+            <textarea [(ngModel)]="selectedEditingTask.expectedOutput"
+              placeholder="Specify what the output looks like (e.g., PDF template, CRM update logs)..."
+              class="clickup-textarea output-textarea"></textarea>
           </div>
         </div>
 
@@ -428,22 +642,27 @@
             <i-tabler name="paperclip" class="icon-16 m-r-6"></i-tabler>
             Attachments Reference
           </h4>
-          <div class="attachments-list" *ngIf="selectedEditingTask.attachments && selectedEditingTask.attachments.length > 0">
+          <div class="attachments-list"
+            *ngIf="selectedEditingTask.attachments && selectedEditingTask.attachments.length > 0">
             <div class="attachment-item" *ngFor="let att of selectedEditingTask.attachments; let attIdx = index">
               <i-tabler name="file" class="icon-16 text-muted m-r-8"></i-tabler>
               <span class="attachment-name" [title]="att.name">{{ att.name }}</span>
               <span class="attachment-size">({{ att.size }})</span>
-              <button mat-icon-button class="remove-att-btn" (click)="removeAttachmentFromTask(attIdx)" title="Remove Attachment">
+              <button mat-icon-button class="remove-att-btn" (click)="removeAttachmentFromTask(attIdx)"
+                title="Remove Attachment">
                 <i-tabler name="trash" class="icon-14"></i-tabler>
               </button>
             </div>
           </div>
-          <div class="empty-attachments" *ngIf="!selectedEditingTask.attachments || selectedEditingTask.attachments.length === 0">
+          <div class="empty-attachments"
+            *ngIf="!selectedEditingTask.attachments || selectedEditingTask.attachments.length === 0">
             <p>No reference files attached to this template task.</p>
           </div>
           <!-- Add Attachment Form -->
           <div class="add-attachment-input-row">
-            <input type="text" [(ngModel)]="newAttachmentName" placeholder="Enter file name (e.g. Lead_Sheet_Template.xlsx)..." class="attachment-input" (keyup.enter)="addAttachmentToTask()" />
+            <input type="text" [(ngModel)]="newAttachmentName"
+              placeholder="Enter file name (e.g. Lead_Sheet_Template.xlsx)..." class="attachment-input"
+              (keyup.enter)="addAttachmentToTask()" />
             <button class="add-attachment-btn" (click)="addAttachmentToTask()" [disabled]="!newAttachmentName.trim()">
               Add File
             </button>
@@ -475,12 +694,14 @@
               </div>
             </div>
           </div>
-          <div class="empty-comments" *ngIf="!selectedEditingTask.comments || selectedEditingTask.comments.length === 0">
+          <div class="empty-comments"
+            *ngIf="!selectedEditingTask.comments || selectedEditingTask.comments.length === 0">
             <p>No comments on this task template yet.</p>
           </div>
           <!-- Add Comment Form -->
           <div class="comment-editor">
-            <textarea [(ngModel)]="newCommentText" placeholder="Write a comment..." class="comment-textarea" (keyup.enter)="addCommentToTask()"></textarea>
+            <textarea [(ngModel)]="newCommentText" placeholder="Write a comment..." class="comment-textarea"
+              (keyup.enter)="addCommentToTask()"></textarea>
             <div class="comment-actions">
               <button class="comment-submit-btn" (click)="addCommentToTask()" [disabled]="!newCommentText.trim()">
                 Comment
@@ -497,7 +718,8 @@
             <i-tabler name="activity" class="icon-16 m-r-6"></i-tabler>
             Activity Timeline
           </h4>
-          <div class="activity-list" *ngIf="selectedEditingTask.activities && selectedEditingTask.activities.length > 0">
+          <div class="activity-list"
+            *ngIf="selectedEditingTask.activities && selectedEditingTask.activities.length > 0">
             <div class="activity-item" *ngFor="let act of selectedEditingTask.activities">
               <span class="activity-bullet"></span>
               <span class="activity-text">{{ act.text }}</span>
@@ -506,6 +728,14 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Global Top-Level Toast Notification Banner -->
+  <div class="global-toast-notification" *ngIf="toastMessage">
+    <div class="toast-content">
+      <i-tabler name="circle-check" class="icon-18 text-success m-r-8"></i-tabler>
+      <span>{{ toastMessage }}</span>
     </div>
   </div>
 </div>

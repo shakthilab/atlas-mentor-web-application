@@ -18,6 +18,12 @@
   </div>
 
   <div class="tree-body">
+    <div class="tree-empty-state" *ngIf="branches.length === 0">
+      <i-tabler name="folder-off" class="empty-icon"></i-tabler>
+      <span class="empty-title">No data found</span>
+      <span class="empty-sub">No employee hierarchy available.</span>
+    </div>
+
     <!-- Branch Node -->
     <div class="tree-node branch-node" *ngFor="let branch of branches">
       <div class="node-row" (click)="toggleExpand(branch)" [class.active-branch]="selectedBranch?.id === branch.id">
@@ -39,9 +45,8 @@
           <!-- Employees Nested -->
           <div class="nested-container" *ngIf="role.expanded">
             <div class="tree-node employee-node" *ngFor="let employee of role.employees">
-              <div class="node-row employee-row" (click)="toggleExpand(employee)" [class.active-employee]="selectedEmployee?.id === employee.id">
-                <i-tabler [name]="employee.expanded ? 'chevron-down' : 'chevron-right'" class="caret-icon" *ngIf="employee.years && employee.years.length > 0"></i-tabler>
-                <span class="caret-placeholder" *ngIf="!employee.years || employee.years.length === 0"></span>
+              <div class="node-row employee-row" (click)="onSelectEmployee(employee, role, branch, $event)" [class.active-employee]="selectedEmployee?.id === employee.id">
+                <i-tabler [name]="employee.expanded ? 'chevron-down' : 'chevron-right'" class="caret-icon"></i-tabler>
                 
                 <span class="employee-avatar" [style.background-color]="employee.id === 'emp-rohith' ? '#4ade80' : '#f43f5e'">
                   {{ employee.initials || 'EE' }}
@@ -55,7 +60,7 @@
               <!-- Years Nested -->
               <div class="nested-container" *ngIf="employee.expanded && employee.years">
                 <div class="tree-node year-node" *ngFor="let year of employee.years">
-                  <div class="node-row" (click)="toggleExpand(year)">
+                  <div class="node-row" (click)="toggleExpand(year, $event, employee)">
                     <i-tabler [name]="year.expanded ? 'chevron-down' : 'chevron-right'" class="caret-icon"></i-tabler>
                     <i-tabler name="calendar" class="node-icon year-icon"></i-tabler>
                     <span class="node-name">{{ year.yearNumber }}</span>
@@ -64,7 +69,7 @@
                   <!-- Months Nested -->
                   <div class="nested-container" *ngIf="year.expanded && year.months">
                     <div class="tree-node month-node" *ngFor="let month of year.months">
-                      <div class="node-row" (click)="toggleExpand(month)">
+                      <div class="node-row" (click)="toggleExpand(month, $event, employee, year)">
                         <i-tabler [name]="month.expanded ? 'chevron-down' : 'chevron-right'" class="caret-icon"></i-tabler>
                         <span class="node-name">{{ month.name }}</span>
                         <span class="live-badge" *ngIf="month.isLive">live</span>

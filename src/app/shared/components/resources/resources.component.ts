@@ -6,6 +6,7 @@ import { NotificationService } from '../../../core/services/notification.service
 import { ResourceService, ResourceData } from '../../../core/services/resource.service';
 import { AddResourceDialogComponent } from './add-resource-dialog/add-resource-dialog.component';
 import { ResourceDetailsDialogComponent } from './resource-details-dialog/resource-details-dialog.component';
+import { AuthService } from '../../../core/services/auth.service';
 
 export interface Resource {
   id: number;
@@ -40,7 +41,7 @@ export interface Resource {
                 <i-tabler name="layout-grid" class="icon-18"></i-tabler>
               </button>
             </div>
-            <button mat-flat-button color="primary" class="d-flex align-items-center add-btn desktop-add-btn" (click)="addResource()">
+            <button *ngIf="!isCounsellor" mat-flat-button color="primary" class="d-flex align-items-center add-btn desktop-add-btn" (click)="addResource()">
               <i-tabler name="plus" class="icon-18 m-r-4"></i-tabler>
               <span class="add-btn-text">Add Resource</span>
             </button>
@@ -48,7 +49,28 @@ export interface Resource {
         </mat-card-header>
         
         <mat-card-content class="p-0">
-          <div *ngIf="viewMode === 'table'" class="table-responsive view-container">
+          <!-- Loading State -->
+          <div *ngIf="isLoading" class="d-flex justify-content-center align-items-center p-24">
+            <i-tabler name="loader" class="icon-24 spinning text-primary m-r-8"></i-tabler>
+            <span class="f-s-14 text-muted">Loading resources...</span>
+          </div>
+
+          <!-- Error State -->
+          <div *ngIf="!isLoading && hasError" class="d-flex flex-column justify-content-center align-items-center p-24">
+            <i-tabler name="alert-circle" class="icon-48 text-danger m-b-8"></i-tabler>
+            <h6 class="mat-subtitle-1 m-b-4">Failed to load resources</h6>
+            <span class="f-s-14 text-muted m-b-16">There was an error communicating with the server.</span>
+            <button mat-stroked-button color="primary" (click)="loadResources()">Try Again</button>
+          </div>
+
+          <!-- Empty State -->
+          <div *ngIf="!isLoading && !hasError && dataSource.data.length === 0" class="d-flex flex-column justify-content-center align-items-center p-24">
+            <i-tabler name="inbox" class="icon-48 text-muted m-b-8"></i-tabler>
+            <h6 class="mat-subtitle-1 m-b-4">No resources found</h6>
+            <span class="f-s-14 text-muted">No uploaded resources found.</span>
+          </div>
+
+          <div *ngIf="!isLoading && !hasError && dataSource.data.length > 0 && viewMode === 'table'" class="table-responsive view-container">
             <table mat-table [dataSource]="dataSource" class="w-100">
               
               <ng-container matColumnDef="resourceDetail">
@@ -137,7 +159,7 @@ export interface Resource {
           </div>
 
           <!-- Card View -->
-          <div *ngIf="viewMode === 'card'" class="card-grid view-container p-24">
+          <div *ngIf="!isLoading && !hasError && dataSource.data.length > 0 && viewMode === 'card'" class="card-grid view-container p-24">
             <mat-card *ngFor="let element of dataSource.data" class="resource-card cardWithShadow cursor-pointer" (click)="viewDetails(element)">
               <mat-card-content class="p-16">
                 <div class="d-flex align-items-center m-b-16">
@@ -201,7 +223,7 @@ export interface Resource {
     </div>
 
     <!-- Mobile FAB -->
-    <button mat-fab color="primary" class="resource-mobile-fab" (click)="addResource()" aria-label="Add Resource">
+    <button *ngIf="!isCounsellor" mat-fab color="primary" class="resource-mobile-fab" (click)="addResource()" aria-label="Add Resource">
       <i-tabler name="plus" class="icon-24"></i-tabler>
     </button>
   `,
@@ -242,10 +264,10 @@ export interface Resource {
     .icon-bg-image { background-color: rgba(19, 222, 185, 0.1); color: #13deb9; }
     .icon-bg-video { background-color: rgba(250, 137, 107, 0.1); color: #fa896b; }
     .icon-bg-audio { background-color: rgba(183, 136, 255, 0.1); color: #b788ff; }
-    .icon-bg-document { background-color: rgba(93, 135, 255, 0.1); color: #5d87ff; }
+    .icon-bg-document { background-color: rgba(0, 0, 0, 0.08); color: #000000; }
     .icon-bg-spreadsheet { background-color: rgba(19, 222, 185, 0.1); color: #13deb9; }
     .icon-bg-presentation { background-color: rgba(250, 137, 107, 0.1); color: #fa896b; }
-    .icon-bg-link { background-color: rgba(93, 135, 255, 0.1); color: #5d87ff; }
+    .icon-bg-link { background-color: rgba(0, 0, 0, 0.08); color: #000000; }
     .icon-bg-archive { background-color: rgba(255, 174, 31, 0.1); color: #ffae1f; }
     .icon-bg-default { background-color: rgba(73, 190, 255, 0.1); color: #49beff; }
 
@@ -287,6 +309,8 @@ export interface Resource {
 })
 export class ResourcesComponent implements OnInit, AfterViewInit {
   viewMode: 'table' | 'card' = 'table';
+  isLoading = false;
+  hasError = false;
   displayedColumns: string[] = ['resourceDetail', 'type', 'ownership', 'storage', 'created', 'status', 'actions'];
   dataSource = new MatTableDataSource<Resource>([]);
   
@@ -297,13 +321,21 @@ export class ResourcesComponent implements OnInit, AfterViewInit {
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
+  isCounsellor = false;
+
   constructor(
     private notificationService: NotificationService,
     private resourceService: ResourceService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
+    const user = this.authService.currentUserValue;
+    if (user) {
+      const role = user.role?.toUpperCase() || '';
+      this.isCounsellor = (role === 'JUNIOR_COUNSELLOR' || role === 'SENIOR_COUNSELLOR');
+    }
     this.loadResources();
   }
 
@@ -313,6 +345,8 @@ export class ResourcesComponent implements OnInit, AfterViewInit {
 
   loadResources(): void {
     const filters = this.searchQuery ? { search: this.searchQuery } : undefined;
+    this.isLoading = true;
+    this.hasError = false;
     
     this.resourceService.getResources(this.currentPage, this.pageSize, filters).subscribe({
       next: (response: any) => {
@@ -328,13 +362,13 @@ export class ResourcesComponent implements OnInit, AfterViewInit {
           isEmpty = pageData.length === 0;
         }
 
-        if (isEmpty) {
-          const msg = response?.message || 'No records found';
-          this.notificationService.showErrorToast(msg, 'Error');
-        }
+        this.isLoading = false;
+        this.hasError = false;
       },
       error: (err) => {
         console.error('Error fetching resources:', err);
+        this.isLoading = false;
+        this.hasError = true;
         this.notificationService.showErrorToast('Failed to load resources.', 'Error');
       }
     });

@@ -28,6 +28,7 @@ export interface Student {
   joinedDate: string;
   rawStatus?: string;
   isActive?: boolean;
+  source?: string;
 }
 
 @Component({
@@ -60,9 +61,28 @@ export interface Student {
         </mat-card-header>
         
         <mat-card-content class="p-0">
-          <mat-progress-bar *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>
+          <!-- Loading State -->
+          <div *ngIf="isLoading" class="d-flex justify-content-center align-items-center p-24">
+            <i-tabler name="loader" class="icon-24 spinning text-primary m-r-8"></i-tabler>
+            <span class="f-s-14 text-muted">Loading students...</span>
+          </div>
 
-          <div *ngIf="viewMode === 'table'" class="table-responsive view-container">
+          <!-- Error State -->
+          <div *ngIf="!isLoading && hasError" class="d-flex flex-column justify-content-center align-items-center p-24">
+            <i-tabler name="alert-circle" class="icon-48 text-danger m-b-8"></i-tabler>
+            <h6 class="mat-subtitle-1 m-b-4">Failed to load students</h6>
+            <span class="f-s-14 text-muted m-b-16">There was an error communicating with the server.</span>
+            <button mat-stroked-button color="primary" (click)="loadStudents(0, 10)">Try Again</button>
+          </div>
+
+          <!-- Empty State -->
+          <div *ngIf="!isLoading && !hasError && dataSource.data.length === 0" class="d-flex flex-column justify-content-center align-items-center p-24">
+            <i-tabler name="inbox" class="icon-48 text-muted m-b-8"></i-tabler>
+            <h6 class="mat-subtitle-1 m-b-4">No students found</h6>
+            <span class="f-s-14 text-muted">No registered students found.</span>
+          </div>
+
+          <div *ngIf="!isLoading && !hasError && dataSource.data.length > 0 && viewMode === 'table'" class="table-responsive view-container">
             <table mat-table [dataSource]="dataSource" class="w-100">
               
               <!-- Student Column -->
@@ -95,6 +115,14 @@ export interface Student {
                   <span class="status-badge" [ngClass]="element.status">
                     {{ element.status === 'enrolled' ? 'Enrolled' : element.status === 'pending' ? 'Pending' : 'Completed' }}
                   </span>
+                </td>
+              </ng-container>
+
+              <!-- Source Column -->
+              <ng-container matColumnDef="source">
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Source</th>
+                <td mat-cell *matCellDef="let element">
+                  <span class="f-w-600 text-dark f-s-13">{{ element.source || '—' }}</span>
                 </td>
               </ng-container>
 
@@ -185,7 +213,7 @@ export interface Student {
           </div>
 
           <!-- Card View -->
-          <div *ngIf="viewMode === 'card'" class="card-grid view-container p-24">
+          <div *ngIf="!isLoading && !hasError && dataSource.data.length > 0 && viewMode === 'card'" class="card-grid view-container p-24">
             <mat-card *ngFor="let element of dataSource.filteredData" class="student-card cardWithShadow cursor-pointer" (click)="viewProfile(element)">
               <mat-card-content class="p-16">
                 <div class="d-flex align-items-center m-b-16">
@@ -248,9 +276,12 @@ export interface Student {
                 </div>
                 
                 <mat-divider class="m-b-12"></mat-divider>
-                <div class="d-flex align-items-center justify-content-between text-muted f-s-12">
+                <div class="d-flex align-items-center justify-content-between text-muted f-s-12 m-b-8">
                   <span class="d-flex align-items-center"><i-tabler name="map-pin" class="icon-14 m-r-4"></i-tabler> {{ element.country }}</span>
                   <span class="d-flex align-items-center"><i-tabler name="calendar" class="icon-14 m-r-4"></i-tabler> {{ element.joinedDate }}</span>
+                </div>
+                <div class="d-flex align-items-center text-muted f-s-12">
+                  <span class="d-flex align-items-center"><i-tabler name="world" class="icon-14 m-r-4"></i-tabler> Source: {{ element.source || '—' }}</span>
                 </div>
               </mat-card-content>
             </mat-card>
@@ -526,12 +557,14 @@ export interface Student {
 export class StudentsComponent implements OnInit, AfterViewInit, OnDestroy {
   viewMode: 'table' | 'card' = 'table';
   isLoading = false;
+  hasError = false;
   totalElements = 0;
 
   displayedColumns: string[] = [
     'student',
     'contactInfo',
     'status',
+    'source',
     'activeStatus',
     'counsellor',
     'addedBy',
@@ -570,16 +603,19 @@ export class StudentsComponent implements OnInit, AfterViewInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  private loadStudents(page: number, size: number): void {
+  loadStudents(page: number, size: number): void {
     this.isLoading = true;
+    this.hasError = false;
     this.studentService.getRegisteredStudents(page, size).subscribe({
       next: (res) => {
         this.dataSource.data = res.content.map(mapToStudent);
         this.totalElements = res.totalElements;
         this.isLoading = false;
+        this.hasError = false;
       },
       error: () => {
         this.isLoading = false;
+        this.hasError = true;
         this.notificationService.showErrorToast('Failed to load students.', 'Error');
       }
     });
@@ -620,8 +656,17 @@ export class StudentsComponent implements OnInit, AfterViewInit, OnDestroy {
 
         dialogRef.afterClosed().subscribe(result => {
           if (result) {
-            this.notificationService.showSuccessToast(`Profile updates saved for ${student.name}.`, 'Changes Saved');
-            this.loadStudents(this.paginator?.pageIndex || 0, this.paginator?.pageSize || 10);
+            this.leadService.updateLead(student.id!, result).subscribe({
+              next: () => {
+                this.notificationService.showSuccessToast(`Profile updates saved for ${student.name}.`, 'Changes Saved');
+                this.loadStudents(this.paginator?.pageIndex || 0, this.paginator?.pageSize || 10);
+              },
+              error: (err) => {
+                console.error('Failed to update student profile:', err);
+                const errorMessage = err.error?.message || err.message || 'Failed to save student profile updates.';
+                this.notificationService.showErrorPopup(errorMessage, 'Update Failed', 'Close').subscribe();
+              }
+            });
           }
         });
       },
@@ -694,6 +739,7 @@ function mapToStudent(dto: RegisteredStudentDto): Student {
     joinedDate,
     rawStatus: dto.status,
     isActive: dto.isActive,
+    source: dto.source || '—',
   };
 }
 

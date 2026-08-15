@@ -2,107 +2,280 @@
   <!-- Center panel (Scrollable content area) -->
   <div class="center-panel">
     <div class="center-scrollable-content">
-      <!-- Breadcrumbs & Header -->
-      <div class="dashboard-header" *ngIf="day && employee">
-        <div class="header-left">
-          <div class="breadcrumbs">
-            <span class="parent-link">Accountability</span>
-            <span class="slash">/</span>
-            <span class="parent-link">{{ branch?.name }}</span>
-            <span class="slash">/</span>
-            <span class="parent-link">{{ employee?.name }}</span>
-            <span class="slash">/</span>
-            <span class="active-link">{{ month?.name }} {{ year?.yearNumber }}</span>
-          </div>
-          
-          <div class="day-title-row">
-            <h1>{{ day.name }} — {{ day.dateLabel }}</h1>
+      
+      <!-- ========================================================================= -->
+      <!-- A. NON-APPROVAL USER SCREEN (Counsellors, Web Dev, Video Editors, etc.)  -->
+      <!-- ========================================================================= -->
+      <div class="non-approval-workspace-wrapper" *ngIf="isIndividualContributor">
+        <!-- Top Header Row -->
+        <div class="non-approval-top-header">
+          <div class="header-left-meta">
+            <h1 class="date-title">{{ selectedDateFormattedTitle }}</h1>
+            <p class="user-meta-subtitle">{{ userSubtitleMeta }}</p>
           </div>
 
-          <div class="employee-meta-row">
-            <div class="employee-avatar" [style.background-color]="employee.id === 'emp-rohith' ? '#22c55e' : '#f43f5e'">
-              {{ employee.initials || 'EE' }}
-            </div>
-            <span class="employee-name">{{ employee.name }}</span>
-            <span class="meta-dot">•</span>
-            <span class="employee-role">{{ employee.role }}</span>
-            <span class="meta-dot">•</span>
-            <span class="streak-text" *ngIf="employee.streak">
-              <span class="fire-emoji">🔥</span>
-              <span class="streak-count">{{ employee.streak }}-day streak</span>
-            </span>
+          <div class="header-right-action" *ngIf="canShowSubmitDayButton">
+            <button 
+              class="btn-submit-day-dark" 
+              [disabled]="!isAllTasksCompleted" 
+              (click)="submitDay()"
+              [title]="isAllTasksCompleted ? 'Submit day for approval' : 'All tasks of the day must be marked as DONE to submit'"
+            >
+              <i-tabler name="send" class="icon-16"></i-tabler>
+              <span>Submit day</span>
+            </button>
           </div>
         </div>
 
-        <div class="header-right">
-          <button class="btn-outline-blue" (click)="submitDay()">
-            Submit Day
-          </button>
-          <button class="btn-solid-blue" (click)="markDayComplete()">
-            Mark Day Complete
-          </button>
+        <!-- SELECT DAY Weekly 7-Card Strip Section -->
+        <div class="select-day-weekly-card">
+          <div class="card-header-bar">
+            <div class="header-titles">
+              <span class="section-label">SELECT DAY</span>
+              <h2 class="date-range-text">{{ selectedWeekRangeLabel }}</h2>
+            </div>
+
+            <div class="header-nav-controls">
+              <div class="nav-arrows-group">
+                <button class="btn-arrow" (click)="shiftWeek(-7)">
+                  <i-tabler name="chevron-left" class="icon-16"></i-tabler>
+                </button>
+                <button class="btn-arrow" (click)="shiftWeek(7)">
+                  <i-tabler name="chevron-right" class="icon-16"></i-tabler>
+                </button>
+              </div>
+
+              <div class="date-picker-relative-container">
+                <button class="btn-picker-date" (click)="toggleDatePicker($event)">
+                  <i-tabler name="calendar" class="icon-16"></i-tabler>
+                  <span>{{ selectedDateButtonLabel }}</span>
+                </button>
+
+                <!-- Floating Calendar Popover Dropdown -->
+                <div class="calendar-popover-dropdown" *ngIf="isDatePickerOpen" (click)="$event.stopPropagation()">
+                  <div class="popover-header">
+                    <button class="popover-nav-btn" (click)="prevPickerMonth($event)">
+                      <i-tabler name="chevron-left" class="icon-16"></i-tabler>
+                    </button>
+
+                    <span class="popover-month-title">{{ pickerMonthLabel }}</span>
+
+                    <button class="popover-nav-btn" (click)="nextPickerMonth($event)">
+                      <i-tabler name="chevron-right" class="icon-16"></i-tabler>
+                    </button>
+                  </div>
+
+                  <div class="popover-weekdays-grid">
+                    <span>Su</span>
+                    <span>Mo</span>
+                    <span>Tu</span>
+                    <span>We</span>
+                    <span>Th</span>
+                    <span>Fr</span>
+                    <span>Sa</span>
+                  </div>
+
+                  <div class="popover-days-grid">
+                    <button 
+                      *ngFor="let cell of calendarGridDays"
+                      class="calendar-day-cell"
+                      [class.other-month]="!cell.isCurrentMonth"
+                      [class.selected]="cell.isSelected"
+                      [class.today]="cell.isToday"
+                      (click)="selectCalendarDate(cell, $event)"
+                    >
+                      {{ cell.dayNumber }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 7-Day Cards Strip -->
+          <div class="weekly-cards-grid">
+            <button 
+              *ngFor="let card of weekDaysList"
+              class="weekly-day-card"
+              [class.active]="card.isActive"
+              [class.is-today]="card.isToday"
+              (click)="selectStripDay(card)"
+            >
+              <div class="card-day-name">{{ card.dayName }}</div>
+              <div class="card-day-num">{{ card.dayNumber }}</div>
+              <div class="card-count-text">{{ card.taskCountText }}</div>
+              <div class="dot-wrapper">
+                <span class="dot-indicator" *ngIf="card.hasDot"></span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 Summary KPI Metric Cards -->
+        <div class="kpi-cards-grid">
+          <div class="kpi-card">
+            <div class="kpi-top">
+              <span class="kpi-title">TASKS PLANNED</span>
+              <i-tabler name="adjustments-horizontal" class="kpi-icon"></i-tabler>
+            </div>
+            <div class="kpi-value">{{ tasksPlannedCount }}</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-top">
+              <span class="kpi-title">COMPLETED</span>
+              <i-tabler name="circle-check" class="kpi-icon"></i-tabler>
+            </div>
+            <div class="kpi-value">{{ tasksCompletedCount }}</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-top">
+              <span class="kpi-title">OVERDUE</span>
+              <i-tabler name="clock" class="kpi-icon"></i-tabler>
+            </div>
+            <div class="kpi-value">{{ tasksOverdueCount }}</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-top">
+              <span class="kpi-title">COMPLETION</span>
+              <i-tabler name="circle-check" class="kpi-icon"></i-tabler>
+            </div>
+            <div class="kpi-value">{{ completionPercentage }}%</div>
+          </div>
+        </div>
+
+        <!-- DAY APPROVAL WORKFLOW -->
+        <div class="workflow-card-container" *ngIf="day && day.tasks && day.tasks.length > 0">
+          <app-workflow-progress class="workflow-widget"></app-workflow-progress>
+        </div>
+
+        <!-- Task Table Section -->
+        <div class="task-table-card-container">
+          <app-task-table class="table-widget"></app-task-table>
         </div>
       </div>
 
-      <!-- Completion Stats Cards Row -->
-      <div class="stats-cards-row" *ngIf="day && employee">
-        <!-- Daily Completion Card -->
-        <div class="stat-card">
-          <div class="card-header-row">
-            <span class="card-title">DAILY COMPLETION</span>
-            <span class="card-percentage">{{ day.completionRate }}%</span>
+      <!-- ========================================================================= -->
+      <!-- B. POWER USER / ADMIN SCREEN (Manager, Admin, Branch Partner, Assitant)   -->
+      <!-- ========================================================================= -->
+      <ng-container *ngIf="!isIndividualContributor">
+        <!-- Welcome Greeting State (shown initially when no employee is selected) -->
+        <div class="welcome-greeting-container" *ngIf="!employee || !day">
+          <div class="greeting-hero-card">
+            <div class="greeting-content">
+              <div class="greeting-badge">
+                <i-tabler name="chart-bar" class="badge-icon"></i-tabler> Task Accountability Workspace
+              </div>
+              <h1 class="greeting-heading">Good {{ getTimeOfDay() }}, Admin! 👋</h1>
+              <p class="greeting-subtext">
+                Welcome to the Task Accountability Portal. Select an employee from the tree on the left to track daily targets, monitor KPI achievements, and manage review approvals.
+              </p>
+            </div>
+            <div class="greeting-illustration">
+              <div class="illustration-circle">
+                <i-tabler name="layout-dashboard" class="hero-icon"></i-tabler>
+              </div>
+            </div>
           </div>
-          <div class="card-count-row">
-            <span class="count-bold">{{ completedTasksCount }}</span>
-            <span class="count-total">/ {{ totalTasksCount }} tasks</span>
-          </div>
-          <div class="card-progress-bar">
-            <div class="progress-track">
-              <div class="progress-fill blue-fill" [style.width.%]="day.completionRate"></div>
+
+          <div class="greeting-feature-grid">
+            <div class="feature-card">
+              <div class="feature-icon-wrapper blue">
+                <i-tabler name="sitemap" class="feature-icon"></i-tabler>
+              </div>
+              <div class="feature-text">
+                <h3>Employee Hierarchy</h3>
+                <p>Explore branches, operational roles, and team members from the left accordion menu.</p>
+              </div>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon-wrapper green">
+                <i-tabler name="list-check" class="feature-icon"></i-tabler>
+              </div>
+              <div class="feature-text">
+                <h3>Daily Task Tracking</h3>
+                <p>Review numeric KPIs, checklist completion rates, and submission comments in real-time.</p>
+              </div>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon-wrapper purple">
+                <i-tabler name="circle-check" class="feature-icon"></i-tabler>
+              </div>
+              <div class="feature-text">
+                <h3>Manager Review & Workflow</h3>
+                <p>Approve, reject, or return daily work submissions through structured approval stages.</p>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Weekly Completion Card -->
-        <div class="stat-card">
-          <div class="card-header-row">
-            <span class="card-title">WEEKLY COMPLETION</span>
-            <span class="card-percentage">94%</span>
-          </div>
-          <div class="card-count-row">
-            <span class="count-bold">132</span>
-            <span class="count-total">/ 140 tasks</span>
-          </div>
-          <div class="card-progress-bar">
-            <div class="progress-track">
-              <div class="progress-fill green-fill" [style.width.%]="94"></div>
+        <!-- Selected Employee Workspace for Power Users -->
+        <div class="employee-workspace-wrapper" *ngIf="day && employee">
+          <!-- Breadcrumbs & Header -->
+          <div class="dashboard-header">
+            <div class="header-left">
+              <div class="breadcrumbs">
+                <span class="parent-link">Accountability</span>
+                <span class="slash">/</span>
+                <span class="parent-link">{{ branch?.name }}</span>
+                <span class="slash">/</span>
+                <span class="parent-link">{{ employee.name }}</span>
+                <span class="slash">/</span>
+                <span class="active-link">{{ month?.name }} {{ year?.yearNumber }}</span>
+              </div>
+              
+              <div class="day-title-row">
+                <h1>{{ day.dateLabel || day.name }}</h1>
+              </div>
+
+              <div class="employee-meta-row">
+                <div class="employee-avatar" [style.background-color]="getAvatarBgColor(employee.id)">
+                  {{ getInitials(employee.name, employee.initials) }}
+                </div>
+                <span class="employee-name">{{ employee.name }}</span>
+                <span class="meta-dot">•</span>
+                <span class="employee-role">{{ employee.roleName || getFormattedRoleName(employee.role) }}</span>
+              </div>
+            </div>
+
+            <!-- Approval Actions Bar for Admin / Reviewer -->
+            <div class="header-right approval-actions-container">
+              <div class="approval-actions-group">
+                <button 
+                  class="btn-approve-action" 
+                  [disabled]="!day.canCurrentUserAct" 
+                  (click)="approveDayAction()"
+                >
+                  Approve
+                </button>
+
+                <button 
+                  class="btn-sendback-action" 
+                  [disabled]="!day.canCurrentUserAct" 
+                  (click)="sendBackDayAction()"
+                >
+                  Send Back
+                </button>
+
+                <span class="muted-waiting-tag" *ngIf="!day.canCurrentUserAct && day.nextActionRole">
+                  Waiting on {{ formatRole(day.nextActionRole) }}
+                </span>
+              </div>
             </div>
           </div>
+
+          <!-- Workflow Progress Widget -->
+          <app-workflow-progress class="workflow-widget" *ngIf="day && day.tasks && day.tasks.length > 0"></app-workflow-progress>
+
+          <!-- Task Table Widget -->
+          <app-task-table class="table-widget"></app-task-table>
         </div>
+      </ng-container>
 
-        <!-- Monthly Completion Card -->
-        <div class="stat-card">
-          <div class="card-header-row">
-            <span class="card-title">MONTHLY COMPLETION</span>
-            <span class="card-percentage">76%</span>
-          </div>
-          <div class="card-count-row">
-            <span class="count-bold">168</span>
-            <span class="count-total">/ 220 tasks</span>
-          </div>
-          <div class="card-progress-bar">
-            <div class="progress-track">
-              <div class="progress-fill blue-fill" [style.width.%]="76"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Workflow Progress Widget -->
-      <app-workflow-progress class="workflow-widget"></app-workflow-progress>
-
-      <!-- Task Table Widget -->
-      <app-task-table class="table-widget"></app-task-table>
     </div>
   </div>
 

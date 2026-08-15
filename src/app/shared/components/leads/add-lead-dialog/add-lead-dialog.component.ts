@@ -10,6 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { MasterDataService, MobileCountryCode, Branch } from '../../../../core/services/master-data.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-add-lead-dialog',
@@ -166,6 +167,25 @@ import { MasterDataService, MobileCountryCode, Branch } from '../../../../core/s
                     </span>
                   </mat-option>
                 </mat-select>
+              </mat-form-field>
+            </div>
+
+            <div class="m-b-16">
+              <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block">Lead Source</mat-label>
+              <mat-form-field appearance="outline" class="w-100" subscriptSizing="dynamic">
+                <mat-select formControlName="leadSourceSelect" placeholder="Select Lead Source" (selectionChange)="onLeadSourceChange($event.value)">
+                  <mat-option *ngFor="let source of leadSources" [value]="source.enum">{{ source.displayName }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+
+            <div class="m-b-16" *ngIf="onboardingForm.get('personalInfo.leadSourceSelect')?.value === 'PERSON' || onboardingForm.get('personalInfo.leadSourceSelect')?.value === 'OTHER'">
+              <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block">
+                {{ onboardingForm.get('personalInfo.leadSourceSelect')?.value === 'PERSON' ? 'Person Referral Name' : 'Specify Other Source' }} <span class="text-danger">*</span>
+              </mat-label>
+              <mat-form-field appearance="outline" class="w-100" subscriptSizing="dynamic">
+                <input matInput formControlName="sourceCustomText" [placeholder]="onboardingForm.get('personalInfo.leadSourceSelect')?.value === 'PERSON' ? 'Enter referrer name' : 'Enter source details'">
+                <mat-error *ngIf="onboardingForm.get('personalInfo.sourceCustomText')?.invalid">This field is required</mat-error>
               </mat-form-field>
             </div>
           </ng-container>
@@ -634,7 +654,8 @@ export class AddLeadDialogComponent implements OnInit {
     private fb: FormBuilder,
     public dialogRef: MatDialogRef<AddLeadDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
-    private masterData: MasterDataService
+    private masterData: MasterDataService,
+    private authService: AuthService
   ) {
     this.onboardingForm = this.fb.group({
       personalInfo: this.fb.group({
@@ -644,7 +665,9 @@ export class AddLeadDialogComponent implements OnInit {
         phone: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
         email: ['', [Validators.email]],
         branchId: ['', Validators.required],
-        counsellor: ['']
+        counsellor: [''],
+        leadSourceSelect: [''],
+        sourceCustomText: ['']
       }),
       destinationDetails: this.fb.group({
         countryId: [''],
@@ -672,6 +695,7 @@ export class AddLeadDialogComponent implements OnInit {
     this.loadMCC();
     this.loadBranches();
     this.loadCountries();
+    this.loadLeadSources();
 
     if (this.data) {
       this.isEditMode = true;
@@ -686,7 +710,7 @@ export class AddLeadDialogComponent implements OnInit {
       const phone = u.phone || this.data.phone || '';
       const email = u.email || this.data.email || '';
       const branchId = this.data.branch?.id || this.data.branchId || u.branchId || null;
-      const counsellorId = this.data.assignedTo?.id || this.data.assignedBy?.id || this.data.counsellorId || null;
+      const counsellorId = this.data.assignedById || this.data.assignedTo?.id || this.data.assignedEmployee?.id || this.data.counsellor?.id || this.data.assignedBy?.id || this.data.counsellorId || null;
       const countryCode = this.data.mobileCountryCode?.mobileCode || u.mobileCountryCode?.mobileCode || '+91';
 
       // Destination details
@@ -750,6 +774,44 @@ export class AddLeadDialogComponent implements OnInit {
             (match as any).serverDoc = doc;
           }
         });
+      }
+    }
+
+    // Pre-fill and disable branch/counsellor for JUNIOR_COUNSELLOR and SENIOR_COUNSELLOR
+    const user = this.authService.currentUserValue;
+    if (user && user.token) {
+      const role = user.role?.toUpperCase() || '';
+      const isCounsellor = (role === 'JUNIOR_COUNSELLOR' || role === 'SENIOR_COUNSELLOR');
+      
+      if (isCounsellor) {
+        const tokenPayload = this.decodeJwt(user.token);
+        if (tokenPayload) {
+          const branchId = tokenPayload.branchId;
+          const employeeId = tokenPayload.userId;
+          
+          if (!this.isEditMode) {
+            if (branchId) {
+              const branchControl = this.onboardingForm.get('personalInfo.branchId');
+              branchControl?.setValue(branchId);
+              branchControl?.disable();
+              
+              // Directly populate counsellor option list with the current user only
+              this.counsellors = [{
+                id: employeeId,
+                name: user.name,
+                roleLabel: role === 'SENIOR_COUNSELLOR' ? 'Senior' : 'Junior'
+              }];
+              
+              const counsellorControl = this.onboardingForm.get('personalInfo.counsellor');
+              if (employeeId) {
+                counsellorControl?.setValue(employeeId);
+                counsellorControl?.disable();
+              }
+            }
+          } else {
+            this.onboardingForm.get('personalInfo.branchId')?.disable();
+          }
+        }
       }
     }
   }
@@ -855,8 +917,22 @@ export class AddLeadDialogComponent implements OnInit {
           roleLabel: this.formatCounsellorRole(c.role)
         }));
         this.counsellorLoading = false;
+        
+        const ctrl = this.onboardingForm.get('personalInfo.counsellor');
         if (preselectCounsellorId) {
-          this.onboardingForm.get('personalInfo.counsellor')?.setValue(preselectCounsellorId);
+          ctrl?.setValue(Number(preselectCounsellorId));
+        }
+        
+        // Defer disabling to here to allow Angular Material select to match the option correctly
+        const currentUser = this.authService.currentUserValue;
+        if (currentUser) {
+          const role = (currentUser.role || '').toUpperCase();
+          const roleName = (currentUser.roleName || '').toUpperCase();
+          const isCounsellor = role.includes('COUNSELLOR') || roleName.includes('COUNSELLOR');
+          if (isCounsellor) {
+            ctrl?.disable();
+            this.onboardingForm.get('personalInfo.branchId')?.disable();
+          }
         }
       },
       error: () => { this.counsellorLoading = false; }
@@ -888,9 +964,97 @@ export class AddLeadDialogComponent implements OnInit {
     if (this.currentStep > 1) this.currentStep--;
   }
 
+  leadSources: any[] = [];
+
+  loadLeadSources(): void {
+    this.masterData.getLeadSources().subscribe({
+      next: (res) => {
+        if (res && res.success) {
+          this.leadSources = res.data || [];
+          
+          // If in edit mode, auto-populate source now that list is loaded
+          if (this.isEditMode && this.data && this.data.source) {
+            const sourceVal = this.data.source.trim();
+            const matchedSource = this.leadSources.find(s => 
+              s.displayName.toLowerCase() === sourceVal.toLowerCase() ||
+              s.enum.toLowerCase() === sourceVal.toLowerCase()
+            );
+            
+            if (matchedSource && !['PERSON', 'OTHER'].includes(matchedSource.enum)) {
+              this.onboardingForm.patchValue({
+                personalInfo: {
+                  leadSourceSelect: matchedSource.enum,
+                  sourceCustomText: ''
+                }
+              });
+              this.onLeadSourceChange(matchedSource.enum);
+            } else {
+              this.onboardingForm.patchValue({
+                personalInfo: {
+                  leadSourceSelect: 'OTHER',
+                  sourceCustomText: sourceVal
+                }
+              });
+              this.onLeadSourceChange('OTHER');
+            }
+          }
+        }
+      },
+      error: (err) => {
+        console.error('Failed to load lead sources:', err);
+      }
+    });
+  }
+
+  onLeadSourceChange(value: string): void {
+    const customCtrl = this.onboardingForm.get('personalInfo.sourceCustomText');
+    if (value === 'PERSON' || value === 'OTHER') {
+      customCtrl?.setValidators([Validators.required]);
+    } else {
+      customCtrl?.clearValidators();
+      customCtrl?.setValue('');
+    }
+    customCtrl?.updateValueAndValidity();
+  }
+
   submit(): void {
     if (this.onboardingForm.valid) {
-      this.dialogRef.close(this.onboardingForm.value);
+      const raw = this.onboardingForm.getRawValue();
+      const sourceSelect = raw.personalInfo.leadSourceSelect;
+      const customText = raw.personalInfo.sourceCustomText;
+      let finalSource = '';
+      
+      if (sourceSelect === 'PERSON' || sourceSelect === 'OTHER') {
+        finalSource = customText;
+      } else if (sourceSelect) {
+        const matched = this.leadSources.find(s => s.enum === sourceSelect);
+        finalSource = matched ? matched.displayName : sourceSelect;
+      }
+      
+      // Inject source into both personalInfo and root levels for safety
+      raw.personalInfo.source = finalSource;
+      raw.source = finalSource;
+      
+      delete raw.personalInfo.leadSourceSelect;
+      delete raw.personalInfo.sourceCustomText;
+      
+      this.dialogRef.close(raw);
+    }
+  }
+
+  decodeJwt(token: string): any {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        window.atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      return JSON.parse(jsonPayload);
+    } catch (e) {
+      return null;
     }
   }
 }

@@ -53,9 +53,9 @@ export class NotificationService {
   /**
    * Show a success dialog/popup modal.
    */
-  showSuccessPopup(message: string, title?: string, buttonText?: string): Observable<boolean> {
+  showSuccessPopup(message: string, title?: string, buttonText?: string, icon?: string): Observable<boolean> {
     const dialogRef = this.dialog.open(NotificationDialogComponent, {
-      data: { type: 'success', title, message, buttonText },
+      data: { type: 'success', title, message, buttonText, icon },
       width: '400px',
       disableClose: false,
       panelClass: 'custom-dialog-container'

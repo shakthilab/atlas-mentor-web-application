@@ -18,6 +18,7 @@ export interface EmployeeNode {
   id: string;
   name: string;
   role: string;
+  roleName?: string;
   completionRate: number;
   years: YearNode[];
   expanded?: boolean;
@@ -44,9 +45,13 @@ export interface DayNode {
   id: string;
   name: string;
   dateLabel: string;
+  rawDate?: string;
   completionRate: number;
   progressRate: number;
   status: string; // e.g. "Manager Review", "Completed", "Closed" etc.
+  nextActionRole?: 'BRANCH_PARTNER' | 'MANAGER' | 'ADMIN' | string | null;
+  canCurrentUserAct?: boolean;
+  approvalStage?: string;
   isWeekly?: boolean;
   tasks?: TaskItem[];
 }
@@ -57,38 +62,81 @@ export interface CommentItem {
   authorRole: string;
   text: string;
   timestamp: string;
+  parentCommentId?: number | string | null;
+  replies?: CommentItem[];
+  commentedByUserId?: number | string | null;
+  createdAtRaw?: Date | string | null;
+  createdAtDate?: Date | null;
 }
 
 export interface AttachmentItem {
   id: string;
   name: string;
   size: string;
+  fileUrl?: string;
+  uploadedByName?: string;
+  uploadedAt?: string;
 }
 
 export interface ActivityItem {
   id: string;
   text: string;
   timestamp: string;
+  action?: string;
+  oldValue?: string;
+  newValue?: string;
+  doneByName?: string;
 }
 
 export interface TaskItem {
   id: string;
+  displayId?: string;
   name: string;
   type: 'NUMERIC' | 'CHECKLIST' | 'FILE' | 'COMMENT' | 'APPROVAL' | 'TEXT' | 'DROPDOWN' | 'RATING' | 'YES_NO';
-  priority: 'Low' | 'Medium' | 'High' | 'Urgent';
-  status: 'Employee' | 'Completed' | 'Counsellor Approved' | 'Manager Review' | 'Manager Feedback' | 'Verified' | 'Closed';
-  actualValue: string;
-  comment: string;
+  priority: 'Low' | 'Medium' | 'High' | 'Urgent' | 'LOW' | 'MEDIUM' | 'HIGH';
+  status: 'TODO' | 'IN_PROGRESS' | 'DONE' | 'OVERDUE' | 'REFLECT' | 'Employee' | 'Completed' | 'Counsellor Approved' | 'Manager Review' | 'Manager Feedback' | 'Verified' | 'Closed' | string;
+  actualValue?: string;
+  comment?: string;
   description: string;
-  targetValue: string;
-  achievementRate: number;
+  targetValue?: string;
+  achievementRate?: number;
   assignedTo: string;
+  assignedToId?: number;
   assignedBy: string;
+  createdByName?: string;
   dueTime: string;
   comments: CommentItem[];
   attachments: AttachmentItem[];
   activities: ActivityItem[];
   rating?: 'Excellent' | 'Good' | 'Needs Improvement';
+  latestCommentPreview?: string;
+  currentStep?: string | null;
+  nextStep?: string | null;
+  reflectState?: 'FLAGGED' | 'RESUBMITTED' | string | null;
+  reflectStage?: string | null;
+  reflectComment?: string | null;
+  reflectFlaggedByName?: string | null;
+}
+
+export interface PendingApproval {
+  dayWorkspaceId: number | string;
+  employeeId: number | string;
+  employeeName: string;
+  branchId: number | string;
+  branchName: string;
+  workDate: string;
+  dayNumber: number;
+  dailyCompletionPct: number;
+  approvalStage: 'COMPLETED' | 'PARTNER_REVIEW' | 'MANAGER_REVIEW' | 'ADMIN_VERIFIED' | string;
+}
+
+export interface ApprovalTrailItem {
+  stage: string;
+  action: 'APPROVE' | 'SEND_BACK' | string;
+  comment?: string | null;
+  approverId?: number;
+  approverName: string;
+  actedAt: string;
 }
 
 export interface TemplateQuestion {
@@ -115,7 +163,7 @@ export interface TemplateTask {
   name: string;
   description: string;
   type: 'NUMERIC' | 'CHECKLIST' | 'FILE' | 'COMMENT' | 'APPROVAL' | 'TEXT' | 'DROPDOWN' | 'RATING' | 'YES_NO';
-  priority: 'Low' | 'Medium' | 'High' | 'Urgent';
+  priority: 'Low' | 'Medium' | 'High' | 'Urgent' | 'LOW' | 'MEDIUM' | 'HIGH';
   targetValue?: string;
   required: boolean;
   active: boolean;
@@ -132,9 +180,19 @@ export interface RoleTemplate {
   id: string;
   name: string;
   role: string;
+  roleId?: number | string | null;
+  roleName?: string | null;
+  roleDisplayName?: string | null;
+  branch?: string | null;
+  branchId?: number | string | null;
+  branchName?: string | null;
+  status?: 'DRAFT' | 'ACTIVE' | string;
   tasks: TemplateTask[];
   active: boolean;
   createdAt: string;
+  updatedAt?: string;
+  createdBy?: number | string;
+  updatedBy?: number | string;
   months?: TemplateMonth[];
 }
 
