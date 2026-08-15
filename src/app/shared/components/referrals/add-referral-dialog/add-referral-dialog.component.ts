@@ -177,14 +177,14 @@ import { NotificationService } from '../../../../core/services/notification.serv
   styles: [`
     .dialog-container { width: 100%; min-width: 520px; max-width: 680px; @media (max-width: 680px) { min-width: unset; width: 100%; } }
     .header-icon-box { width: 48px; height: 48px; }
-    .bg-light-primary { background-color: rgba(97,93,255,0.1) !important; }
+    .bg-light-primary { background-color: rgba(45,46,50,0.1) !important; }
     .row { display: flex; flex-wrap: wrap; margin: 0 -12px; }
     .col-sm-6 { flex: 0 0 50%; max-width: 50%; padding: 0 12px; @media (max-width: 576px) { flex: 0 0 100%; max-width: 100%; } }
     .phone-input-group { display: flex; gap: 12px; .mcc-select { width: 130px; flex-shrink: 0; } }
     .role-filter { width: 120px; }
     .m-y-16 { margin: 16px 0; } .m-b-4 { margin-bottom: 4px; } .m-b-8 { margin-bottom: 8px; } .m-b-12 { margin-bottom: 12px; } .m-b-16 { margin-bottom: 16px; } .m-t-8 { margin-top: 8px; } .m-r-6 { margin-right: 6px; } .m-r-8 { margin-right: 8px; } .m-r-16 { margin-right: 16px; }
     .p-x-24 { padding: 0 24px; } .p-t-8 { padding-top: 8px; } .p-t-24 { padding-top: 24px; } .p-b-16 { padding-bottom: 16px; } .p-b-24 { padding-bottom: 24px; }
-    .gap-8 { gap: 8px; } .gap-12 { gap: 12px; } .text-primary { color: #615dff !important; }
+    .gap-8 { gap: 8px; } .gap-12 { gap: 12px; } .text-primary { color: #2D2E32 !important; }
     .spinning { animation: spin 1s linear infinite; }
     @keyframes spin { 100% { transform: rotate(360deg); } }
     ::ng-deep .theme-input .mat-mdc-text-field-wrapper { background-color: transparent !important; }

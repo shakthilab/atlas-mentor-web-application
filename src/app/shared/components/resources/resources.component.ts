@@ -241,7 +241,7 @@ export interface Resource {
     .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; @media (max-width: 576px) { grid-template-columns: 1fr; padding: 16px !important; } }
     .resource-card { transition: transform 0.2s ease, box-shadow 0.2s ease; cursor: pointer; &:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important; } }
     
-    .view-mode-toggle { background-color: #ffffff; border-radius: 6px; border: 1px solid #e2e8f0; display: flex; overflow: hidden; .toggle-btn { width: 42px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; color: #64748b; background: transparent; border: none; cursor: pointer; transition: all 0.2s ease; &.active { background-color: #615dff; color: #ffffff; } &:hover:not(.active) { background-color: #f1f5f9; } } }
+    .view-mode-toggle { background-color: #ffffff; border-radius: 6px; border: 1px solid #e2e8f0; display: flex; overflow: hidden; .toggle-btn { width: 42px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; color: #64748b; background: transparent; border: none; cursor: pointer; transition: all 0.2s ease; &.active { background-color: #2D2E32; color: #ffffff; } &:hover:not(.active) { background-color: #f1f5f9; } } }
 
     .status-badge {
       display: inline-flex; align-items: center; justify-content: center; padding: 4px 10px; font-size: 12px; font-weight: 600; border-radius: 6px; text-transform: capitalize;
@@ -252,7 +252,7 @@ export interface Resource {
 
     .search-box {
       position: relative; display: flex; align-items: center; background-color: #f1f5f9; border-radius: 8px; padding: 0 12px; border: 1px solid #e2e8f0; min-width: 0; height: 38px; transition: all 0.2s ease-in-out;
-      &:focus-within { background-color: #ffffff; border-color: #615dff; box-shadow: 0 0 0 3px rgba(97, 93, 255, 0.1); }
+      &:focus-within { background-color: #ffffff; border-color: #2D2E32; box-shadow: 0 0 0 3px rgba(45,46,50, 0.1); }
       .search-icon { color: #64748b; margin-right: 8px; flex-shrink: 0; }
       .search-input { border: none; background: transparent; outline: none; width: 100%; font-size: 13px; color: #1e293b; &::placeholder { color: #94a3b8; } }
     }
@@ -289,7 +289,7 @@ export interface Resource {
     :host-context(.dark-theme) {
       .element-row:hover { background-color: var(--dark-hoverbgcolor); }
       .search-box { background-color: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); .search-input { color: #f8fafc; } }
-      .view-mode-toggle { background-color: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); .toggle-btn { color: #94a3b8; &.active { background-color: #615dff; color: #ffffff; } &:hover:not(.active) { background-color: var(--dark-hoverbgcolor); } } }
+      .view-mode-toggle { background-color: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); .toggle-btn { color: #94a3b8; &.active { background-color: #2D2E32; color: #ffffff; } &:hover:not(.active) { background-color: var(--dark-hoverbgcolor); } } }
       .status-badge {
         &.available { background-color: rgba(19, 222, 185, 0.2); color: #80f1d4; }
         &.in-use { background-color: rgba(255, 174, 31, 0.2); color: #ffe082; }

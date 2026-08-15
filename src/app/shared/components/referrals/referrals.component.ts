@@ -288,13 +288,13 @@ import { ReferralDetailDialogComponent } from './referral-detail-dialog/referral
     .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; @media (max-width: 576px) { grid-template-columns: 1fr; padding: 16px !important; } }
     .referral-card { transition: transform 0.2s ease, box-shadow 0.2s ease; &:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important; } }
     
-    .view-mode-toggle { background-color: #ffffff; border-radius: 6px; border: 1px solid #e2e8f0; display: flex; overflow: hidden; .toggle-btn { width: 42px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; color: #64748b; background: transparent; border: none; cursor: pointer; transition: all 0.2s ease; &.active { background-color: #615dff; color: #ffffff; } &:hover:not(.active) { background-color: #f1f5f9; } } }
+    .view-mode-toggle { background-color: #ffffff; border-radius: 6px; border: 1px solid #e2e8f0; display: flex; overflow: hidden; .toggle-btn { width: 42px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; color: #64748b; background: transparent; border: none; cursor: pointer; transition: all 0.2s ease; &.active { background-color: #2D2E32; color: #ffffff; } &:hover:not(.active) { background-color: #f1f5f9; } } }
 
-    .search-box { position: relative; display: flex; align-items: center; background-color: #f1f5f9; border-radius: 8px; padding: 0 12px; border: 1px solid #e2e8f0; height: 38px; transition: all 0.2s ease-in-out; &:focus-within { background-color: #ffffff; border-color: #615dff; box-shadow: 0 0 0 3px rgba(97, 93, 255, 0.1); } .search-icon { color: #64748b; margin-right: 8px; flex-shrink: 0; } .search-input { border: none; background: transparent; outline: none; width: 100%; font-size: 13px; color: #1e293b; &::placeholder { color: #94a3b8; } } }
+    .search-box { position: relative; display: flex; align-items: center; background-color: #f1f5f9; border-radius: 8px; padding: 0 12px; border: 1px solid #e2e8f0; height: 38px; transition: all 0.2s ease-in-out; &:focus-within { background-color: #ffffff; border-color: #2D2E32; box-shadow: 0 0 0 3px rgba(45,46,50, 0.1); } .search-icon { color: #64748b; margin-right: 8px; flex-shrink: 0; } .search-input { border: none; background: transparent; outline: none; width: 100%; font-size: 13px; color: #1e293b; &::placeholder { color: #94a3b8; } } }
     
-    .filter-trigger-btn { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px 12px; color: #475569; font-weight: 500; cursor: pointer; transition: all 0.2s; white-space: nowrap; &:hover { background: #f8fafc; } &.filter-active { background: rgba(97,93,255,0.1); border-color: #615dff; color: #615dff; } }
+    .filter-trigger-btn { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px 12px; color: #475569; font-weight: 500; cursor: pointer; transition: all 0.2s; white-space: nowrap; &:hover { background: #f8fafc; } &.filter-active { background: rgba(45,46,50,0.1); border-color: #2D2E32; color: #2D2E32; } }
     .mobile-filter-strip { background: #f8fafc; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; }
-    .menu-item-active { color: #615dff !important; font-weight: 600; background: rgba(97,93,255,0.05); }
+    .menu-item-active { color: #2D2E32 !important; font-weight: 600; background: rgba(45,46,50,0.05); }
     .clear-filter-icon-btn { width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; color: #94a3b8; &:hover { color: #fa896b; background: rgba(250, 137, 107, 0.1); } }
 
     .avatar-animated { transition: transform 0.3s ease; }
@@ -318,9 +318,9 @@ import { ReferralDetailDialogComponent } from './referral-detail-dialog/referral
     :host-context(.dark-theme) {
       .element-row:hover { background-color: var(--dark-hoverbgcolor); }
       .search-box { background-color: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); .search-input { color: #f8fafc; } }
-      .filter-trigger-btn { background: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); color: #94a3b8; &:hover { background: var(--dark-hoverbgcolor); } &.filter-active { background: rgba(97,93,255,0.2); border-color: #615dff; color: #a5a1ff; } }
+      .filter-trigger-btn { background: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); color: #94a3b8; &:hover { background: var(--dark-hoverbgcolor); } &.filter-active { background: rgba(45,46,50,0.2); border-color: #2D2E32; color: #a5a1ff; } }
       .mobile-filter-strip { background: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); }
-      .view-mode-toggle { background-color: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); .toggle-btn { color: #94a3b8; &.active { background-color: #615dff; color: #ffffff; } &:hover:not(.active) { background-color: var(--dark-hoverbgcolor); } } }
+      .view-mode-toggle { background-color: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); .toggle-btn { color: #94a3b8; &.active { background-color: #2D2E32; color: #ffffff; } &:hover:not(.active) { background-color: var(--dark-hoverbgcolor); } } }
       .status-badge {
         &.active { background-color: rgba(19, 222, 185, 0.2); color: #80f1d4; }
         &.inactive { background-color: rgba(250, 137, 107, 0.2); color: #ffab91; }

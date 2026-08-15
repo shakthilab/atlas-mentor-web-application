@@ -172,7 +172,7 @@ import { AuthService } from '../../../../core/services/auth.service';
     }
 
     .bg-light-primary {
-      background-color: rgba(97, 93, 255, 0.1) !important;
+      background-color: rgba(45,46,50, 0.1) !important;
     }
 
     .row {
@@ -219,7 +219,7 @@ import { AuthService } from '../../../../core/services/auth.service';
     ::ng-deep .theme-input.mat-focused .mdc-notched-outline__leading,
     ::ng-deep .theme-input.mat-focused .mdc-notched-outline__notch,
     ::ng-deep .theme-input.mat-focused .mdc-notched-outline__trailing {
-      border-color: #615dff !important;
+      border-color: #2D2E32 !important;
       border-width: 2px !important;
     }
 

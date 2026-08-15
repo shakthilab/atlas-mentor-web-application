@@ -344,12 +344,12 @@ export interface BranchOption {
       white-space: nowrap;
       &:hover { background: #e8edf5; border-color: #cbd5e1; }
       &.filter-active {
-        background: rgba(97,93,255,0.1); border-color: #615dff;
-        color: #615dff; font-weight: 600;
+        background: rgba(45,46,50,0.1); border-color: #2D2E32;
+        color: #2D2E32; font-weight: 600;
       }
     }
     .clear-filter-icon-btn { width: 32px; height: 32px; color: #fa896b; }
-    .menu-item-active { color: #615dff; font-weight: 600; }
+    .menu-item-active { color: #2D2E32; font-weight: 600; }
     .m-r-6 { margin-right: 6px; } .m-l-4 { margin-left: 4px; }
 
     /* Mobile filter strip — hidden on desktop */
@@ -359,7 +359,7 @@ export interface BranchOption {
       @media (max-width: 576px) { display: flex; }
     }
     .mobile-filter-chip {
-      background: rgba(97,93,255,0.12); color: #615dff;
+      background: rgba(45,46,50,0.12); color: #2D2E32;
       border-radius: 20px; padding: 3px 10px; font-weight: 600;
     }
 
@@ -370,7 +370,7 @@ export interface BranchOption {
 
     .company-avatar {
       width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%;
-      background: rgba(97, 93, 255, 0.1);
+      background: rgba(45,46,50, 0.1);
     }
 
     .view-container { animation: fadeIn 0.4s ease-in-out; }
@@ -383,13 +383,13 @@ export interface BranchOption {
       .toggle-btn {
         width: 42px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center;
         color: #64748b; background: transparent; border: none; cursor: pointer; transition: all 0.2s ease;
-        &.active { background-color: #615dff; color: #ffffff; }
+        &.active { background-color: #2D2E32; color: #ffffff; }
         &:hover:not(.active) { background-color: #f1f5f9; }
       }
     }
 
     .branch-badge {
-      background: rgba(97, 93, 255, 0.12); color: #615dff;
+      background: rgba(45,46,50, 0.12); color: #2D2E32;
       border-radius: 4px; padding: 3px 8px; font-weight: 600;
     }
 
@@ -405,7 +405,7 @@ export interface BranchOption {
       position: relative; display: flex; align-items: center; background-color: #f1f5f9;
       border-radius: 8px; padding: 0 12px; border: 1px solid #e2e8f0; width: 240px; height: 38px; transition: all 0.2s ease-in-out;
       @media (max-width: 576px) { width: calc(100% - 140px); }
-      &:focus-within { background-color: #ffffff; border-color: #615dff; box-shadow: 0 0 0 3px rgba(97, 93, 255, 0.1); }
+      &:focus-within { background-color: #ffffff; border-color: #2D2E32; box-shadow: 0 0 0 3px rgba(45,46,50, 0.1); }
       .search-icon { color: #64748b; margin-right: 8px; }
       .search-input { border: none; background: transparent; outline: none; width: 100%; font-size: 13px; color: #1e293b; &::placeholder { color: #94a3b8; } }
     }
@@ -433,19 +433,19 @@ export interface BranchOption {
 
     :host-context(.dark-theme) {
       .mobile-filter-strip { background: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); }
-      .filter-trigger-btn { background: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); color: #94a3b8; &:hover { background: var(--dark-hoverbgcolor); } &.filter-active { background: rgba(97,93,255,0.2); border-color: #615dff; color: #a5a1ff; } }
+      .filter-trigger-btn { background: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); color: #94a3b8; &:hover { background: var(--dark-hoverbgcolor); } &.filter-active { background: rgba(45,46,50,0.2); border-color: #2D2E32; color: #a5a1ff; } }
       .element-row:hover { background-color: var(--dark-hoverbgcolor); }
       .search-box { background-color: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); .search-input { color: #f8fafc; } }
       .view-mode-toggle {
         background-color: var(--dark-sidebarbg); border-color: var(--dark-formborderColor);
-        .toggle-btn { color: #94a3b8; &.active { background-color: #615dff; color: #ffffff; } &:hover:not(.active) { background-color: var(--dark-hoverbgcolor); } }
+        .toggle-btn { color: #94a3b8; &.active { background-color: #2D2E32; color: #ffffff; } &:hover:not(.active) { background-color: var(--dark-hoverbgcolor); } }
       }
       .status-badge {
         &.active { background-color: rgba(19, 222, 185, 0.2); color: #80f1d4; }
         &.pending { background-color: rgba(255, 174, 31, 0.2); color: #ffe082; }
         &.inactive { background-color: rgba(250, 137, 107, 0.2); color: #ffab91; }
       }
-      .company-avatar { background: rgba(97, 93, 255, 0.2); }
+      .company-avatar { background: rgba(45,46,50, 0.2); }
     }
   `]
 })

@@ -214,15 +214,24 @@ export class EmployeeTreeComponent implements OnInit, OnDestroy {
         });
 
         monthNode.days = sortedData.map((d: any) => {
+          let isWeekly = d.isWeeklyCheckpointDay || false;
+          const dt = d.date ? new Date(d.date + 'T00:00:00') : null;
+          if (dt && !isNaN(dt.getTime())) {
+            if (dt.getDay() === 6) { // 6 is Saturday
+              isWeekly = true;
+            }
+          }
+
           let label = d.dateLabel;
-          if (d.date) {
-            const dt = new Date(d.date + 'T00:00:00');
-            if (!isNaN(dt.getTime())) {
+          if (dt && !isNaN(dt.getTime())) {
+            if (isWeekly) {
+              label = `Weekly Accountability (${dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})`;
+            } else {
               label = dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
             }
           }
           if (!label) {
-            label = d.isWeeklyCheckpointDay ? 'Weekly Accountability' : `Day ${d.dayNumber || 1}`;
+            label = isWeekly ? 'Weekly Accountability' : `Day ${d.dayNumber || 1}`;
           }
 
           return {
@@ -233,7 +242,7 @@ export class EmployeeTreeComponent implements OnInit, OnDestroy {
             completionRate: d.completionPct || d.dailyCompletionPct || 0,
             progressRate: d.completionPct || d.dailyCompletionPct || 0,
             status: d.approvalStage || 'EMPLOYEE',
-            isWeekly: d.isWeeklyCheckpointDay || false
+            isWeekly: isWeekly
           };
         });
       }
@@ -287,8 +296,7 @@ export class EmployeeTreeComponent implements OnInit, OnDestroy {
     const rolePrefix = user ? this.authService.getRoleRoute(user.role as any) : '/admin';
 
     if (day.isWeekly) {
-      // Temporarily disabled weekly accountability page redirect
-      // this.router.navigate([`${rolePrefix}/task-accountability/weekly`]);
+      this.router.navigate([`${rolePrefix}/task-accountability/weekly`]);
     } else {
       this.router.navigate([`${rolePrefix}/task-accountability/daily`]);
     }

@@ -136,7 +136,7 @@ import { TablerIconsModule } from 'angular-tabler-icons';
     .close-btn { margin-right: -8px; }
     
     .profile-banner {
-      background: linear-gradient(to right, rgba(97,93,255,0.03), rgba(97,93,255,0.08));
+      background: linear-gradient(to right, rgba(45,46,50,0.03), rgba(45,46,50,0.08));
     }
     
     .avatar-lg {
@@ -177,7 +177,7 @@ import { TablerIconsModule } from 'angular-tabler-icons';
     .m-r-4 { margin-right: 4px; } .m-r-6 { margin-right: 6px; } .m-r-8 { margin-right: 8px; } .m-r-10 { margin-right: 10px; } .m-r-20 { margin-right: 20px; }
     .p-24 { padding: 24px; } .p-b-16 { padding-bottom: 16px; } .p-b-20 { padding-bottom: 20px; } .p-t-20 { padding-top: 20px; }
     .p-x-24 { padding-left: 24px; padding-right: 24px; } .p-y-16 { padding-top: 16px; padding-bottom: 16px; }
-    .text-primary { color: #615dff !important; } .object-cover { object-fit: cover; }
+    .text-primary { color: #2D2E32 !important; } .object-cover { object-fit: cover; }
     
     :host-context(.dark-theme) {
       .profile-banner { background: linear-gradient(to right, rgba(165,162,255,0.05), rgba(165,162,255,0.1)); }

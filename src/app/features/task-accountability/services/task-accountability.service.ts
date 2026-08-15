@@ -708,7 +708,7 @@ export class TaskAccountabilityService {
     return {
       id: res.id.toString(),
       name: res.name,
-      role: res.roleDisplayName || res.roleName,
+      role: res.roleName || res.roleDisplayName || res.role,
       roleId: res.roleId,
       roleName: res.roleName,
       roleDisplayName: res.roleDisplayName,
@@ -940,11 +940,11 @@ export class TaskAccountabilityService {
     return this.http.get<any>(`${environment.apiUrl}/weekly-accountability-templates/${id}`);
   }
 
-  public createWeeklyTemplate(payload: { name: string; roleId: number; questions: { questionText: string; displayOrder: number }[] }): Observable<any> {
+  public createWeeklyTemplate(payload: any): Observable<any> {
     return this.http.post<any>(`${environment.apiUrl}/weekly-accountability-templates`, payload);
   }
 
-  public updateWeeklyTemplate(id: number | string, payload: { name: string; roleId: number; questions: { id?: number; questionText: string; displayOrder: number }[] }): Observable<any> {
+  public updateWeeklyTemplate(id: number | string, payload: any): Observable<any> {
     return this.http.put<any>(`${environment.apiUrl}/weekly-accountability-templates/${id}`, payload);
   }
 
@@ -954,5 +954,13 @@ export class TaskAccountabilityService {
 
   public deleteWeeklyTemplate(id: number | string): Observable<any> {
     return this.http.delete<any>(`${environment.apiUrl}/weekly-accountability-templates/${id}`);
+  }
+
+  public duplicateWeeklyTemplateApi(id: number | string, payload: { newTemplateName: string; newCycleMonth: string }): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/weekly-accountability-templates/${id}/duplicate`, payload);
+  }
+
+  public updateWeeklyTemplateStatus(id: number | string, status: 'ACTIVE' | 'INACTIVE'): Observable<any> {
+    return this.http.patch<any>(`${environment.apiUrl}/weekly-accountability-templates/${id}/status`, { status });
   }
 }
