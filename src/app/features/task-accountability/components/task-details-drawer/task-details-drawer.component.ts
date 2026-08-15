@@ -48,7 +48,6 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
     private service: TaskAccountabilityService,
     private renderer: Renderer2,
     private authService: AuthService,
-    private elRef: ElementRef,
     private dialog: MatDialog
   ) {}
 
