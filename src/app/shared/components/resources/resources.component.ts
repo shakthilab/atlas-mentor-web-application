@@ -378,7 +378,7 @@ export class ResourcesComponent implements OnInit, AfterViewInit {
     if (t.includes('PRESENTATION')) return 'presentation';
     if (t.includes('LINK')) return 'link';
     if (t.includes('DOCUMENT') || t.includes('PDF')) return 'file-description';
-    if (t.includes('ARCHIVE') || t.includes('ZIP')) return 'folder-zip';
+    if (t.includes('ARCHIVE') || t.includes('ZIP')) return 'file-zip';
     return 'file';
   }
 

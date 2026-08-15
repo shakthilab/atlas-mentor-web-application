@@ -11,7 +11,9 @@
     "android": "npm run build && npx cap sync android && npx cap open android",
     "ios": "npm run build && npx cap sync ios && npx cap open ios",
     "sync": "npx cap sync",
-    "cap:update": "npx cap update"
+    "cap:update": "npx cap update",
+    "e2e:browser:smoke": "node automation/scripts/browser-smoke.js",
+    "e2e:auth:smoke": "node automation/scripts/auth-smoke.js"
   },
   "private": true,
   "dependencies": {

@@ -217,7 +217,7 @@ export interface BranchOption {
 
               <!-- Empty state -->
               <div *ngIf="companies.length === 0" class="empty-state d-flex flex-column align-items-center justify-content-center p-y-48">
-                <i-tabler name="building-off" class="icon-48 text-muted m-b-12"></i-tabler>
+                <i-tabler name="building" class="icon-48 text-muted m-b-12"></i-tabler>
                 <h6 class="mat-subtitle-1 text-muted m-b-4">No companies found</h6>
                 <p class="f-s-13 text-muted">{{ selectedBranchId !== null ? 'No companies match the selected branch filter.' : 'Get started by adding your first company.' }}</p>
               </div>
@@ -296,7 +296,7 @@ export interface BranchOption {
 
               <!-- Empty state for card view -->
               <div *ngIf="companies.length === 0" class="empty-state d-flex flex-column align-items-center justify-content-center p-y-48" style="grid-column: 1/-1">
-                <i-tabler name="building-off" class="icon-48 text-muted m-b-12"></i-tabler>
+                <i-tabler name="building" class="icon-48 text-muted m-b-12"></i-tabler>
                 <h6 class="mat-subtitle-1 text-muted m-b-4">No companies found</h6>
                 <p class="f-s-13 text-muted">{{ selectedBranchId !== null ? 'No companies match the selected branch filter.' : 'Get started by adding your first company.' }}</p>
               </div>

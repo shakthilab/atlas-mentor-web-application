@@ -102,14 +102,13 @@ export class AdminDashboardComponent implements OnInit {
             res.data.metrics ??
             (Array.isArray(res.data) ? res.data : []);
           if (Array.isArray(rawCards) && rawCards.length > 0) {
-            console.log('[Dashboard] KPI card[0] keys:', Object.keys(rawCards[0]));
             this.summaryCards = rawCards.map((c: any) => ({
               ...c,
               value: String(c.value ?? c.count ?? c.total ?? 0),
               title: c.title ?? c.label ?? c.name ?? '',
               trend: c.trend ?? c.trendText ?? c.change ?? '',
-              trendColor: c.trendColor ?? c.color ?? '#198754',
-              chartOptions: this.createSparkline(c.chartData || c.sparkline || c.data || [], c.trendColor ?? c.color ?? '#198754')
+              trendColor: c.trendColor || c.color || '#198754',
+              chartOptions: this.createSparkline(c.chartData || c.sparkline || c.data || [], c.trendColor || c.color || '#198754')
             }));
           } else {
             console.warn('[Dashboard] KPI: no cards found in response. Available keys:', Object.keys(res.data));

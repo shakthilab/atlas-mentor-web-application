@@ -140,7 +140,7 @@ export class TaskTableComponent implements OnInit, OnDestroy {
       case 'DROPDOWN': return 'list';
       case 'RATING': return 'star';
       case 'YES_NO': return 'toggle-left';
-      case 'APPROVAL': return 'discount-check';
+      case 'APPROVAL': return 'rosette-discount-check';
       default: return 'check';
     }
   }

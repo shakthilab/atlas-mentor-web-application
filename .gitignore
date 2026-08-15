@@ -65,3 +65,7 @@ src/environments/environment.local.ts
 __pycache__/
 *.py[cod]
 *.pyo
+
+# Automation test-run artifacts (may contain real account/session data)
+automation/tests/*.png
+automation/tests/*.log
