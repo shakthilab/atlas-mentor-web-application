@@ -20,6 +20,45 @@
   --brand-secondary-dark: #{darken($accent, 12%)};
 }
 
+// ─── Thin, auto-fading scrollbars app-wide ─────────────────────────────────
+// Firefox: always-thin (no hover-reveal support), still a big improvement
+// over the default fat scrollbar.
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--brand-primary-rgb), 0.35) transparent;
+}
+
+// Chromium/Safari: invisible until the scrollable area is hovered, then a
+// slim rounded thumb fades in (macOS-style overlay scrollbar behavior).
+*::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 0.2s ease;
+}
+
+*:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(var(--brand-primary-rgb), 0.45);
+}
+
+.dark-theme {
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+
+  *:hover::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.3);
+  }
+}
+
 // Dark Material theme
 $darkblue-theme: mat.define-dark-theme((
   color: (
