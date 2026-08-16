@@ -166,15 +166,17 @@
             </div>
             <div class="param-group">
               <label>Target employee role</label>
-              <p-dropdown [options]="roleOptions" [(ngModel)]="editingTemplate.role" optionLabel="label"
-                optionValue="value" placeholder="Select Role" styleClass="prime-dropdown-custom">
-              </p-dropdown>
+              <mat-select [(ngModel)]="editingTemplate.role" placeholder="Select Role"
+                class="form-select" panelClass="custom-select-panel">
+                <mat-option *ngFor="let opt of roleOptions" [value]="opt.value">{{ opt.label }}</mat-option>
+              </mat-select>
             </div>
             <div class="param-group">
               <label>Branch</label>
-              <p-dropdown [options]="branchOptions" [(ngModel)]="editingTemplate.branch" optionLabel="label"
-                optionValue="value" placeholder="Select Branch" styleClass="prime-dropdown-custom">
-              </p-dropdown>
+              <mat-select [(ngModel)]="editingTemplate.branch" placeholder="Select Branch"
+                class="form-select" panelClass="custom-select-panel">
+                <mat-option *ngFor="let opt of branchOptions" [value]="opt.value">{{ opt.label }}</mat-option>
+              </mat-select>
             </div>
 
             <div class="params-summary">

@@ -2438,84 +2438,21 @@
   }
 }
 
-/* Custom PrimeNG Dropdown Styling */
-::ng-deep .prime-dropdown-custom {
-  width: 100% !important;
-  height: 38px !important;
-  border: 1px solid #cbd5e1 !important;
-  border-radius: 8px !important;
-  background: #ffffff !important;
-  transition: all 0.2s ease !important;
-  display: flex !important;
-  align-items: center !important;
+/* mat-select trigger styling to match the surrounding .form-select inputs */
+::ng-deep .params-card .param-group mat-select.form-select {
+  display: flex;
+  align-items: center;
 
-  &:hover {
-    border-color: #94a3b8 !important;
+  .mat-mdc-select-trigger {
+    height: 100%;
   }
 
-  &.p-focus {
-    border-color: #3b82f6 !important;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+  .mat-mdc-select-value {
+    color: #1e293b;
   }
 
-  .p-dropdown-label {
-    padding: 0 12px !important;
-    line-height: 36px !important;
-    font-size: 13.5px !important;
-    color: #334155 !important;
-    font-weight: 500 !important;
-    display: flex !important;
-    align-items: center !important;
-
-    &.p-placeholder {
-      color: #94a3b8 !important;
-    }
-  }
-
-  .p-dropdown-trigger {
-    width: 32px !important;
-    color: #64748b !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-  }
-}
-
-::ng-deep .p-dropdown-panel {
-  border-radius: 12px !important;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05) !important;
-  border: 1px solid #e2e8f0 !important;
-  padding: 6px !important;
-  background: #ffffff !important;
-
-  .p-dropdown-items-wrapper {
-    max-height: 200px !important;
-  }
-
-  .p-dropdown-items {
-    padding: 0 !important;
-    list-style: none !important;
-    margin: 0 !important;
-  }
-
-  .p-dropdown-item {
-    padding: 8px 12px !important;
-    border-radius: 6px !important;
-    font-size: 13.5px !important;
-    color: #475569 !important;
-    font-weight: 500 !important;
-    transition: all 0.15s ease !important;
-    cursor: pointer !important;
-
-    &:hover {
-      background: #eff6ff !important;
-      color: #2563eb !important;
-    }
-
-    &.p-highlight {
-      background: #2563eb !important;
-      color: #ffffff !important;
-    }
+  .mat-mdc-select-placeholder {
+    color: #94a3b8;
   }
 }
 

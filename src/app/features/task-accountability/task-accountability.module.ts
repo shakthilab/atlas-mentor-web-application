@@ -1,7 +1,6 @@
 import { NgModule } from '@angular/core';
 import { SharedModule } from '../../shared/shared.module';
 import { TaskAccountabilityRoutingModule } from './task-accountability-routing.module';
-import { DropdownModule } from 'primeng/dropdown';
 
 // Pages
 import { TaskAccountabilityDashboardComponent } from './pages/task-accountability-dashboard/task-accountability-dashboard.component';
@@ -40,8 +39,7 @@ import { SendBackReasonDialogComponent } from './components/send-back-reason-dia
   ],
   imports: [
     SharedModule,
-    TaskAccountabilityRoutingModule,
-    DropdownModule
+    TaskAccountabilityRoutingModule
   ]
 })
 export class TaskAccountabilityModule { }
