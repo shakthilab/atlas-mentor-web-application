@@ -493,8 +493,8 @@ app-task-accountability-shell {
 .premium-loading-spinner {
   width: 50px;
   height: 50px;
-  border: 4px solid rgba(45, 46, 50, 0.1);
-  border-left-color: #2D2E32;
+  border: 4px solid rgba(var(--brand-primary-rgb), 0.1);
+  border-left-color: var(--brand-primary);
   border-radius: 50%;
   animation: spinner-rotate 0.8s linear infinite;
 }
@@ -502,7 +502,7 @@ app-task-accountability-shell {
 .loader-text {
   font-size: 14px;
   font-weight: 600;
-  color: #2D2E32;
+  color: var(--brand-primary);
   letter-spacing: 0.5px;
   animation: pulse-opacity 1.5s infinite ease-in-out;
 }

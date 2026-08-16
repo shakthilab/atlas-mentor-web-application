@@ -350,7 +350,7 @@ export interface Lead {
         transition: all 0.2s ease;
         
         &.active {
-          background-color: #2D2E32;
+          background-color: var(--brand-primary);
           color: #ffffff;
         }
         &:hover:not(.active) {
@@ -385,8 +385,8 @@ export interface Lead {
       }
 
       &.in-progress, &.document-submitted {
-        background-color: rgba(45,46,50, 0.1);
-        color: #2D2E32;
+        background-color: rgba(var(--brand-primary-rgb), 0.1);
+        color: var(--brand-primary);
       }
     }
 
@@ -433,8 +433,8 @@ export interface Lead {
         }
   
         &.in-progress, &.document-submitted {
-          background-color: #2D2E32 !important;
-          box-shadow: 0 0 0 3px rgba(45, 46, 50, 0.15);
+          background-color: var(--brand-primary) !important;
+          box-shadow: 0 0 0 3px rgba(var(--brand-primary-rgb), 0.15);
         }
       }
 
@@ -462,8 +462,8 @@ export interface Lead {
       
       &:focus-within {
         background-color: #ffffff;
-        border-color: #2D2E32;
-        box-shadow: 0 0 0 3px rgba(45,46,50, 0.1);
+        border-color: var(--brand-primary);
+        box-shadow: 0 0 0 3px rgba(var(--brand-primary-rgb), 0.1);
       }
       
       .search-icon {
@@ -523,7 +523,7 @@ export interface Lead {
         border-color: var(--dark-formborderColor);
         .toggle-btn {
           color: #94a3b8;
-          &.active { background-color: #2D2E32; color: #ffffff; }
+          &.active { background-color: var(--brand-primary); color: #ffffff; }
           &:hover:not(.active) { background-color: var(--dark-hoverbgcolor); }
         }
       }
@@ -541,7 +541,7 @@ export interface Lead {
           color: #ffca70;
         }
         &.in-progress, &.document-submitted {
-          background-color: rgba(45,46,50, 0.2);
+          background-color: rgba(var(--brand-primary-rgb), 0.2);
           color: #a5a2ff;
         }
       }

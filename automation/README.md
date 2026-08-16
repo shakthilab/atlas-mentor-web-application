@@ -63,6 +63,22 @@ Requires the Chromium browser binary for Playwright, installed once via:
 npx playwright install chromium
 ```
 
+## Theme verification (`scripts/theme-verify.js`)
+
+Logs in the same way as `auth-smoke.js`, then clicks through the sidebar
+(Dashboard, Leads, Students, Employees, Tasks, Payments, Branches, Settings)
+and exercises key interactive elements - search input, list/grid toggle,
+Add Lead dialog, Import Data dialog, status dropdown, pagination - **without
+ever clicking a create/edit/delete/save control** (dialogs are opened then
+closed via their own close icon, never submitted). Confirms the navy brand
+color (`--brand-primary` / `#1B2A4A`) is actually applied via computed-style
+checks on the sidebar logo box and the primary "Add Lead" button, and saves
+screenshots of a few key pages to `automation/tests/` for visual review.
+
+```bash
+E2E_EMAIL=... E2E_PASSWORD=... node automation/scripts/theme-verify.js
+```
+
 ## Extending this later
 
 Once a safe backend target exists, the natural next steps are:

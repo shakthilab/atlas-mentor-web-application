@@ -140,16 +140,16 @@ import { TranslateService } from '@ngx-translate/core';
       background-color: #ffffff;
 
       &:hover {
-        border-color: #2D2E32;
+        border-color: var(--brand-primary);
         transform: translateY(-2px);
       }
 
       &.active {
-        border-color: #2D2E32;
-        box-shadow: 0 4px 12px rgba(45,46,50, 0.15);
+        border-color: var(--brand-primary);
+        box-shadow: 0 4px 12px rgba(var(--brand-primary-rgb), 0.15);
         
         .option-label {
-          color: #2D2E32;
+          color: var(--brand-primary);
           font-weight: 600;
         }
       }
@@ -211,16 +211,16 @@ import { TranslateService } from '@ngx-translate/core';
       transition: all 0.2s ease-in-out;
 
       &:hover {
-        border-color: #2D2E32;
+        border-color: var(--brand-primary);
         background-color: #f8fafc;
       }
 
       &.active {
-        border-color: #2D2E32;
+        border-color: var(--brand-primary);
         background-color: #ecf2ff;
         
         .language-name {
-          color: #2D2E32;
+          color: var(--brand-primary);
           font-weight: 600;
         }
       }
@@ -250,7 +250,7 @@ import { TranslateService } from '@ngx-translate/core';
       right: 12px;
       top: 50%;
       transform: translateY(-50%);
-      background-color: #2D2E32;
+      background-color: var(--brand-primary);
       border-radius: 50%;
       width: 20px;
       height: 20px;
@@ -273,9 +273,9 @@ import { TranslateService } from '@ngx-translate/core';
         }
 
         &.active {
-          border-color: #2D2E32;
+          border-color: var(--brand-primary);
           .option-label {
-            color: #2D2E32;
+            color: var(--brand-primary);
           }
         }
       }
@@ -289,16 +289,16 @@ import { TranslateService } from '@ngx-translate/core';
         }
 
         &:hover {
-          border-color: #2D2E32;
+          border-color: var(--brand-primary);
           background-color: var(--dark-hoverbgcolor);
         }
 
         &.active {
-          border-color: #2D2E32;
+          border-color: var(--brand-primary);
           background-color: var(--dark-themelightprimary);
           
           .language-name {
-            color: #2D2E32;
+            color: var(--brand-primary);
           }
         }
       }

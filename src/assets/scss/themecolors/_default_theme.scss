@@ -1,19 +1,19 @@
 $mat-primary: (
   100: white,
-  500: #2D2E32,
-  700: #2D2E32,
+  500: $primary,
+  700: $primary,
   contrast: (
-    100: #2D2E32,
+    100: $primary,
     500: white,
     700: white,
   ),
 );
 $mat-secondary: (
   100: white,
-  500: #64748B,
-  700: #64748B,
+  500: $accent,
+  700: $accent,
   contrast: (
-    100: #2D2E32,
+    100: $primary,
     500: white,
     700: white,
   ),

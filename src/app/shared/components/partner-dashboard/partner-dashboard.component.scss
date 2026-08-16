@@ -805,7 +805,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: #000000;
+    background: var(--brand-primary);
     color: #ffffff !important;
     border: none;
     border-radius: 8px;
@@ -907,7 +907,7 @@
     width: 100%;
     margin-top: 16px;
     padding: 11px;
-    background: #000000;
+    background: var(--brand-primary);
     border: none;
     border-radius: 8px;
     color: #ffffff;

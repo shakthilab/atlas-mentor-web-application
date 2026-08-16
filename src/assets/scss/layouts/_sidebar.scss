@@ -24,7 +24,7 @@ app-sidebar {
     }
 
     .brand-logo-icon-box {
-      background-color: #000000;
+      background-color: $primary;
       border-radius: 8px;
       width: 40px;
       height: 40px;
@@ -52,7 +52,7 @@ app-sidebar {
       .brand-title {
         font-size: 14px;
         font-weight: 700;
-        color: #000000;
+        color: $primary;
         .dark-theme & {
           color: #ffffff;
         }
@@ -132,7 +132,7 @@ app-sidebar {
 
       &:hover:not(.activeMenu) {
         background-color: #f8fafc !important;
-        color: #000000 !important;
+        color: $primary !important;
       }
 
       &.twoline {
@@ -145,9 +145,9 @@ app-sidebar {
       }
 
       &.activeMenu {
-        background-color: #000000 !important;
+        background-color: $primary !important;
         color: #ffffff !important;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 2px 8px rgba(var(--brand-primary-rgb), 0.25);
 
         .mdc-list-item__primary-text {
           color: #ffffff !important;

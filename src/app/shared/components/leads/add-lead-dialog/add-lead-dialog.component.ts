@@ -178,7 +178,7 @@ import { DocumentViewDialogComponent } from '../document-view-dialog/document-vi
                       <span style="display:flex; align-items:center; justify-content:space-between; width:100%;">
                         <span>{{ c.name }}</span>
                         <span [style]="c.roleLabel === 'Senior'
-                          ? 'font-size:11px;font-weight:600;margin-left:8px;background:rgba(45,46,50,0.12);color:#2D2E32;padding:2px 10px;border-radius:10px;'
+                          ? 'font-size:11px;font-weight:600;margin-left:8px;background:rgba(var(--brand-primary-rgb),0.12);color:var(--brand-primary);padding:2px 10px;border-radius:10px;'
                           : 'font-size:11px;font-weight:600;margin-left:8px;background:rgba(19,222,185,0.12);color:#13deb9;padding:2px 10px;border-radius:10px;'">
                           {{ c.roleLabel }}
                         </span>

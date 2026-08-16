@@ -196,10 +196,10 @@ import { Resource } from '../resources.component';
     .icon-bg-image { background-color: rgba(19, 222, 185, 0.1); color: #13deb9; }
     .icon-bg-video { background-color: rgba(250, 137, 107, 0.1); color: #fa896b; }
     .icon-bg-audio { background-color: rgba(183, 136, 255, 0.1); color: #b788ff; }
-    .icon-bg-document { background-color: rgba(0, 0, 0, 0.08); color: #000000; }
+    .icon-bg-document { background-color: rgba(var(--brand-primary-rgb), 0.08); color: var(--brand-primary); }
     .icon-bg-spreadsheet { background-color: rgba(19, 222, 185, 0.1); color: #13deb9; }
     .icon-bg-presentation { background-color: rgba(250, 137, 107, 0.1); color: #fa896b; }
-    .icon-bg-link { background-color: rgba(0, 0, 0, 0.08); color: #000000; }
+    .icon-bg-link { background-color: rgba(var(--brand-primary-rgb), 0.08); color: var(--brand-primary); }
     .icon-bg-archive { background-color: rgba(255, 174, 31, 0.1); color: #ffae1f; }
     .icon-bg-default { background-color: rgba(73, 190, 255, 0.1); color: #49beff; }
 

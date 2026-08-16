@@ -224,8 +224,8 @@
       padding: 0 !important;
 
       &.mdc-text-field--focused {
-        border-color: #000000 !important;
-        box-shadow: 0 0 0 1px #000000 !important;
+        border-color: var(--brand-primary) !important;
+        box-shadow: 0 0 0 1px var(--brand-primary) !important;
       }
 
       &:hover:not(.mdc-text-field--focused) {
@@ -298,8 +298,8 @@
         border-radius: 4px;
       }
       .mdc-checkbox__native-control:enabled:checked ~ .mdc-checkbox__background {
-        background-color: #000000 !important;
-        border-color: #000000 !important;
+        background-color: var(--brand-primary) !important;
+        border-color: var(--brand-primary) !important;
         border-radius: 4px;
       }
       
@@ -315,7 +315,7 @@
 
 // Accent/Submit Button Styling
 .auth-btn-submit {
-  background-color: #000000 !important;
+  background-color: var(--brand-primary) !important;
   color: #ffffff !important;
   border-radius: 8px !important;
   padding: 24px 0 !important;

@@ -266,7 +266,7 @@ import { TableColumn } from '../data-table/data-table.models';
         transition: all 0.2s ease;
         
         &.active {
-          background-color: #2D2E32;
+          background-color: var(--brand-primary);
           color: #ffffff;
         }
         &:hover:not(.active) {
@@ -334,8 +334,8 @@ import { TableColumn } from '../data-table/data-table.models';
       
       &:focus-within {
         background-color: #ffffff;
-        border-color: #2D2E32;
-        box-shadow: 0 0 0 3px rgba(45,46,50, 0.1);
+        border-color: var(--brand-primary);
+        box-shadow: 0 0 0 3px rgba(var(--brand-primary-rgb), 0.1);
       }
       
       .search-icon {
@@ -402,7 +402,7 @@ import { TableColumn } from '../data-table/data-table.models';
         border-color: var(--dark-formborderColor);
         .toggle-btn {
           color: #94a3b8;
-          &.active { background-color: #2D2E32; color: #ffffff; }
+          &.active { background-color: var(--brand-primary); color: #ffffff; }
           &:hover:not(.active) { background-color: var(--dark-hoverbgcolor); }
         }
       }

@@ -107,7 +107,7 @@ import { Branch } from '../branches.component';
 
     .branch-icon-wrap {
       width: 64px; height: 64px; border-radius: 16px;
-      background: linear-gradient(135deg, rgba(45,46,50,0.12), rgba(139,92,246,0.12));
+      background: linear-gradient(135deg, rgba(var(--brand-primary-rgb),0.12), rgba(139,92,246,0.12));
       flex-shrink: 0;
     }
 

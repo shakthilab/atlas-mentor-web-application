@@ -168,11 +168,11 @@ import { Company } from '../companies.component';
     .dialog-header { border-bottom: 0; }
     .close-btn { opacity: 0.7; &:hover { opacity: 1; } }
 
-    .profile-banner { background: linear-gradient(135deg, rgba(45,46,50,0.04), rgba(139,92,246,0.04)); }
+    .profile-banner { background: linear-gradient(135deg, rgba(var(--brand-primary-rgb),0.04), rgba(139,92,246,0.04)); }
 
     .company-avatar-lg {
       width: 72px; height: 72px; border-radius: 18px; flex-shrink: 0;
-      background: linear-gradient(135deg, rgba(45,46,50,0.15), rgba(139,92,246,0.15));
+      background: linear-gradient(135deg, rgba(var(--brand-primary-rgb),0.15), rgba(139,92,246,0.15));
     }
 
     .gap-8 { gap: 8px; }
@@ -188,7 +188,7 @@ import { Company } from '../companies.component';
 
     .industry-chip, .branch-chip {
       display: inline-flex; align-items: center;
-      background: rgba(45,46,50,0.08); color: #2D2E32;
+      background: rgba(var(--brand-primary-rgb),0.08); color: var(--brand-primary);
       border-radius: 4px; padding: 3px 8px; font-weight: 600;
     }
 
@@ -210,7 +210,7 @@ import { Company } from '../companies.component';
     .close-action-btn { background: #f1f5f9 !important; color: #475569 !important; }
 
     .object-cover { object-fit: cover; }
-    .text-primary { color: #2D2E32; text-decoration: none; &:hover { text-decoration: underline; } }
+    .text-primary { color: var(--brand-primary); text-decoration: none; &:hover { text-decoration: underline; } }
     .text-muted { color: #64748b; }
     .m-r-4 { margin-right: 4px; } .m-r-6 { margin-right: 6px; } .m-r-8 { margin-right: 8px; }
     .m-r-10 { margin-right: 10px; } .m-r-20 { margin-right: 20px; }
@@ -240,7 +240,7 @@ import { Company } from '../companies.component';
     }
 
     :host-context(.dark-theme) {
-      .profile-banner { background: rgba(45,46,50,0.06); }
+      .profile-banner { background: rgba(var(--brand-primary-rgb),0.06); }
       .dialog-footer { background: rgba(0,0,0,0.12); }
       .detail-label { color: #94a3b8; }
       .detail-value { color: #f8fafc; }

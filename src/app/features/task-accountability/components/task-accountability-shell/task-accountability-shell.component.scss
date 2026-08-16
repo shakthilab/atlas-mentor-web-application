@@ -53,12 +53,12 @@
   transition: all 0.2s ease;
 
   &:hover {
-    color: #2D2E32;
+    color: var(--brand-primary);
   }
 
   &.active {
-    color: #2D2E32;
-    border-bottom-color: #2D2E32;
+    color: var(--brand-primary);
+    border-bottom-color: var(--brand-primary);
   }
 }
 
@@ -74,7 +74,7 @@
   gap: 6px;
   background-color: #F1F5F9;
   border: 1px solid #cbd5e1;
-  color: #2D2E32;
+  color: var(--brand-primary);
   padding: 6px 12px;
   border-radius: 6px;
   font-size: 12px;

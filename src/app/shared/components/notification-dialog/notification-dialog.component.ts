@@ -53,15 +53,15 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
         display: flex;
         align-items: center;
         justify-content: center;
-        border: 2px solid #000000;
+        border: 2px solid var(--brand-primary);
         background-color: #ffffff;
       }
     }
 
     .success {
       .icon-circle {
-        border-color: #000000;
-        color: #000000;
+        border-color: var(--brand-primary);
+        color: var(--brand-primary);
       }
       .dialog-icon {
         width: 28px;
@@ -72,8 +72,8 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
     .error {
       .icon-circle {
-        border-color: #000000;
-        color: #000000;
+        border-color: var(--brand-primary);
+        color: var(--brand-primary);
       }
       .dialog-icon {
         width: 28px;
@@ -86,7 +86,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
       font-size: 20px;
       font-weight: 700;
       margin-bottom: 12px;
-      color: #000000;
+      color: var(--brand-primary);
       font-family: 'Outfit', 'Inter', sans-serif;
       letter-spacing: -0.3px;
     }
@@ -111,7 +111,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
         font-size: 13px;
         border-radius: 4px !important;
         height: 46px;
-        background-color: #000000 !important;
+        background-color: var(--brand-primary) !important;
         color: #ffffff !important;
         border: none !important;
         box-shadow: none !important;
@@ -121,13 +121,13 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
         transition: background-color 0.2s ease;
         
         &:hover {
-          background-color: #222222 !important;
+          background-color: var(--brand-primary-dark) !important;
         }
       }
 
       .resend-btn {
         background-color: transparent !important;
-        color: #000000 !important;
+        color: var(--brand-primary) !important;
         border: 1px solid #cbd5e1 !important;
         margin-top: 8px;
         
@@ -159,7 +159,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
       }
       .dialog-actions .action-btn {
         background-color: #ffffff !important;
-        color: #000000 !important;
+        color: var(--brand-primary) !important;
         &:hover {
           background-color: #e2e8f0 !important;
         }

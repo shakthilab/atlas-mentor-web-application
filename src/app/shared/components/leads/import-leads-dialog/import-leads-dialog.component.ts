@@ -218,7 +218,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #2D2E32;
+      color: var(--brand-primary);
     }
 
     .dialog-title {
@@ -305,14 +305,14 @@ import { NotificationService } from '../../../../core/services/notification.serv
     }
 
     .step-icon {
-      color: #2D2E32;
+      color: var(--brand-primary);
       margin-right: 8px;
     }
 
     .step-title {
       font-size: 15px;
       font-weight: 700;
-      color: #2D2E32;
+      color: var(--brand-primary);
     }
 
     .option-desc {
@@ -335,7 +335,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
     .sheet-url-input {
       width: 100%;
       height: 46px;
-      border: 1.5px solid #2D2E32;
+      border: 1.5px solid var(--brand-primary);
       border-radius: 24px;
       padding: 0 20px;
       font-size: 13px;
@@ -351,9 +351,9 @@ import { NotificationService } from '../../../../core/services/notification.serv
       }
       
       &:focus {
-        border-color: #2D2E32;
+        border-color: var(--brand-primary);
         background: #f8fafc;
-        box-shadow: 0 0 0 3px rgba(45, 46, 50, 0.1);
+        box-shadow: 0 0 0 3px rgba(var(--brand-primary-rgb), 0.1);
       }
       
       &:disabled {
@@ -401,12 +401,12 @@ import { NotificationService } from '../../../../core/services/notification.serv
       min-height: 145px;
 
       &:hover, &.dragover {
-        border-color: #2D2E32;
+        border-color: var(--brand-primary);
         background: #f8fafc;
         
         .dropzone-circle-icon {
           background: #f1f5f9;
-          color: #2D2E32;
+          color: var(--brand-primary);
         }
       }
 
@@ -427,7 +427,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
       justify-content: center;
       box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
       margin-bottom: 14px;
-      color: #2D2E32;
+      color: var(--brand-primary);
       transition: all 0.2s;
     }
 
@@ -498,8 +498,8 @@ import { NotificationService } from '../../../../core/services/notification.serv
       font-family: inherit;
       
       &:hover:not(:disabled) {
-        border-color: #2D2E32;
-        color: #2D2E32;
+        border-color: var(--brand-primary);
+        color: var(--brand-primary);
         background: #f8fafc;
       }
       
@@ -540,7 +540,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
       gap: 6px;
       background: none;
       border: none;
-      color: #2D2E32;
+      color: var(--brand-primary);
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;

@@ -236,12 +236,12 @@ export interface Branch {
     .branch-card { transition: transform 0.2s ease, box-shadow 0.2s ease; &:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important; } }
     .view-mode-toggle { background-color: #ffffff; border-radius: 6px; border: 1px solid #e2e8f0; display: flex; overflow: hidden;
       .toggle-btn { width: 42px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; color: #64748b; background: transparent; border: none; cursor: pointer; transition: all 0.2s ease;
-        &.active { background-color: #2D2E32; color: #ffffff; }
+        &.active { background-color: var(--brand-primary); color: #ffffff; }
         &:hover:not(.active) { background-color: #f1f5f9; }
       }
     }
 
-    .badge-role { background: rgba(45,46,50,0.12); color: #2D2E32; border-radius: 4px; padding: 1px 6px; font-size: 11px; font-weight: 600; margin-left: 4px; }
+    .badge-role { background: rgba(var(--brand-primary-rgb),0.12); color: var(--brand-primary); border-radius: 4px; padding: 1px 6px; font-size: 11px; font-weight: 600; margin-left: 4px; }
 
     .status-badge {
       display: inline-flex; align-items: center; justify-content: center; padding: 4px 10px; font-size: 12px; font-weight: 600; border-radius: 6px; text-transform: capitalize;
@@ -253,7 +253,7 @@ export interface Branch {
     .search-box {
       position: relative; display: flex; align-items: center; background-color: #f1f5f9; border-radius: 8px; padding: 0 12px; border: 1px solid #e2e8f0; width: 240px; height: 38px; transition: all 0.2s ease-in-out;
       @media (max-width: 576px) { width: calc(100% - 140px); }
-      &:focus-within { background-color: #ffffff; border-color: #2D2E32; box-shadow: 0 0 0 3px rgba(45,46,50, 0.1); }
+      &:focus-within { background-color: #ffffff; border-color: var(--brand-primary); box-shadow: 0 0 0 3px rgba(var(--brand-primary-rgb), 0.1); }
       .search-icon { color: #64748b; margin-right: 8px; }
       .search-input { border: none; background: transparent; outline: none; width: 100%; font-size: 13px; color: #1e293b; &::placeholder { color: #94a3b8; } }
     }
@@ -264,7 +264,7 @@ export interface Branch {
 
     :host-context(.dark-theme) {
       .search-box { background-color: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); .search-input { color: #f8fafc; } }
-      .view-mode-toggle { background-color: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); .toggle-btn { color: #94a3b8; &.active { background-color: #2D2E32; color: #ffffff; } &:hover:not(.active) { background-color: var(--dark-hoverbgcolor); } } }
+      .view-mode-toggle { background-color: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); .toggle-btn { color: #94a3b8; &.active { background-color: var(--brand-primary); color: #ffffff; } &:hover:not(.active) { background-color: var(--dark-hoverbgcolor); } } }
       .status-badge {
         &.active { background-color: rgba(19, 222, 185, 0.2); color: #80f1d4; }
         &.setup { background-color: rgba(255, 174, 31, 0.2); color: #ffe082; }

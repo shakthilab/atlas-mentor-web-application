@@ -123,8 +123,8 @@
       }
 
       &.active {
-        background-color: #2D2E32;
-        border-color: #2D2E32;
+        background-color: var(--brand-primary);
+        border-color: var(--brand-primary);
         color: #ffffff;
       }
     }
@@ -179,8 +179,8 @@
 
   .btn-outline-blue {
     background-color: transparent;
-    border: 1px solid #2D2E32;
-    color: #2D2E32;
+    border: 1px solid var(--brand-primary);
+    color: var(--brand-primary);
     padding: 8px 16px;
     border-radius: 6px;
     font-size: 13px;
@@ -203,8 +203,8 @@
   }
 
   .btn-solid-blue {
-    background-color: #2D2E32;
-    border: 1px solid #2D2E32;
+    background-color: var(--brand-primary);
+    border: 1px solid var(--brand-primary);
     color: #ffffff;
     padding: 8px 16px;
     border-radius: 6px;
@@ -367,7 +367,7 @@
       border-radius: 3px;
 
       &.blue-fill {
-        background-color: #2D2E32;
+        background-color: var(--brand-primary);
       }
 
       &.green-fill {
@@ -668,7 +668,7 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background-color: #2D2E32;
+      background-color: var(--brand-primary);
       color: #ffffff;
       border: none;
       border-radius: 8px;
@@ -918,9 +918,9 @@
         }
 
         &.active {
-          background: #2D2E32;
-          border-color: #2D2E32;
-          box-shadow: 0 4px 12px rgba(45, 46, 50, 0.25);
+          background: var(--brand-primary);
+          border-color: var(--brand-primary);
+          box-shadow: 0 4px 12px rgba(var(--brand-primary-rgb), 0.25);
 
           .card-day-name {
             color: #94a3b8;

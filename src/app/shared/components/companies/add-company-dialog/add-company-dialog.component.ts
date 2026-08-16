@@ -216,7 +216,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
     }
 
     .header-icon-box { width: 48px; height: 48px; }
-    .bg-light-primary { background-color: rgba(45,46,50, 0.1) !important; }
+    .bg-light-primary { background-color: rgba(var(--brand-primary-rgb), 0.1) !important; }
 
     .row { display: flex; flex-wrap: wrap; margin-right: -12px; margin-left: -12px; }
     .col-sm-6 {
@@ -235,7 +235,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
     ::ng-deep .theme-input .mdc-notched-outline__trailing { border-color: #e2e8f0 !important; border-width: 1px !important; }
     ::ng-deep .theme-input.mat-focused .mdc-notched-outline__leading,
     ::ng-deep .theme-input.mat-focused .mdc-notched-outline__notch,
-    ::ng-deep .theme-input.mat-focused .mdc-notched-outline__trailing { border-color: #2D2E32 !important; border-width: 2px !important; }
+    ::ng-deep .theme-input.mat-focused .mdc-notched-outline__trailing { border-color: var(--brand-primary) !important; border-width: 2px !important; }
 
     .spinning { animation: spin 1s linear infinite; }
     @keyframes spin { 100% { transform: rotate(360deg); } }
@@ -245,7 +245,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
     .m-y-16 { margin-top: 16px; margin-bottom: 16px; }
     .p-x-24 { padding-left: 24px; padding-right: 24px; } .p-t-8 { padding-top: 8px; } .p-t-24 { padding-top: 24px; }
     .p-b-16 { padding-bottom: 16px; } .p-b-24 { padding-bottom: 24px; }
-    .gap-12 { gap: 12px; } .text-primary { color: #2D2E32 !important; }
+    .gap-12 { gap: 12px; } .text-primary { color: var(--brand-primary) !important; }
 
     :host-context(.dark-theme) {
       .dialog-container { background-color: var(--dark-sidebarbg, #1e293b); }

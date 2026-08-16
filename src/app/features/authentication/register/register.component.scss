@@ -46,7 +46,7 @@
     .step-name {
       font-size: 12px;
       font-weight: 800;
-      color: #000000;
+      color: var(--brand-primary);
       letter-spacing: 0.5px;
     }
   }
@@ -63,7 +63,7 @@
       transition: background-color 0.25s ease;
 
       &.active {
-        background-color: #000000;
+        background-color: var(--brand-primary);
         height: 3px;
       }
     }
@@ -78,7 +78,7 @@
   .auth-main-title {
     font-size: 38px;
     font-weight: 800;
-    color: #000000;
+    color: var(--brand-primary);
     line-height: 1.1;
     letter-spacing: -1.2px;
     margin-bottom: 8px;
@@ -105,7 +105,7 @@
       box-shadow: none !important;
 
       &.mdc-text-field--focused {
-        border-color: #000000 !important;
+        border-color: var(--brand-primary) !important;
       }
     }
     
@@ -174,7 +174,7 @@
 
 // Button Styling
 .auth-btn-submit {
-  background-color: #000000 !important;
+  background-color: var(--brand-primary) !important;
   color: #ffffff !important;
   border-radius: 4px !important;
   padding: 22px 0 !important;
@@ -211,7 +211,7 @@
 .auth-btn-secondary {
   background-color: transparent !important;
   border: 1px solid #cbd5e1 !important;
-  color: #000000 !important;
+  color: var(--brand-primary) !important;
   border-radius: 4px !important;
   padding: 22px 0 !important;
   font-size: 13px !important;
@@ -249,7 +249,7 @@
   font-family: 'Inter', sans-serif;
 
   .footer-link-bold {
-    color: #000000;
+    color: var(--brand-primary);
     font-weight: 700;
     text-decoration: none;
 

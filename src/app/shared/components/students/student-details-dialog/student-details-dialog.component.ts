@@ -190,7 +190,7 @@ import { DocumentViewDialogComponent } from '../../leads/document-view-dialog/do
                   <div class="d-flex align-items-center justify-content-between p-16 border rounded bg-white doc-item-card">
                     <div class="d-flex align-items-center overflow-hidden flex-1" style="min-width: 0;">
                       <div class="doc-icon-wrapper uploaded m-r-12">
-                        <i-tabler name="file-text" class="icon-18 text-primary" style="color: #2D2E32 !important;"></i-tabler>
+                        <i-tabler name="file-text" class="icon-18 text-primary" style="color: var(--brand-primary) !important;"></i-tabler>
                       </div>
                       <div class="d-flex flex-column overflow-hidden flex-1" style="min-width: 0;">
                         <span class="f-s-14 f-w-700 text-dark text-truncate d-block w-100" [title]="getDocDisplayName(doc.documentType)">
@@ -276,8 +276,8 @@ import { DocumentViewDialogComponent } from '../../leads/document-view-dialog/do
       text-transform: capitalize;
       
       &.enrolled, &.registered {
-        background-color: rgba(45,46,50, 0.1);
-        color: #2D2E32;
+        background-color: rgba(var(--brand-primary-rgb), 0.1);
+        color: var(--brand-primary);
       }
       &.pending, &.lead {
         background-color: rgba(255, 174, 31, 0.1);
@@ -346,7 +346,7 @@ import { DocumentViewDialogComponent } from '../../leads/document-view-dialog/do
       border-radius: 8px;
       transition: all 0.2s ease;
       &:hover {
-        border-color: #2D2E32;
+        border-color: var(--brand-primary);
         box-shadow: 0 4px 12px rgba(0,0,0,0.04);
       }
     }
@@ -358,7 +358,7 @@ import { DocumentViewDialogComponent } from '../../leads/document-view-dialog/do
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(45,46,50, 0.08);
+      background: rgba(var(--brand-primary-rgb), 0.08);
     }
 
     .icon-btn-action {
@@ -383,22 +383,22 @@ import { DocumentViewDialogComponent } from '../../leads/document-view-dialog/do
         color: #64748b !important;
       }
       .mat-mdc-tab.mdc-tab--active .mdc-tab__text-label {
-        color: #2D2E32 !important;
+        color: var(--brand-primary) !important;
       }
       .mat-mdc-tab-group.mat-primary .mat-mdc-tab-header-pagination-chevron {
-        border-color: #2D2E32 !important;
+        border-color: var(--brand-primary) !important;
       }
       .mat-mdc-tab-header-pagination {
-        color: #2D2E32 !important;
+        color: var(--brand-primary) !important;
       }
       .mat-mdc-tab-group.mat-primary .mat-mdc-tab-label-container {
-        border-bottom-color: #2D2E32 !important;
+        border-bottom-color: var(--brand-primary) !important;
       }
       .mat-mdc-tab-group.mat-primary .mat-mdc-tab-header-pagination-chevron {
-        border-color: #2D2E32 !important;
+        border-color: var(--brand-primary) !important;
       }
       .mdc-tab-indicator__content--activated {
-        border-color: #2D2E32 !important;
+        border-color: var(--brand-primary) !important;
         border-bottom-width: 2px !important;
       }
     }

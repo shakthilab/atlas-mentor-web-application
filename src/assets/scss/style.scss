@@ -10,6 +10,16 @@
 @import "themecolors/default_theme";
 @include mat.all-component-themes($bluetheme);
 
+// ─── Brand color tokens (single source of truth: _variables.scss) ─────────
+:root {
+  --brand-primary: #{$primary};
+  --brand-primary-rgb: #{red($primary)}, #{green($primary)}, #{blue($primary)};
+  --brand-primary-dark: #{darken($primary, 8%)};
+  --brand-secondary: #{$accent};
+  --brand-secondary-rgb: #{red($accent)}, #{green($accent)}, #{blue($accent)};
+  --brand-secondary-dark: #{darken($accent, 12%)};
+}
+
 // Dark Material theme
 $darkblue-theme: mat.define-dark-theme((
   color: (

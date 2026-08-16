@@ -33,7 +33,7 @@
     font-weight: 500;
 
     .status-name {
-      color: #2D2E32;
+      color: var(--brand-primary);
       font-weight: 700;
     }
   }
@@ -104,10 +104,10 @@
 
 /* Active Step */
 .step-active {
-  background-color: #2D2E32;
-  border: 1px solid #2D2E32;
+  background-color: var(--brand-primary);
+  border: 1px solid var(--brand-primary);
   color: #ffffff;
-  box-shadow: 0 2px 6px rgba(45, 46, 50, 0.2);
+  box-shadow: 0 2px 6px rgba(var(--brand-primary-rgb), 0.2);
 
   .step-indicator-circle.number {
     background-color: #1d1e21;
