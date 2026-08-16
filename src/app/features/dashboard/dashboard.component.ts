@@ -15,6 +15,7 @@ import {
   ApexMarkers,
   ApexResponsive,
 } from 'ng-apexcharts';
+import { TableColumn, TableFilterOption } from '../../shared/components/data-table/data-table.models';
 
 interface month {
   value: string;
@@ -137,8 +138,33 @@ export class AppDashboardComponent {
   public yearlyChart!: Partial<yearlyChart> | any;
   public monthlyChart!: Partial<monthlyChart> | any;
 
-  displayedColumns: string[] = ['assigned', 'name', 'priority', 'budget'];
   dataSource = ELEMENT_DATA;
+
+  topProjectsColumns: TableColumn<productsData>[] = [
+    {
+      key: 'assigned', header: 'Assigned', type: 'avatar',
+      avatarFn: r => r.imagePath, valueFn: r => r.uname, subFn: r => r.position,
+    },
+    { key: 'name', header: 'Name', type: 'text', valueFn: r => r.productName },
+    { key: 'priority', header: 'Priority', type: 'custom', exportValueFn: r => r.priority },
+    { key: 'budget', header: 'Budget', type: 'text', valueFn: r => '$' + r.budget + 'k' },
+  ];
+
+  topProjectsFilters: Record<string, string> = {};
+
+  get topProjectsFilterOptions(): TableFilterOption[] {
+    const seen = new Map<string, string>();
+    for (const row of this.dataSource) {
+      const value = (row.priority || '').toLowerCase();
+      if (value && !seen.has(value)) seen.set(value, row.priority);
+    }
+    return [{ key: 'priority', label: 'Priority', options: Array.from(seen.entries()).map(([value, label]) => ({ value, label })) }];
+  }
+
+  get filteredTopProjects(): productsData[] {
+    const priority = this.topProjectsFilters['priority'];
+    return priority ? this.dataSource.filter(r => (r.priority || '').toLowerCase() === priority) : this.dataSource;
+  }
 
   months: month[] = [
     { value: 'mar', viewValue: 'March 2023' },

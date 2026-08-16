@@ -7,6 +7,8 @@ import { ReferralService } from '../../../core/services/referral.service';
 import { MasterDataService } from '../../../core/services/master-data.service';
 import { AddReferralDialogComponent } from './add-referral-dialog/add-referral-dialog.component';
 import { ReferralDetailDialogComponent } from './referral-detail-dialog/referral-detail-dialog.component';
+import { TableColumn, TableFilterOption } from '../data-table/data-table.models';
+import { createCompositePredicate, encodeCompositeFilter } from '../data-table/table-filter.util';
 
 @Component({
   selector: 'app-referrals',
@@ -100,99 +102,55 @@ import { ReferralDetailDialogComponent } from './referral-detail-dialog/referral
 
           <ng-container *ngIf="!isLoading">
             <!-- Table View -->
-            <div *ngIf="viewMode === 'table'" class="table-responsive view-container">
-              <table mat-table [dataSource]="dataSource" class="w-100">
-                
-                <ng-container matColumnDef="referralName">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Referral Name</th>
-                  <td mat-cell *matCellDef="let element">
-                    <div class="d-flex align-items-center">
-                      <img [src]="getAvatar(element)" class="rounded-circle m-r-12 object-cover avatar-animated" width="40" height="40" />
-                      <span class="f-w-600 d-block text-dark f-s-14">{{ element.referralName }}</span>
-                    </div>
-                  </td>
-                </ng-container>
+            <div *ngIf="viewMode === 'table'" class="view-container">
+              <app-data-table
+                [columns]="tableColumns"
+                [rows]="dataSource.filteredData"
+                trackByKey="id"
+                [clickableRows]="true"
+                emptyMessage="Try adjusting your filters or add a new referral."
+                [filterOptions]="statusFilterOptions"
+                exportFileName="referrals"
+                (rowClick)="viewDetails($event)"
+                (filterChange)="onColumnFilterChange($event)"
+              >
+                <ng-template appCellDef="referralName" let-element="row">
+                  <div class="d-flex align-items-center">
+                    <img [src]="getAvatar(element)" class="rounded-circle m-r-12 object-cover avatar-animated" width="40" height="40" />
+                    <span class="f-w-600 d-block text-dark f-s-14">{{ element.referralName }}</span>
+                  </div>
+                </ng-template>
 
-                <ng-container matColumnDef="type">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Type</th>
-                  <td mat-cell *matCellDef="let element">
-                    <span class="d-block f-w-500 text-dark f-s-13">{{ formatType(element.referralType) }}</span>
-                  </td>
-                </ng-container>
-
-                <ng-container matColumnDef="branch">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Branch</th>
-                  <td mat-cell *matCellDef="let element">
-                    <span class="d-block f-w-500 text-dark f-s-13">{{ element.branchName || '—' }}</span>
-                  </td>
-                </ng-container>
-
-                <ng-container matColumnDef="status">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Status</th>
-                  <td mat-cell *matCellDef="let element">
-                    <span class="status-badge" [ngClass]="(element.status || '').toLowerCase()">
-                      {{ element.status | titlecase }}
-                    </span>
-                  </td>
-                </ng-container>
-
-                <ng-container matColumnDef="leads">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Leads</th>
-                  <td mat-cell *matCellDef="let element">
-                    <span class="d-block f-w-500 text-dark f-s-13">{{ element.userCounts?.leadsCount || 0 }}</span>
-                  </td>
-                </ng-container>
-
-                <ng-container matColumnDef="registered">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Registered</th>
-                  <td mat-cell *matCellDef="let element">
-                    <span class="d-block f-w-500 text-dark f-s-13">{{ element.userCounts?.registeredCount || 0 }}</span>
-                  </td>
-                </ng-container>
-
-                <ng-container matColumnDef="actions">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14 text-center">Actions</th>
-                  <td mat-cell *matCellDef="let element" class="text-center">
-                    <button mat-icon-button [matMenuTriggerFor]="menu" class="text-muted" (click)="$event.stopPropagation()">
-                      <i-tabler name="dots" class="icon-18"></i-tabler>
+                <ng-template appRowActions let-element="row">
+                  <button mat-icon-button [matMenuTriggerFor]="menu" class="text-muted">
+                    <i-tabler name="dots" class="icon-18"></i-tabler>
+                  </button>
+                  <mat-menu #menu="matMenu" class="cardWithShadow">
+                    <button mat-menu-item (click)="viewDetails(element)">
+                      <i-tabler name="eye" class="icon-16 m-r-8"></i-tabler>
+                      <span>View details</span>
                     </button>
-                    <mat-menu #menu="matMenu" class="cardWithShadow">
-                      <button mat-menu-item (click)="viewDetails(element)">
-                        <i-tabler name="eye" class="icon-16 m-r-8"></i-tabler>
-                        <span>View details</span>
-                      </button>
-                      <button mat-menu-item (click)="editReferral(element)">
-                        <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
-                        <span>Edit referral</span>
-                      </button>
-                      <mat-divider></mat-divider>
-                      <button mat-menu-item *ngIf="(element.status || 'ACTIVE').toUpperCase() === 'ACTIVE'" class="text-danger" (click)="toggleStatus(element)">
-                        <i-tabler name="ban" class="icon-16 m-r-8 text-danger"></i-tabler>
-                        <span>Deactivate</span>
-                      </button>
-                      <button mat-menu-item *ngIf="(element.status || 'ACTIVE').toUpperCase() !== 'ACTIVE'" (click)="toggleStatus(element)">
-                        <i-tabler name="check" class="icon-16 m-r-8 text-success"></i-tabler>
-                        <span>Activate</span>
-                      </button>
-                      <mat-divider></mat-divider>
-                      <button mat-menu-item class="text-danger" (click)="deleteReferral(element)">
-                        <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
-                        <span>Delete</span>
-                      </button>
-                    </mat-menu>
-                  </td>
-                </ng-container>
-
-                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="element-row cursor-pointer" (click)="viewDetails(row)"></tr>
-              </table>
-
-              <!-- Empty state -->
-              <div *ngIf="referrals.length === 0" class="empty-state d-flex flex-column align-items-center justify-content-center p-y-48">
-                <i-tabler name="user-off" class="icon-48 text-muted m-b-12"></i-tabler>
-                <h6 class="mat-subtitle-1 text-muted m-b-4">No referrals found</h6>
-                <p class="f-s-13 text-muted">Try adjusting your filters or add a new referral.</p>
-              </div>
+                    <button mat-menu-item (click)="editReferral(element)">
+                      <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
+                      <span>Edit referral</span>
+                    </button>
+                    <mat-divider></mat-divider>
+                    <button mat-menu-item *ngIf="(element.status || 'ACTIVE').toUpperCase() === 'ACTIVE'" class="text-danger" (click)="toggleStatus(element)">
+                      <i-tabler name="ban" class="icon-16 m-r-8 text-danger"></i-tabler>
+                      <span>Deactivate</span>
+                    </button>
+                    <button mat-menu-item *ngIf="(element.status || 'ACTIVE').toUpperCase() !== 'ACTIVE'" (click)="toggleStatus(element)">
+                      <i-tabler name="check" class="icon-16 m-r-8 text-success"></i-tabler>
+                      <span>Activate</span>
+                    </button>
+                    <mat-divider></mat-divider>
+                    <button mat-menu-item class="text-danger" (click)="deleteReferral(element)">
+                      <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
+                      <span>Delete</span>
+                    </button>
+                  </mat-menu>
+                </ng-template>
+              </app-data-table>
             </div>
 
             <!-- Card View -->
@@ -279,10 +237,6 @@ import { ReferralDetailDialogComponent } from './referral-detail-dialog/referral
     .header-actions { @media (max-width: 576px) { gap: 8px !important; } button.desktop-add-btn { white-space: nowrap; flex-shrink: 0; @media (max-width: 576px) { display: none !important; } } }
     .desktop-only { display: block; @media (max-width: 576px) { display: none !important; } }
     .mobile-only { display: none !important; @media (max-width: 576px) { display: flex !important; } }
-    .table-responsive { width: 100%; overflow-x: auto; }
-    table { min-width: 1050px; }
-    .element-row { transition: background-color 0.2s ease; &:hover { background-color: #f8fafc; } }
-
     .view-container { animation: fadeIn 0.4s ease-in-out; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; @media (max-width: 576px) { grid-template-columns: 1fr; padding: 16px !important; } }
@@ -298,7 +252,7 @@ import { ReferralDetailDialogComponent } from './referral-detail-dialog/referral
     .clear-filter-icon-btn { width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; color: #94a3b8; &:hover { color: #fa896b; background: rgba(250, 137, 107, 0.1); } }
 
     .avatar-animated { transition: transform 0.3s ease; }
-    .element-row:hover .avatar-animated, .referral-card:hover .avatar-animated { transform: scale(1.1) rotate(5deg); animation: gentle-bounce 1s infinite alternate ease-in-out; }
+    .referral-card:hover .avatar-animated { transform: scale(1.1) rotate(5deg); animation: gentle-bounce 1s infinite alternate ease-in-out; }
     @keyframes gentle-bounce { 0% { transform: scale(1.1) rotate(3deg) translateY(0); } 100% { transform: scale(1.1) rotate(7deg) translateY(-3px); } }
 
     .status-badge {
@@ -316,7 +270,6 @@ import { ReferralDetailDialogComponent } from './referral-detail-dialog/referral
     }
 
     :host-context(.dark-theme) {
-      .element-row:hover { background-color: var(--dark-hoverbgcolor); }
       .search-box { background-color: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); .search-input { color: #f8fafc; } }
       .filter-trigger-btn { background: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); color: #94a3b8; &:hover { background: var(--dark-hoverbgcolor); } &.filter-active { background: rgba(45,46,50,0.2); border-color: #2D2E32; color: #a5a1ff; } }
       .mobile-filter-strip { background: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); }
@@ -330,16 +283,43 @@ import { ReferralDetailDialogComponent } from './referral-detail-dialog/referral
 })
 export class ReferralsComponent implements OnInit, AfterViewInit {
   viewMode: 'table' | 'card' = 'table';
-  displayedColumns: string[] = ['referralName', 'type', 'branch', 'status', 'leads', 'registered', 'actions'];
+
+  tableColumns: TableColumn<any>[] = [
+    { key: 'referralName', header: 'Referral Name', type: 'custom' },
+    { key: 'type', header: 'Type', type: 'text', valueFn: r => this.formatType(r.referralType), maxWidth: '140px' },
+    { key: 'branch', header: 'Branch', type: 'text', valueFn: r => r.branchName || '—', maxWidth: '140px' },
+    {
+      key: 'status', header: 'Status', type: 'pill',
+      valueFn: r => this.titleCase(r.status),
+      classFn: r => this.statusPillClass(r.status),
+    },
+    { key: 'leads', header: 'Leads', type: 'text', valueFn: r => String(r.userCounts?.leadsCount || 0), align: 'right', maxWidth: '70px' },
+    { key: 'registered', header: 'Registered', type: 'text', valueFn: r => String(r.userCounts?.registeredCount || 0), align: 'right', maxWidth: '90px' },
+    { key: 'actions', header: 'Actions', type: 'actions', align: 'right' },
+  ];
+
+  statusFilterOptions: TableFilterOption[] = [
+    {
+      key: 'status', label: 'Status',
+      options: [
+        { value: 'active', label: 'Active' },
+        { value: 'inactive', label: 'Inactive' },
+      ],
+    },
+  ];
+
+  private searchText = '';
+  private columnFilters: Record<string, string> = {};
+
   dataSource = new MatTableDataSource<any>([]);
 
   referrals: any[] = [];
   branches: any[] = [];
   referralTypes: string[] = [];
-  
+
   selectedBranchId: number | null = null;
   selectedType: string | null = null;
-  
+
   totalElements = 0;
   pageSize = 10;
   currentPage = 0;
@@ -352,7 +332,20 @@ export class ReferralsComponent implements OnInit, AfterViewInit {
     private referralService: ReferralService,
     private masterDataService: MasterDataService,
     private dialog: MatDialog
-  ) {}
+  ) {
+    this.dataSource.filterPredicate = createCompositePredicate(
+      (row, key) => (key === 'status' ? (row.status || '').toLowerCase() : '')
+    );
+  }
+
+  onColumnFilterChange(filters: Record<string, string>): void {
+    this.columnFilters = filters;
+    this.updateFilter();
+  }
+
+  private updateFilter(): void {
+    this.dataSource.filter = encodeCompositeFilter(this.searchText, this.columnFilters);
+  }
 
   ngOnInit(): void {
     this.loadMasterData();
@@ -441,13 +434,26 @@ export class ReferralsComponent implements OnInit, AfterViewInit {
   }
 
   applySearchFilter(event: Event): void {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
+    this.searchText = (event.target as HTMLInputElement).value;
+    this.updateFilter();
   }
 
   formatType(type: string): string {
     if (!type) return '—';
     return type.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  titleCase(value?: string | null): string {
+    if (!value) return '';
+    return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+  }
+
+  statusPillClass(status?: string | null): string {
+    switch ((status || '').toLowerCase()) {
+      case 'active': return 'pill--success';
+      case 'inactive': return 'pill--danger';
+      default: return 'pill--neutral';
+    }
   }
 
   addReferral(): void {

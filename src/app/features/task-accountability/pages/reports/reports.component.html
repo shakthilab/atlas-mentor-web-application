@@ -102,50 +102,35 @@
     <h3 class="card-title m-b-16">Pending Approvals & Reviews</h3>
     
     <div class="table-container">
-      <table class="reports-table">
-        <thead>
-          <tr>
-            <th>Employee</th>
-            <th>Role</th>
-            <th>Submitted Item</th>
-            <th>Status Stage</th>
-            <th>Submitted At</th>
-            <th class="text-right">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let item of pendingReviews">
-            <td class="font-semibold">{{ item.employeeName }}</td>
-            <td>
-              <span class="role-pill">{{ item.roleName }}</span>
-            </td>
-            <td>
-              <div class="item-cell">
-                <i-tabler [name]="item.isWeekly ? 'calendar-event' : 'checkbox'" class="icon-16 m-r-6 text-primary"></i-tabler>
-                <span>{{ item.taskName }}</span>
-              </div>
-            </td>
-            <td>
-              <span class="stage-badge" [class.manager]="item.stage === 'Manager Review'" [class.senior]="item.stage === 'Senior Review'">
-                {{ item.stage }}
-              </span>
-            </td>
-            <td class="text-muted">{{ item.submittedAt }}</td>
-            <td class="text-right">
-              <button mat-button class="review-action-btn" (click)="reviewItem(item)">
-                Review Now
-                <i-tabler name="chevron-right" class="icon-14 m-l-4"></i-tabler>
-              </button>
-            </td>
-          </tr>
-          <tr *ngIf="pendingReviews.length === 0">
-            <td colspan="6" class="empty-state">
-              <i-tabler name="circle-check" class="icon-32 text-success m-b-8"></i-tabler>
-              <p>All clear! There are no pending reviews for the selected scope.</p>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <app-data-table
+        [columns]="pendingReviewsColumns"
+        [rows]="filteredPendingReviews"
+        emptyMessage="All clear! There are no pending reviews for the selected scope."
+        [filterOptions]="pendingReviewsFilterOptions"
+        exportFileName="pending-reviews"
+        (filterChange)="pendingReviewsFilters = $event"
+      >
+        <ng-template appCellDef="employeeName" let-item="row"><span class="font-semibold">{{ item.employeeName }}</span></ng-template>
+        <ng-template appCellDef="roleName" let-item="row"><span class="role-pill">{{ item.roleName }}</span></ng-template>
+        <ng-template appCellDef="taskName" let-item="row">
+          <div class="item-cell">
+            <i-tabler [name]="item.isWeekly ? 'calendar-event' : 'checkbox'" class="icon-16 m-r-6 text-primary"></i-tabler>
+            <span>{{ item.taskName }}</span>
+          </div>
+        </ng-template>
+        <ng-template appCellDef="stage" let-item="row">
+          <span class="stage-badge" [class.manager]="item.stage === 'Manager Review'" [class.senior]="item.stage === 'Senior Review'">
+            {{ item.stage }}
+          </span>
+        </ng-template>
+        <ng-template appCellDef="submittedAt" let-item="row"><span class="text-muted">{{ item.submittedAt }}</span></ng-template>
+        <ng-template appRowActions let-item="row">
+          <button mat-button class="review-action-btn" (click)="reviewItem(item)">
+            Review Now
+            <i-tabler name="chevron-right" class="icon-14 m-l-4"></i-tabler>
+          </button>
+        </ng-template>
+      </app-data-table>
     </div>
   </div>
 </div>

@@ -75,36 +75,29 @@
             <a href="javascript:void(0)" class="link-all-details">All Details <i-tabler name="chevron-right"
                 class="icon-14"></i-tabler></a>
           </div>
-          <table class="op-table">
-            <thead>
-              <tr>
-                <th>Student</th>
-                <th>Enrolled</th>
-                <th>Status</th>
-                <th>Amount</th>
-                <th class="text-end">Progress</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let student of recentStudents">
-                <td class="fw-bold">{{ student.name }}</td>
-                <td class="text-muted fw-normal">{{ student.enrolled }}</td>
-                <td>
-                  <span class="op-badge badge-{{ student.status | lowercase }}">{{ student.status }}</span>
-                </td>
-                <td class="fw-bold">{{ student.amount }}</td>
-                <td class="text-end">
-                  <div class="d-flex align-items-center justify-content-end gap-3">
-                    <div class="progress flex-grow-1" style="max-width: 80px; height:6px; background:#e9ecef; border-radius:3px;">
-                      <div class="progress-bar" [style.width.%]="student.progress" [style.background-color]="student.progressColor"
-                        style="border-radius:3px; transition:width 1.2s ease;"></div>
-                    </div>
-                    <span class="fw-bold fs-3">{{ student.progress }}%</span>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <app-data-table
+            [columns]="recentStudentsColumns"
+            [rows]="filteredRecentStudents"
+            [filterOptions]="recentStudentsFilterOptions"
+            exportFileName="recent-students"
+            (filterChange)="recentStudentsFilters = $event"
+          >
+            <ng-template appCellDef="name" let-student="row"><span class="fw-bold">{{ student.name }}</span></ng-template>
+            <ng-template appCellDef="enrolled" let-student="row"><span class="text-muted fw-normal">{{ student.enrolled }}</span></ng-template>
+            <ng-template appCellDef="status" let-student="row">
+              <span class="op-badge badge-{{ student.status | lowercase }}">{{ student.status }}</span>
+            </ng-template>
+            <ng-template appCellDef="amount" let-student="row"><span class="fw-bold">{{ student.amount }}</span></ng-template>
+            <ng-template appCellDef="progress" let-student="row">
+              <div class="d-flex align-items-center justify-content-end gap-3">
+                <div class="progress flex-grow-1" style="max-width: 80px; height:6px; background:#e9ecef; border-radius:3px;">
+                  <div class="progress-bar" [style.width.%]="student.progress" [style.background-color]="student.progressColor"
+                    style="border-radius:3px; transition:width 1.2s ease;"></div>
+                </div>
+                <span class="fw-bold fs-3">{{ student.progress }}%</span>
+              </div>
+            </ng-template>
+          </app-data-table>
         </div>
       </div>
       <div class="col-lg-4">

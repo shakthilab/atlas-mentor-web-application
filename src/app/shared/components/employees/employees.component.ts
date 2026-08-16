@@ -14,6 +14,8 @@ import { EmployeeService, Employee, Page } from '../../../core/services/employee
 import { EmployeeDetailsDialogComponent } from './employee-details-dialog/employee-details-dialog.component';
 import { AddEmployeeDialogComponent } from './add-employee-dialog/add-employee-dialog.component';
 import { AuthService } from '../../../core/services/auth.service';
+import { TableColumn, TableFilterOption } from '../data-table/data-table.models';
+import { createCompositePredicate, encodeCompositeFilter } from '../data-table/table-filter.util';
 
 @Component({
   selector: 'app-employees',
@@ -46,93 +48,56 @@ import { AuthService } from '../../../core/services/auth.service';
         
         <mat-card-content class="p-0">
           <!-- Table View -->
-          <div *ngIf="viewMode === 'table'" class="table-responsive view-container">
-            <table mat-table [dataSource]="dataSource" class="w-100">
-              
-              <!-- Employee Column -->
-              <ng-container matColumnDef="employee">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Employee</th>
-                <td mat-cell *matCellDef="let element" (click)="viewProfile(element)" class="cursor-pointer">
-                  <div class="d-flex align-items-center">
-                    <img [src]="getAvatar(element)" class="rounded-circle m-r-12 object-cover avatar-animated" width="40" height="40" />
-                    <div>
-                      <span class="f-w-600 d-block text-dark f-s-14">{{ element.firstName }} {{ element.lastName }}</span>
-                      <span class="text-muted f-s-12 d-block">{{ element.email }}</span>
-                    </div>
+          <div *ngIf="viewMode === 'table'" class="view-container">
+            <app-data-table
+              [columns]="tableColumns"
+              [rows]="dataSource.filteredData"
+              trackByKey="id"
+              [clickableRows]="true"
+              [filterOptions]="filterOptions"
+              exportFileName="employees"
+              (rowClick)="viewProfile($event)"
+              (filterChange)="onFilterChange($event)"
+            >
+              <ng-template appCellDef="employee" let-element="row">
+                <div class="d-flex align-items-center">
+                  <img [src]="getAvatar(element)" class="rounded-circle m-r-12 object-cover avatar-animated" width="40" height="40" />
+                  <div>
+                    <span class="f-w-600 d-block text-dark f-s-14">{{ element.firstName }} {{ element.lastName }}</span>
+                    <span class="text-muted f-s-12 d-block">{{ element.email }}</span>
                   </div>
-                </td>
-              </ng-container>
+                </div>
+              </ng-template>
 
-              <!-- Role Column -->
-              <ng-container matColumnDef="role">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Role</th>
-                <td mat-cell *matCellDef="let element" class="f-w-500 text-dark f-s-13">
-                  {{ getRoleDisplayName(element) }}
-                </td>
-              </ng-container>
-
-              <!-- Branch Column -->
-              <ng-container matColumnDef="branch">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Branch</th>
-                <td mat-cell *matCellDef="let element" class="text-muted f-s-13">
-                  {{ element.branch?.name || element.branch || 'Branch ' + element.branchId }}
-                </td>
-              </ng-container>
-
-              <!-- Status Column -->
-              <ng-container matColumnDef="status">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Status</th>
-                <td mat-cell *matCellDef="let element">
-                  <span class="status-badge" [ngClass]="(element.status || 'ACTIVE').toLowerCase()">
-                    {{ element.status || 'ACTIVE' | titlecase }}
-                  </span>
-                </td>
-              </ng-container>
-
-              <!-- Phone Column -->
-              <ng-container matColumnDef="phone">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Phone</th>
-                <td mat-cell *matCellDef="let element" class="text-muted f-s-13">
-                  {{ element.phone || 'N/A' }}
-                </td>
-              </ng-container>
-
-              <!-- Actions Column -->
-              <ng-container matColumnDef="actions">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14 text-center">Actions</th>
-                <td mat-cell *matCellDef="let element" class="text-center">
-                  <button mat-icon-button [matMenuTriggerFor]="menu" class="text-muted" (click)="$event.stopPropagation()">
-                    <i-tabler name="dots" class="icon-18"></i-tabler>
+              <ng-template appRowActions let-element="row">
+                <button mat-icon-button [matMenuTriggerFor]="menu" class="text-muted">
+                  <i-tabler name="dots" class="icon-18"></i-tabler>
+                </button>
+                <mat-menu #menu="matMenu" class="cardWithShadow">
+                  <button mat-menu-item (click)="viewProfile(element)">
+                    <i-tabler name="eye" class="icon-16 m-r-8"></i-tabler>
+                    <span>View details</span>
                   </button>
-                  <mat-menu #menu="matMenu" class="cardWithShadow">
-                    <button mat-menu-item (click)="viewProfile(element)">
-                      <i-tabler name="eye" class="icon-16 m-r-8"></i-tabler>
-                      <span>View details</span>
-                    </button>
-                    <button mat-menu-item (click)="editDetails(element)">
-                      <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
-                      <span>Edit details</span>
-                    </button>
-                    <button mat-menu-item *ngIf="(element.status || 'ACTIVE').toUpperCase() === 'INACTIVE'" (click)="toggleStatus(element)">
-                      <i-tabler name="user-check" class="icon-16 m-r-8 text-success"></i-tabler>
-                      <span>Activate</span>
-                    </button>
-                    <button mat-menu-item *ngIf="(element.status || 'ACTIVE').toUpperCase() === 'ACTIVE'" (click)="toggleStatus(element)">
-                      <i-tabler name="user-x" class="icon-16 m-r-8 text-warning"></i-tabler>
-                      <span>Deactivate</span>
-                    </button>
-                    <mat-divider></mat-divider>
-                    <button mat-menu-item class="text-danger" (click)="deleteEmployee(element)">
-                      <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
-                      <span>Delete</span>
-                    </button>
-                  </mat-menu>
-                </td>
-              </ng-container>
-
-              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-              <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="employee-row"></tr>
-            </table>
+                  <button mat-menu-item (click)="editDetails(element)">
+                    <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
+                    <span>Edit details</span>
+                  </button>
+                  <button mat-menu-item *ngIf="(element.status || 'ACTIVE').toUpperCase() === 'INACTIVE'" (click)="toggleStatus(element)">
+                    <i-tabler name="user-check" class="icon-16 m-r-8 text-success"></i-tabler>
+                    <span>Activate</span>
+                  </button>
+                  <button mat-menu-item *ngIf="(element.status || 'ACTIVE').toUpperCase() === 'ACTIVE'" (click)="toggleStatus(element)">
+                    <i-tabler name="user-x" class="icon-16 m-r-8 text-warning"></i-tabler>
+                    <span>Deactivate</span>
+                  </button>
+                  <mat-divider></mat-divider>
+                  <button mat-menu-item class="text-danger" (click)="deleteEmployee(element)">
+                    <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
+                    <span>Delete</span>
+                  </button>
+                </mat-menu>
+              </ng-template>
+            </app-data-table>
           </div>
 
           <!-- Card View -->
@@ -253,7 +218,6 @@ import { AuthService } from '../../../core/services/auth.service';
       transition: transform 0.3s ease;
     }
     
-    .employee-row:hover .avatar-animated,
     .employee-card:hover .avatar-animated {
       transform: scale(1.1) rotate(5deg);
       animation: gentle-bounce 1s infinite alternate ease-in-out;
@@ -334,24 +298,7 @@ import { AuthService } from '../../../core/services/auth.service';
       }
     }
     
-    .table-responsive {
-      width: 100%;
-      overflow-x: auto;
-    }
-    
-    table {
-      min-width: 800px;
-    }
-
-    .employee-row {
-      transition: background-color 0.2s ease;
-      cursor: pointer;
-      &:hover {
-        background-color: #f8fafc;
-      }
-    }
-
-    /* Status Badges */
+    /* Status Badges (card view) */
     .status-badge {
       display: inline-flex;
       align-items: center;
@@ -446,9 +393,6 @@ import { AuthService } from '../../../core/services/auth.service';
     }
 
     :host-context(.dark-theme) {
-      .employee-row:hover {
-        background-color: var(--dark-hoverbgcolor);
-      }
       .search-box {
         background-color: var(--dark-sidebarbg);
         border-color: var(--dark-formborderColor);
@@ -480,18 +424,38 @@ import { AuthService } from '../../../core/services/auth.service';
 })
 export class EmployeesComponent implements OnInit, AfterViewInit {
   viewMode: 'table' | 'card' = 'table';
-  
-  displayedColumns: string[] = [
-    'employee',
-    'role',
-    'branch',
-    'phone',
-    'status',
-    'actions'
+
+  tableColumns: TableColumn<Employee>[] = [
+    { key: 'employee', header: 'Employee', type: 'custom' },
+    { key: 'role', header: 'Role', type: 'text', valueFn: r => this.getRoleDisplayName(r), maxWidth: '160px' },
+    {
+      key: 'branch', header: 'Branch', type: 'text',
+      valueFn: (r: any) => r.branch?.name || r.branch || ('Branch ' + r.branchId),
+      maxWidth: '160px',
+    },
+    {
+      key: 'status', header: 'Status', type: 'pill',
+      valueFn: r => this.titleCase(r.status || 'ACTIVE'),
+      classFn: r => this.statusPillClass(r.status || 'ACTIVE'),
+    },
+    { key: 'phone', header: 'Phone', type: 'text', valueFn: r => r.phone || 'N/A', maxWidth: '130px' },
+    { key: 'actions', header: 'Actions', type: 'actions', align: 'right' },
   ];
 
+  filterOptions: TableFilterOption[] = [
+    {
+      key: 'status', label: 'Status',
+      options: [
+        { value: 'active', label: 'Active' },
+        { value: 'inactive', label: 'Inactive' },
+      ],
+    },
+  ];
+
+  private columnFilters: Record<string, string> = {};
+
   dataSource = new MatTableDataSource<Employee>([]);
-  
+
   totalElements = 0;
   pageSize = 10;
   currentPage = 0;
@@ -504,7 +468,31 @@ export class EmployeesComponent implements OnInit, AfterViewInit {
     private employeeService: EmployeeService,
     private dialog: MatDialog,
     private authService: AuthService
-  ) {}
+  ) {
+    // Search is server-side (loadEmployees); this predicate only applies the
+    // Status column filter client-side on top of whatever page is loaded.
+    this.dataSource.filterPredicate = createCompositePredicate(
+      (row, key) => (key === 'status' ? (row.status || 'ACTIVE').toLowerCase() : '')
+    );
+  }
+
+  onFilterChange(filters: Record<string, string>): void {
+    this.columnFilters = filters;
+    this.dataSource.filter = encodeCompositeFilter('', this.columnFilters);
+  }
+
+  titleCase(value?: string | null): string {
+    if (!value) return '';
+    return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+  }
+
+  statusPillClass(status?: string | null): string {
+    switch ((status || '').toLowerCase()) {
+      case 'active': return 'pill--success';
+      case 'inactive': return 'pill--danger';
+      default: return 'pill--neutral';
+    }
+  }
 
   getRoleDisplayName(element: any): string {
     if (!element) return '';

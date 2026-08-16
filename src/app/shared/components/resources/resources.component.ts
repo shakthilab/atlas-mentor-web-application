@@ -7,6 +7,8 @@ import { ResourceService, ResourceData } from '../../../core/services/resource.s
 import { AddResourceDialogComponent } from './add-resource-dialog/add-resource-dialog.component';
 import { ResourceDetailsDialogComponent } from './resource-details-dialog/resource-details-dialog.component';
 import { AuthService } from '../../../core/services/auth.service';
+import { TableColumn, TableFilterOption } from '../data-table/data-table.models';
+import { createCompositePredicate, encodeCompositeFilter } from '../data-table/table-filter.util';
 
 export interface Resource {
   id: number;
@@ -70,92 +72,54 @@ export interface Resource {
             <span class="f-s-14 text-muted">No uploaded resources found.</span>
           </div>
 
-          <div *ngIf="!isLoading && !hasError && dataSource.data.length > 0 && viewMode === 'table'" class="table-responsive view-container">
-            <table mat-table [dataSource]="dataSource" class="w-100">
-              
-              <ng-container matColumnDef="resourceDetail">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Resource Detail</th>
-                <td mat-cell *matCellDef="let element">
-                  <div class="d-flex align-items-center">
-                    <div class="m-r-12 rounded d-flex align-items-center justify-content-center" 
-                         [ngClass]="getIconClass(element.type)"
-                         style="width: 40px; height: 40px; flex-shrink: 0;">
-                      <i-tabler [name]="getFileIcon(element.type)" class="icon-20"></i-tabler>
-                    </div>
-                    <div>
-                      <span class="f-w-600 d-block text-dark f-s-14">{{ element.resourceDetail }}</span>
-                      <span class="f-s-12 text-muted text-truncate d-block" style="max-width: 200px;" [title]="element.originalData?.description || 'No description'">
-                        {{ element.originalData?.description || 'No description' }}
-                      </span>
-                    </div>
+          <div *ngIf="!isLoading && !hasError && dataSource.data.length > 0 && viewMode === 'table'" class="view-container">
+            <app-data-table
+              [columns]="tableColumns"
+              [rows]="dataSource.filteredData"
+              trackByKey="id"
+              [clickableRows]="true"
+              [filterOptions]="filterOptions"
+              exportFileName="resources"
+              (rowClick)="viewDetails($event)"
+              (filterChange)="onFilterChange($event)"
+            >
+              <ng-template appCellDef="resourceDetail" let-element="row">
+                <div class="d-flex align-items-center">
+                  <div class="m-r-12 rounded d-flex align-items-center justify-content-center"
+                       [ngClass]="getIconClass(element.type)"
+                       style="width: 40px; height: 40px; flex-shrink: 0;">
+                    <i-tabler [name]="getFileIcon(element.type)" class="icon-20"></i-tabler>
                   </div>
-                </td>
-              </ng-container>
+                  <div>
+                    <span class="f-w-600 d-block text-dark f-s-14">{{ element.resourceDetail }}</span>
+                    <span class="f-s-12 text-muted text-truncate d-block" style="max-width: 200px;" [title]="element.originalData?.description || 'No description'">
+                      {{ element.originalData?.description || 'No description' }}
+                    </span>
+                  </div>
+                </div>
+              </ng-template>
 
-              <ng-container matColumnDef="type">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Type</th>
-                <td mat-cell *matCellDef="let element">
-                  <span class="d-block f-w-500 text-dark f-s-13">{{ element.type }}</span>
-                </td>
-              </ng-container>
-
-              <ng-container matColumnDef="ownership">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Owner Type</th>
-                <td mat-cell *matCellDef="let element">
-                  <span class="d-block f-w-500 text-dark f-s-13">{{ element.ownership }}</span>
-                </td>
-              </ng-container>
-
-              <ng-container matColumnDef="storage">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Storage</th>
-                <td mat-cell *matCellDef="let element">
-                  <span class="d-block f-w-500 text-dark f-s-13">{{ element.storage }}</span>
-                </td>
-              </ng-container>
-
-              <ng-container matColumnDef="created">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Created</th>
-                <td mat-cell *matCellDef="let element" class="text-muted f-s-13">
-                  {{ element.created }}
-                </td>
-              </ng-container>
-
-              <ng-container matColumnDef="status">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Status</th>
-                <td mat-cell *matCellDef="let element">
-                  <span class="status-badge" [ngClass]="element.status">
-                    {{ element.status | titlecase }}
-                  </span>
-                </td>
-              </ng-container>
-
-              <ng-container matColumnDef="actions">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14 text-center">Actions</th>
-                <td mat-cell *matCellDef="let element" class="text-center">
-                  <button mat-icon-button [matMenuTriggerFor]="menu" class="text-muted" (click)="$event.stopPropagation()">
-                    <i-tabler name="dots" class="icon-18"></i-tabler>
+              <ng-template appRowActions let-element="row">
+                <button mat-icon-button [matMenuTriggerFor]="menu" class="text-muted">
+                  <i-tabler name="dots" class="icon-18"></i-tabler>
+                </button>
+                <mat-menu #menu="matMenu" class="cardWithShadow">
+                  <button mat-menu-item (click)="viewDetails(element)">
+                    <i-tabler name="eye" class="icon-16 m-r-8"></i-tabler>
+                    <span>View details</span>
                   </button>
-                  <mat-menu #menu="matMenu" class="cardWithShadow">
-                    <button mat-menu-item (click)="viewDetails(element)">
-                      <i-tabler name="eye" class="icon-16 m-r-8"></i-tabler>
-                      <span>View details</span>
-                    </button>
-                    <button mat-menu-item (click)="editResource(element)">
-                      <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
-                      <span>Edit resource</span>
-                    </button>
-                    <mat-divider></mat-divider>
-                    <button mat-menu-item class="text-danger" (click)="deleteResource(element)">
-                      <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
-                      <span>Delete</span>
-                    </button>
-                  </mat-menu>
-                </td>
-              </ng-container>
-
-              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-              <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="element-row cursor-pointer" (click)="viewDetails(row)"></tr>
-            </table>
+                  <button mat-menu-item (click)="editResource(element)">
+                    <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
+                    <span>Edit resource</span>
+                  </button>
+                  <mat-divider></mat-divider>
+                  <button mat-menu-item class="text-danger" (click)="deleteResource(element)">
+                    <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
+                    <span>Delete</span>
+                  </button>
+                </mat-menu>
+              </ng-template>
+            </app-data-table>
           </div>
 
           <!-- Card View -->
@@ -231,9 +195,6 @@ export interface Resource {
     .table-container { padding: 24px; @media (max-width: 768px) { padding: 12px 8px; } }
     mat-card-header { @media (max-width: 576px) { flex-direction: column !important; align-items: flex-start !important; gap: 16px; } }
     .header-actions { @media (max-width: 576px) { width: 100%; justify-content: space-between; } button.desktop-add-btn { white-space: nowrap; flex-shrink: 0; @media (max-width: 576px) { display: none !important; } } }
-    .table-responsive { width: 100%; overflow-x: auto; }
-    table { min-width: 1050px; }
-    .element-row { transition: background-color 0.2s ease; cursor: pointer; &:hover { background-color: #f8fafc; } }
     .cursor-pointer { cursor: pointer; }
 
     .view-container { animation: fadeIn 0.4s ease-in-out; }
@@ -287,7 +248,6 @@ export interface Resource {
     }
 
     :host-context(.dark-theme) {
-      .element-row:hover { background-color: var(--dark-hoverbgcolor); }
       .search-box { background-color: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); .search-input { color: #f8fafc; } }
       .view-mode-toggle { background-color: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); .toggle-btn { color: #94a3b8; &.active { background-color: #2D2E32; color: #ffffff; } &:hover:not(.active) { background-color: var(--dark-hoverbgcolor); } } }
       .status-badge {
@@ -311,8 +271,35 @@ export class ResourcesComponent implements OnInit, AfterViewInit {
   viewMode: 'table' | 'card' = 'table';
   isLoading = false;
   hasError = false;
-  displayedColumns: string[] = ['resourceDetail', 'type', 'ownership', 'storage', 'created', 'status', 'actions'];
+
+  filterOptions: TableFilterOption[] = [
+    {
+      key: 'status', label: 'Status',
+      options: [
+        { value: 'available', label: 'Available' },
+        { value: 'in-use', label: 'In Use' },
+        { value: 'archived', label: 'Archived' },
+      ],
+    },
+  ];
+
+  private columnFilters: Record<string, string> = {};
+
   dataSource = new MatTableDataSource<Resource>([]);
+
+  tableColumns: TableColumn<Resource>[] = [
+    { key: 'resourceDetail', header: 'Resource Detail', type: 'custom' },
+    { key: 'type', header: 'Type', type: 'text', valueFn: r => r.type, maxWidth: '120px' },
+    { key: 'ownership', header: 'Owner Type', type: 'text', valueFn: r => r.ownership, maxWidth: '120px' },
+    { key: 'storage', header: 'Storage', type: 'text', valueFn: r => r.storage, maxWidth: '110px' },
+    {
+      key: 'status', header: 'Status', type: 'pill',
+      valueFn: r => this.titleCase(r.status),
+      classFn: r => this.statusPillClass(r.status),
+    },
+    { key: 'created', header: 'Created', type: 'date', valueFn: r => r.created },
+    { key: 'actions', header: 'Actions', type: 'actions', align: 'right' },
+  ];
   
   totalElements = 0;
   pageSize = 10;
@@ -328,7 +315,16 @@ export class ResourcesComponent implements OnInit, AfterViewInit {
     private resourceService: ResourceService,
     private dialog: MatDialog,
     private authService: AuthService
-  ) {}
+  ) {
+    this.dataSource.filterPredicate = createCompositePredicate(
+      (row, key) => (key === 'status' ? (row.status || '').toLowerCase() : '')
+    );
+  }
+
+  onFilterChange(filters: Record<string, string>): void {
+    this.columnFilters = filters;
+    this.dataSource.filter = encodeCompositeFilter('', this.columnFilters);
+  }
 
   ngOnInit(): void {
     const user = this.authService.currentUserValue;
@@ -401,6 +397,20 @@ export class ResourcesComponent implements OnInit, AfterViewInit {
       this.paginator.firstPage();
     }
     this.loadResources();
+  }
+
+  titleCase(value?: string | null): string {
+    if (!value) return '';
+    return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+  }
+
+  statusPillClass(status?: string | null): string {
+    switch ((status || '').toLowerCase()) {
+      case 'available': return 'pill--success';
+      case 'in-use': return 'pill--warning';
+      case 'archived': return 'pill--danger';
+      default: return 'pill--neutral';
+    }
   }
 
   getFileIcon(type: string): string {

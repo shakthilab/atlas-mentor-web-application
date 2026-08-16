@@ -1,0 +1,24 @@
+// Shared visual tokens for the generic <app-data-table> and (by copied value,
+// not import) the dashboard/report tables and complex tables that keep their
+// own markup but adopt the same look.
+$dt-header-bg: #f7f8fa;
+$dt-row-divider: #eef0f3;
+$dt-row-hover: #f8f9fc;
+$dt-cell-padding-y: 14px;
+$dt-cell-padding-x: 18px;
+$dt-text-primary: #1a1d23;
+$dt-text-muted: #8a94a6;
+$dt-row-height: 54px;
+
+@mixin dt-pill-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.6;
+  border-radius: 999px;
+  text-transform: capitalize;
+  white-space: nowrap;
+}

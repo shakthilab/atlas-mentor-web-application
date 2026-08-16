@@ -65,46 +65,27 @@
       <h3 class="card-title m-b-20">Active Assignments</h3>
       
       <div class="table-container">
-        <table class="premium-table">
-          <thead>
-            <tr>
-              <th>Template</th>
-              <th>Assigned To</th>
-              <th>Type</th>
-              <th>Effective Date</th>
-              <th>Status</th>
-              <th class="text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let assign of assignments$ | async">
-              <td class="font-semibold">{{ assign.templateName }}</td>
-              <td>
-                <span class="target-chip">{{ assign.targetName }}</span>
-              </td>
-              <td>
-                <span class="type-badge" [class]="assign.assignType">{{ assign.assignType | uppercase }}</span>
-              </td>
-              <td>{{ assign.effectiveDate | date:'mediumDate' }}</td>
-              <td>
-                <span class="status-dot-active">
-                  <span class="dot"></span> Active
-                </span>
-              </td>
-              <td class="text-right">
-                <button mat-icon-button color="warn" (click)="removeAssignment(assign.id)">
-                  <i-tabler name="trash" class="icon-16"></i-tabler>
-                </button>
-              </td>
-            </tr>
-            <tr *ngIf="(assignments$ | async)?.length === 0">
-              <td colspan="6" class="empty-state">
-                <i-tabler name="unlink" class="icon-32 text-muted m-b-8"></i-tabler>
-                <p>No templates assigned yet. Fill out the assignment form to allocate responsibility.</p>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <ng-container *ngIf="(assignments$ | async) || [] as allAssignments">
+          <app-data-table
+            [columns]="assignmentsColumns"
+            [rows]="filterAssignments(allAssignments)"
+            emptyMessage="No templates assigned yet. Fill out the assignment form to allocate responsibility."
+            [filterOptions]="assignmentsFilterOptions(allAssignments)"
+            exportFileName="template-assignments"
+            (filterChange)="assignmentsFilters = $event"
+          >
+          <ng-template appCellDef="templateName" let-assign="row"><span class="font-semibold">{{ assign.templateName }}</span></ng-template>
+          <ng-template appCellDef="targetName" let-assign="row"><span class="target-chip">{{ assign.targetName }}</span></ng-template>
+          <ng-template appCellDef="assignType" let-assign="row"><span class="type-badge" [class]="assign.assignType">{{ assign.assignType | uppercase }}</span></ng-template>
+          <ng-template appCellDef="effectiveDate" let-assign="row">{{ assign.effectiveDate | date:'mediumDate' }}</ng-template>
+          <ng-template appCellDef="status" let-assign="row"><span class="status-dot-active"><span class="dot"></span> Active</span></ng-template>
+          <ng-template appRowActions let-assign="row">
+            <button mat-icon-button color="warn" (click)="removeAssignment(assign.id)">
+              <i-tabler name="trash" class="icon-16"></i-tabler>
+            </button>
+          </ng-template>
+          </app-data-table>
+        </ng-container>
       </div>
     </div>
   </div>

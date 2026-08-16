@@ -10,6 +10,8 @@ import { StudentService, RegisteredStudentDto } from '../../../core/services/stu
 import { LeadService } from '../../../core/services/lead.service';
 import { StudentDetailsDialogComponent } from './student-details-dialog/student-details-dialog.component';
 import { AddLeadDialogComponent } from '../leads/add-lead-dialog/add-lead-dialog.component';
+import { TableColumn, TableFilterOption } from '../data-table/data-table.models';
+import { createCompositePredicate, encodeCompositeFilter } from '../data-table/table-filter.util';
 
 export interface Student {
   id: number;
@@ -82,134 +84,47 @@ export interface Student {
             <span class="f-s-14 text-muted">No registered students found.</span>
           </div>
 
-          <div *ngIf="!isLoading && !hasError && dataSource.data.length > 0 && viewMode === 'table'" class="table-responsive view-container">
-            <table mat-table [dataSource]="dataSource" class="w-100">
-              
-              <!-- Student Column -->
-              <ng-container matColumnDef="student">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Student</th>
-                <td mat-cell *matCellDef="let element" (click)="viewProfile(element)" class="cursor-pointer">
-                  <div class="d-flex align-items-center">
-                     <img [src]="element.avatar" class="rounded-circle m-r-12 object-cover" width="40" height="40" />
-                    <div>
-                      <span class="f-w-600 d-block text-dark f-s-14">{{ element.name }}</span>
-                      <span class="text-muted f-s-12 d-block">{{ element.major }}</span>
-                    </div>
-                  </div>
-                </td>
-              </ng-container>
-
-              <!-- Contact Info Column -->
-              <ng-container matColumnDef="contactInfo">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Contact Info</th>
-                <td mat-cell *matCellDef="let element">
-                  <span class="d-block f-w-500 text-dark f-s-13">{{ element.email }}</span>
-                  <span class="text-muted f-s-12 d-block">{{ element.phone }}</span>
-                </td>
-              </ng-container>
-
-              <!-- Status Column -->
-              <ng-container matColumnDef="status">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Status</th>
-                <td mat-cell *matCellDef="let element">
-                  <span class="status-badge" [ngClass]="element.status">
-                    {{ element.status === 'enrolled' ? 'Enrolled' : element.status === 'pending' ? 'Pending' : 'Completed' }}
-                  </span>
-                </td>
-              </ng-container>
-
-              <!-- Source Column -->
-              <ng-container matColumnDef="source">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Source</th>
-                <td mat-cell *matCellDef="let element">
-                  <span class="f-w-600 text-dark f-s-13">{{ element.source || '—' }}</span>
-                </td>
-              </ng-container>
-
-              <!-- Active Status Column -->
-              <ng-container matColumnDef="activeStatus">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Active</th>
-                <td mat-cell *matCellDef="let element">
-                  <span class="status-badge" [ngClass]="element.isActive ? 'active' : 'inactive'">
-                    {{ element.isActive ? 'Active' : 'Inactive' }}
-                  </span>
-                </td>
-              </ng-container>
-
-              <!-- Counsellor Column -->
-              <ng-container matColumnDef="counsellor">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Counsellor</th>
-                <td mat-cell *matCellDef="let element">
-                  <div class="d-flex align-items-center">
-                    <img [src]="element.counsellorAvatar" class="rounded-circle m-r-8 object-cover" width="28" height="28" />
-                    <span class="f-w-500 text-dark f-s-13">{{ element.counsellor }}</span>
-                  </div>
-                </td>
-              </ng-container>
-
-              <!-- Added By Column -->
-              <ng-container matColumnDef="addedBy">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Added By</th>
-                <td mat-cell *matCellDef="let element">
-                  <span class="f-w-500 text-dark d-block f-s-13">{{ element.addedBy }}</span>
-                  <span class="text-muted f-s-11 d-block">{{ element.addedByRole }}</span>
-                </td>
-              </ng-container>
-
-              <!-- Country/University Column -->
-              <ng-container matColumnDef="countryUniversity">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Country / University</th>
-                <td mat-cell *matCellDef="let element">
-                  <span class="f-w-500 text-dark d-block f-s-13">{{ element.country }}</span>
-                  <span class="text-muted f-s-12 d-block">{{ element.university }}</span>
-                </td>
-              </ng-container>
-
-              <!-- Joined Date Column -->
-              <ng-container matColumnDef="joinedDate">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Joined Date</th>
-                <td mat-cell *matCellDef="let element" class="text-muted f-s-13">
-                  {{ element.joinedDate }}
-                </td>
-              </ng-container>
-
-              <!-- Actions Column -->
-              <ng-container matColumnDef="actions">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14 text-center">Actions</th>
-                <td mat-cell *matCellDef="let element" class="text-center" (click)="$event.stopPropagation()">
-                  <button mat-icon-button [matMenuTriggerFor]="menu" class="text-muted">
-                    <i-tabler name="dots" class="icon-18"></i-tabler>
+          <div *ngIf="!isLoading && !hasError && dataSource.data.length > 0 && viewMode === 'table'" class="view-container">
+            <app-data-table
+              [columns]="tableColumns"
+              [rows]="dataSource.filteredData"
+              trackByKey="id"
+              [clickableRows]="true"
+              [filterOptions]="filterOptions"
+              exportFileName="students"
+              (rowClick)="viewProfile($event)"
+              (filterChange)="onFilterChange($event)"
+            >
+              <ng-template appRowActions let-element="row">
+                <button mat-icon-button [matMenuTriggerFor]="menu" class="text-muted">
+                  <i-tabler name="dots" class="icon-18"></i-tabler>
+                </button>
+                <mat-menu #menu="matMenu" class="cardWithShadow">
+                  <button mat-menu-item (click)="viewProfile(element)">
+                    <i-tabler name="eye" class="icon-16 m-r-8"></i-tabler>
+                    <span>View profile</span>
                   </button>
-                  <mat-menu #menu="matMenu" class="cardWithShadow">
-                    <button mat-menu-item (click)="viewProfile(element)">
-                      <i-tabler name="eye" class="icon-16 m-r-8"></i-tabler>
-                      <span>View profile</span>
-                    </button>
-                    <button mat-menu-item (click)="editDetails(element)">
-                      <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
-                      <span>Edit details</span>
-                    </button>
-                    <mat-divider></mat-divider>
-                    <button mat-menu-item *ngIf="!element.isActive" (click)="toggleStatus(element)">
-                      <i-tabler name="user-check" class="icon-16 m-r-8 text-success"></i-tabler>
-                      <span>Activate</span>
-                    </button>
-                    <button mat-menu-item *ngIf="element.isActive" (click)="toggleStatus(element)">
-                      <i-tabler name="user-x" class="icon-16 m-r-8 text-warning"></i-tabler>
-                      <span>Deactivate</span>
-                    </button>
-                    <mat-divider></mat-divider>
-                    <button mat-menu-item class="text-danger" (click)="removeStudent(element)">
-                      <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
-                      <span>Remove</span>
-                    </button>
-                  </mat-menu>
-                </td>
-              </ng-container>
-
-              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-              <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="student-row" (click)="viewProfile(row)"></tr>
-            </table>
+                  <button mat-menu-item (click)="editDetails(element)">
+                    <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
+                    <span>Edit details</span>
+                  </button>
+                  <mat-divider></mat-divider>
+                  <button mat-menu-item *ngIf="!element.isActive" (click)="toggleStatus(element)">
+                    <i-tabler name="user-check" class="icon-16 m-r-8 text-success"></i-tabler>
+                    <span>Activate</span>
+                  </button>
+                  <button mat-menu-item *ngIf="element.isActive" (click)="toggleStatus(element)">
+                    <i-tabler name="user-x" class="icon-16 m-r-8 text-warning"></i-tabler>
+                    <span>Deactivate</span>
+                  </button>
+                  <mat-divider></mat-divider>
+                  <button mat-menu-item class="text-danger" (click)="removeStudent(element)">
+                    <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
+                    <span>Remove</span>
+                  </button>
+                </mat-menu>
+              </ng-template>
+            </app-data-table>
           </div>
 
           <!-- Card View -->
@@ -402,23 +317,7 @@ export interface Student {
       }
     }
     
-    .table-responsive {
-      width: 100%;
-      overflow-x: auto;
-    }
-    
-    table {
-      min-width: 1050px;
-    }
-
-    .student-row {
-      transition: background-color 0.2s ease;
-      &:hover {
-        background-color: #f8fafc;
-      }
-    }
-
-    /* Status Badges */
+    /* Status Badges (card view) */
     .status-badge {
       display: inline-flex;
       align-items: center;
@@ -560,18 +459,60 @@ export class StudentsComponent implements OnInit, AfterViewInit, OnDestroy {
   hasError = false;
   totalElements = 0;
 
-  displayedColumns: string[] = [
-    'student',
-    'contactInfo',
-    'status',
-    'source',
-    'activeStatus',
-    'counsellor',
-    'addedBy',
-    'countryUniversity',
-    'joinedDate',
-    'actions'
+  tableColumns: TableColumn<Student>[] = [
+    {
+      key: 'student', header: 'Student', type: 'avatar',
+      avatarFn: r => r.avatar, valueFn: r => r.name, subFn: r => r.major,
+    },
+    {
+      key: 'contactInfo', header: 'Contact Info', type: 'two-line',
+      valueFn: r => r.email, subFn: r => r.phone, maxWidth: '170px',
+    },
+    {
+      key: 'status', header: 'Status', type: 'pill',
+      valueFn: r => r.status === 'enrolled' ? 'Enrolled' : r.status === 'pending' ? 'Pending' : 'Completed',
+      classFn: r => r.status === 'enrolled' ? 'pill--info' : r.status === 'pending' ? 'pill--warning' : 'pill--success',
+    },
+    { key: 'source', header: 'Source', type: 'text', valueFn: r => r.source || '—', maxWidth: '110px' },
+    {
+      key: 'activeStatus', header: 'Active', type: 'pill',
+      valueFn: r => r.isActive ? 'Active' : 'Inactive',
+      classFn: r => r.isActive ? 'pill--success' : 'pill--danger',
+    },
+    {
+      key: 'counsellor', header: 'Counsellor', type: 'avatar',
+      avatarFn: r => r.counsellorAvatar, valueFn: r => r.counsellor,
+    },
+    {
+      key: 'addedBy', header: 'Added By', type: 'two-line',
+      valueFn: r => r.addedBy, subFn: r => r.addedByRole, maxWidth: '150px',
+    },
+    {
+      key: 'countryUniversity', header: 'Country / University', type: 'two-line',
+      valueFn: r => r.country, subFn: r => r.university, maxWidth: '170px',
+    },
+    {
+      key: 'joinedDate', header: 'Joined Date', type: 'date',
+      valueFn: r => r.joinedDate,
+    },
+    {
+      key: 'actions', header: 'Actions', type: 'actions', align: 'right',
+    },
   ];
+
+  filterOptions: TableFilterOption[] = [
+    {
+      key: 'status', label: 'Status',
+      options: [
+        { value: 'enrolled', label: 'Enrolled' },
+        { value: 'pending', label: 'Pending' },
+        { value: 'completed', label: 'Completed' },
+      ],
+    },
+  ];
+
+  private searchText = '';
+  private columnFilters: Record<string, string> = {};
 
   dataSource = new MatTableDataSource<Student>([]);
 
@@ -586,7 +527,11 @@ export class StudentsComponent implements OnInit, AfterViewInit, OnDestroy {
     private dialog: MatDialog,
     private router: Router,
     private route: ActivatedRoute
-  ) {}
+  ) {
+    this.dataSource.filterPredicate = createCompositePredicate(
+      (row, key) => (key === 'status' ? row.status : '')
+    );
+  }
 
   ngOnInit(): void {
     this.loadStudents(0, 10);
@@ -622,8 +567,17 @@ export class StudentsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   applyFilter(event: Event): void {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
+    this.searchText = (event.target as HTMLInputElement).value;
+    this.updateFilter();
+  }
+
+  onFilterChange(filters: Record<string, string>): void {
+    this.columnFilters = filters;
+    this.updateFilter();
+  }
+
+  private updateFilter(): void {
+    this.dataSource.filter = encodeCompositeFilter(this.searchText, this.columnFilters);
   }
 
   addStudent(): void {

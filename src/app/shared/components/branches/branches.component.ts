@@ -7,6 +7,8 @@ import { HierarchyService } from '../../../core/services/hierarchy.service';
 import { extractListData } from '../../../core/utils/api-response.util';
 import { BranchDetailsDialogComponent } from './branch-details-dialog/branch-details-dialog.component';
 import { AddBranchDialogComponent } from './add-branch-dialog/add-branch-dialog.component';
+import { TableColumn, TableFilterOption } from '../data-table/data-table.models';
+import { createCompositePredicate, encodeCompositeFilter } from '../data-table/table-filter.util';
 
 export interface BranchManager {
   id: number;
@@ -67,99 +69,55 @@ export interface Branch {
 
           <ng-container *ngIf="!isLoading">
             <!-- Table View -->
-            <div *ngIf="viewMode === 'table'" class="table-responsive view-container">
-              <table mat-table [dataSource]="dataSource" class="w-100">
-
-                <ng-container matColumnDef="name">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Branch Name</th>
-                  <td mat-cell *matCellDef="let element">
-                    <div class="d-flex align-items-center">
-                      <div class="bg-light-primary rounded d-flex align-items-center justify-content-center m-r-12" style="width: 40px; height: 40px;">
-                        <i-tabler name="building" class="icon-20 text-primary"></i-tabler>
-                      </div>
-                      <span class="f-w-600 d-block text-dark f-s-14">{{ element.name }}</span>
+            <div *ngIf="viewMode === 'table'" class="view-container">
+              <app-data-table
+                [columns]="tableColumns"
+                [rows]="dataSource.filteredData"
+                trackByKey="id"
+                [clickableRows]="true"
+                [filterOptions]="filterOptions"
+                exportFileName="branches"
+                (rowClick)="viewDetails($event)"
+                (filterChange)="onFilterChange($event)"
+              >
+                <ng-template appCellDef="name" let-element="row">
+                  <div class="d-flex align-items-center">
+                    <div class="bg-light-primary rounded d-flex align-items-center justify-content-center m-r-12" style="width: 40px; height: 40px;">
+                      <i-tabler name="building" class="icon-20 text-primary"></i-tabler>
                     </div>
-                  </td>
-                </ng-container>
+                    <span class="f-w-600 d-block text-dark f-s-14">{{ element.name }}</span>
+                  </div>
+                </ng-template>
 
-                <ng-container matColumnDef="location">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Location</th>
-                  <td mat-cell *matCellDef="let element">
-                    <span class="location-cell f-w-500 text-dark f-s-13">{{ element.location }}</span>
-                  </td>
-                </ng-container>
-
-                <ng-container matColumnDef="manager">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Manager</th>
-                  <td mat-cell *matCellDef="let element">
-                    <div class="d-flex align-items-center">
-                      <img [src]="getManagerAvatar(element.manager?.id)" class="rounded-circle m-r-8 object-cover avatar-img" width="36" height="36" />
-                      <div>
-                        <span class="f-w-500 text-dark f-s-13 d-block">{{ element.manager?.name || 'N/A' }}</span>
-                        <span class="f-s-12 text-muted" *ngIf="element.manager?.email">{{ element.manager?.email }}</span>
-                      </div>
-                    </div>
-                  </td>
-                </ng-container>
-
-                <ng-container matColumnDef="employees">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Staff</th>
-                  <td mat-cell *matCellDef="let element">
-                    <span class="d-block f-w-500 text-dark f-s-13">{{ element.userCounts?.totalStaffs }}</span>
-                  </td>
-                </ng-container>
-
-                <ng-container matColumnDef="students">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Students</th>
-                  <td mat-cell *matCellDef="let element">
-                    <span class="d-block f-w-500 text-dark f-s-13">{{ element.userCounts?.totalStudents }}</span>
-                  </td>
-                </ng-container>
-
-                <ng-container matColumnDef="status">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Status</th>
-                  <td mat-cell *matCellDef="let element">
-                    <span class="status-badge" [ngClass]="(element.status || '').toLowerCase()">
-                      {{ element.status | titlecase }}
-                    </span>
-                  </td>
-                </ng-container>
-
-                <ng-container matColumnDef="actions">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14 text-center">Actions</th>
-                  <td mat-cell *matCellDef="let element" class="text-center">
-                    <button mat-icon-button [matMenuTriggerFor]="menu" class="text-muted" (click)="$event.stopPropagation()">
-                      <i-tabler name="dots" class="icon-18"></i-tabler>
+                <ng-template appRowActions let-element="row">
+                  <button mat-icon-button [matMenuTriggerFor]="menu" class="text-muted">
+                    <i-tabler name="dots" class="icon-18"></i-tabler>
+                  </button>
+                  <mat-menu #menu="matMenu" class="cardWithShadow">
+                    <button mat-menu-item (click)="viewDetails(element)">
+                      <i-tabler name="eye" class="icon-16 m-r-8"></i-tabler>
+                      <span>View details</span>
                     </button>
-                    <mat-menu #menu="matMenu" class="cardWithShadow">
-                      <button mat-menu-item (click)="viewDetails(element)">
-                        <i-tabler name="eye" class="icon-16 m-r-8"></i-tabler>
-                        <span>View details</span>
-                      </button>
-                      <button mat-menu-item (click)="editBranch(element)">
-                        <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
-                        <span>Edit branch</span>
-                      </button>
-                      <button mat-menu-item *ngIf="element.status?.toUpperCase() === 'INACTIVE'" (click)="toggleStatus(element)">
-                        <i-tabler name="check" class="icon-16 m-r-8 text-success"></i-tabler>
-                        <span>Activate</span>
-                      </button>
-                      <button mat-menu-item *ngIf="element.status?.toUpperCase() === 'ACTIVE'" (click)="toggleStatus(element)">
-                        <i-tabler name="ban" class="icon-16 m-r-8 text-warning"></i-tabler>
-                        <span>Deactivate</span>
-                      </button>
-                      <mat-divider></mat-divider>
-                      <button mat-menu-item class="text-danger" (click)="deleteBranch(element)">
-                        <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
-                        <span>Delete</span>
-                      </button>
-                    </mat-menu>
-                  </td>
-                </ng-container>
-
-                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="element-row cursor-pointer" (click)="viewDetails(row)"></tr>
-              </table>
+                    <button mat-menu-item (click)="editBranch(element)">
+                      <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
+                      <span>Edit branch</span>
+                    </button>
+                    <button mat-menu-item *ngIf="element.status?.toUpperCase() === 'INACTIVE'" (click)="toggleStatus(element)">
+                      <i-tabler name="check" class="icon-16 m-r-8 text-success"></i-tabler>
+                      <span>Activate</span>
+                    </button>
+                    <button mat-menu-item *ngIf="element.status?.toUpperCase() === 'ACTIVE'" (click)="toggleStatus(element)">
+                      <i-tabler name="ban" class="icon-16 m-r-8 text-warning"></i-tabler>
+                      <span>Deactivate</span>
+                    </button>
+                    <mat-divider></mat-divider>
+                    <button mat-menu-item class="text-danger" (click)="deleteBranch(element)">
+                      <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
+                      <span>Delete</span>
+                    </button>
+                  </mat-menu>
+                </ng-template>
+              </app-data-table>
             </div>
 
             <!-- Card View -->
@@ -261,9 +219,6 @@ export interface Branch {
       display: none !important;
       @media (max-width: 576px) { display: flex !important; align-items: center; justify-content: center; }
     }
-    .table-responsive { width: 100%; overflow-x: auto; }
-    table { min-width: 700px; }
-    .element-row { transition: background-color 0.2s ease; &:hover { background-color: #f8fafc; } }
     .location-cell {
       display: block; max-width: 280px; white-space: normal; line-height: 1.4; word-break: break-word;
       @media (max-width: 768px) {
@@ -310,7 +265,6 @@ export interface Branch {
     .text-success { color: #13deb9 !important; } .text-warning { color: #ffae1f !important; }
 
     :host-context(.dark-theme) {
-      .element-row:hover { background-color: var(--dark-hoverbgcolor); }
       .search-box { background-color: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); .search-input { color: #f8fafc; } }
       .view-mode-toggle { background-color: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); .toggle-btn { color: #94a3b8; &.active { background-color: #2D2E32; color: #ffffff; } &:hover:not(.active) { background-color: var(--dark-hoverbgcolor); } } }
       .status-badge {
@@ -323,7 +277,39 @@ export interface Branch {
 })
 export class BranchesComponent implements OnInit {
   viewMode: 'table' | 'card' = 'table';
-  displayedColumns: string[] = ['name', 'location', 'manager', 'employees', 'students', 'status', 'actions'];
+
+  tableColumns: TableColumn<Branch>[] = [
+    { key: 'name', header: 'Branch Name', type: 'custom' },
+    { key: 'location', header: 'Location', type: 'text', valueFn: r => r.location, maxWidth: '220px' },
+    {
+      key: 'manager', header: 'Manager', type: 'avatar',
+      avatarFn: r => this.getManagerAvatar(r.manager?.id),
+      valueFn: r => r.manager?.name || 'N/A',
+      subFn: r => r.manager?.email || '',
+    },
+    { key: 'employees', header: 'Staff', type: 'text', valueFn: r => String(r.userCounts?.totalStaffs ?? 0), align: 'right', maxWidth: '70px' },
+    { key: 'students', header: 'Students', type: 'text', valueFn: r => String(r.userCounts?.totalStudents ?? 0), align: 'right', maxWidth: '80px' },
+    {
+      key: 'status', header: 'Status', type: 'pill',
+      valueFn: r => this.titleCase(r.status),
+      classFn: r => this.statusPillClass(r.status),
+    },
+    { key: 'actions', header: 'Actions', type: 'actions', align: 'right' },
+  ];
+
+  filterOptions: TableFilterOption[] = [
+    {
+      key: 'status', label: 'Status',
+      options: [
+        { value: 'active', label: 'Active' },
+        { value: 'setup', label: 'Setup' },
+        { value: 'inactive', label: 'Inactive' },
+      ],
+    },
+  ];
+
+  private searchText = '';
+  private columnFilters: Record<string, string> = {};
 
   branches: Branch[] = [];
   dataSource = new MatTableDataSource<Branch>([]);
@@ -339,7 +325,11 @@ export class BranchesComponent implements OnInit {
     private hierarchyService: HierarchyService,
     private notificationService: NotificationService,
     private dialog: MatDialog
-  ) {}
+  ) {
+    this.dataSource.filterPredicate = createCompositePredicate(
+      (row, key) => (key === 'status' ? (row.status || '').toLowerCase() : '')
+    );
+  }
 
   ngOnInit(): void {
     this.loadBranches();
@@ -348,6 +338,20 @@ export class BranchesComponent implements OnInit {
   getManagerAvatar(managerId?: number): string {
     if (!managerId) return '/assets/images/profile/user-1.jpg';
     return `/assets/images/profile/user-${(managerId % 4) + 1}.jpg`;
+  }
+
+  titleCase(value?: string | null): string {
+    if (!value) return '';
+    return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+  }
+
+  statusPillClass(status?: string | null): string {
+    switch ((status || '').toLowerCase()) {
+      case 'active': return 'pill--success';
+      case 'setup': return 'pill--warning';
+      case 'inactive': return 'pill--danger';
+      default: return 'pill--neutral';
+    }
   }
 
   loadBranches(): void {
@@ -378,8 +382,17 @@ export class BranchesComponent implements OnInit {
   }
 
   applyFilter(event: Event): void {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
+    this.searchText = (event.target as HTMLInputElement).value;
+    this.updateFilter();
+  }
+
+  onFilterChange(filters: Record<string, string>): void {
+    this.columnFilters = filters;
+    this.updateFilter();
+  }
+
+  private updateFilter(): void {
+    this.dataSource.filter = encodeCompositeFilter(this.searchText, this.columnFilters);
   }
 
   addBranch(): void {

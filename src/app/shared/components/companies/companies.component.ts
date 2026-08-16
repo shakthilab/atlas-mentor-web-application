@@ -9,6 +9,8 @@ import { MasterDataService } from '../../../core/services/master-data.service';
 import { environment } from '../../../../environments/environment';
 import { CompanyDetailDialogComponent } from './company-detail-dialog/company-detail-dialog.component';
 import { AddCompanyDialogComponent } from './add-company-dialog/add-company-dialog.component';
+import { TableColumn, TableFilterOption } from '../data-table/data-table.models';
+import { createCompositePredicate, encodeCompositeFilter } from '../data-table/table-filter.util';
 
 export interface Company {
   id: number;
@@ -124,103 +126,67 @@ export interface BranchOption {
 
           <ng-container *ngIf="!isLoading">
             <!-- Table View -->
-            <div *ngIf="viewMode === 'table'" class="table-responsive view-container">
-              <table mat-table [dataSource]="dataSource" class="w-100">
-
-                <ng-container matColumnDef="companyName">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Company Name</th>
-                  <td mat-cell *matCellDef="let element">
-                    <div class="d-flex align-items-center">
-                      <div class="company-avatar m-r-12 d-flex align-items-center justify-content-center">
-                        <i-tabler name="building-store" class="icon-20 text-primary"></i-tabler>
-                      </div>
-                      <span class="f-w-600 d-block text-dark f-s-14">{{ element.companyName }}</span>
+            <div *ngIf="viewMode === 'table'" class="view-container">
+              <app-data-table
+                [columns]="tableColumns"
+                [rows]="dataSource.filteredData"
+                trackByKey="id"
+                [clickableRows]="true"
+                [emptyMessage]="selectedBranchId !== null ? 'No companies match the selected branch filter.' : 'Get started by adding your first company.'"
+                [filterOptions]="filterOptions"
+                exportFileName="companies"
+                (rowClick)="viewDetails($event)"
+                (filterChange)="onFilterChange($event)"
+              >
+                <ng-template appCellDef="companyName" let-element="row">
+                  <div class="d-flex align-items-center">
+                    <div class="company-avatar m-r-12 d-flex align-items-center justify-content-center">
+                      <i-tabler name="building-store" class="icon-20 text-primary"></i-tabler>
                     </div>
-                  </td>
-                </ng-container>
+                    <span class="f-w-600 d-block text-dark f-s-14">{{ element.companyName }}</span>
+                  </div>
+                </ng-template>
 
-                <ng-container matColumnDef="industry">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Industry</th>
-                  <td mat-cell *matCellDef="let element">
-                    <span class="d-block f-w-500 text-dark f-s-13">{{ element.industry || '—' }}</span>
-                  </td>
-                </ng-container>
+                <ng-template appCellDef="branch" let-element="row">
+                  <span class="branch-badge f-s-12" *ngIf="element.branchName">{{ element.branchName }}</span>
+                  <span class="text-muted f-s-13" *ngIf="!element.branchName">—</span>
+                </ng-template>
 
-                <ng-container matColumnDef="location">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Location</th>
-                  <td mat-cell *matCellDef="let element">
-                    <span class="d-block f-w-500 text-dark f-s-13 line-clamp-2-mobile">{{ element.location || '—' }}</span>
-                  </td>
-                </ng-container>
+                <ng-template appCellDef="website" let-element="row">
+                  <a *ngIf="element.website" [href]="'https://' + element.website" target="_blank" class="text-primary f-s-13" (click)="$event.stopPropagation()">{{ element.website }}</a>
+                  <span *ngIf="!element.website" class="text-muted f-s-13">—</span>
+                </ng-template>
 
-                <ng-container matColumnDef="website">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Website</th>
-                  <td mat-cell *matCellDef="let element">
-                    <a *ngIf="element.website" [href]="'https://' + element.website" target="_blank" class="text-primary f-s-13" (click)="$event.stopPropagation()">{{ element.website }}</a>
-                    <span *ngIf="!element.website" class="text-muted f-s-13">—</span>
-                  </td>
-                </ng-container>
-
-                <ng-container matColumnDef="branch">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Branch</th>
-                  <td mat-cell *matCellDef="let element">
-                    <span class="branch-badge f-s-12" *ngIf="element.branchName">{{ element.branchName }}</span>
-                    <span class="text-muted f-s-13" *ngIf="!element.branchName">—</span>
-                  </td>
-                </ng-container>
-
-                <ng-container matColumnDef="status">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Status</th>
-                  <td mat-cell *matCellDef="let element">
-                    <span class="status-badge" [ngClass]="element.status.toLowerCase()">
-                      {{ element.status | titlecase }}
-                    </span>
-                  </td>
-                </ng-container>
-
-                <ng-container matColumnDef="actions">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14 text-center">Actions</th>
-                  <td mat-cell *matCellDef="let element" class="text-center">
-                    <button mat-icon-button [matMenuTriggerFor]="menu" class="text-muted" (click)="$event.stopPropagation()">
-                      <i-tabler name="dots" class="icon-18"></i-tabler>
+                <ng-template appRowActions let-element="row">
+                  <button mat-icon-button [matMenuTriggerFor]="menu" class="text-muted">
+                    <i-tabler name="dots" class="icon-18"></i-tabler>
+                  </button>
+                  <mat-menu #menu="matMenu" class="cardWithShadow">
+                    <button mat-menu-item (click)="viewDetails(element)">
+                      <i-tabler name="eye" class="icon-16 m-r-8"></i-tabler>
+                      <span>View details</span>
                     </button>
-                    <mat-menu #menu="matMenu" class="cardWithShadow">
-                      <button mat-menu-item (click)="viewDetails(element)">
-                        <i-tabler name="eye" class="icon-16 m-r-8"></i-tabler>
-                        <span>View details</span>
-                      </button>
-                      <button mat-menu-item (click)="editCompany(element)">
-                        <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
-                        <span>Edit company</span>
-                      </button>
-                      <mat-divider></mat-divider>
-                      <button mat-menu-item *ngIf="(element.status || 'ACTIVE').toUpperCase() === 'ACTIVE'" class="text-danger" (click)="toggleStatus(element); $event.stopPropagation()">
-                        <i-tabler name="ban" class="icon-16 m-r-8 text-danger"></i-tabler>
-                        <span>Deactivate</span>
-                      </button>
-                      <button mat-menu-item *ngIf="(element.status || 'ACTIVE').toUpperCase() !== 'ACTIVE'" (click)="toggleStatus(element); $event.stopPropagation()">
-                        <i-tabler name="check" class="icon-16 m-r-8 text-success"></i-tabler>
-                        <span>Activate</span>
-                      </button>
-                      <mat-divider></mat-divider>
-                      <button mat-menu-item class="text-danger" (click)="deleteCompany(element); $event.stopPropagation()">
-                        <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
-                        <span>Delete</span>
-                      </button>
-                    </mat-menu>
-                  </td>
-                </ng-container>
-
-                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="element-row cursor-pointer" (click)="viewDetails(row)"></tr>
-              </table>
-
-              <!-- Empty state -->
-              <div *ngIf="companies.length === 0" class="empty-state d-flex flex-column align-items-center justify-content-center p-y-48">
-                <i-tabler name="building" class="icon-48 text-muted m-b-12"></i-tabler>
-                <h6 class="mat-subtitle-1 text-muted m-b-4">No companies found</h6>
-                <p class="f-s-13 text-muted">{{ selectedBranchId !== null ? 'No companies match the selected branch filter.' : 'Get started by adding your first company.' }}</p>
-              </div>
+                    <button mat-menu-item (click)="editCompany(element)">
+                      <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
+                      <span>Edit company</span>
+                    </button>
+                    <mat-divider></mat-divider>
+                    <button mat-menu-item *ngIf="(element.status || 'ACTIVE').toUpperCase() === 'ACTIVE'" class="text-danger" (click)="toggleStatus(element)">
+                      <i-tabler name="ban" class="icon-16 m-r-8 text-danger"></i-tabler>
+                      <span>Deactivate</span>
+                    </button>
+                    <button mat-menu-item *ngIf="(element.status || 'ACTIVE').toUpperCase() !== 'ACTIVE'" (click)="toggleStatus(element)">
+                      <i-tabler name="check" class="icon-16 m-r-8 text-success"></i-tabler>
+                      <span>Activate</span>
+                    </button>
+                    <mat-divider></mat-divider>
+                    <button mat-menu-item class="text-danger" (click)="deleteCompany(element)">
+                      <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
+                      <span>Delete</span>
+                    </button>
+                  </mat-menu>
+                </ng-template>
+              </app-data-table>
             </div>
 
             <!-- Card View -->
@@ -363,9 +329,6 @@ export interface BranchOption {
       border-radius: 20px; padding: 3px 10px; font-weight: 600;
     }
 
-    .table-responsive { width: 100%; overflow-x: auto; }
-    table { min-width: 900px; }
-    .element-row { transition: background-color 0.2s ease; cursor: pointer; &:hover { background-color: #f8fafc; } }
     .cursor-pointer { cursor: pointer; }
 
     .company-avatar {
@@ -451,7 +414,34 @@ export interface BranchOption {
 })
 export class CompaniesComponent implements OnInit, AfterViewInit {
   viewMode: 'table' | 'card' = 'table';
-  displayedColumns: string[] = ['companyName', 'industry', 'location', 'website', 'branch', 'status', 'actions'];
+
+  tableColumns: TableColumn<Company>[] = [
+    { key: 'companyName', header: 'Company Name', type: 'custom' },
+    { key: 'industry', header: 'Industry', type: 'text', valueFn: r => r.industry || '—', maxWidth: '140px' },
+    { key: 'location', header: 'Location', type: 'text', valueFn: r => r.location || '—', maxWidth: '160px' },
+    { key: 'website', header: 'Website', type: 'custom', maxWidth: '150px' },
+    { key: 'branch', header: 'Branch', type: 'custom' },
+    {
+      key: 'status', header: 'Status', type: 'pill',
+      valueFn: r => this.titleCase(r.status),
+      classFn: r => this.statusPillClass(r.status),
+    },
+    { key: 'actions', header: 'Actions', type: 'actions', align: 'right' },
+  ];
+
+  filterOptions: TableFilterOption[] = [
+    {
+      key: 'status', label: 'Status',
+      options: [
+        { value: 'active', label: 'Active' },
+        { value: 'pending', label: 'Pending' },
+        { value: 'inactive', label: 'Inactive' },
+      ],
+    },
+  ];
+
+  private searchText = '';
+  private columnFilters: Record<string, string> = {};
 
   companies: Company[] = [];
   dataSource = new MatTableDataSource<Company>([]);
@@ -471,7 +461,11 @@ export class CompaniesComponent implements OnInit, AfterViewInit {
     private authService: AuthService,
     private notificationService: NotificationService,
     private dialog: MatDialog
-  ) {}
+  ) {
+    this.dataSource.filterPredicate = createCompositePredicate(
+      (row, key) => (key === 'status' ? (row.status || '').toLowerCase() : '')
+    );
+  }
 
   ngOnInit(): void {
     this.loadBranches();
@@ -568,8 +562,31 @@ export class CompaniesComponent implements OnInit, AfterViewInit {
   }
 
   applyFilter(event: Event): void {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
+    this.searchText = (event.target as HTMLInputElement).value;
+    this.updateFilter();
+  }
+
+  onFilterChange(filters: Record<string, string>): void {
+    this.columnFilters = filters;
+    this.updateFilter();
+  }
+
+  private updateFilter(): void {
+    this.dataSource.filter = encodeCompositeFilter(this.searchText, this.columnFilters);
+  }
+
+  titleCase(value?: string | null): string {
+    if (!value) return '';
+    return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+  }
+
+  statusPillClass(status?: string | null): string {
+    switch ((status || '').toLowerCase()) {
+      case 'active': return 'pill--success';
+      case 'pending': return 'pill--warning';
+      case 'inactive': return 'pill--danger';
+      default: return 'pill--neutral';
+    }
   }
 
   addCompany(): void {

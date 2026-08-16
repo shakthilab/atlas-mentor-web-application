@@ -24,6 +24,9 @@ import { ResourcesComponent } from './components/resources/resources.component';
 import { HierarchyComponent } from './components/hierarchy/hierarchy.component';
 import { HierarchyAssignDialogComponent } from './components/hierarchy/hierarchy-assign-dialog/hierarchy-assign-dialog.component';
 import { TasksV2Component } from './components/tasks-v2/tasks-v2.component';
+import { DataTableComponent } from './components/data-table/data-table.component';
+import { TableCellDefDirective } from './components/data-table/table-cell-def.directive';
+import { TableRowActionsDirective } from './components/data-table/table-row-actions.directive';
 
 @NgModule({
   declarations: [
@@ -57,6 +60,9 @@ import { TasksV2Component } from './components/tasks-v2/tasks-v2.component';
       echarts: () => import('echarts')
     }),
     TasksV2Component,
+    DataTableComponent,
+    TableCellDefDirective,
+    TableRowActionsDirective,
   ],
   exports: [
     CommonModule,
@@ -85,6 +91,9 @@ import { TasksV2Component } from './components/tasks-v2/tasks-v2.component';
     PartnerDashboardComponent,
     NgxEchartsModule,
     TasksV2Component,
+    DataTableComponent,
+    TableCellDefDirective,
+    TableRowActionsDirective,
   ],
 })
 export class SharedModule {}

@@ -507,7 +507,7 @@ table {
   transition: background-color 0.2s ease;
 
   &:hover {
-    background-color: #f8fafc;
+    background-color: #f8f9fc;
   }
 }
 
@@ -563,7 +563,7 @@ table {
   padding: 6px 12px;
   font-size: 11px;
   font-weight: 700;
-  border-radius: 20px;
+  border-radius: 999px;
   text-transform: capitalize;
 
   &.to-do {
@@ -596,10 +596,10 @@ table {
 .priority-badge {
   display: inline-flex;
   align-items: center;
-  padding: 4px 8px;
+  padding: 4px 12px;
   font-size: 11px;
   font-weight: 700;
-  border-radius: 6px;
+  border-radius: 999px;
 
   &.low {
     background-color: rgba(19, 222, 185, 0.1);
@@ -2693,7 +2693,8 @@ table {
 
 .redesign-table {
   th.mat-header-cell {
-    border-bottom-color: #e2e8f0 !important;
+    background-color: #f7f8fa;
+    border-bottom-color: #eef0f3 !important;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     font-size: 12px !important;
@@ -2701,7 +2702,7 @@ table {
   }
 
   td.mat-cell {
-    border-bottom-color: #f1f5f9 !important;
+    border-bottom-color: #eef0f3 !important;
     padding-top: 16px !important;
     padding-bottom: 16px !important;
   }

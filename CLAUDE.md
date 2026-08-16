@@ -68,6 +68,16 @@ hand-edit — it did, once, already. Whenever a merge touches `package.json`:
 Keep this table current: when a dependency is deliberately removed, add a row
 here in the same commit, so the next merge doesn't quietly undo it again.
 
+## Added dependencies ledger
+
+| Package | Added | Why | Cost |
+|---|---|---|---|
+| `write-excel-file` | 2026-08-16 | Excel export for `<app-data-table>` (all 17 tables). Chosen over `xlsx`/SheetJS: write-only, single small dependency (`fflate`) vs SheetJS's 7 sub-dependencies for read/legacy-format support we don't need. | Lazy-loaded via dynamic `import('write-excel-file/browser')` inside `table-export.service.ts` — zero initial-bundle impact (main.js unchanged at 105.41KB). Cold build 45.5s vs 45.1s baseline (negligible). |
+| `jspdf` + `jspdf-autotable` | 2026-08-16 | PDF export for `<app-data-table>`. No meaningfully lighter library exists for genuine client-side PDF generation (`pdfmake` is heavier due to bundled fonts). | Also lazy-loaded, zero initial-bundle impact. New on-demand chunk (~430KB raw / ~116KB gzip) only downloaded when a user clicks "Export as PDF." **Introduces 16 new non-blocking build warnings** ("not ESM") from jsPDF's optional `html2canvas`/`canvg` HTML-rendering feature, which we never call (`.html()`) but which its dynamic import still pulls into the same chunk along with legacy CommonJS deps (`core-js`, `raf`, `rgbcolor`). Accepted per user sign-off 2026-08-16 — isolated to the export chunk, doesn't affect main bundle/build time/anyone who doesn't export to PDF. |
+
+Both installed as regular `dependencies` (not dev) since they're used at
+runtime by the export feature, just loaded lazily.
+
 ## Rule 4 — Security / production-safety baseline
 
 - Never hardcode credentials, tokens, or API keys. Follow the existing

@@ -5,6 +5,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { NotificationService } from '../../../core/services/notification.service';
 import { StudentService, Payout } from '../../../core/services/student.service';
 import { PaymentDetailsDialogComponent } from './payment-details-dialog/payment-details-dialog.component';
+import { TableColumn, TableFilterOption } from '../data-table/data-table.models';
+import { createCompositePredicate, encodeCompositeFilter } from '../data-table/table-filter.util';
 
 export interface Payment {
   id: number;
@@ -51,111 +53,45 @@ export interface Payment {
         </mat-card-header>
         
         <mat-card-content class="p-0">
-          <div *ngIf="viewMode === 'table'" class="table-responsive view-container">
-            <table mat-table [dataSource]="dataSource" class="w-100">
-              
-              <ng-container matColumnDef="studentName">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Student Name</th>
-                <td mat-cell *matCellDef="let element">
-                  <div class="d-flex align-items-center">
-                    <img [src]="element.studentAvatar" class="rounded-circle m-r-12 object-cover avatar-animated" width="40" height="40" />
-                    <span class="f-w-600 d-block text-dark f-s-14">{{ element.studentName }}</span>
-                  </div>
-                </td>
-              </ng-container>
+          <div *ngIf="viewMode === 'table'" class="view-container">
+            <app-data-table
+              [columns]="tableColumns"
+              [rows]="dataSource.filteredData"
+              trackByKey="id"
+              [clickableRows]="true"
+              [filterOptions]="filterOptions"
+              exportFileName="payments"
+              (rowClick)="viewDetails($event)"
+              (filterChange)="onFilterChange($event)"
+            >
+              <ng-template appCellDef="studentName" let-element="row">
+                <div class="d-flex align-items-center">
+                  <img [src]="element.studentAvatar" class="rounded-circle m-r-12 object-cover avatar-animated" width="40" height="40" />
+                  <span class="f-w-600 d-block text-dark f-s-14">{{ element.studentName }}</span>
+                </div>
+              </ng-template>
 
-              <ng-container matColumnDef="source">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Source</th>
-                <td mat-cell *matCellDef="let element">
-                  <span class="d-block f-w-500 text-dark f-s-13">{{ element.source }}</span>
-                </td>
-              </ng-container>
-
-              <ng-container matColumnDef="assigned">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Assigned By</th>
-                <td mat-cell *matCellDef="let element">
-                  <div class="d-flex align-items-center">
-                    <img [src]="element.assignedAvatar" class="rounded-circle m-r-8 object-cover" width="28" height="28" />
-                    <span class="f-w-500 text-dark f-s-13">{{ element.assigned }}</span>
-                  </div>
-                </td>
-              </ng-container>
-
-              <ng-container matColumnDef="paid">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Paid</th>
-                <td mat-cell *matCellDef="let element">
-                  <span class="d-block f-w-500 text-dark f-s-13">{{ element.paid }}</span>
-                </td>
-              </ng-container>
-
-              <ng-container matColumnDef="balance">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Balance</th>
-                <td mat-cell *matCellDef="let element">
-                  <span class="d-block f-w-500 text-dark f-s-13">{{ element.balance }}</span>
-                </td>
-              </ng-container>
-
-              <ng-container matColumnDef="studentStatus">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Student Status</th>
-                <td mat-cell *matCellDef="let element">
-                  <span class="status-badge" [ngClass]="element.studentStatus">
-                    {{ element.studentStatus | titlecase }}
-                  </span>
-                </td>
-              </ng-container>
-
-              <ng-container matColumnDef="paymentStatus">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Payment Status</th>
-                <td mat-cell *matCellDef="let element">
-                  <span class="status-badge" [ngClass]="element.paymentStatus">
-                    {{ element.paymentStatus | titlecase }}
-                  </span>
-                </td>
-              </ng-container>
-
-              <ng-container matColumnDef="approval">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Approval</th>
-                <td mat-cell *matCellDef="let element">
-                  <span class="status-badge" [ngClass]="element.approval">
-                    {{ element.approval | titlecase }}
-                  </span>
-                </td>
-              </ng-container>
-
-              <ng-container matColumnDef="date">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Date</th>
-                <td mat-cell *matCellDef="let element" class="text-muted f-s-13">
-                  {{ element.date }}
-                </td>
-              </ng-container>
-
-              <ng-container matColumnDef="actions">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14 text-center">Actions</th>
-                <td mat-cell *matCellDef="let element" class="text-center">
-                  <button mat-icon-button [matMenuTriggerFor]="menu" class="text-muted" (click)="$event.stopPropagation()">
-                    <i-tabler name="dots" class="icon-18"></i-tabler>
+              <ng-template appRowActions let-element="row">
+                <button mat-icon-button [matMenuTriggerFor]="menu" class="text-muted">
+                  <i-tabler name="dots" class="icon-18"></i-tabler>
+                </button>
+                <mat-menu #menu="matMenu" class="cardWithShadow">
+                  <button mat-menu-item (click)="viewDetails(element)">
+                    <i-tabler name="eye" class="icon-16 m-r-8"></i-tabler>
+                    <span>View details</span>
                   </button>
-                  <mat-menu #menu="matMenu" class="cardWithShadow">
-                    <button mat-menu-item (click)="viewDetails(element)">
-                      <i-tabler name="eye" class="icon-16 m-r-8"></i-tabler>
-                      <span>View details</span>
-                    </button>
-                    <button mat-menu-item (click)="editPayment(element)">
-                      <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
-                      <span>Edit payment</span>
-                    </button>
-                    <mat-divider></mat-divider>
-                    <button mat-menu-item class="text-danger" (click)="deletePayment(element)">
-                      <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
-                      <span>Delete</span>
-                    </button>
-                  </mat-menu>
-                </td>
-              </ng-container>
-
-              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-              <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="payment-row cursor-pointer" (click)="viewDetails(row)"></tr>
-            </table>
+                  <button mat-menu-item (click)="editPayment(element)">
+                    <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
+                    <span>Edit payment</span>
+                  </button>
+                  <mat-divider></mat-divider>
+                  <button mat-menu-item class="text-danger" (click)="deletePayment(element)">
+                    <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
+                    <span>Delete</span>
+                  </button>
+                </mat-menu>
+              </ng-template>
+            </app-data-table>
           </div>
 
           <!-- Card View -->
@@ -257,10 +193,6 @@ export interface Payment {
       }
     }
 
-    .table-responsive { width: 100%; overflow-x: auto; }
-    table { min-width: 1050px; }
-    .payment-row { transition: background-color 0.2s ease; cursor: pointer; &:hover { background-color: #f8fafc; } }
-
     .view-container { animation: fadeIn 0.4s ease-in-out; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -268,7 +200,6 @@ export interface Payment {
       transition: transform 0.3s ease;
     }
     
-    .payment-row:hover .avatar-animated,
     .payment-card:hover .avatar-animated {
       transform: scale(1.1) rotate(5deg);
       animation: gentle-bounce 1s infinite alternate ease-in-out;
@@ -324,7 +255,6 @@ export interface Payment {
     }
 
     :host-context(.dark-theme) {
-      .payment-row:hover { background-color: var(--dark-hoverbgcolor); }
       .search-box { background-color: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); .search-input { color: #f8fafc; } }
       .view-mode-toggle { background-color: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); .toggle-btn { color: #94a3b8; &.active { background-color: #2D2E32; color: #ffffff; } &:hover:not(.active) { background-color: var(--dark-hoverbgcolor); } } }
       .status-badge {
@@ -337,8 +267,49 @@ export interface Payment {
 })
 export class PaymentsComponent implements OnInit, AfterViewInit {
   viewMode: 'table' | 'card' = 'table';
-  displayedColumns: string[] = ['studentName', 'source', 'assigned', 'paid', 'balance', 'studentStatus', 'paymentStatus', 'approval', 'date', 'actions'];
   dataSource = new MatTableDataSource<Payment>([]);
+
+  tableColumns: TableColumn<Payment>[] = [
+    { key: 'studentName', header: 'Student Name', type: 'custom', exportValueFn: r => r.studentName },
+    { key: 'source', header: 'Source', type: 'text', valueFn: r => r.source, maxWidth: '110px' },
+    {
+      key: 'assigned', header: 'Assigned By', type: 'avatar',
+      avatarFn: r => r.assignedAvatar, valueFn: r => r.assigned,
+    },
+    { key: 'paid', header: 'Paid', type: 'text', valueFn: r => r.paid, align: 'right', maxWidth: '90px' },
+    { key: 'balance', header: 'Balance', type: 'text', valueFn: r => r.balance, align: 'right', maxWidth: '90px' },
+    {
+      key: 'studentStatus', header: 'Student Status', type: 'pill',
+      valueFn: r => this.titleCase(r.studentStatus),
+      classFn: r => this.studentStatusPillClass(r.studentStatus),
+    },
+    {
+      key: 'paymentStatus', header: 'Payment Status', type: 'pill',
+      valueFn: r => this.titleCase(r.paymentStatus),
+      classFn: r => this.paymentStatusPillClass(r.paymentStatus),
+    },
+    {
+      key: 'approval', header: 'Approval', type: 'pill',
+      valueFn: r => this.titleCase(r.approval),
+      classFn: r => this.approvalPillClass(r.approval),
+    },
+    { key: 'date', header: 'Date', type: 'date', valueFn: r => r.date },
+    { key: 'actions', header: 'Actions', type: 'actions', align: 'right' },
+  ];
+
+  filterOptions: TableFilterOption[] = [
+    {
+      key: 'paymentStatus', label: 'Payment Status',
+      options: [
+        { value: 'paid', label: 'Paid' },
+        { value: 'pending', label: 'Pending' },
+        { value: 'overdue', label: 'Overdue' },
+      ],
+    },
+  ];
+
+  private searchText = '';
+  private columnFilters: Record<string, string> = {};
 
   totalElements = 0;
   pageSize = 10;
@@ -351,7 +322,11 @@ export class PaymentsComponent implements OnInit, AfterViewInit {
     private notificationService: NotificationService,
     private studentService: StudentService,
     private dialog: MatDialog
-  ) {}
+  ) {
+    this.dataSource.filterPredicate = createCompositePredicate(
+      (row, key) => (key === 'paymentStatus' ? (row.paymentStatus || '').toLowerCase() : '')
+    );
+  }
 
   ngOnInit(): void {
     this.loadPayments();
@@ -400,6 +375,37 @@ export class PaymentsComponent implements OnInit, AfterViewInit {
     };
   }
 
+  titleCase(value?: string | null): string {
+    if (!value) return '';
+    return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+  }
+
+  studentStatusPillClass(status?: string | null): string {
+    switch ((status || '').toLowerCase()) {
+      case 'active': return 'pill--success';
+      case 'inactive': return 'pill--danger';
+      default: return 'pill--neutral';
+    }
+  }
+
+  paymentStatusPillClass(status?: string | null): string {
+    switch ((status || '').toLowerCase()) {
+      case 'paid': return 'pill--success';
+      case 'pending': return 'pill--warning';
+      case 'overdue': return 'pill--danger';
+      default: return 'pill--neutral';
+    }
+  }
+
+  approvalPillClass(status?: string | null): string {
+    switch ((status || '').toLowerCase()) {
+      case 'approved': return 'pill--success';
+      case 'pending': return 'pill--warning';
+      case 'rejected': return 'pill--danger';
+      default: return 'pill--neutral';
+    }
+  }
+
   mapStatus(status: string): string {
     if (!status) return 'pending';
     switch(status.toUpperCase()) {
@@ -418,8 +424,17 @@ export class PaymentsComponent implements OnInit, AfterViewInit {
   }
 
   applyFilter(event: Event): void {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
+    this.searchText = (event.target as HTMLInputElement).value;
+    this.updateFilter();
+  }
+
+  onFilterChange(filters: Record<string, string>): void {
+    this.columnFilters = filters;
+    this.updateFilter();
+  }
+
+  private updateFilter(): void {
+    this.dataSource.filter = encodeCompositeFilter(this.searchText, this.columnFilters);
   }
 
   addPayment(): void {

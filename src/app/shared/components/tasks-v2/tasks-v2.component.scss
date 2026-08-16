@@ -842,20 +842,21 @@
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  
+
   th {
     text-align: left;
     padding: 16px 24px;
     font-size: 11px;
     font-weight: 700;
     color: #64748b;
-    border-bottom: 1px solid #e2e8f0;
+    background-color: #f7f8fa;
+    border-bottom: 1px solid #eef0f3;
     letter-spacing: 0.5px;
   }
 
   td {
     padding: 16px 24px;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid #eef0f3;
     font-size: 13px;
     vertical-align: middle;
   }
@@ -865,7 +866,7 @@
   }
 
   tr:hover {
-    background: #f8fafc;
+    background: #f8f9fc;
   }
 }
 
@@ -882,8 +883,8 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 10px;
-  border-radius: 12px;
+  padding: 4px 12px;
+  border-radius: 999px;
   background: #f8fafc;
   font-size: 12px;
   font-weight: 600;

@@ -3,6 +3,7 @@ import { EChartsOption } from 'echarts';
 import * as echarts from 'echarts';
 import { DashboardService } from '../../../core/services/dashboard.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { TableColumn, TableFilterOption } from '../../../shared/components/data-table/data-table.models';
 
 @Directive({
   selector: '[appAnimatedNumber]'
@@ -613,6 +614,23 @@ export class AdminDashboardComponent implements OnInit {
   public paymentDistLegends: any[] = [];
 
   public topPayingEntities: any[] = [];
+  public topPayingEntitiesColumns: TableColumn<any>[] = [
+    { key: 'entity', header: 'Entity', type: 'custom', exportValueFn: r => r.entity },
+    { key: 'type', header: 'Type', type: 'custom', exportValueFn: r => r.type },
+    { key: 'amount', header: 'Amount / Status', type: 'custom', exportValueFn: r => `${r.amount} (${r.status})` },
+    { key: 'last', header: 'Last', type: 'custom', align: 'right', exportValueFn: r => r.last },
+  ];
+  get topPayingEntitiesFilterOptions(): TableFilterOption[] {
+    return [
+      { key: 'status', label: 'Status', options: this.uniqueValueOptions(this.topPayingEntities, r => r.status) },
+    ];
+  }
+  public topPayingEntitiesFilters: Record<string, string> = {};
+  get filteredTopPayingEntities(): any[] {
+    return this.filterByColumn(this.topPayingEntities, this.topPayingEntitiesFilters, (r, key) =>
+      key === 'status' ? (r.status || '').toLowerCase() : ''
+    );
+  }
 
   public openDisputes: any[] = [];
 
@@ -644,6 +662,24 @@ export class AdminDashboardComponent implements OnInit {
   };
 
   public overdueTasks: any[] = [];
+  public overdueTasksColumns: TableColumn<any>[] = [
+    { key: 'task', header: 'Task', type: 'custom', exportValueFn: r => r.task },
+    { key: 'assignee', header: 'Assignee', type: 'custom', exportValueFn: r => r.assignee },
+    { key: 'due', header: 'Due', type: 'custom', exportValueFn: r => r.due },
+    { key: 'priority', header: 'Priority', type: 'custom', exportValueFn: r => r.priority },
+    { key: 'late', header: 'Late', type: 'custom', align: 'right', exportValueFn: r => r.late },
+  ];
+  get overdueTasksFilterOptions(): TableFilterOption[] {
+    return [
+      { key: 'priority', label: 'Priority', options: this.uniqueValueOptions(this.overdueTasks, r => r.priority) },
+    ];
+  }
+  public overdueTasksFilters: Record<string, string> = {};
+  get filteredOverdueTasks(): any[] {
+    return this.filterByColumn(this.overdueTasks, this.overdueTasksFilters, (r, key) =>
+      key === 'priority' ? (r.priority || '').toLowerCase() : ''
+    );
+  }
 
   public workload: any[] = [];
 
@@ -655,6 +691,15 @@ export class AdminDashboardComponent implements OnInit {
   public pendingApprovals: any[] = [];
 
   public branchPerformance: any[] = [];
+  public branchPerformanceColumns: TableColumn<any>[] = [
+    { key: 'branch', header: 'Branch', type: 'custom', exportValueFn: r => r.branch },
+    { key: 'students', header: 'Students', type: 'custom', align: 'center', exportValueFn: r => r.students },
+    { key: 'active', header: 'Active', type: 'custom', align: 'center', exportValueFn: r => r.active },
+    { key: 'revenue', header: 'Revenue', type: 'custom', align: 'center', exportValueFn: r => r.revenue },
+    { key: 'tasks', header: 'Tasks', type: 'custom', align: 'center', exportValueFn: r => r.tasks },
+    { key: 'team', header: 'Team', type: 'custom', align: 'center', exportValueFn: r => r.team },
+    { key: 'health', header: 'Health', type: 'custom', maxWidth: '220px', exportValueFn: r => `${r.health}%` },
+  ];
 
   // --- SECTION 06: REFERRALS & PARTNERS ---
   public referralMetrics: any[] = [];
@@ -676,9 +721,63 @@ export class AdminDashboardComponent implements OnInit {
   public referralFunnel: any[] = [];
 
   public topReferrers: any[] = [];
+  public topReferrersColumns: TableColumn<any>[] = [
+    { key: 'rank', header: '#', type: 'custom', exportValueFn: r => r.rank },
+    { key: 'partner', header: 'Partner', type: 'custom', exportValueFn: r => r.partner },
+    { key: 'type', header: 'Type', type: 'custom', exportValueFn: r => r.type },
+    { key: 'students', header: 'Students', type: 'custom', align: 'center', exportValueFn: r => r.students },
+    { key: 'commission', header: 'Commission', type: 'custom', align: 'right', exportValueFn: r => r.commission },
+    { key: 'share', header: 'Share', type: 'custom', maxWidth: '220px', exportValueFn: r => `${r.share}%` },
+  ];
+  get topReferrersFilterOptions(): TableFilterOption[] {
+    return [
+      { key: 'type', label: 'Type', options: this.uniqueValueOptions(this.topReferrers, r => r.type) },
+    ];
+  }
+  public topReferrersFilters: Record<string, string> = {};
+  get filteredTopReferrers(): any[] {
+    return this.filterByColumn(this.topReferrers, this.topReferrersFilters, (r, key) =>
+      key === 'type' ? (r.type || '').toLowerCase() : ''
+    );
+  }
 
   // --- SECTION 07: AUDIT & ACTIVITY ---
   public auditLog: any[] = [];
+  public auditLogColumns: TableColumn<any>[] = [
+    { key: 'time', header: 'Time', type: 'custom', exportValueFn: r => r.time },
+    { key: 'action', header: 'Action', type: 'custom', exportValueFn: r => r.action },
+    { key: 'entity', header: 'Entity', type: 'custom', exportValueFn: r => r.entity },
+    { key: 'actor', header: 'Actor', type: 'custom', exportValueFn: r => r.actor },
+    { key: 'change', header: 'Change', type: 'custom', exportValueFn: r => r.change },
+  ];
+  get auditLogFilterOptions(): TableFilterOption[] {
+    return [
+      { key: 'action', label: 'Action', options: this.uniqueValueOptions(this.auditLog, r => r.action) },
+    ];
+  }
+  public auditLogFilters: Record<string, string> = {};
+  get filteredAuditLog(): any[] {
+    return this.filterByColumn(this.auditLog, this.auditLogFilters, (r, key) =>
+      key === 'action' ? (r.action || '').toLowerCase() : ''
+    );
+  }
 
   public activityFeed: any[] = [];
+
+  private uniqueValueOptions(rows: any[], fieldFn: (row: any) => string): { value: string; label: string }[] {
+    const seen = new Map<string, string>();
+    for (const row of rows) {
+      const raw = fieldFn(row);
+      if (!raw) continue;
+      const value = String(raw).toLowerCase();
+      if (!seen.has(value)) seen.set(value, String(raw));
+    }
+    return Array.from(seen.entries()).map(([value, label]) => ({ value, label }));
+  }
+
+  private filterByColumn<T>(rows: T[], filters: Record<string, string>, fieldFn: (row: T, key: string) => string): T[] {
+    const activeKeys = Object.keys(filters).filter((k) => filters[k]);
+    if (!activeKeys.length) return rows;
+    return rows.filter((row) => activeKeys.every((k) => fieldFn(row, k) === filters[k]));
+  }
 }

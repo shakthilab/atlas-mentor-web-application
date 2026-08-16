@@ -158,27 +158,21 @@
               <a href="#" class="link-all-details">All Details <i-tabler name="chevron-right"
                   class="icon-14"></i-tabler></a>
             </div>
-            <table class="op-table">
-              <thead>
-                <tr>
-                  <th>Entity</th>
-                  <th>Type</th>
-                  <th>Amount / Status</th>
-                  <th class="text-end">Last</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let ent of topPayingEntities">
-                  <td class="fw-bold">{{ ent.entity }}</td>
-                  <td class="text-muted fw-normal">{{ ent.type }}</td>
-                  <td>
-                    <span class="fw-bold me-2">{{ ent.amount }}</span>
-                    <span class="op-badge badge-{{ ent.status | lowercase }}">{{ ent.status }}</span>
-                  </td>
-                  <td class="text-end text-muted fw-normal">{{ ent.last }}</td>
-                </tr>
-              </tbody>
-            </table>
+            <app-data-table
+              [columns]="topPayingEntitiesColumns"
+              [rows]="filteredTopPayingEntities"
+              [filterOptions]="topPayingEntitiesFilterOptions"
+              exportFileName="top-paying-entities"
+              (filterChange)="topPayingEntitiesFilters = $event"
+            >
+              <ng-template appCellDef="entity" let-ent="row"><span class="fw-bold">{{ ent.entity }}</span></ng-template>
+              <ng-template appCellDef="type" let-ent="row"><span class="text-muted fw-normal">{{ ent.type }}</span></ng-template>
+              <ng-template appCellDef="amount" let-ent="row">
+                <span class="fw-bold me-2">{{ ent.amount }}</span>
+                <span class="op-badge badge-{{ ent.status | lowercase }}">{{ ent.status }}</span>
+              </ng-template>
+              <ng-template appCellDef="last" let-ent="row"><span class="text-muted fw-normal">{{ ent.last }}</span></ng-template>
+            </app-data-table>
           </div>
         </div>
         <div class="col-lg-4">
@@ -259,29 +253,21 @@
             <span class="badge bg-danger-subtle text-danger fw-bold py-1 px-2" style="font-size:11px;">{{
               overdueTasks.length }} ITEMS</span>
           </div>
-          <table class="op-table">
-            <thead>
-              <tr>
-                <th>Task</th>
-                <th>Assignee</th>
-                <th>Due</th>
-                <th>Priority</th>
-                <th class="text-end">Late</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let t of overdueTasks">
-                <td class="fw-bold">{{ t.task }}</td>
-                <td class="text-muted fw-normal">{{ t.assignee }}</td>
-                <td class="text-muted fw-normal">{{ t.due }}</td>
-                <td>
-                  <span class="priority-badge" [style.color]="t.priColor" [style.background-color]="t.priBg">{{
-                    t.priority }}</span>
-                </td>
-                <td class="text-end text-danger fw-bold">{{ t.late }}</td>
-              </tr>
-            </tbody>
-          </table>
+          <app-data-table
+            [columns]="overdueTasksColumns"
+            [rows]="filteredOverdueTasks"
+            [filterOptions]="overdueTasksFilterOptions"
+            exportFileName="overdue-tasks"
+            (filterChange)="overdueTasksFilters = $event"
+          >
+            <ng-template appCellDef="task" let-t="row"><span class="fw-bold">{{ t.task }}</span></ng-template>
+            <ng-template appCellDef="assignee" let-t="row"><span class="text-muted fw-normal">{{ t.assignee }}</span></ng-template>
+            <ng-template appCellDef="due" let-t="row"><span class="text-muted fw-normal">{{ t.due }}</span></ng-template>
+            <ng-template appCellDef="priority" let-t="row">
+              <span class="priority-badge" [style.color]="t.priColor" [style.background-color]="t.priBg">{{ t.priority }}</span>
+            </ng-template>
+            <ng-template appCellDef="late" let-t="row"><span class="text-danger fw-bold">{{ t.late }}</span></ng-template>
+          </app-data-table>
         </div>
       </div>
       <div class="col-lg-5" *ngIf="!isCounsellor">
@@ -370,38 +356,23 @@
             <div class="card-label text-primary">NETWORK</div>
             <div class="fs-5 fw-bold text-dark" style="font-weight: 900 !important;">Branch performance</div>
             <div class="text-muted fs-2 mb-4">Composite health, ranked by revenue</div>
-            <table class="op-table">
-              <thead>
-                <tr>
-                  <th>Branch</th>
-                  <th class="text-center">Students</th>
-                  <th class="text-center">Active</th>
-                  <th class="text-center">Revenue</th>
-                  <th class="text-center">Tasks</th>
-                  <th class="text-center">Team</th>
-                  <th style="width:220px;">Health</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let b of branchPerformance">
-                  <td class="fw-bold">{{ b.branch }}</td>
-                  <td class="text-center text-muted fw-normal">{{ b.students }}</td>
-                  <td class="text-center text-muted fw-normal">{{ b.active }}</td>
-                  <td class="text-center fw-bold">{{ b.revenue }}</td>
-                  <td class="text-center text-muted fw-normal">{{ b.tasks }}</td>
-                  <td class="text-center text-muted fw-normal">{{ b.team }}</td>
-                  <td>
-                    <div class="d-flex align-items-center gap-3">
-                      <div class="progress flex-grow-1" style="height:6px;background:#e9ecef;border-radius:3px;">
-                        <div class="progress-bar" [style.width.%]="b.health" [style.background-color]="b.hColor"
-                          style="border-radius:3px;transition:width 1.2s ease;"></div>
-                      </div>
-                      <span class="fw-bold fs-3">{{ b.health }}</span>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            <app-data-table [columns]="branchPerformanceColumns" [rows]="branchPerformance" exportFileName="branch-performance">
+              <ng-template appCellDef="branch" let-b="row"><span class="fw-bold">{{ b.branch }}</span></ng-template>
+              <ng-template appCellDef="students" let-b="row"><span class="text-muted fw-normal">{{ b.students }}</span></ng-template>
+              <ng-template appCellDef="active" let-b="row"><span class="text-muted fw-normal">{{ b.active }}</span></ng-template>
+              <ng-template appCellDef="revenue" let-b="row"><span class="fw-bold">{{ b.revenue }}</span></ng-template>
+              <ng-template appCellDef="tasks" let-b="row"><span class="text-muted fw-normal">{{ b.tasks }}</span></ng-template>
+              <ng-template appCellDef="team" let-b="row"><span class="text-muted fw-normal">{{ b.team }}</span></ng-template>
+              <ng-template appCellDef="health" let-b="row">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="progress flex-grow-1" style="height:6px;background:#e9ecef;border-radius:3px;">
+                    <div class="progress-bar" [style.width.%]="b.health" [style.background-color]="b.hColor"
+                      style="border-radius:3px;transition:width 1.2s ease;"></div>
+                  </div>
+                  <span class="fw-bold fs-3">{{ b.health }}</span>
+                </div>
+              </ng-template>
+            </app-data-table>
           </div>
         </div>
       </div>
@@ -454,36 +425,27 @@
           <div class="op-card p-4 animate-card" style="animation-delay:80ms">
             <div class="card-label text-primary">PARTNERS</div>
             <div class="fs-5 fw-bold text-dark mb-4" style="font-weight: 900 !important;">Top referrers</div>
-            <table class="op-table">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Partner</th>
-                  <th>Type</th>
-                  <th class="text-center">Students</th>
-                  <th class="text-end">Commission</th>
-                  <th style="width:220px;">Share</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let ref of topReferrers">
-                  <td class="text-muted fw-normal">{{ ref.rank }}</td>
-                  <td class="fw-bold">{{ ref.partner }}</td>
-                  <td>
-                    <span class="type-badge" [style.background]="ref.typeBg" [style.color]="ref.typeColor">{{ ref.type
-                      }}</span>
-                  </td>
-                  <td class="text-center text-muted fw-normal">{{ ref.students }}</td>
-                  <td class="text-end fw-bold">{{ ref.commission }}</td>
-                  <td>
-                    <div class="progress" style="height:6px;background:#e9ecef;border-radius:3px;">
-                      <div class="progress-bar" [style.width.%]="ref.share"
-                        style="background-color:#0d6efd;border-radius:3px;transition:width 1.2s ease;"></div>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            <app-data-table
+              [columns]="topReferrersColumns"
+              [rows]="filteredTopReferrers"
+              [filterOptions]="topReferrersFilterOptions"
+              exportFileName="top-referrers"
+              (filterChange)="topReferrersFilters = $event"
+            >
+              <ng-template appCellDef="rank" let-ref="row"><span class="text-muted fw-normal">{{ ref.rank }}</span></ng-template>
+              <ng-template appCellDef="partner" let-ref="row"><span class="fw-bold">{{ ref.partner }}</span></ng-template>
+              <ng-template appCellDef="type" let-ref="row">
+                <span class="type-badge" [style.background]="ref.typeBg" [style.color]="ref.typeColor">{{ ref.type }}</span>
+              </ng-template>
+              <ng-template appCellDef="students" let-ref="row"><span class="text-muted fw-normal">{{ ref.students }}</span></ng-template>
+              <ng-template appCellDef="commission" let-ref="row"><span class="fw-bold">{{ ref.commission }}</span></ng-template>
+              <ng-template appCellDef="share" let-ref="row">
+                <div class="progress" style="height:6px;background:#e9ecef;border-radius:3px;">
+                  <div class="progress-bar" [style.width.%]="ref.share"
+                    style="background-color:#0d6efd;border-radius:3px;transition:width 1.2s ease;"></div>
+                </div>
+              </ng-template>
+            </app-data-table>
           </div>
         </div>
       </div>
@@ -501,26 +463,19 @@
                 <div class="fs-5 fw-bold text-dark" style="font-weight: 900 !important;">Recent financial audit log</div>
               </div>
             </div>
-            <table class="op-table">
-              <thead>
-                <tr>
-                  <th>Time</th>
-                  <th>Action</th>
-                  <th>Entity</th>
-                  <th>Actor</th>
-                  <th>Change</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let log of auditLog">
-                  <td class="text-muted fw-bold" style="font-variant-numeric:tabular-nums;">{{ log.time }}</td>
-                  <td><span class="audit-badge badge-{{ log.actionClass }}">{{ log.action }}</span></td>
-                  <td class="text-muted fw-normal" style="font-family:monospace;font-size:12px;">{{ log.entity }}</td>
-                  <td class="fw-bold">{{ log.actor }}</td>
-                  <td [class]="log.changeClass" style="font-size:12px;">{{ log.change }}</td>
-                </tr>
-              </tbody>
-            </table>
+            <app-data-table
+              [columns]="auditLogColumns"
+              [rows]="filteredAuditLog"
+              [filterOptions]="auditLogFilterOptions"
+              exportFileName="audit-log"
+              (filterChange)="auditLogFilters = $event"
+            >
+              <ng-template appCellDef="time" let-log="row"><span class="text-muted fw-bold" style="font-variant-numeric:tabular-nums;">{{ log.time }}</span></ng-template>
+              <ng-template appCellDef="action" let-log="row"><span class="audit-badge badge-{{ log.actionClass }}">{{ log.action }}</span></ng-template>
+              <ng-template appCellDef="entity" let-log="row"><span class="text-muted fw-normal" style="font-family:monospace;font-size:12px;">{{ log.entity }}</span></ng-template>
+              <ng-template appCellDef="actor" let-log="row"><span class="fw-bold">{{ log.actor }}</span></ng-template>
+              <ng-template appCellDef="change" let-log="row"><span [class]="log.changeClass" style="font-size:12px;">{{ log.change }}</span></ng-template>
+            </app-data-table>
           </div>
         </div>
         <div class="col-lg-4">

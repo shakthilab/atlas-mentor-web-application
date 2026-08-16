@@ -9,6 +9,8 @@ import { LeadDetailsDialogComponent } from './lead-details-dialog/lead-details-d
 import { ReasonDialogComponent } from './reason-dialog/reason-dialog.component';
 import { AddLeadDialogComponent } from './add-lead-dialog/add-lead-dialog.component';
 import { ImportLeadsDialogComponent } from './import-leads-dialog/import-leads-dialog.component';
+import { TableColumn, TableFilterOption } from '../data-table/data-table.models';
+import { createCompositePredicate, encodeCompositeFilter } from '../data-table/table-filter.util';
 
 export interface Lead {
   id?: number;
@@ -92,36 +94,34 @@ export interface Lead {
             <span class="f-s-14 text-muted">Get started by adding a new lead.</span>
           </div>
 
-          <div *ngIf="!isLoading && !hasError && dataSource.data.length > 0 && viewMode === 'table'" class="table-responsive view-container">
-            <table mat-table [dataSource]="dataSource" class="w-100">
-              
-              <!-- Lead Column -->
-              <ng-container matColumnDef="lead">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Lead</th>
-                <td mat-cell *matCellDef="let element" (click)="viewDetails(element)" class="cursor-pointer">
-                  <div class="d-flex align-items-center">
-                    <img [src]="element.avatar" class="rounded-circle m-r-12 object-cover avatar-animated" width="40" height="40" />
-                    <div>
-                      <span class="f-w-600 d-block text-dark f-s-14">{{ element.name }}</span>
-                      <span class="text-muted f-s-12 d-block">{{ element.role }}</span>
-                    </div>
+          <div *ngIf="!isLoading && !hasError && dataSource.data.length > 0 && viewMode === 'table'" class="view-container">
+            <app-data-table
+              [columns]="tableColumns"
+              [rows]="dataSource.filteredData"
+              trackByKey="id"
+              [clickableRows]="true"
+              [filterOptions]="filterOptions"
+              exportFileName="leads"
+              (rowClick)="viewDetails($event)"
+              (filterChange)="onColumnFilterChange($event)"
+            >
+              <ng-template appCellDef="lead" let-element="row">
+                <div class="d-flex align-items-center">
+                  <img [src]="element.avatar" class="rounded-circle m-r-12 object-cover avatar-animated" width="40" height="40" />
+                  <div>
+                    <span class="f-w-600 d-block text-dark f-s-14">{{ element.name }}</span>
+                    <span class="text-muted f-s-12 d-block">{{ element.role }}</span>
                   </div>
-                </td>
-              </ng-container>
+                </div>
+              </ng-template>
 
-              <!-- Contact Info Column -->
-              <ng-container matColumnDef="contactInfo">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Contact Info</th>
-                <td mat-cell *matCellDef="let element">
-                  <span class="d-flex align-items-center f-w-500 text-dark f-s-13 m-b-4"><i-tabler name="mail" class="icon-14 m-r-4 text-muted"></i-tabler>{{ element.email || 'N/A' }}</span>
-                  <span class="d-flex align-items-center text-muted f-s-12"><i-tabler name="phone" class="icon-14 m-r-4"></i-tabler>{{ element.phone || 'N/A' }}</span>
-                </td>
-              </ng-container>
+              <ng-template appCellDef="contactInfo" let-element="row">
+                <span class="d-flex align-items-center f-w-500 text-dark f-s-13 m-b-4"><i-tabler name="mail" class="icon-14 m-r-4 text-muted"></i-tabler>{{ element.email || 'N/A' }}</span>
+                <span class="d-flex align-items-center text-muted f-s-12"><i-tabler name="phone" class="icon-14 m-r-4"></i-tabler>{{ element.phone || 'N/A' }}</span>
+              </ng-template>
 
-              <!-- Status Column -->
-              <ng-container matColumnDef="status">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Status</th>
-                <td mat-cell *matCellDef="let element" (click)="$event.stopPropagation()">
+              <ng-template appCellDef="status" let-element="row">
+                <span (click)="$event.stopPropagation()">
                   <span class="status-badge cursor-pointer d-inline-flex align-items-center" [ngClass]="getStatusClass(element.status)" [matMenuTriggerFor]="element.isUpdatingStatus ? null : statusMenu">
                     {{ getStatusDisplayName(element.status) }}
                     <i-tabler *ngIf="!element.isUpdatingStatus" name="chevron-down" class="icon-14 m-l-4"></i-tabler>
@@ -135,82 +135,42 @@ export interface Lead {
                       </div>
                     </button>
                   </mat-menu>
-                </td>
-              </ng-container>
+                </span>
+              </ng-template>
 
-              <!-- Source Column -->
-              <ng-container matColumnDef="source">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Source</th>
-                <td mat-cell *matCellDef="let element">
-                  <span class="f-w-600 text-dark f-s-13">{{ element.source || '—' }}</span>
-                </td>
-              </ng-container>
+              <ng-template appCellDef="assignedTo" let-element="row">
+                <div class="d-flex align-items-center">
+                  <img [src]="element.assignedAvatar" class="rounded-circle m-r-8 object-cover" width="28" height="28" />
+                  <span class="f-w-500 text-dark f-s-13">{{ element.assignedTo }}</span>
+                </div>
+              </ng-template>
 
-              <!-- Assigned To Column -->
-              <ng-container matColumnDef="assignedTo">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Assigned To</th>
-                <td mat-cell *matCellDef="let element">
-                  <div class="d-flex align-items-center">
-                    <img [src]="element.assignedAvatar" class="rounded-circle m-r-8 object-cover" width="28" height="28" />
-                    <span class="f-w-500 text-dark f-s-13">{{ element.assignedTo }}</span>
-                  </div>
-                </td>
-              </ng-container>
+              <ng-template appCellDef="countryUniversity" let-element="row">
+                <span class="d-flex align-items-center f-w-500 text-dark f-s-13 m-b-4"><i-tabler name="map-pin" class="icon-14 m-r-4 text-muted"></i-tabler>{{ element.country || 'N/A' }}</span>
+                <span class="d-flex align-items-center text-muted f-s-12"><i-tabler name="building" class="icon-14 m-r-4"></i-tabler>{{ element.university || 'N/A' }}</span>
+              </ng-template>
 
-              <!-- Added By Column -->
-              <ng-container matColumnDef="addedBy">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Added By</th>
-                <td mat-cell *matCellDef="let element">
-                  <span class="f-w-500 text-dark d-block f-s-13">{{ element.addedBy }}</span>
-                  <span class="text-muted f-s-11 d-block">{{ element.addedByRole }}</span>
-                </td>
-              </ng-container>
-
-              <!-- Country/University Column -->
-              <ng-container matColumnDef="countryUniversity">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Country / University</th>
-                <td mat-cell *matCellDef="let element">
-                  <span class="d-flex align-items-center f-w-500 text-dark f-s-13 m-b-4"><i-tabler name="map-pin" class="icon-14 m-r-4 text-muted"></i-tabler>{{ element.country || 'N/A' }}</span>
-                  <span class="d-flex align-items-center text-muted f-s-12"><i-tabler name="building" class="icon-14 m-r-4"></i-tabler>{{ element.university || 'N/A' }}</span>
-                </td>
-              </ng-container>
-
-              <!-- Lead Date Column -->
-              <ng-container matColumnDef="leadDate">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Lead Date</th>
-                <td mat-cell *matCellDef="let element" class="text-muted f-s-13">
-                  {{ element.leadDate }}
-                </td>
-              </ng-container>
-
-              <!-- Actions Column -->
-              <ng-container matColumnDef="actions">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14 text-center">Actions</th>
-                <td mat-cell *matCellDef="let element" class="text-center">
-                  <button mat-icon-button [matMenuTriggerFor]="menu" class="text-muted" (click)="$event.stopPropagation()">
-                    <i-tabler name="dots" class="icon-18"></i-tabler>
+              <ng-template appRowActions let-element="row">
+                <button mat-icon-button [matMenuTriggerFor]="menu" class="text-muted">
+                  <i-tabler name="dots" class="icon-18"></i-tabler>
+                </button>
+                <mat-menu #menu="matMenu" class="cardWithShadow">
+                  <button mat-menu-item (click)="viewDetails(element)">
+                    <i-tabler name="eye" class="icon-16 m-r-8"></i-tabler>
+                    <span>View details</span>
                   </button>
-                  <mat-menu #menu="matMenu" class="cardWithShadow">
-                    <button mat-menu-item (click)="viewDetails(element)">
-                      <i-tabler name="eye" class="icon-16 m-r-8"></i-tabler>
-                      <span>View details</span>
-                    </button>
-                    <button mat-menu-item (click)="editLead(element)">
-                      <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
-                      <span>Edit lead</span>
-                    </button>
-                    <mat-divider></mat-divider>
-                    <button mat-menu-item class="text-danger" (click)="deleteLead(element)">
-                      <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
-                      <span>Delete</span>
-                    </button>
-                  </mat-menu>
-                </td>
-              </ng-container>
-
-              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-              <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="lead-row" (click)="viewDetails(row)"></tr>
-            </table>
+                  <button mat-menu-item (click)="editLead(element)">
+                    <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
+                    <span>Edit lead</span>
+                  </button>
+                  <mat-divider></mat-divider>
+                  <button mat-menu-item class="text-danger" (click)="deleteLead(element)">
+                    <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
+                    <span>Delete</span>
+                  </button>
+                </mat-menu>
+              </ng-template>
+            </app-data-table>
           </div>
 
           <!-- Card View -->
@@ -341,7 +301,6 @@ export interface Lead {
       transition: transform 0.3s ease;
     }
     
-    .lead-row:hover .avatar-animated,
     .lead-card:hover .avatar-animated {
       transform: scale(1.1) rotate(5deg);
       animation: gentle-bounce 1s infinite alternate ease-in-out;
@@ -402,23 +361,6 @@ export interface Lead {
       }
     }
     
-    .table-responsive {
-      width: 100%;
-      overflow-x: auto;
-    }
-    
-    table {
-      min-width: 900px;
-    }
-
-    .lead-row {
-      transition: background-color 0.2s ease;
-      cursor: pointer;
-      &:hover {
-        background-color: #f8fafc;
-      }
-    }
-
     .status-badge {
       display: inline-flex;
       align-items: center;
@@ -571,9 +513,6 @@ export interface Lead {
     }
 
     :host-context(.dark-theme) {
-      .lead-row:hover {
-        background-color: var(--dark-hoverbgcolor);
-      }
       .search-box {
         background-color: var(--dark-sidebarbg);
         border-color: var(--dark-formborderColor);
@@ -655,17 +594,20 @@ export class LeadsComponent implements OnInit, AfterViewInit {
 
   availableStatuses: { id: number; enum: string; displayName: string }[] = [];
 
-  displayedColumns: string[] = [
-    'lead',
-    'contactInfo',
-    'status',
-    'source',
-    'assignedTo',
-    'addedBy',
-    'countryUniversity',
-    'leadDate',
-    'actions'
+  tableColumns: TableColumn<Lead>[] = [
+    { key: 'lead', header: 'Lead', type: 'custom', exportValueFn: r => `${r.name} (${r.role})` },
+    { key: 'contactInfo', header: 'Contact Info', type: 'custom', maxWidth: '170px', exportValueFn: r => `${r.email || 'N/A'} / ${r.phone || 'N/A'}` },
+    { key: 'status', header: 'Status', type: 'custom', exportValueFn: r => this.getStatusDisplayName(r.status) },
+    { key: 'source', header: 'Source', type: 'text', valueFn: r => r.source || '—', maxWidth: '110px' },
+    { key: 'assignedTo', header: 'Assigned To', type: 'custom', exportValueFn: r => r.assignedTo },
+    { key: 'addedBy', header: 'Added By', type: 'two-line', valueFn: r => r.addedBy, subFn: r => r.addedByRole, maxWidth: '150px' },
+    { key: 'countryUniversity', header: 'Country / University', type: 'custom', maxWidth: '170px', exportValueFn: r => `${r.country || 'N/A'} / ${r.university || 'N/A'}` },
+    { key: 'leadDate', header: 'Lead Date', type: 'date', valueFn: r => r.leadDate },
+    { key: 'actions', header: 'Actions', type: 'actions', align: 'right' },
   ];
+
+  private columnFilters: Record<string, string> = {};
+  private searchText = '';
 
   dataSource = new MatTableDataSource<Lead>([]);
 
@@ -676,7 +618,29 @@ export class LeadsComponent implements OnInit, AfterViewInit {
     private leadService: LeadService,
     private dialog: MatDialog,
     private route: ActivatedRoute
-  ) {}
+  ) {
+    this.dataSource.filterPredicate = createCompositePredicate(
+      (row, key) => (key === 'status' ? (row.status || '').toLowerCase() : '')
+    );
+  }
+
+  get filterOptions(): TableFilterOption[] {
+    return [
+      {
+        key: 'status', label: 'Status',
+        options: this.availableStatuses.map(s => ({ value: s.enum.toLowerCase(), label: s.displayName })),
+      },
+    ];
+  }
+
+  onColumnFilterChange(filters: Record<string, string>): void {
+    this.columnFilters = filters;
+    this.updateFilter();
+  }
+
+  private updateFilter(): void {
+    this.dataSource.filter = encodeCompositeFilter(this.searchText, this.columnFilters);
+  }
 
   ngOnInit(): void {
     this.loadStudentStatuses();
@@ -789,8 +753,8 @@ export class LeadsComponent implements OnInit, AfterViewInit {
   }
 
   applyFilter(event: Event): void {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
+    this.searchText = (event.target as HTMLInputElement).value;
+    this.updateFilter();
   }
 
   openImportDialog(): void {

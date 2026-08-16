@@ -1,0 +1,160 @@
+<ng-template #cellContent let-col="col" let-row="row">
+  <ng-container [ngSwitch]="col.type">
+    <span
+      *ngSwitchCase="'text'"
+      class="cell-text"
+      [style.max-width]="col.maxWidth"
+      [title]="col.valueFn ? col.valueFn(row) : row[col.key]"
+    >{{ col.valueFn ? col.valueFn(row) : row[col.key] }}</span>
+
+    <div *ngSwitchCase="'two-line'" class="cell-two-line" [style.max-width]="col.maxWidth">
+      <span class="cell-two-line__primary">{{ col.valueFn?.(row) }}</span>
+      <span class="cell-two-line__secondary" *ngIf="col.subFn">{{ col.subFn(row) }}</span>
+    </div>
+
+    <div *ngSwitchCase="'avatar'" class="cell-avatar" [style.max-width]="col.maxWidth">
+      <img [src]="col.avatarFn?.(row)" class="cell-avatar__img" width="36" height="36" alt="" />
+      <div class="cell-avatar__text">
+        <span class="cell-avatar__primary">{{ col.valueFn?.(row) }}</span>
+        <span class="cell-avatar__secondary" *ngIf="col.subFn">{{ col.subFn(row) }}</span>
+      </div>
+    </div>
+
+    <span *ngSwitchCase="'pill'" class="pill" [ngClass]="col.classFn?.(row)">
+      {{ col.valueFn?.(row) }}
+    </span>
+
+    <span class="cell-star" *ngSwitchCase="'star'" [class.cell-star--on]="col.boolFn?.(row)">
+      <svg *ngIf="col.boolFn?.(row)" viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+        <path d="M12 2.5l2.9 6.4 6.9.7-5.2 4.7 1.5 6.8L12 17.8l-6.1 3.3 1.5-6.8-5.2-4.7 6.9-.7z"/>
+      </svg>
+      <svg *ngIf="!col.boolFn?.(row)" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6">
+        <path d="M12 2.5l2.9 6.4 6.9.7-5.2 4.7 1.5 6.8L12 17.8l-6.1 3.3 1.5-6.8-5.2-4.7 6.9-.7z"/>
+      </svg>
+    </span>
+
+    <div *ngSwitchCase="'chips'" class="cell-chips">
+      <span class="chip" *ngFor="let chip of (col.chipsFn?.(row) || []).slice(0, col.maxChips || 2)">{{ chip }}</span>
+      <span class="chip chip--more" *ngIf="(col.chipsFn?.(row) || []).length > (col.maxChips || 2)">
+        +{{ (col.chipsFn?.(row) || []).length - (col.maxChips || 2) }}
+      </span>
+    </div>
+
+    <span
+      *ngSwitchCase="'date'"
+      class="cell-date"
+      [class.cell-date--muted]="isEmptyValue(col.valueFn?.(row))"
+    >{{ col.valueFn?.(row) }}</span>
+
+    <ng-container *ngSwitchCase="'custom'">
+      <ng-container *ngTemplateOutlet="cellTemplate(col.key) || null; context: { $implicit: row, row: row }"></ng-container>
+    </ng-container>
+
+    <span *ngSwitchCase="'actions'" class="cell-actions" (click)="$event.stopPropagation()">
+      <ng-container *ngTemplateOutlet="actionsDef?.templateRef || null; context: { $implicit: row, row: row }"></ng-container>
+    </span>
+  </ng-container>
+</ng-template>
+
+<div class="app-data-table">
+  <div class="app-data-table__toolbar" *ngIf="hasToolbar">
+    <div class="toolbar-filters" *ngIf="filterOptions?.length">
+      <button type="button" class="toolbar-btn" (click)="toggleFilters(); $event.stopPropagation()">
+        Filters
+        <span class="filter-count" *ngIf="activeFilterCount">{{ activeFilterCount }}</span>
+      </button>
+      <div class="filters-panel" *ngIf="filtersOpen" (click)="$event.stopPropagation()">
+        <div class="filter-field" *ngFor="let opt of filterOptions">
+          <label>{{ opt.label }}</label>
+          <select [value]="activeFilters[opt.key] || ''" (change)="onFilterValueChange(opt.key, $any($event.target).value)">
+            <option value="">All</option>
+            <option *ngFor="let o of opt.options" [value]="o.value">{{ o.label }}</option>
+          </select>
+        </div>
+        <button type="button" class="clear-filters-btn" *ngIf="activeFilterCount" (click)="clearFilters()">Clear filters</button>
+      </div>
+    </div>
+
+    <button
+      *ngIf="exportFileName"
+      type="button"
+      mat-stroked-button
+      class="toolbar-btn export-btn"
+      [matMenuTriggerFor]="exportMenu"
+    >Export</button>
+    <mat-menu #exportMenu="matMenu">
+      <button mat-menu-item (click)="exportExcel()">Export as Excel</button>
+      <button mat-menu-item (click)="exportPdf()">Export as PDF</button>
+    </mat-menu>
+  </div>
+
+  <div class="app-data-table__scroll" *ngIf="!loading && !hasError && rows.length > 0">
+    <table class="app-data-table__table">
+      <thead>
+        <tr>
+          <th
+            *ngFor="let col of columns"
+            [class]="col.headerClass"
+            [style.text-align]="col.align || 'left'"
+            [style.max-width]="col.maxWidth"
+          >{{ col.header }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let row of rows; trackBy: trackByFn"
+          [class.clickable]="clickableRows"
+          (click)="onRowClick(row)"
+        >
+          <td *ngFor="let col of columns" [style.text-align]="col.align || 'left'">
+            <ng-container *ngTemplateOutlet="cellContent; context: { col: col, row: row }"></ng-container>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="app-data-table__mobile" *ngIf="!loading && !hasError && rows.length > 0">
+    <div
+      class="mobile-card"
+      *ngFor="let row of rows; trackBy: trackByFn"
+      [class.clickable]="clickableRows"
+      (click)="onRowClick(row)"
+    >
+      <div class="mobile-card__header">
+        <ng-container *ngIf="primaryColumn" [ngTemplateOutlet]="cellContent" [ngTemplateOutletContext]="{ col: primaryColumn, row: row }"></ng-container>
+        <span class="mobile-card__actions" *ngIf="hasActionsColumn" (click)="$event.stopPropagation()">
+          <ng-container *ngTemplateOutlet="actionsDef?.templateRef || null; context: { $implicit: row, row: row }"></ng-container>
+        </span>
+      </div>
+      <div class="mobile-card__field" *ngFor="let col of mobileDetailColumns">
+        <span class="mobile-card__label">{{ col.header }}</span>
+        <ng-container *ngTemplateOutlet="cellContent; context: { col: col, row: row }"></ng-container>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-data-table__state" *ngIf="loading">
+    <svg class="spin" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M21 12a9 9 0 1 1-9-9" stroke-linecap="round" />
+    </svg>
+    <span>Loading…</span>
+  </div>
+
+  <div class="app-data-table__state app-data-table__state--error" *ngIf="!loading && hasError">
+    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="8" x2="12" y2="13" />
+      <line x1="12" y1="16" x2="12.01" y2="16" />
+    </svg>
+    <span>{{ errorMessage }}</span>
+  </div>
+
+  <div class="app-data-table__state" *ngIf="!loading && !hasError && rows.length === 0">
+    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6">
+      <path d="M21 8H3l1.6 8.8A2 2 0 0 0 6.56 18.6h10.88a2 2 0 0 0 1.96-1.8L21 8z" />
+      <path d="M3 8l2.2-4.4A1 1 0 0 1 6.1 3h11.8a1 1 0 0 1 .9.6L21 8" />
+    </svg>
+    <span>{{ emptyMessage }}</span>
+  </div>
+</div>
