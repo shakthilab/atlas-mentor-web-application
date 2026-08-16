@@ -1,3 +1,13 @@
+// Angular wraps <mat-toolbar class="topbar"> in an <app-header> host element.
+// That host has no height of its own beyond its child, so it left no room for
+// the child's `position: sticky` to stick within once scrolled past - the
+// header just scrolled away with the page. `display: contents` removes the
+// host from the box tree so the toolbar's containing block becomes the
+// actual scroll container (mat-sidenav-content), restoring sticky behavior.
+app-header {
+  display: contents;
+}
+
 html .topbar {
   background-color: $toolbar;
   position: sticky;

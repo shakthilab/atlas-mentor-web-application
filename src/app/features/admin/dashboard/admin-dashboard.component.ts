@@ -546,6 +546,7 @@ export class AdminDashboardComponent implements OnInit {
       type: 'bar',
       barWidth: '55%',
       colorBy: 'data',
+      itemStyle: { borderRadius: [8, 8, 0, 0] },
       label: { show: false, position: 'top', fontWeight: 'bold', color: '#3d4454', fontSize: 13 }
     }]
   };
@@ -554,8 +555,9 @@ export class AdminDashboardComponent implements OnInit {
     tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
     series: [{
       type: 'pie',
-      radius: ['52%', '78%'],
+      radius: ['50%', '75%'],
       avoidLabelOverlap: false,
+      itemStyle: { borderRadius: 8, borderColor: '#ffffff', borderWidth: 3 },
       label: { show: false },
       emphasis: { scale: true, scaleSize: 6 },
       data: []
@@ -593,9 +595,9 @@ export class AdminDashboardComponent implements OnInit {
     yAxis: { type: 'value', axisLabel: { color: '#6c757d' } },
     series: [
       { name: 'Paid', type: 'bar', stack: 'Total', data: [], itemStyle: { color: '#20c997', borderRadius: [0, 0, 0, 0] }, barWidth: '45%' },
-      { name: 'Pending', type: 'bar', stack: 'Total', data: [], itemStyle: { color: '#ffc107' }, barWidth: '45%' },
-      { name: 'Partial', type: 'bar', stack: 'Total', data: [], itemStyle: { color: '#0d6efd' }, barWidth: '45%' },
-      { name: 'Dispute', type: 'bar', stack: 'Total', data: [], itemStyle: { color: '#dc3545', borderRadius: [3, 3, 0, 0] }, barWidth: '45%' }
+      { name: 'Pending', type: 'bar', stack: 'Total', data: [], itemStyle: { color: '#ffc107', borderRadius: [0, 0, 0, 0] }, barWidth: '45%' },
+      { name: 'Partial', type: 'bar', stack: 'Total', data: [], itemStyle: { color: '#0d6efd', borderRadius: [0, 0, 0, 0] }, barWidth: '45%' },
+      { name: 'Dispute', type: 'bar', stack: 'Total', data: [], itemStyle: { color: '#dc3545', borderRadius: [8, 8, 0, 0] }, barWidth: '45%' }
     ]
   };
 
@@ -603,8 +605,9 @@ export class AdminDashboardComponent implements OnInit {
     tooltip: { trigger: 'item', formatter: '{b}: {d}%' },
     series: [{
       type: 'pie',
-      radius: ['52%', '78%'],
+      radius: ['50%', '75%'],
       avoidLabelOverlap: false,
+      itemStyle: { borderRadius: 8, borderColor: '#ffffff', borderWidth: 3 },
       label: { show: false },
       emphasis: { scale: true, scaleSize: 6 },
       data: []
