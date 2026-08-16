@@ -166,6 +166,7 @@ import { AppNavItemComponent } from './layouts/full/sidebar/nav-item/nav-item.co
 import { ServiceWorkerModule } from '@angular/service-worker';
 
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
+import { LoadingInterceptor } from './core/interceptors/loading.interceptor';
 import { HomeComponent } from './features/home/home.component';
 
 @NgModule({
@@ -319,7 +320,7 @@ import { HomeComponent } from './features/home/home.component';
       loader: {
         provide: TranslateLoader,
         useClass: TranslateHttpLoader,
-      },
+        },
       defaultLanguage: 'en',
     }),
     ServiceWorkerModule.register('ngsw-worker.js', {
@@ -330,6 +331,7 @@ import { HomeComponent } from './features/home/home.component';
   exports: [TablerIconsModule, TranslateModule],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: LoadingInterceptor, multi: true },
     ...provideTranslateHttpLoader(),
   ],
   bootstrap: [AppComponent],

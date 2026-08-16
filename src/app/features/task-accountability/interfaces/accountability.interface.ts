@@ -179,6 +179,7 @@ export interface TemplateTask {
 export interface RoleTemplate {
   id: string;
   name: string;
+  description?: string;
   role: string;
   roleId?: number | string | null;
   roleName?: string | null;

@@ -137,7 +137,7 @@ export interface BranchManager {
     }
 
     .header-icon-box { width: 48px; height: 48px; }
-    .bg-light-primary { background-color: rgba(97, 93, 255, 0.1) !important; }
+    .bg-light-primary { background-color: rgba(45,46,50, 0.1) !important; }
     .object-cover { object-fit: cover; }
     .field-label { gap: 4px; margin-bottom: 8px; }
     .m-r-6 { margin-right: 6px; }
@@ -148,7 +148,7 @@ export interface BranchManager {
     ::ng-deep .theme-input .mdc-notched-outline__trailing { border-color: #e2e8f0 !important; border-width: 1px !important; }
     ::ng-deep .theme-input.mat-focused .mdc-notched-outline__leading,
     ::ng-deep .theme-input.mat-focused .mdc-notched-outline__notch,
-    ::ng-deep .theme-input.mat-focused .mdc-notched-outline__trailing { border-color: #615dff !important; border-width: 2px !important; }
+    ::ng-deep .theme-input.mat-focused .mdc-notched-outline__trailing { border-color: #2D2E32 !important; border-width: 2px !important; }
 
     .spinning { animation: spin 1s linear infinite; }
     @keyframes spin { 100% { transform: rotate(360deg); } }

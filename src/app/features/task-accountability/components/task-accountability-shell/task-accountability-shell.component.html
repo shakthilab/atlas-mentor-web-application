@@ -11,17 +11,20 @@
   <div class="workspace-main-panel">
     <!-- Header / Tab Bar (only visible to Admin Tree roles) -->
     <div class="workspace-header" *ngIf="isAdminTreeRole">
+      <div class="workspace-header-top">
+        <span class="workspace-header-title">Task Accountability</span>
+        <button class="tree-toggle-mobile-btn" (click)="toggleTree()">
+          <i-tabler name="users" class="icon-16"></i-tabler>
+          <span>Employees</span>
+        </button>
+      </div>
+
       <nav class="workspace-nav">
         <a class="nav-tab" routerLink="daily" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Daily Workspace</a>
         <a class="nav-tab" routerLink="templates" routerLinkActive="active">Daily Templates</a>
-        <!-- <a class="nav-tab" routerLink="weekly-templates" routerLinkActive="active">Weekly Templates</a> -->
-        <!-- <a class="nav-tab" routerLink="weekly" routerLinkActive="active">Weekly Accountability</a> -->
+        <a class="nav-tab" routerLink="weekly-templates" routerLinkActive="active">Weekly Templates</a>
+        <a class="nav-tab" routerLink="weekly" routerLinkActive="active">Weekly Accountability</a>
       </nav>
-      
-      <button class="tree-toggle-mobile-btn" (click)="toggleTree()">
-        <i-tabler name="users" class="icon-16"></i-tabler>
-        <span>Employees</span>
-      </button>
     </div>
 
     <!-- Workspace Sub-Page body -->

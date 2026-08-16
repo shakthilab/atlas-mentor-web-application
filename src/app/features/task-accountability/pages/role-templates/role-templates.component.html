@@ -15,24 +15,44 @@
   <ng-container *ngIf="templates$ | async as templates">
     <div class="templates-grid" *ngIf="templates.length > 0">
       <div class="template-card" *ngFor="let temp of templates" (click)="openEditTemplateModal(temp)">
-        <div class="card-top">
-          <div class="card-top-badges">
-            <div class="role-badge">{{ getRoleDisplayName(temp) }}</div>
-            <div class="branch-chip">
-              <i-tabler name="building" class="icon-12 m-r-4"></i-tabler>
-              {{ getBranchDisplayName(temp) }}
-            </div>
+        <!-- Top Bar: Status and Date -->
+        <div class="card-top-row">
+          <span class="status-indicator-badge"
+            [ngClass]="(temp.status || (temp.active ? 'ACTIVE' : 'DRAFT')).toLowerCase()">
+            {{ (temp.status || (temp.active ? 'ACTIVE' : 'DRAFT')) | uppercase }}
+          </span>
+          <span class="created-date-label">
+            Created {{ temp.createdAt | date:'MMM d' }}
+          </span>
+        </div>
+
+        <!-- Middle: Title and Description -->
+        <h3 class="template-name">{{ temp.name }}</h3>
+        <p class="template-desc">{{ temp.description || 'Standard operational procedures and daily responsibilities
+          assigned to this role.' }}</p>
+
+        <!-- Divider line -->
+        <hr class="card-divider" />
+
+        <!-- Bottom Bar: Metadata Badges and Actions -->
+        <div class="card-bottom-row">
+          <div class="bottom-badges-container">
+            <span class="meta-pill-badge">Branch: {{ getBranchDisplayName(temp) }}</span>
+            <span class="meta-pill-badge">{{ getTemplateTasksCount(temp) }} Tasks</span>
           </div>
-          <div class="card-actions" (click)="$event.stopPropagation()">
-            <button mat-icon-button [matMenuTriggerFor]="cardMenu">
+
+          <div class="card-actions-wrapper" (click)="$event.stopPropagation()">
+            <button class="btn-dots-options" [matMenuTriggerFor]="cardMenu">
               <i-tabler name="dots-vertical" class="icon-18"></i-tabler>
             </button>
-            <mat-menu #cardMenu="matMenu" xPosition="before">
+            <mat-menu #cardMenu="matMenu" class="duplicate-menu-panel" xPosition="before">
               <button mat-menu-item (click)="publishRoleTemplate(temp)"
                 [disabled]="!canPublish(temp) || temp.status === 'ACTIVE'">
-                <i-tabler name="send" class="icon-16 m-r-8 text-primary"></i-tabler>
-                <span class="text-primary font-semibold">{{ temp.status === 'ACTIVE' ? 'Published' : 'Publish Template'
-                  }}</span>
+                <i-tabler name="send" class="icon-16 m-r-8 text-primary"
+                  [class.text-muted]="temp.status === 'ACTIVE'"></i-tabler>
+                <span class="text-primary font-semibold" [class.text-muted]="temp.status === 'ACTIVE'">
+                  {{ temp.status === 'ACTIVE' ? 'Published' : 'Publish Template' }}
+                </span>
               </button>
               <mat-divider></mat-divider>
               <button mat-menu-item (click)="openEditTemplateModal(temp)">
@@ -53,25 +73,6 @@
                 <span>Delete</span>
               </button>
             </mat-menu>
-          </div>
-        </div>
-
-        <h3 class="template-name">{{ temp.name }}</h3>
-        <div class="template-meta">
-          <span class="meta-item">
-            <i-tabler name="checklist" class="icon-14 m-r-4"></i-tabler>
-            {{ getTemplateTasksCount(temp) }} Tasks configured
-          </span>
-          <span class="meta-item">
-            <i-tabler name="calendar" class="icon-14 m-r-4"></i-tabler>
-            Created {{ temp.createdAt | date:'MMM d, y' }}
-          </span>
-        </div>
-
-        <div class="card-bottom">
-          <div class="status-indicator" [ngClass]="(temp.status || (temp.active ? 'ACTIVE' : 'DRAFT')).toLowerCase()">
-            <span class="dot"></span>
-            {{ (temp.status || (temp.active ? 'ACTIVE' : 'DRAFT')) | uppercase }}
           </div>
         </div>
       </div>
@@ -250,10 +251,8 @@
                 <div class="day-card" *ngFor="let day of getDaysList(); let idx = index"
                   [class.active]="selectedDayIndex === idx && isSidebarOpen && !multiSelectMode"
                   [class.selected]="selectedDaysForDuplication.has(idx) && multiSelectMode"
-                  [class.past-day]="isPastDay(idx)"
-                  [matTooltip]="isPastDay(idx) ? pastDayTooltip : ''"
-                  matTooltipPosition="above"
-                  [attr.title]="isPastDay(idx) ? pastDayTooltip : null"
+                  [class.past-day]="isPastDay(idx)" [matTooltip]="isPastDay(idx) ? pastDayTooltip : ''"
+                  matTooltipPosition="above" [attr.title]="isPastDay(idx) ? pastDayTooltip : null"
                   (click)="onDayCardClick(idx, $event)">
                   <div class="day-card-header">
                     <span class="month-label">{{ getMonthAbbreviation() }}</span>
@@ -289,7 +288,7 @@
         <div class="modal-footer">
           <div class="footer-left">
             <span class="validation-message" *ngIf="!canPublish(editingTemplate)">
-              Add a name and at least one task to publish
+              Add a name, select a target role, and configure at least one task to publish
             </span>
           </div>
           <div class="footer-right">
@@ -341,12 +340,10 @@
               </div>
 
               <div class="task-row-actions" *ngIf="!isPastDay(selectedDayIndex)" (click)="$event.stopPropagation()">
-                <button class="task-action-btn copy-btn"
-                  [disabled]="isTemplateUnsaved()"
+                <button class="task-action-btn copy-btn" [disabled]="isTemplateUnsaved()"
                   [class.disabled]="isTemplateUnsaved()"
                   [matTooltip]="isTemplateUnsaved() ? 'Save template first to duplicate tasks' : 'Duplicate task'"
-                  matTooltipPosition="above"
-                  (click)="duplicateTaskToSameDay(task, day)">
+                  matTooltipPosition="above" (click)="duplicateTaskToSameDay(task, day)">
                   <i-tabler name="copy" class="icon-14"></i-tabler>
                 </button>
 
@@ -440,13 +437,13 @@
 
           <div class="dialog-body">
             <div class="target-days-grid">
-              <div class="target-day-item"
-                   *ngFor="let otherDay of getDaysList(); let otherIdx = index"
-                   [class.disabled]="otherIdx === selectedDayIndex || isPastDay(otherIdx)"
-                   [class.selected]="selectedTargetDaysForDuplication.has(otherIdx)"
-                   (click)="toggleTargetDaySelection(otherIdx)">
+              <div class="target-day-item" *ngFor="let otherDay of getDaysList(); let otherIdx = index"
+                [class.disabled]="otherIdx === selectedDayIndex || isPastDay(otherIdx)"
+                [class.selected]="selectedTargetDaysForDuplication.has(otherIdx)"
+                (click)="toggleTargetDaySelection(otherIdx)">
                 <div class="item-checkbox">
-                  <i-tabler [name]="selectedTargetDaysForDuplication.has(otherIdx) ? 'checkbox' : 'square'" class="icon-16"></i-tabler>
+                  <i-tabler [name]="selectedTargetDaysForDuplication.has(otherIdx) ? 'checkbox' : 'square'"
+                    class="icon-16"></i-tabler>
                 </div>
                 <div class="item-label">
                   <span class="day-name">{{ otherDay.name }}</span>
@@ -460,8 +457,7 @@
           <div class="dialog-footer">
             <button mat-button class="cancel-btn" (click)="closeDuplicateDayModal()">Cancel</button>
             <button mat-flat-button color="primary" class="confirm-btn"
-                    [disabled]="selectedTargetDaysForDuplication.size === 0"
-                    (click)="confirmDuplicateDayToSelected()">
+              [disabled]="selectedTargetDaysForDuplication.size === 0" (click)="confirmDuplicateDayToSelected()">
               Duplicate to {{ selectedTargetDaysForDuplication.size }} Day(s)
             </button>
           </div>

@@ -253,7 +253,13 @@ export class RoleTemplatesComponent implements OnInit {
   }
 
   get roleOptions(): Array<{ label: string; value: string }> {
-    return this.availableRoles.map(r => ({ label: r, value: r }));
+    if (!this.rolesApiList) return [];
+    return this.rolesApiList
+      .filter((r: any) => r.name.toUpperCase() !== 'ADMIN')
+      .map((r: any) => ({
+        label: r.displayName || r.name,
+        value: r.name
+      }));
   }
 
   get branchOptions(): Array<{ label: string; value: string }> {
@@ -1294,7 +1300,9 @@ export class RoleTemplatesComponent implements OnInit {
   }
 
   canPublish(template: RoleTemplate | null): boolean {
-    if (!template || !template.name || !template.name.trim()) return false;
+    if (!template) return false;
+    if (!template.name || !template.name.trim()) return false;
+    if (!template.role || !template.role.trim() || template.role === 'Select Role') return false;
     return this.getTemplateTasksCount(template) >= 1;
   }
 

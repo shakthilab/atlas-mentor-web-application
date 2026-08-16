@@ -4,6 +4,7 @@ import { TaskAccountabilityService } from '../../services/task-accountability.se
 import { MasterDataService } from '../../../../core/services/master-data.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { WeeklyTemplateEditDialogComponent } from './weekly-template-edit-dialog.component';
+import { WeeklyTemplateDuplicateDialogComponent } from './weekly-template-duplicate-dialog.component';
 
 @Component({
   selector: 'app-weekly-templates',
@@ -67,39 +68,72 @@ import { WeeklyTemplateEditDialogComponent } from './weekly-template-edit-dialog
         <div class="template-card" *ngFor="let temp of templates">
           <div class="card-top">
             <div class="card-top-badges">
-              <div class="role-badge">{{ getRoleDisplayName(temp.roleId) }}</div>
-              <div class="status-chip" [class.active]="temp.status === 'ACTIVE'">
+              <span class="status-chip" [class]="temp.status?.toLowerCase() || 'draft'">
                 {{ temp.status }}
-              </div>
+              </span>
+              <span class="created-date-meta">
+                {{ formatRelativeDate(temp.createdAt || temp.updatedAt) }}
+              </span>
             </div>
             
-            <h3 class="template-name m-t-12 m-b-8 font-semibold text-dark">{{ temp.name }}</h3>
-            <p class="question-count text-muted f-s-13">
-              <i-tabler name="help-circle" class="icon-14 m-r-4"></i-tabler>
-              {{ temp.questions?.length || 0 }} Questions
+            <h3 class="template-name m-t-16 m-b-8 font-semibold text-dark">{{ temp.name }}</h3>
+            <p class="template-desc text-muted f-s-13">
+              {{ getTemplateDescription(temp) }}
             </p>
           </div>
 
           <mat-divider></mat-divider>
 
-          <div class="card-actions p-16 d-flex align-items-center justify-content-between">
-            <div class="left-actions">
-              <!-- Edit is always allowed -->
-              <button mat-icon-button (click)="openEditTemplateModal(temp)" title="Edit Template">
-                <i-tabler name="edit" class="icon-18 text-primary"></i-tabler>
-              </button>
-              
-              <!-- Delete is only allowed for DRAFT -->
-              <button mat-icon-button color="warn" (click)="deleteTemplate(temp)" *ngIf="temp.status === 'DRAFT'" title="Delete Template">
-                <i-tabler name="trash" class="icon-18"></i-tabler>
-              </button>
+          <div class="card-footer p-16 d-flex align-items-center justify-content-between">
+            <div class="footer-pills-left">
+              <span class="pill-badge-meta">Role: {{ getRoleDisplayName(temp.roleId) }}</span>
+              <span class="pill-badge-meta">{{ getTotalQuestions(temp) }} Question{{ getTotalQuestions(temp) === 1 ? '' : 's' }}</span>
             </div>
 
-            <div class="right-actions">
-              <!-- Publish is only allowed for DRAFT -->
-              <button mat-flat-button color="primary" class="publish-btn" (click)="publishTemplate(temp)" *ngIf="temp.status === 'DRAFT'" [disabled]="!temp.questions?.length">
-                Publish
+            <div class="footer-actions-right">
+              <button mat-icon-button [matMenuTriggerFor]="cardMenu" class="dots-btn" title="Options">
+                <i-tabler name="dots-vertical" class="icon-18 text-muted"></i-tabler>
               </button>
+              
+              <mat-menu #cardMenu="matMenu" class="premium-menu-panel" xPosition="before">
+                <!-- Edit is always allowed -->
+                <button mat-menu-item (click)="openEditTemplateModal(temp)">
+                  <i-tabler name="edit" class="icon-16 m-r-8 text-primary"></i-tabler>
+                  <span>Edit Template</span>
+                </button>
+
+                <!-- Duplicate Template -->
+                <button mat-menu-item (click)="duplicateWeeklyTemplate(temp)">
+                  <i-tabler name="copy" class="icon-16 m-r-8 text-success"></i-tabler>
+                  <span>Duplicate Template</span>
+                </button>
+
+                <!-- Publish Template -->
+                <button mat-menu-item (click)="publishTemplate(temp)" *ngIf="temp.status === 'DRAFT'" [disabled]="!getTotalQuestions(temp)">
+                  <i-tabler name="circle-check" class="icon-16 m-r-8 text-primary"></i-tabler>
+                  <span>Publish Template</span>
+                </button>
+
+                <!-- Deactivate Template -->
+                <button mat-menu-item (click)="updateStatus(temp, 'INACTIVE')" *ngIf="temp.status === 'ACTIVE'">
+                  <i-tabler name="circle-x" class="icon-16 m-r-8 text-danger"></i-tabler>
+                  <span>Deactivate Template</span>
+                </button>
+
+                <!-- Reactivate Template -->
+                <button mat-menu-item (click)="updateStatus(temp, 'ACTIVE')" *ngIf="temp.status === 'INACTIVE'">
+                  <i-tabler name="circle-check" class="icon-16 m-r-8 text-success"></i-tabler>
+                  <span>Reactivate Template</span>
+                </button>
+
+                <mat-divider *ngIf="temp.status === 'DRAFT' || temp.status === 'INACTIVE'"></mat-divider>
+
+                <!-- Delete Template -->
+                <button mat-menu-item color="warn" (click)="deleteTemplate(temp)" *ngIf="temp.status === 'DRAFT' || temp.status === 'INACTIVE'">
+                  <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
+                  <span class="text-danger">Delete Template</span>
+                </button>
+              </mat-menu>
             </div>
           </div>
         </div>
@@ -127,62 +161,152 @@ import { WeeklyTemplateEditDialogComponent } from './weekly-template-edit-dialog
       grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
       gap: 24px;
     }
+    
     .template-card {
       background: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 16px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      transition: all 0.2s ease-in-out;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      position: relative;
+      overflow: hidden;
       
       &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        transform: translateY(-4px);
+        box-shadow: 0 12px 20px -8px rgba(0,0,0,0.08);
+        border-color: #cbd5e1;
       }
     }
+    
     .card-top {
-      padding: 20px;
+      padding: 24px;
       flex-grow: 1;
+      display: flex;
+      flex-direction: column;
     }
+    
     .card-top-badges {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      margin-bottom: 12px;
     }
-    .role-badge {
-      background-color: #f1f5f9;
-      color: #475569;
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
+    
+    .created-date-meta {
+      font-size: 12px;
+      color: #94a3b8;
+      font-weight: 500;
     }
+    
+    .template-name {
+      font-size: 16px;
+      line-height: 1.4;
+      font-weight: 700;
+      color: #1e293b !important;
+      margin: 0 0 8px 0;
+    }
+    
+    .template-desc {
+      font-size: 13px;
+      line-height: 1.5;
+      color: #64748b;
+      margin: 0;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      height: 38px;
+    }
+    
     .status-chip {
       font-size: 10px;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 12px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 6px;
       text-transform: uppercase;
-      background-color: #fee2e2;
-      color: #ef4444;
+      letter-spacing: 0.5px;
+      display: inline-flex;
+      align-items: center;
       
       &.active {
-        background-color: #dcfce7;
-        color: #15803d;
+        background-color: #ecfdf5;
+        color: #059669;
+      }
+      &.draft {
+        background-color: #fff7ed;
+        color: #ea580c;
+      }
+      &.inactive {
+        background-color: #f1f5f9;
+        color: #475569;
       }
     }
-    .question-count {
+    
+    .card-footer {
+      padding: 14px 20px;
+      background: #fafafa;
       display: flex;
       align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid #f1f5f9;
     }
-    .publish-btn {
+    
+    .footer-pills-left {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+    
+    .pill-badge-meta {
+      font-size: 11px;
+      font-weight: 600;
+      color: #475569;
+      background-color: #f1f5f9;
+      padding: 4px 10px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      white-space: nowrap;
+    }
+    
+    .dots-btn {
+      width: 32px;
       height: 32px;
-      line-height: 30px;
-      padding: 0 14px;
-      font-size: 12px;
+      line-height: 32px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      
+      &:hover {
+        background-color: #f1f5f9;
+      }
+    }
+    
+    .premium-menu-panel {
+      min-width: 180px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    
+    @media (max-width: 768px) {
+      .templates-container {
+        padding: 12px 4px;
+      }
+      .templates-header {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 16px;
+      }
+      .premium-btn {
+        width: 100%;
+        height: 42px !important;
+      }
     }
   `]
 })
@@ -192,6 +316,24 @@ export class WeeklyTemplatesComponent implements OnInit {
   selectedRoleId = '';
   selectedStatus = '';
   isLoading = true;
+
+  formatRelativeDate(dateStr: string): string {
+    if (!dateStr) return 'Created recently';
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return `Created ${dateStr}`;
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return `Created ${months[date.getMonth()]} ${date.getDate()}`;
+    } catch (e) {
+      return `Created ${dateStr}`;
+    }
+  }
+
+  getTemplateDescription(temp: any): string {
+    if (temp.description && temp.description.trim() !== '') return temp.description;
+    const roleName = this.getRoleDisplayName(temp.roleId);
+    return `Weekly check-in audit and accountability questionnaire assigned to ${roleName}.`;
+  }
 
   constructor(
     private taskService: TaskAccountabilityService,
@@ -241,7 +383,7 @@ export class WeeklyTemplatesComponent implements OnInit {
 
   openNewTemplateModal(): void {
     const dialogRef = this.dialog.open(WeeklyTemplateEditDialogComponent, {
-      width: '600px',
+      width: '850px',
       maxWidth: '90vw',
       disableClose: true
     });
@@ -253,7 +395,22 @@ export class WeeklyTemplatesComponent implements OnInit {
 
   openEditTemplateModal(template: any): void {
     const dialogRef = this.dialog.open(WeeklyTemplateEditDialogComponent, {
-      width: '600px',
+      width: '850px',
+      maxWidth: '90vw',
+      data: template,
+      disableClose: true
+    });
+
+    dialogRef.afterClosed().subscribe(res => {
+      if (res) this.loadTemplates();
+    });
+  }
+
+  duplicateWeeklyTemplate(template: any): void {
+    if (!template) return;
+
+    const dialogRef = this.dialog.open(WeeklyTemplateDuplicateDialogComponent, {
+      width: '500px',
       maxWidth: '90vw',
       data: template,
       disableClose: true
@@ -284,6 +441,46 @@ export class WeeklyTemplatesComponent implements OnInit {
         }
       }
     });
+  }
+
+  updateStatus(template: any, newStatus: 'ACTIVE' | 'INACTIVE'): void {
+    if (!template) return;
+    
+    const confirmMessage = newStatus === 'ACTIVE'
+      ? `Are you sure you want to reactivate the template: ${template.name}?`
+      : `Are you sure you want to deactivate the template: ${template.name}?`;
+
+    this.notificationService.showErrorPopup(
+      confirmMessage,
+      newStatus === 'ACTIVE' ? 'Reactivate Template' : 'Deactivate Template',
+      newStatus === 'ACTIVE' ? 'Reactivate' : 'Deactivate'
+    ).subscribe(() => {
+      this.taskService.updateWeeklyTemplateStatus(template.id, newStatus).subscribe({
+        next: () => {
+          this.notificationService.showSuccessToast(
+            `Template status updated to ${newStatus} successfully.`,
+            'Status Updated'
+          );
+          this.loadTemplates();
+        },
+        error: (err) => {
+          console.error('Failed to update status:', err);
+          this.notificationService.showErrorPopup(
+            err.error?.message || err.message || 'Failed to update template status.',
+            'Error',
+            'Close'
+          ).subscribe();
+        }
+      });
+    });
+  }
+
+  getTotalQuestions(template: any): number {
+    if (!template) return 0;
+    if (template.weeks) {
+      return template.weeks.reduce((acc: number, w: any) => acc + (w.questions ? w.questions.length : 0), 0);
+    }
+    return template.questions ? template.questions.length : 0;
   }
 
   deleteTemplate(template: any): void {

@@ -355,7 +355,7 @@ export interface Student {
         transition: all 0.2s ease;
         
         &.active {
-          background-color: #615dff;
+          background-color: #2D2E32;
           color: #ffffff;
         }
         &:hover:not(.active) {
@@ -430,8 +430,8 @@ export interface Student {
       text-transform: capitalize;
       
       &.enrolled {
-        background-color: rgba(97, 93, 255, 0.1);
-        color: #615dff;
+        background-color: rgba(45,46,50, 0.1);
+        color: #2D2E32;
       }
       
       &.pending {
@@ -474,8 +474,8 @@ export interface Student {
       
       &:focus-within {
         background-color: #ffffff;
-        border-color: #615dff;
-        box-shadow: 0 0 0 3px rgba(97, 93, 255, 0.1);
+        border-color: #2D2E32;
+        box-shadow: 0 0 0 3px rgba(45,46,50, 0.1);
       }
       
       .search-icon {
@@ -525,13 +525,13 @@ export interface Student {
         border-color: var(--dark-formborderColor);
         .toggle-btn {
           color: #94a3b8;
-          &.active { background-color: #615dff; color: #ffffff; }
+          &.active { background-color: #2D2E32; color: #ffffff; }
           &:hover:not(.active) { background-color: var(--dark-hoverbgcolor); }
         }
       }
       .status-badge {
         &.enrolled {
-          background-color: rgba(97, 93, 255, 0.2);
+          background-color: rgba(45,46,50, 0.2);
           color: #a5a2ff;
         }
         &.pending {
@@ -633,7 +633,8 @@ export class StudentsComponent implements OnInit, AfterViewInit, OnDestroy {
   viewProfile(student: Student): void {
     this.dialog.open(StudentDetailsDialogComponent, {
       data: student,
-      width: '500px',
+      width: '600px',
+      maxWidth: '95vw',
       panelClass: 'student-details-dialog'
     });
   }

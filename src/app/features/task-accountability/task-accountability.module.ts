@@ -10,6 +10,7 @@ import { WeeklyAccountabilityComponent } from './pages/weekly-accountability/wee
 import { ReportsComponent } from './pages/reports/reports.component';
 import { WeeklyTemplatesComponent } from './pages/weekly-templates/weekly-templates.component';
 import { WeeklyTemplateEditDialogComponent } from './pages/weekly-templates/weekly-template-edit-dialog.component';
+import { WeeklyTemplateDuplicateDialogComponent } from './pages/weekly-templates/weekly-template-duplicate-dialog.component';
 
 // Components
 import { EmployeeTreeComponent } from './components/employee-tree/employee-tree.component';
@@ -35,7 +36,8 @@ import { SendBackReasonDialogComponent } from './components/send-back-reason-dia
     TaskCreateDrawerComponent,
     SendBackReasonDialogComponent,
     WeeklyTemplatesComponent,
-    WeeklyTemplateEditDialogComponent
+    WeeklyTemplateEditDialogComponent,
+    WeeklyTemplateDuplicateDialogComponent
   ],
   imports: [
     SharedModule,

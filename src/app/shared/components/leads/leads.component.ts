@@ -127,9 +127,12 @@ export interface Lead {
                     <i-tabler *ngIf="!element.isUpdatingStatus" name="chevron-down" class="icon-14 m-l-4"></i-tabler>
                     <i-tabler *ngIf="element.isUpdatingStatus" name="loader" class="icon-14 m-l-4 spinning"></i-tabler>
                   </span>
-                  <mat-menu #statusMenu="matMenu" class="cardWithShadow">
-                    <button mat-menu-item *ngFor="let s of availableStatuses" (click)="changeStatus(element, s.enum)">
-                      <span class="status-badge m-r-8" [ngClass]="getStatusClass(s.enum)">{{ s.displayName }}</span>
+                  <mat-menu #statusMenu="matMenu" class="status-menu-panel" xPosition="before">
+                    <button mat-menu-item *ngFor="let s of availableStatuses" (click)="changeStatus(element, s.enum)" class="status-menu-btn">
+                      <div class="d-flex align-items-center gap-12">
+                        <span class="status-menu-dot" [ngClass]="getStatusClass(s.enum)"></span>
+                        <span class="status-menu-text f-w-500">{{ s.displayName }}</span>
+                      </div>
                     </button>
                   </mat-menu>
                 </td>
@@ -259,9 +262,12 @@ export interface Lead {
                     <i-tabler *ngIf="!element.isUpdatingStatus" name="chevron-down" class="icon-14 m-l-4"></i-tabler>
                     <i-tabler *ngIf="element.isUpdatingStatus" name="loader" class="icon-14 m-l-4 spinning"></i-tabler>
                   </span>
-                  <mat-menu #cardStatusMenu="matMenu" class="cardWithShadow">
-                    <button mat-menu-item *ngFor="let s of availableStatuses" (click)="changeStatus(element, s.enum)">
-                      <span class="status-badge m-r-8" [ngClass]="getStatusClass(s.enum)">{{ s.displayName }}</span>
+                  <mat-menu #cardStatusMenu="matMenu" class="status-menu-panel" xPosition="before">
+                    <button mat-menu-item *ngFor="let s of availableStatuses" (click)="changeStatus(element, s.enum)" class="status-menu-btn">
+                      <div class="d-flex align-items-center gap-12">
+                        <span class="status-menu-dot" [ngClass]="getStatusClass(s.enum)"></span>
+                        <span class="status-menu-text f-w-500">{{ s.displayName }}</span>
+                      </div>
                     </button>
                   </mat-menu>
                 </div>
@@ -387,7 +393,7 @@ export interface Lead {
         transition: all 0.2s ease;
         
         &.active {
-          background-color: #615dff;
+          background-color: #2D2E32;
           color: #ffffff;
         }
         &:hover:not(.active) {
@@ -439,8 +445,63 @@ export interface Lead {
       }
 
       &.in-progress, &.document-submitted {
-        background-color: rgba(97, 93, 255, 0.1);
-        color: #615dff;
+        background-color: rgba(45,46,50, 0.1);
+        color: #2D2E32;
+      }
+    }
+
+    ::ng-deep .status-menu-panel {
+      min-width: 190px !important;
+      border-radius: 12px !important;
+      border: 1px solid #e2e8f0 !important;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.06), 0 8px 10px -6px rgba(0,0,0,0.06) !important;
+      background-color: #ffffff !important;
+      padding: 6px 0 !important;
+      overflow: hidden !important;
+      
+      .status-menu-btn {
+        height: 40px !important;
+        line-height: 40px !important;
+        padding: 0 16px !important;
+        transition: all 0.15s ease !important;
+        
+        &:hover {
+          background-color: #f8fafc !important;
+        }
+      }
+
+      .status-menu-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        flex-shrink: 0;
+        
+        &.active, &.won, &.enrolled, &.registered, &.contacted {
+          background-color: #13deb9 !important;
+          box-shadow: 0 0 0 3px rgba(19, 222, 185, 0.15);
+        }
+        
+        &.lost, &.inactive {
+          background-color: #fa896b !important;
+          box-shadow: 0 0 0 3px rgba(250, 137, 107, 0.15);
+        }
+        
+        &.pending, &.lead, &.prospective, &.followup {
+          background-color: #ffae1f !important;
+          box-shadow: 0 0 0 3px rgba(255, 174, 31, 0.15);
+        }
+  
+        &.in-progress, &.document-submitted {
+          background-color: #2D2E32 !important;
+          box-shadow: 0 0 0 3px rgba(45, 46, 50, 0.15);
+        }
+      }
+
+      .status-menu-text {
+        font-size: 13.5px;
+        color: #334155;
+        font-weight: 500;
       }
     }
 
@@ -461,8 +522,8 @@ export interface Lead {
       
       &:focus-within {
         background-color: #ffffff;
-        border-color: #615dff;
-        box-shadow: 0 0 0 3px rgba(97, 93, 255, 0.1);
+        border-color: #2D2E32;
+        box-shadow: 0 0 0 3px rgba(45,46,50, 0.1);
       }
       
       .search-icon {
@@ -525,7 +586,7 @@ export interface Lead {
         border-color: var(--dark-formborderColor);
         .toggle-btn {
           color: #94a3b8;
-          &.active { background-color: #615dff; color: #ffffff; }
+          &.active { background-color: #2D2E32; color: #ffffff; }
           &:hover:not(.active) { background-color: var(--dark-hoverbgcolor); }
         }
       }
@@ -543,8 +604,45 @@ export interface Lead {
           color: #ffca70;
         }
         &.in-progress, &.document-submitted {
-          background-color: rgba(97, 93, 255, 0.2);
+          background-color: rgba(45,46,50, 0.2);
           color: #a5a2ff;
+        }
+      }
+      ::ng-deep .status-menu-panel {
+        background-color: var(--dark-sidebarbg, #1e293b) !important;
+        border-color: var(--dark-formborderColor, #334155) !important;
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3), 0 8px 10px -6px rgba(0,0,0,0.3) !important;
+        
+        .status-menu-btn {
+          &:hover {
+            background-color: var(--dark-hoverbgcolor, #334155) !important;
+          }
+        }
+        
+        .status-menu-text {
+          color: #f8fafc;
+        }
+
+        .status-menu-dot {
+          &.active, &.won, &.enrolled, &.registered, &.contacted {
+            background-color: #80f1d4 !important;
+            box-shadow: 0 0 0 3px rgba(128, 241, 212, 0.2);
+          }
+          
+          &.lost, &.inactive {
+            background-color: #ffab91 !important;
+            box-shadow: 0 0 0 3px rgba(255, 171, 145, 0.2);
+          }
+          
+          &.pending, &.lead, &.prospective, &.followup {
+            background-color: #ffca70 !important;
+            box-shadow: 0 0 0 3px rgba(255, 202, 112, 0.2);
+          }
+    
+          &.in-progress, &.document-submitted {
+            background-color: #ffffff !important;
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+          }
         }
       }
     }
@@ -752,7 +850,8 @@ export class LeadsComponent implements OnInit, AfterViewInit {
   viewDetails(lead: Lead): void {
     this.dialog.open(LeadDetailsDialogComponent, {
       data: lead,
-      width: '500px',
+      width: '600px',
+      maxWidth: '95vw',
       panelClass: 'lead-details-dialog'
     });
   }
