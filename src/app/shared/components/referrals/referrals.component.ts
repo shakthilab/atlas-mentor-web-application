@@ -7,8 +7,8 @@ import { ReferralService } from '../../../core/services/referral.service';
 import { MasterDataService } from '../../../core/services/master-data.service';
 import { AddReferralDialogComponent } from './add-referral-dialog/add-referral-dialog.component';
 import { ReferralDetailDialogComponent } from './referral-detail-dialog/referral-detail-dialog.component';
-import { TableColumn, TableFilterOption } from '../data-table/data-table.models';
-import { createCompositePredicate, encodeCompositeFilter } from '../data-table/table-filter.util';
+import { TableColumn } from '../data-table/data-table.models';
+import { createSearchPredicate, encodeSearch } from '../data-table/table-filter.util';
 
 @Component({
   selector: 'app-referrals',
@@ -109,10 +109,8 @@ import { createCompositePredicate, encodeCompositeFilter } from '../data-table/t
                 trackByKey="id"
                 [clickableRows]="true"
                 emptyMessage="Try adjusting your filters or add a new referral."
-                [filterOptions]="statusFilterOptions"
                 exportFileName="referrals"
                 (rowClick)="viewDetails($event)"
-                (filterChange)="onColumnFilterChange($event)"
               >
                 <ng-template appCellDef="referralName" let-element="row">
                   <div class="d-flex align-items-center">
@@ -298,18 +296,7 @@ export class ReferralsComponent implements OnInit, AfterViewInit {
     { key: 'actions', header: 'Actions', type: 'actions', align: 'right' },
   ];
 
-  statusFilterOptions: TableFilterOption[] = [
-    {
-      key: 'status', label: 'Status',
-      options: [
-        { value: 'active', label: 'Active' },
-        { value: 'inactive', label: 'Inactive' },
-      ],
-    },
-  ];
-
   private searchText = '';
-  private columnFilters: Record<string, string> = {};
 
   dataSource = new MatTableDataSource<any>([]);
 
@@ -333,18 +320,7 @@ export class ReferralsComponent implements OnInit, AfterViewInit {
     private masterDataService: MasterDataService,
     private dialog: MatDialog
   ) {
-    this.dataSource.filterPredicate = createCompositePredicate(
-      (row, key) => (key === 'status' ? (row.status || '').toLowerCase() : '')
-    );
-  }
-
-  onColumnFilterChange(filters: Record<string, string>): void {
-    this.columnFilters = filters;
-    this.updateFilter();
-  }
-
-  private updateFilter(): void {
-    this.dataSource.filter = encodeCompositeFilter(this.searchText, this.columnFilters);
+    this.dataSource.filterPredicate = createSearchPredicate();
   }
 
   ngOnInit(): void {
@@ -435,7 +411,7 @@ export class ReferralsComponent implements OnInit, AfterViewInit {
 
   applySearchFilter(event: Event): void {
     this.searchText = (event.target as HTMLInputElement).value;
-    this.updateFilter();
+    this.dataSource.filter = encodeSearch(this.searchText);
   }
 
   formatType(type: string): string {

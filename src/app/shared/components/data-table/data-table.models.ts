@@ -26,9 +26,3 @@ export interface TableColumn<T = any> {
   /** Plain value used for Excel/PDF export. Falls back to valueFn, then row[key]. */
   exportValueFn?: (row: T) => string | number;
 }
-
-export interface TableFilterOption {
-  key: string;
-  label: string;
-  options: { value: string; label: string }[];
-}

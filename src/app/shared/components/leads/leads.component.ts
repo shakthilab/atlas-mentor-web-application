@@ -9,8 +9,8 @@ import { LeadDetailsDialogComponent } from './lead-details-dialog/lead-details-d
 import { ReasonDialogComponent } from './reason-dialog/reason-dialog.component';
 import { AddLeadDialogComponent } from './add-lead-dialog/add-lead-dialog.component';
 import { ImportLeadsDialogComponent } from './import-leads-dialog/import-leads-dialog.component';
-import { TableColumn, TableFilterOption } from '../data-table/data-table.models';
-import { createCompositePredicate, encodeCompositeFilter } from '../data-table/table-filter.util';
+import { TableColumn } from '../data-table/data-table.models';
+import { createSearchPredicate, encodeSearch } from '../data-table/table-filter.util';
 
 export interface Lead {
   id?: number;
@@ -100,10 +100,8 @@ export interface Lead {
               [rows]="dataSource.filteredData"
               trackByKey="id"
               [clickableRows]="true"
-              [filterOptions]="filterOptions"
               exportFileName="leads"
               (rowClick)="viewDetails($event)"
-              (filterChange)="onColumnFilterChange($event)"
             >
               <ng-template appCellDef="lead" let-element="row">
                 <div class="d-flex align-items-center">
@@ -606,7 +604,6 @@ export class LeadsComponent implements OnInit, AfterViewInit {
     { key: 'actions', header: 'Actions', type: 'actions', align: 'right' },
   ];
 
-  private columnFilters: Record<string, string> = {};
   private searchText = '';
 
   dataSource = new MatTableDataSource<Lead>([]);
@@ -619,27 +616,7 @@ export class LeadsComponent implements OnInit, AfterViewInit {
     private dialog: MatDialog,
     private route: ActivatedRoute
   ) {
-    this.dataSource.filterPredicate = createCompositePredicate(
-      (row, key) => (key === 'status' ? (row.status || '').toLowerCase() : '')
-    );
-  }
-
-  get filterOptions(): TableFilterOption[] {
-    return [
-      {
-        key: 'status', label: 'Status',
-        options: this.availableStatuses.map(s => ({ value: s.enum.toLowerCase(), label: s.displayName })),
-      },
-    ];
-  }
-
-  onColumnFilterChange(filters: Record<string, string>): void {
-    this.columnFilters = filters;
-    this.updateFilter();
-  }
-
-  private updateFilter(): void {
-    this.dataSource.filter = encodeCompositeFilter(this.searchText, this.columnFilters);
+    this.dataSource.filterPredicate = createSearchPredicate();
   }
 
   ngOnInit(): void {
@@ -754,7 +731,7 @@ export class LeadsComponent implements OnInit, AfterViewInit {
 
   applyFilter(event: Event): void {
     this.searchText = (event.target as HTMLInputElement).value;
-    this.updateFilter();
+    this.dataSource.filter = encodeSearch(this.searchText);
   }
 
   openImportDialog(): void {

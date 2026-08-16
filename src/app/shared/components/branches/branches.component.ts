@@ -7,8 +7,8 @@ import { HierarchyService } from '../../../core/services/hierarchy.service';
 import { extractListData } from '../../../core/utils/api-response.util';
 import { BranchDetailsDialogComponent } from './branch-details-dialog/branch-details-dialog.component';
 import { AddBranchDialogComponent } from './add-branch-dialog/add-branch-dialog.component';
-import { TableColumn, TableFilterOption } from '../data-table/data-table.models';
-import { createCompositePredicate, encodeCompositeFilter } from '../data-table/table-filter.util';
+import { TableColumn } from '../data-table/data-table.models';
+import { createSearchPredicate, encodeSearch } from '../data-table/table-filter.util';
 
 export interface BranchManager {
   id: number;
@@ -75,10 +75,8 @@ export interface Branch {
                 [rows]="dataSource.filteredData"
                 trackByKey="id"
                 [clickableRows]="true"
-                [filterOptions]="filterOptions"
                 exportFileName="branches"
                 (rowClick)="viewDetails($event)"
-                (filterChange)="onFilterChange($event)"
               >
                 <ng-template appCellDef="name" let-element="row">
                   <div class="d-flex align-items-center">
@@ -297,19 +295,7 @@ export class BranchesComponent implements OnInit {
     { key: 'actions', header: 'Actions', type: 'actions', align: 'right' },
   ];
 
-  filterOptions: TableFilterOption[] = [
-    {
-      key: 'status', label: 'Status',
-      options: [
-        { value: 'active', label: 'Active' },
-        { value: 'setup', label: 'Setup' },
-        { value: 'inactive', label: 'Inactive' },
-      ],
-    },
-  ];
-
   private searchText = '';
-  private columnFilters: Record<string, string> = {};
 
   branches: Branch[] = [];
   dataSource = new MatTableDataSource<Branch>([]);
@@ -326,9 +312,7 @@ export class BranchesComponent implements OnInit {
     private notificationService: NotificationService,
     private dialog: MatDialog
   ) {
-    this.dataSource.filterPredicate = createCompositePredicate(
-      (row, key) => (key === 'status' ? (row.status || '').toLowerCase() : '')
-    );
+    this.dataSource.filterPredicate = createSearchPredicate();
   }
 
   ngOnInit(): void {
@@ -383,16 +367,7 @@ export class BranchesComponent implements OnInit {
 
   applyFilter(event: Event): void {
     this.searchText = (event.target as HTMLInputElement).value;
-    this.updateFilter();
-  }
-
-  onFilterChange(filters: Record<string, string>): void {
-    this.columnFilters = filters;
-    this.updateFilter();
-  }
-
-  private updateFilter(): void {
-    this.dataSource.filter = encodeCompositeFilter(this.searchText, this.columnFilters);
+    this.dataSource.filter = encodeSearch(this.searchText);
   }
 
   addBranch(): void {

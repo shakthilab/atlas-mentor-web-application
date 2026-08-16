@@ -5,8 +5,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { NotificationService } from '../../../core/services/notification.service';
 import { StudentService, Payout } from '../../../core/services/student.service';
 import { PaymentDetailsDialogComponent } from './payment-details-dialog/payment-details-dialog.component';
-import { TableColumn, TableFilterOption } from '../data-table/data-table.models';
-import { createCompositePredicate, encodeCompositeFilter } from '../data-table/table-filter.util';
+import { TableColumn } from '../data-table/data-table.models';
+import { createSearchPredicate, encodeSearch } from '../data-table/table-filter.util';
 
 export interface Payment {
   id: number;
@@ -59,10 +59,8 @@ export interface Payment {
               [rows]="dataSource.filteredData"
               trackByKey="id"
               [clickableRows]="true"
-              [filterOptions]="filterOptions"
               exportFileName="payments"
               (rowClick)="viewDetails($event)"
-              (filterChange)="onFilterChange($event)"
             >
               <ng-template appCellDef="studentName" let-element="row">
                 <div class="d-flex align-items-center">
@@ -297,19 +295,7 @@ export class PaymentsComponent implements OnInit, AfterViewInit {
     { key: 'actions', header: 'Actions', type: 'actions', align: 'right' },
   ];
 
-  filterOptions: TableFilterOption[] = [
-    {
-      key: 'paymentStatus', label: 'Payment Status',
-      options: [
-        { value: 'paid', label: 'Paid' },
-        { value: 'pending', label: 'Pending' },
-        { value: 'overdue', label: 'Overdue' },
-      ],
-    },
-  ];
-
   private searchText = '';
-  private columnFilters: Record<string, string> = {};
 
   totalElements = 0;
   pageSize = 10;
@@ -323,9 +309,7 @@ export class PaymentsComponent implements OnInit, AfterViewInit {
     private studentService: StudentService,
     private dialog: MatDialog
   ) {
-    this.dataSource.filterPredicate = createCompositePredicate(
-      (row, key) => (key === 'paymentStatus' ? (row.paymentStatus || '').toLowerCase() : '')
-    );
+    this.dataSource.filterPredicate = createSearchPredicate();
   }
 
   ngOnInit(): void {
@@ -425,16 +409,7 @@ export class PaymentsComponent implements OnInit, AfterViewInit {
 
   applyFilter(event: Event): void {
     this.searchText = (event.target as HTMLInputElement).value;
-    this.updateFilter();
-  }
-
-  onFilterChange(filters: Record<string, string>): void {
-    this.columnFilters = filters;
-    this.updateFilter();
-  }
-
-  private updateFilter(): void {
-    this.dataSource.filter = encodeCompositeFilter(this.searchText, this.columnFilters);
+    this.dataSource.filter = encodeSearch(this.searchText);
   }
 
   addPayment(): void {

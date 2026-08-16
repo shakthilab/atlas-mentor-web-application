@@ -3,7 +3,7 @@ import { TaskAccountabilityService } from '../../services/task-accountability.se
 import { Router } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 import { BranchNode, RoleNode, EmployeeNode, DayNode } from '../../interfaces/accountability.interface';
-import { TableColumn, TableFilterOption } from '../../../../shared/components/data-table/data-table.models';
+import { TableColumn } from '../../../../shared/components/data-table/data-table.models';
 
 interface PendingReviewItem {
   id: string;
@@ -44,22 +44,6 @@ export class ReportsComponent implements OnInit {
     { key: 'submittedAt', header: 'Submitted At', type: 'custom', exportValueFn: r => r.submittedAt },
     { key: 'actions', header: 'Actions', type: 'actions', align: 'right' },
   ];
-
-  pendingReviewsFilters: Record<string, string> = {};
-
-  get pendingReviewsFilterOptions(): TableFilterOption[] {
-    const seen = new Map<string, string>();
-    for (const row of this.pendingReviews) {
-      const value = row.stage.toLowerCase();
-      if (!seen.has(value)) seen.set(value, row.stage);
-    }
-    return [{ key: 'stage', label: 'Status Stage', options: Array.from(seen.entries()).map(([value, label]) => ({ value, label })) }];
-  }
-
-  get filteredPendingReviews(): PendingReviewItem[] {
-    const stage = this.pendingReviewsFilters['stage'];
-    return stage ? this.pendingReviews.filter(r => r.stage.toLowerCase() === stage) : this.pendingReviews;
-  }
 
   // Pending Reviews
   pendingReviews: PendingReviewItem[] = [

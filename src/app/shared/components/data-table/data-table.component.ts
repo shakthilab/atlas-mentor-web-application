@@ -4,18 +4,14 @@ import {
   Component,
   ContentChild,
   ContentChildren,
-  ElementRef,
   EventEmitter,
-  HostListener,
   Input,
   Output,
   QueryList,
   TemplateRef,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatMenuModule } from '@angular/material/menu';
-import { TableColumn, TableFilterOption } from './data-table.models';
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { TableColumn } from './data-table.models';
 import { TableCellDefDirective } from './table-cell-def.directive';
 import { TableRowActionsDirective } from './table-row-actions.directive';
 import { TableExportService } from './table-export.service';
@@ -23,7 +19,7 @@ import { TableExportService } from './table-export.service';
 @Component({
   selector: 'app-data-table',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatButtonModule, MatMenuModule],
+  imports: [CommonModule, TablerIconsModule],
   templateUrl: './data-table.component.html',
   styleUrl: './data-table.component.scss',
 })
@@ -37,24 +33,16 @@ export class DataTableComponent<T = any> implements AfterContentInit {
   @Input() emptyMessage = 'No records found.';
   @Input() mobileColumns: string[] = [];
   @Input() clickableRows = false;
-  @Input() filterOptions: TableFilterOption[] = [];
   @Input() exportFileName?: string;
 
   @Output() rowClick = new EventEmitter<T>();
-  @Output() filterChange = new EventEmitter<Record<string, string>>();
 
   @ContentChildren(TableCellDefDirective) cellDefs!: QueryList<TableCellDefDirective>;
   @ContentChild(TableRowActionsDirective) actionsDef?: TableRowActionsDirective;
 
-  activeFilters: Record<string, string> = {};
-  filtersOpen = false;
-
   private cellTemplateMap = new Map<string, TemplateRef<any>>();
 
-  constructor(
-    private exportService: TableExportService,
-    private elementRef: ElementRef<HTMLElement>
-  ) {}
+  constructor(private exportService: TableExportService) {}
 
   ngAfterContentInit(): void {
     this.rebuildCellTemplateMap();
@@ -108,38 +96,7 @@ export class DataTableComponent<T = any> implements AfterContentInit {
   }
 
   get hasToolbar(): boolean {
-    return !!(this.filterOptions?.length || this.exportFileName);
-  }
-
-  get activeFilterCount(): number {
-    return Object.values(this.activeFilters).filter((v) => !!v).length;
-  }
-
-  toggleFilters(): void {
-    this.filtersOpen = !this.filtersOpen;
-  }
-
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent): void {
-    if (this.filtersOpen && !this.elementRef.nativeElement.contains(event.target as Node)) {
-      this.filtersOpen = false;
-    }
-  }
-
-  onFilterValueChange(key: string, value: string): void {
-    const next = { ...this.activeFilters };
-    if (value) {
-      next[key] = value;
-    } else {
-      delete next[key];
-    }
-    this.activeFilters = next;
-    this.filterChange.emit(this.activeFilters);
-  }
-
-  clearFilters(): void {
-    this.activeFilters = {};
-    this.filterChange.emit(this.activeFilters);
+    return !!this.exportFileName;
   }
 
   exportExcel(): void {

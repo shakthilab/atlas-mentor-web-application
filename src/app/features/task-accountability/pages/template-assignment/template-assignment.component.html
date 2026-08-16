@@ -68,11 +68,9 @@
         <ng-container *ngIf="(assignments$ | async) || [] as allAssignments">
           <app-data-table
             [columns]="assignmentsColumns"
-            [rows]="filterAssignments(allAssignments)"
+            [rows]="allAssignments"
             emptyMessage="No templates assigned yet. Fill out the assignment form to allocate responsibility."
-            [filterOptions]="assignmentsFilterOptions(allAssignments)"
             exportFileName="template-assignments"
-            (filterChange)="assignmentsFilters = $event"
           >
           <ng-template appCellDef="templateName" let-assign="row"><span class="font-semibold">{{ assign.templateName }}</span></ng-template>
           <ng-template appCellDef="targetName" let-assign="row"><span class="target-chip">{{ assign.targetName }}</span></ng-template>

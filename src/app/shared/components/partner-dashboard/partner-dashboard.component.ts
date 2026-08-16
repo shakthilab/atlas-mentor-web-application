@@ -3,7 +3,7 @@ import { EChartsOption } from 'echarts';
 import * as echarts from 'echarts';
 import { PartnerService } from '../../../core/services/partner.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { TableColumn, TableFilterOption } from '../data-table/data-table.models';
+import { TableColumn } from '../data-table/data-table.models';
 
 @Component({
   selector: 'app-partner-dashboard',
@@ -24,34 +24,6 @@ export class PartnerDashboardComponent implements OnInit {
     { key: 'amount', header: 'Amount', type: 'custom', exportValueFn: r => r.amount },
     { key: 'progress', header: 'Progress', type: 'custom', align: 'right', maxWidth: '160px', exportValueFn: r => `${r.progress}%` },
   ];
-  get recentStudentsFilterOptions(): TableFilterOption[] {
-    return [
-      { key: 'status', label: 'Status', options: this.uniqueValueOptions(this.recentStudents, r => r.status) },
-    ];
-  }
-  public recentStudentsFilters: Record<string, string> = {};
-  get filteredRecentStudents(): any[] {
-    return this.filterByColumn(this.recentStudents, this.recentStudentsFilters, (r, key) =>
-      key === 'status' ? (r.status || '').toLowerCase() : ''
-    );
-  }
-
-  private uniqueValueOptions(rows: any[], fieldFn: (row: any) => string): { value: string; label: string }[] {
-    const seen = new Map<string, string>();
-    for (const row of rows) {
-      const raw = fieldFn(row);
-      if (!raw) continue;
-      const value = String(raw).toLowerCase();
-      if (!seen.has(value)) seen.set(value, String(raw));
-    }
-    return Array.from(seen.entries()).map(([value, label]) => ({ value, label }));
-  }
-
-  private filterByColumn<T>(rows: T[], filters: Record<string, string>, fieldFn: (row: T, key: string) => string): T[] {
-    const activeKeys = Object.keys(filters).filter((k) => filters[k]);
-    if (!activeKeys.length) return rows;
-    return rows.filter((row) => activeKeys.every((k) => fieldFn(row, k) === filters[k]));
-  }
   public quickStats: any[] = [];
   public greeting = '';
   public userName = '';

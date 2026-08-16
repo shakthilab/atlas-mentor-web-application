@@ -10,8 +10,8 @@ import { StudentService, RegisteredStudentDto } from '../../../core/services/stu
 import { LeadService } from '../../../core/services/lead.service';
 import { StudentDetailsDialogComponent } from './student-details-dialog/student-details-dialog.component';
 import { AddLeadDialogComponent } from '../leads/add-lead-dialog/add-lead-dialog.component';
-import { TableColumn, TableFilterOption } from '../data-table/data-table.models';
-import { createCompositePredicate, encodeCompositeFilter } from '../data-table/table-filter.util';
+import { TableColumn } from '../data-table/data-table.models';
+import { createSearchPredicate, encodeSearch } from '../data-table/table-filter.util';
 
 export interface Student {
   id: number;
@@ -90,10 +90,8 @@ export interface Student {
               [rows]="dataSource.filteredData"
               trackByKey="id"
               [clickableRows]="true"
-              [filterOptions]="filterOptions"
               exportFileName="students"
               (rowClick)="viewProfile($event)"
-              (filterChange)="onFilterChange($event)"
             >
               <ng-template appRowActions let-element="row">
                 <button mat-icon-button [matMenuTriggerFor]="menu" class="text-muted">
@@ -500,19 +498,7 @@ export class StudentsComponent implements OnInit, AfterViewInit, OnDestroy {
     },
   ];
 
-  filterOptions: TableFilterOption[] = [
-    {
-      key: 'status', label: 'Status',
-      options: [
-        { value: 'enrolled', label: 'Enrolled' },
-        { value: 'pending', label: 'Pending' },
-        { value: 'completed', label: 'Completed' },
-      ],
-    },
-  ];
-
   private searchText = '';
-  private columnFilters: Record<string, string> = {};
 
   dataSource = new MatTableDataSource<Student>([]);
 
@@ -528,9 +514,7 @@ export class StudentsComponent implements OnInit, AfterViewInit, OnDestroy {
     private router: Router,
     private route: ActivatedRoute
   ) {
-    this.dataSource.filterPredicate = createCompositePredicate(
-      (row, key) => (key === 'status' ? row.status : '')
-    );
+    this.dataSource.filterPredicate = createSearchPredicate();
   }
 
   ngOnInit(): void {
@@ -568,16 +552,7 @@ export class StudentsComponent implements OnInit, AfterViewInit, OnDestroy {
 
   applyFilter(event: Event): void {
     this.searchText = (event.target as HTMLInputElement).value;
-    this.updateFilter();
-  }
-
-  onFilterChange(filters: Record<string, string>): void {
-    this.columnFilters = filters;
-    this.updateFilter();
-  }
-
-  private updateFilter(): void {
-    this.dataSource.filter = encodeCompositeFilter(this.searchText, this.columnFilters);
+    this.dataSource.filter = encodeSearch(this.searchText);
   }
 
   addStudent(): void {

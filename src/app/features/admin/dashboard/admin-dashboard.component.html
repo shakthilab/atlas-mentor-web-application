@@ -160,10 +160,8 @@
             </div>
             <app-data-table
               [columns]="topPayingEntitiesColumns"
-              [rows]="filteredTopPayingEntities"
-              [filterOptions]="topPayingEntitiesFilterOptions"
+              [rows]="topPayingEntities"
               exportFileName="top-paying-entities"
-              (filterChange)="topPayingEntitiesFilters = $event"
             >
               <ng-template appCellDef="entity" let-ent="row"><span class="fw-bold">{{ ent.entity }}</span></ng-template>
               <ng-template appCellDef="type" let-ent="row"><span class="text-muted fw-normal">{{ ent.type }}</span></ng-template>
@@ -255,10 +253,8 @@
           </div>
           <app-data-table
             [columns]="overdueTasksColumns"
-            [rows]="filteredOverdueTasks"
-            [filterOptions]="overdueTasksFilterOptions"
+            [rows]="overdueTasks"
             exportFileName="overdue-tasks"
-            (filterChange)="overdueTasksFilters = $event"
           >
             <ng-template appCellDef="task" let-t="row"><span class="fw-bold">{{ t.task }}</span></ng-template>
             <ng-template appCellDef="assignee" let-t="row"><span class="text-muted fw-normal">{{ t.assignee }}</span></ng-template>
@@ -427,10 +423,8 @@
             <div class="fs-5 fw-bold text-dark mb-4" style="font-weight: 900 !important;">Top referrers</div>
             <app-data-table
               [columns]="topReferrersColumns"
-              [rows]="filteredTopReferrers"
-              [filterOptions]="topReferrersFilterOptions"
+              [rows]="topReferrers"
               exportFileName="top-referrers"
-              (filterChange)="topReferrersFilters = $event"
             >
               <ng-template appCellDef="rank" let-ref="row"><span class="text-muted fw-normal">{{ ref.rank }}</span></ng-template>
               <ng-template appCellDef="partner" let-ref="row"><span class="fw-bold">{{ ref.partner }}</span></ng-template>
@@ -465,10 +459,8 @@
             </div>
             <app-data-table
               [columns]="auditLogColumns"
-              [rows]="filteredAuditLog"
-              [filterOptions]="auditLogFilterOptions"
+              [rows]="auditLog"
               exportFileName="audit-log"
-              (filterChange)="auditLogFilters = $event"
             >
               <ng-template appCellDef="time" let-log="row"><span class="text-muted fw-bold" style="font-variant-numeric:tabular-nums;">{{ log.time }}</span></ng-template>
               <ng-template appCellDef="action" let-log="row"><span class="audit-badge badge-{{ log.actionClass }}">{{ log.action }}</span></ng-template>

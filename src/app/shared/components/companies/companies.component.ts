@@ -9,8 +9,8 @@ import { MasterDataService } from '../../../core/services/master-data.service';
 import { environment } from '../../../../environments/environment';
 import { CompanyDetailDialogComponent } from './company-detail-dialog/company-detail-dialog.component';
 import { AddCompanyDialogComponent } from './add-company-dialog/add-company-dialog.component';
-import { TableColumn, TableFilterOption } from '../data-table/data-table.models';
-import { createCompositePredicate, encodeCompositeFilter } from '../data-table/table-filter.util';
+import { TableColumn } from '../data-table/data-table.models';
+import { createSearchPredicate, encodeSearch } from '../data-table/table-filter.util';
 
 export interface Company {
   id: number;
@@ -133,10 +133,8 @@ export interface BranchOption {
                 trackByKey="id"
                 [clickableRows]="true"
                 [emptyMessage]="selectedBranchId !== null ? 'No companies match the selected branch filter.' : 'Get started by adding your first company.'"
-                [filterOptions]="filterOptions"
                 exportFileName="companies"
                 (rowClick)="viewDetails($event)"
-                (filterChange)="onFilterChange($event)"
               >
                 <ng-template appCellDef="companyName" let-element="row">
                   <div class="d-flex align-items-center">
@@ -429,19 +427,7 @@ export class CompaniesComponent implements OnInit, AfterViewInit {
     { key: 'actions', header: 'Actions', type: 'actions', align: 'right' },
   ];
 
-  filterOptions: TableFilterOption[] = [
-    {
-      key: 'status', label: 'Status',
-      options: [
-        { value: 'active', label: 'Active' },
-        { value: 'pending', label: 'Pending' },
-        { value: 'inactive', label: 'Inactive' },
-      ],
-    },
-  ];
-
   private searchText = '';
-  private columnFilters: Record<string, string> = {};
 
   companies: Company[] = [];
   dataSource = new MatTableDataSource<Company>([]);
@@ -462,9 +448,7 @@ export class CompaniesComponent implements OnInit, AfterViewInit {
     private notificationService: NotificationService,
     private dialog: MatDialog
   ) {
-    this.dataSource.filterPredicate = createCompositePredicate(
-      (row, key) => (key === 'status' ? (row.status || '').toLowerCase() : '')
-    );
+    this.dataSource.filterPredicate = createSearchPredicate();
   }
 
   ngOnInit(): void {
@@ -563,16 +547,7 @@ export class CompaniesComponent implements OnInit, AfterViewInit {
 
   applyFilter(event: Event): void {
     this.searchText = (event.target as HTMLInputElement).value;
-    this.updateFilter();
-  }
-
-  onFilterChange(filters: Record<string, string>): void {
-    this.columnFilters = filters;
-    this.updateFilter();
-  }
-
-  private updateFilter(): void {
-    this.dataSource.filter = encodeCompositeFilter(this.searchText, this.columnFilters);
+    this.dataSource.filter = encodeSearch(this.searchText);
   }
 
   titleCase(value?: string | null): string {

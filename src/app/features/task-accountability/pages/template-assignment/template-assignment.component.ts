@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { TaskAccountabilityService } from '../../services/task-accountability.service';
 import { RoleTemplate, TemplateAssignment, BranchNode } from '../../interfaces/accountability.interface';
 import { Observable, Subscription } from 'rxjs';
-import { TableColumn, TableFilterOption } from '../../../../shared/components/data-table/data-table.models';
+import { TableColumn } from '../../../../shared/components/data-table/data-table.models';
 
 @Component({
   selector: 'app-template-assignment',
@@ -22,26 +22,6 @@ export class TemplateAssignmentComponent implements OnInit, OnDestroy {
     { key: 'status', header: 'Status', type: 'custom', exportValueFn: () => 'Active' },
     { key: 'actions', header: 'Actions', type: 'actions', align: 'right' },
   ];
-
-  assignmentsFilters: Record<string, string> = {};
-
-  assignmentsFilterOptions(rows: TemplateAssignment[]): TableFilterOption[] {
-    const seen = new Map<string, string>();
-    for (const row of rows) {
-      if (!seen.has(row.assignType)) seen.set(row.assignType, row.assignType);
-    }
-    return [
-      {
-        key: 'assignType', label: 'Type',
-        options: Array.from(seen.keys()).map(value => ({ value, label: value.charAt(0).toUpperCase() + value.slice(1) })),
-      },
-    ];
-  }
-
-  filterAssignments(rows: TemplateAssignment[]): TemplateAssignment[] {
-    const type = this.assignmentsFilters['assignType'];
-    return type ? rows.filter(r => r.assignType === type) : rows;
-  }
 
   // Dropdown options
   rolesList: string[] = ['Senior Counsellor', 'Junior Counsellor', 'Video Editor', 'Web Developer', 'Administrative Assistant'];

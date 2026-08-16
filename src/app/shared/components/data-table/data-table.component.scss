@@ -18,93 +18,41 @@
   position: relative;
 }
 
-.toolbar-filters {
-  position: relative;
-}
-
-.toolbar-btn {
-  display: inline-flex;
+.toolbar-export {
+  display: flex;
   align-items: center;
-  gap: 6px;
-  height: 34px;
-  padding: 0 14px;
-  font-size: 13px;
-  font-weight: 500;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background: #ffffff;
-  color: #475569;
-  cursor: pointer;
-
-  &:hover {
-    background: #f8f9fc;
-  }
+  gap: 8px;
+  margin-left: auto;
 }
 
-.filter-count {
+.export-icon-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  border-radius: 999px;
-  background: #615dff;
-  color: #ffffff;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.filters-panel {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  z-index: 20;
-  min-width: 220px;
-  background: #ffffff;
-  border: 1px solid #eef0f3;
-  border-radius: 10px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-  padding: 14px;
-}
-
-.filter-field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 12px;
-
-  label {
-    font-size: 11.5px;
-    font-weight: 600;
-    color: #8a94a6;
-    text-transform: uppercase;
-  }
-
-  select {
-    height: 34px;
-    padding: 0 8px;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    font-size: 13px;
-    color: #1a1d23;
-    background: #ffffff;
-  }
-}
-
-.clear-filters-btn {
-  width: 100%;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border: none;
-  background: transparent;
-  color: #615dff;
-  font-size: 12.5px;
-  font-weight: 600;
+  border-radius: 50%;
   cursor: pointer;
-  text-align: left;
+  color: #ffffff;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &__icon {
+    width: 18px;
+    height: 18px;
+  }
 
   &:hover {
-    text-decoration: underline;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+  }
+
+  &--excel {
+    background: #1f9d55;
+  }
+
+  &--pdf {
+    background: #f5821f;
   }
 }
 
@@ -379,26 +327,5 @@
 
   .mobile-card {
     border-color: var(--dark-formborderColor, #334155);
-  }
-
-  .toolbar-btn {
-    background: var(--dark-sidebarbg, #232a35);
-    border-color: var(--dark-formborderColor, #334155);
-    color: #94a3b8;
-
-    &:hover {
-      background: var(--dark-hoverbgcolor, #2a3341);
-    }
-  }
-
-  .filters-panel {
-    background: var(--dark-cardbg, #1e2530);
-    border-color: var(--dark-formborderColor, #334155);
-  }
-
-  .filter-field select {
-    background: var(--dark-sidebarbg, #232a35);
-    border-color: var(--dark-formborderColor, #334155);
-    color: #f1f5f9;
   }
 }

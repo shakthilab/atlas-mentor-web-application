@@ -58,34 +58,22 @@
 
 <div class="app-data-table">
   <div class="app-data-table__toolbar" *ngIf="hasToolbar">
-    <div class="toolbar-filters" *ngIf="filterOptions?.length">
-      <button type="button" class="toolbar-btn" (click)="toggleFilters(); $event.stopPropagation()">
-        Filters
-        <span class="filter-count" *ngIf="activeFilterCount">{{ activeFilterCount }}</span>
-      </button>
-      <div class="filters-panel" *ngIf="filtersOpen" (click)="$event.stopPropagation()">
-        <div class="filter-field" *ngFor="let opt of filterOptions">
-          <label>{{ opt.label }}</label>
-          <select [value]="activeFilters[opt.key] || ''" (change)="onFilterValueChange(opt.key, $any($event.target).value)">
-            <option value="">All</option>
-            <option *ngFor="let o of opt.options" [value]="o.value">{{ o.label }}</option>
-          </select>
-        </div>
-        <button type="button" class="clear-filters-btn" *ngIf="activeFilterCount" (click)="clearFilters()">Clear filters</button>
-      </div>
+    <div class="toolbar-export" *ngIf="exportFileName">
+      <button
+        type="button"
+        class="export-icon-btn export-icon-btn--excel"
+        title="Export as Excel"
+        aria-label="Export as Excel"
+        (click)="exportExcel()"
+      ><i-tabler name="file-type-xls" class="export-icon-btn__icon"></i-tabler></button>
+      <button
+        type="button"
+        class="export-icon-btn export-icon-btn--pdf"
+        title="Export as PDF"
+        aria-label="Export as PDF"
+        (click)="exportPdf()"
+      ><i-tabler name="file-type-pdf" class="export-icon-btn__icon"></i-tabler></button>
     </div>
-
-    <button
-      *ngIf="exportFileName"
-      type="button"
-      mat-stroked-button
-      class="toolbar-btn export-btn"
-      [matMenuTriggerFor]="exportMenu"
-    >Export</button>
-    <mat-menu #exportMenu="matMenu">
-      <button mat-menu-item (click)="exportExcel()">Export as Excel</button>
-      <button mat-menu-item (click)="exportPdf()">Export as PDF</button>
-    </mat-menu>
   </div>
 
   <div class="app-data-table__scroll" *ngIf="!loading && !hasError && rows.length > 0">

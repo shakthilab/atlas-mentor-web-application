@@ -14,8 +14,7 @@ import { EmployeeService, Employee, Page } from '../../../core/services/employee
 import { EmployeeDetailsDialogComponent } from './employee-details-dialog/employee-details-dialog.component';
 import { AddEmployeeDialogComponent } from './add-employee-dialog/add-employee-dialog.component';
 import { AuthService } from '../../../core/services/auth.service';
-import { TableColumn, TableFilterOption } from '../data-table/data-table.models';
-import { createCompositePredicate, encodeCompositeFilter } from '../data-table/table-filter.util';
+import { TableColumn } from '../data-table/data-table.models';
 
 @Component({
   selector: 'app-employees',
@@ -54,10 +53,8 @@ import { createCompositePredicate, encodeCompositeFilter } from '../data-table/t
               [rows]="dataSource.filteredData"
               trackByKey="id"
               [clickableRows]="true"
-              [filterOptions]="filterOptions"
               exportFileName="employees"
               (rowClick)="viewProfile($event)"
-              (filterChange)="onFilterChange($event)"
             >
               <ng-template appCellDef="employee" let-element="row">
                 <div class="d-flex align-items-center">
@@ -442,18 +439,6 @@ export class EmployeesComponent implements OnInit, AfterViewInit {
     { key: 'actions', header: 'Actions', type: 'actions', align: 'right' },
   ];
 
-  filterOptions: TableFilterOption[] = [
-    {
-      key: 'status', label: 'Status',
-      options: [
-        { value: 'active', label: 'Active' },
-        { value: 'inactive', label: 'Inactive' },
-      ],
-    },
-  ];
-
-  private columnFilters: Record<string, string> = {};
-
   dataSource = new MatTableDataSource<Employee>([]);
 
   totalElements = 0;
@@ -468,18 +453,7 @@ export class EmployeesComponent implements OnInit, AfterViewInit {
     private employeeService: EmployeeService,
     private dialog: MatDialog,
     private authService: AuthService
-  ) {
-    // Search is server-side (loadEmployees); this predicate only applies the
-    // Status column filter client-side on top of whatever page is loaded.
-    this.dataSource.filterPredicate = createCompositePredicate(
-      (row, key) => (key === 'status' ? (row.status || 'ACTIVE').toLowerCase() : '')
-    );
-  }
-
-  onFilterChange(filters: Record<string, string>): void {
-    this.columnFilters = filters;
-    this.dataSource.filter = encodeCompositeFilter('', this.columnFilters);
-  }
+  ) {}
 
   titleCase(value?: string | null): string {
     if (!value) return '';

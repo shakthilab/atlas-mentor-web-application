@@ -104,11 +104,9 @@
     <div class="table-container">
       <app-data-table
         [columns]="pendingReviewsColumns"
-        [rows]="filteredPendingReviews"
+        [rows]="pendingReviews"
         emptyMessage="All clear! There are no pending reviews for the selected scope."
-        [filterOptions]="pendingReviewsFilterOptions"
         exportFileName="pending-reviews"
-        (filterChange)="pendingReviewsFilters = $event"
       >
         <ng-template appCellDef="employeeName" let-item="row"><span class="font-semibold">{{ item.employeeName }}</span></ng-template>
         <ng-template appCellDef="roleName" let-item="row"><span class="role-pill">{{ item.roleName }}</span></ng-template>

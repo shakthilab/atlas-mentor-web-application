@@ -7,8 +7,7 @@ import { ResourceService, ResourceData } from '../../../core/services/resource.s
 import { AddResourceDialogComponent } from './add-resource-dialog/add-resource-dialog.component';
 import { ResourceDetailsDialogComponent } from './resource-details-dialog/resource-details-dialog.component';
 import { AuthService } from '../../../core/services/auth.service';
-import { TableColumn, TableFilterOption } from '../data-table/data-table.models';
-import { createCompositePredicate, encodeCompositeFilter } from '../data-table/table-filter.util';
+import { TableColumn } from '../data-table/data-table.models';
 
 export interface Resource {
   id: number;
@@ -78,10 +77,8 @@ export interface Resource {
               [rows]="dataSource.filteredData"
               trackByKey="id"
               [clickableRows]="true"
-              [filterOptions]="filterOptions"
               exportFileName="resources"
               (rowClick)="viewDetails($event)"
-              (filterChange)="onFilterChange($event)"
             >
               <ng-template appCellDef="resourceDetail" let-element="row">
                 <div class="d-flex align-items-center">
@@ -272,19 +269,6 @@ export class ResourcesComponent implements OnInit, AfterViewInit {
   isLoading = false;
   hasError = false;
 
-  filterOptions: TableFilterOption[] = [
-    {
-      key: 'status', label: 'Status',
-      options: [
-        { value: 'available', label: 'Available' },
-        { value: 'in-use', label: 'In Use' },
-        { value: 'archived', label: 'Archived' },
-      ],
-    },
-  ];
-
-  private columnFilters: Record<string, string> = {};
-
   dataSource = new MatTableDataSource<Resource>([]);
 
   tableColumns: TableColumn<Resource>[] = [
@@ -315,16 +299,7 @@ export class ResourcesComponent implements OnInit, AfterViewInit {
     private resourceService: ResourceService,
     private dialog: MatDialog,
     private authService: AuthService
-  ) {
-    this.dataSource.filterPredicate = createCompositePredicate(
-      (row, key) => (key === 'status' ? (row.status || '').toLowerCase() : '')
-    );
-  }
-
-  onFilterChange(filters: Record<string, string>): void {
-    this.columnFilters = filters;
-    this.dataSource.filter = encodeCompositeFilter('', this.columnFilters);
-  }
+  ) {}
 
   ngOnInit(): void {
     const user = this.authService.currentUserValue;

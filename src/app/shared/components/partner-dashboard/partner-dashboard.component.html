@@ -77,10 +77,8 @@
           </div>
           <app-data-table
             [columns]="recentStudentsColumns"
-            [rows]="filteredRecentStudents"
-            [filterOptions]="recentStudentsFilterOptions"
+            [rows]="recentStudents"
             exportFileName="recent-students"
-            (filterChange)="recentStudentsFilters = $event"
           >
             <ng-template appCellDef="name" let-student="row"><span class="fw-bold">{{ student.name }}</span></ng-template>
             <ng-template appCellDef="enrolled" let-student="row"><span class="text-muted fw-normal">{{ student.enrolled }}</span></ng-template>

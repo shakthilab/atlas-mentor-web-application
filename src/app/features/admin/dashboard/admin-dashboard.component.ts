@@ -3,7 +3,7 @@ import { EChartsOption } from 'echarts';
 import * as echarts from 'echarts';
 import { DashboardService } from '../../../core/services/dashboard.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { TableColumn, TableFilterOption } from '../../../shared/components/data-table/data-table.models';
+import { TableColumn } from '../../../shared/components/data-table/data-table.models';
 
 @Directive({
   selector: '[appAnimatedNumber]'
@@ -620,18 +620,6 @@ export class AdminDashboardComponent implements OnInit {
     { key: 'amount', header: 'Amount / Status', type: 'custom', exportValueFn: r => `${r.amount} (${r.status})` },
     { key: 'last', header: 'Last', type: 'custom', align: 'right', exportValueFn: r => r.last },
   ];
-  get topPayingEntitiesFilterOptions(): TableFilterOption[] {
-    return [
-      { key: 'status', label: 'Status', options: this.uniqueValueOptions(this.topPayingEntities, r => r.status) },
-    ];
-  }
-  public topPayingEntitiesFilters: Record<string, string> = {};
-  get filteredTopPayingEntities(): any[] {
-    return this.filterByColumn(this.topPayingEntities, this.topPayingEntitiesFilters, (r, key) =>
-      key === 'status' ? (r.status || '').toLowerCase() : ''
-    );
-  }
-
   public openDisputes: any[] = [];
 
   // --- SECTION 04: TASKS ---
@@ -669,18 +657,6 @@ export class AdminDashboardComponent implements OnInit {
     { key: 'priority', header: 'Priority', type: 'custom', exportValueFn: r => r.priority },
     { key: 'late', header: 'Late', type: 'custom', align: 'right', exportValueFn: r => r.late },
   ];
-  get overdueTasksFilterOptions(): TableFilterOption[] {
-    return [
-      { key: 'priority', label: 'Priority', options: this.uniqueValueOptions(this.overdueTasks, r => r.priority) },
-    ];
-  }
-  public overdueTasksFilters: Record<string, string> = {};
-  get filteredOverdueTasks(): any[] {
-    return this.filterByColumn(this.overdueTasks, this.overdueTasksFilters, (r, key) =>
-      key === 'priority' ? (r.priority || '').toLowerCase() : ''
-    );
-  }
-
   public workload: any[] = [];
 
   // --- SECTION 05: TEAM & BRANCHES ---
@@ -729,18 +705,6 @@ export class AdminDashboardComponent implements OnInit {
     { key: 'commission', header: 'Commission', type: 'custom', align: 'right', exportValueFn: r => r.commission },
     { key: 'share', header: 'Share', type: 'custom', maxWidth: '220px', exportValueFn: r => `${r.share}%` },
   ];
-  get topReferrersFilterOptions(): TableFilterOption[] {
-    return [
-      { key: 'type', label: 'Type', options: this.uniqueValueOptions(this.topReferrers, r => r.type) },
-    ];
-  }
-  public topReferrersFilters: Record<string, string> = {};
-  get filteredTopReferrers(): any[] {
-    return this.filterByColumn(this.topReferrers, this.topReferrersFilters, (r, key) =>
-      key === 'type' ? (r.type || '').toLowerCase() : ''
-    );
-  }
-
   // --- SECTION 07: AUDIT & ACTIVITY ---
   public auditLog: any[] = [];
   public auditLogColumns: TableColumn<any>[] = [
@@ -750,34 +714,5 @@ export class AdminDashboardComponent implements OnInit {
     { key: 'actor', header: 'Actor', type: 'custom', exportValueFn: r => r.actor },
     { key: 'change', header: 'Change', type: 'custom', exportValueFn: r => r.change },
   ];
-  get auditLogFilterOptions(): TableFilterOption[] {
-    return [
-      { key: 'action', label: 'Action', options: this.uniqueValueOptions(this.auditLog, r => r.action) },
-    ];
-  }
-  public auditLogFilters: Record<string, string> = {};
-  get filteredAuditLog(): any[] {
-    return this.filterByColumn(this.auditLog, this.auditLogFilters, (r, key) =>
-      key === 'action' ? (r.action || '').toLowerCase() : ''
-    );
-  }
-
   public activityFeed: any[] = [];
-
-  private uniqueValueOptions(rows: any[], fieldFn: (row: any) => string): { value: string; label: string }[] {
-    const seen = new Map<string, string>();
-    for (const row of rows) {
-      const raw = fieldFn(row);
-      if (!raw) continue;
-      const value = String(raw).toLowerCase();
-      if (!seen.has(value)) seen.set(value, String(raw));
-    }
-    return Array.from(seen.entries()).map(([value, label]) => ({ value, label }));
-  }
-
-  private filterByColumn<T>(rows: T[], filters: Record<string, string>, fieldFn: (row: T, key: string) => string): T[] {
-    const activeKeys = Object.keys(filters).filter((k) => filters[k]);
-    if (!activeKeys.length) return rows;
-    return rows.filter((row) => activeKeys.every((k) => fieldFn(row, k) === filters[k]));
-  }
 }
