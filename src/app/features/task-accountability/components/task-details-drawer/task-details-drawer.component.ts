@@ -56,15 +56,18 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
       next: (res) => {
         const data = res?.data || res;
         if (Array.isArray(data) && data.length > 0) {
-          this.statusesList = data.map((item: any) => {
-            if (typeof item === 'string') {
-              return { value: item, label: this.formatStatusLabel(item) };
-            }
-            return {
-              value: item.value || item.status || item.name || item,
-              label: item.label || item.name || this.formatStatusLabel(item.value || item.status || item)
-            };
-          });
+          this.statusesList = data
+            .map((item: any) => {
+              if (typeof item === 'string') {
+                return { value: item, label: this.formatStatusLabel(item) };
+              }
+              return {
+                value: item.value || item.status || item.name || item,
+                label: item.label || item.name || this.formatStatusLabel(item.value || item.status || item)
+              };
+            })
+            // Users should never manually set a task TO overdue — exclude it from the picker
+            .filter((s: { value: string; label: string }) => s.value?.toUpperCase() !== 'OVERDUE');
         }
       },
       error: (err) => {
@@ -81,6 +84,8 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
     if (s === 'DONE' || s === 'COMPLETED') return 'Done';
     if (s === 'VERIFIED' || s === 'APPROVED') return 'Verified';
     if (s === 'CLOSED') return 'Closed';
+    if (s === 'REFLECT' || s === 'SEND_BACK' || s === 'REJECTED') return 'Reflect';
+    if (s === 'OVERDUE') return 'Overdue';
     return status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   }
 
@@ -90,6 +95,26 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
       return (currentDay as any).canCurrentUserAct;
     }
     return true;
+  }
+
+  /**
+   * Late-completion catch-up (ADMIN only): this task is DONE/COMPLETED but its day already
+   * reached ADMIN_VERIFIED - the backend's one-time verifyEligibleTasks sweep already ran and
+   * skipped it because it wasn't DONE yet at that moment, so it's stuck at DONE forever unless
+   * verified individually (DayApprovalService#approveResubmittedTasks). canCurrentUserAct alone
+   * is correctly false in this state (the day itself isn't awaiting review), so the Approve
+   * button needs this separate escape hatch to ever become usable again.
+   */
+  get canCatchUpThisTask(): boolean {
+    if (!this.task) return false;
+    const user = this.authService.currentUserValue;
+    const isAdmin = (user?.role || '').toString().toUpperCase().trim() === 'ADMIN';
+    if (!isAdmin) return false;
+    const currentDay = this.service.selectedDayValue;
+    const stage = ((currentDay as any)?.approvalStage || currentDay?.status || '').toString().toUpperCase().trim();
+    if (stage !== 'ADMIN_VERIFIED') return false;
+    const s = (this.task.status || '').toString().toUpperCase().trim();
+    return s === 'DONE' || s === 'COMPLETED';
   }
 
   get canShowReviewActions(): boolean {
@@ -219,6 +244,10 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
           this.task.priority = res.data.priority || this.task.priority;
           this.task.assignedTo = res.data.assigneeName || this.task.assignedTo;
           this.task.createdByName = res.data.createdByName || this.task.createdByName;
+          // dueDate/completedAt (V23) - present on the full task detail response too; keep
+          // whatever the day list already had (e.g. carriedOver) and just refresh these.
+          this.task.dueDate = res.data.dueDate || this.task.dueDate;
+          this.task.completedAt = res.data.completedAt ?? this.task.completedAt;
         }
       },
       error: (err) => {
@@ -470,9 +499,32 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
     if (!task) return false;
     const currentStepLower = (task.currentStep || '').toLowerCase();
     const statusLower = (task.status || '').toLowerCase();
+    // OVERDUE tasks must always be changeable — never disable them
+    if (statusLower === 'overdue') return false;
     return currentStepLower.includes('verified') || 
            statusLower === 'verified' || 
            statusLower === 'closed';
+  }
+
+  changePriority(task: TaskItem | null, newPriority: string, event?: MouseEvent): void {
+    if (event) event.stopPropagation();
+    const target = task || this.task;
+    if (!target || target.priority === newPriority) return;
+
+    // Optimistically update
+    target.priority = newPriority as TaskItem['priority'];
+    this.service.triggerRefresh();
+
+    if (target.id && !target.id.startsWith('demo-') && !target.id.startsWith('tt-')) {
+      this.service.patchTaskPriorityApi(target.id, newPriority).subscribe({
+        next: () => {
+          this.service.triggerRefresh();
+        },
+        error: (err) => {
+          console.error('Error patching task priority from drawer:', err);
+        }
+      });
+    }
   }
 
   get canResubmitTask(): boolean {
@@ -694,8 +746,87 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
     if (s === 'REJECTED' || s === 'RETURNED' || s === 'MANAGER FEEDBACK' || s === 'ACTION NEEDED') return 'status-feedback';
     if (s === 'IN_PROGRESS' || s === 'IN PROGRESS') return 'status-in-progress';
     if (s === 'TODO' || s === 'TO DO' || s === 'NOT_STARTED') return 'status-todo';
+    if (s === 'OVERDUE') return 'status-overdue';
     if (s === 'CLOSED') return 'status-closed';
     return 'status-todo';
+  }
+
+  /** Origin label for a carried-over task, matching the task table's badge - e.g. "Overdue since Aug 16". */
+  getCarriedOverBadgeLabel(task: TaskItem | null): string {
+    if (!task) return 'Overdue';
+    const raw = task.dueDate || task.originalWorkDate;
+    if (!raw) return 'Overdue';
+    const d = new Date(raw + 'T00:00:00');
+    if (isNaN(d.getTime())) return 'Overdue';
+    return `Overdue since ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+  }
+
+  formatShortDate(dateStr?: string | null): string {
+    if (!dateStr) return '';
+    const d = new Date(dateStr.length <= 10 ? `${dateStr}T00:00:00` : dateStr);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  getDaysOverdue(dueDateStr?: string | null): number {
+    if (!dueDateStr) return 0;
+    const due = new Date(`${dueDateStr}T00:00:00`);
+    if (isNaN(due.getTime())) return 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return Math.max(0, Math.round((today.getTime() - due.getTime()) / 86400000));
+  }
+
+  isTaskOverdue(task: TaskItem | null): boolean {
+    if (!task || !task.dueDate || task.completedAt) return false;
+    return this.getDaysOverdue(task.dueDate) > 0;
+  }
+
+  getOverdueDaysLabel(task: TaskItem | null): string {
+    if (!task || !task.dueDate) return '';
+    const days = this.getDaysOverdue(task.dueDate);
+    if (days <= 0) return '';
+    return `${days}d overdue`;
+  }
+
+  getAvatarColorClass(name?: string): string {
+    if (!name) return 'blue';
+    const hash = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const colors = ['blue', 'green', 'rose', 'purple', 'amber', 'teal'];
+    return colors[hash % colors.length];
+  }
+
+  /** Short "Aug 17" due date for the compact "SCHEDULE : Aug 17" label line. */
+  getScheduleShortDate(task: TaskItem | null): string {
+    if (!task || !task.dueDate) return '';
+    return this.formatShortDate(task.dueDate);
+  }
+
+  /**
+   * "Due: Aug 16" on its own row, or "Due: Aug 16 (2 days overdue)" while it's still open
+   * past its due date - once completedAt is set the overdue count no longer applies (see
+   * getCompletedLineText for that separate row instead).
+   */
+  getDueLineText(task: TaskItem | null): string {
+    if (!task || !task.dueDate) return '';
+    const dueLabel = this.formatShortDate(task.dueDate);
+    if (!task.completedAt) {
+      const daysOverdue = this.getDaysOverdue(task.dueDate);
+      if (daysOverdue > 0) {
+        return `Due: ${dueLabel} (${daysOverdue} day${daysOverdue === 1 ? '' : 's'} overdue)`;
+      }
+    }
+    return `Due: ${dueLabel}`;
+  }
+
+  /** "Completed: Aug 18" on its own row - only rendered once completedAt is actually set. */
+  getCompletedLineText(task: TaskItem | null): string {
+    if (!task || !task.completedAt) return '';
+    return `Completed: ${this.formatShortDate(task.completedAt)}`;
+  }
+
+  get isCarriedOverTask(): boolean {
+    return !!this.displayTask?.carriedOver;
   }
 
   getFormattedDisplayId(task: TaskItem | null): string {

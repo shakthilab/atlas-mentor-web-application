@@ -40,10 +40,20 @@
 .workspace-nav {
   display: flex;
   gap: 24px;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .nav-tab {
   display: inline-block;
+  flex-shrink: 0;
+  white-space: nowrap;
   padding: 16px 0;
   color: #64748b;
   font-weight: 500;

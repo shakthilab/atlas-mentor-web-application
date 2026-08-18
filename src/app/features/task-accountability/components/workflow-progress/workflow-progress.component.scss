@@ -65,7 +65,25 @@
 
   .step-label {
     margin-left: 6px;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
   }
+}
+
+.optional-tag {
+  font-size: 10px;
+  font-weight: 500;
+  opacity: 0.7;
+  text-transform: none;
+}
+
+.skipped-tag {
+  margin-left: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
 }
 
 .step-indicator-circle {
@@ -89,6 +107,17 @@
       stroke-width: 3.5;
     }
   }
+
+  &.skip {
+    background-color: #94a3b8;
+    color: #ffffff;
+
+    .skip-icon {
+      width: 10px;
+      height: 10px;
+      stroke-width: 3.5;
+    }
+  }
 }
 
 /* Completed Steps */
@@ -99,6 +128,26 @@
 
   &:hover {
     background-color: #dcfce7;
+  }
+}
+
+/* Skipped Step (optional Branch Partner review not used) */
+.step-skipped {
+  background-color: #f8fafc;
+  border: 1px dashed #94a3b8;
+  color: #64748b;
+
+  .step-label {
+    text-decoration: line-through;
+    text-decoration-color: #cbd5e1;
+  }
+
+  .optional-tag {
+    text-decoration: none;
+  }
+
+  &:hover {
+    background-color: #f1f5f9;
   }
 }
 

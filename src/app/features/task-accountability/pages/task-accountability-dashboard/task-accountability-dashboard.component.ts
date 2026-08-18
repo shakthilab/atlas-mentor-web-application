@@ -7,6 +7,7 @@ import { AuthService } from '../../../../core/services/auth.service';
 
 import { MatDialog } from '@angular/material/dialog';
 import { SendBackReasonDialogComponent } from '../../components/send-back-reason-dialog/send-back-reason-dialog.component';
+import { NotificationService } from '../../../../core/services/notification.service';
 
 export interface WeeklyStripDay {
   dayName: string;
@@ -43,6 +44,7 @@ export class TaskAccountabilityDashboardComponent implements OnInit, OnDestroy {
   selectedTask: TaskItem | null = null;
 
   isIndividualContributor = false;
+  isCurrentUserBranchPartner = false;
   myDaysList: any[] = [];
   selectedMyDayDate: string = '';
 
@@ -66,7 +68,8 @@ export class TaskAccountabilityDashboardComponent implements OnInit, OnDestroy {
   constructor(
     private service: TaskAccountabilityService,
     private authService: AuthService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private notificationService: NotificationService
   ) {}
 
   @HostListener('document:click', ['$event'])
@@ -194,6 +197,7 @@ export class TaskAccountabilityDashboardComponent implements OnInit, OnDestroy {
     const user = this.authService.currentUserValue;
     const userRole = user?.role || '';
     this.isIndividualContributor = !this.service.isAdminTreeRole(userRole);
+    this.isCurrentUserBranchPartner = (userRole || '').toString().toUpperCase().trim() === 'BRANCH_PARTNER';
 
     this.generateWeeklyStrip(this.selectedMyDayDate);
 
@@ -551,7 +555,15 @@ export class TaskAccountabilityDashboardComponent implements OnInit, OnDestroy {
             reflectState: t.reflectState ?? null,
             reflectStage: t.reflectStage ?? null,
             reflectComment: t.reflectComment || t.comment || null,
-            reflectFlaggedByName: t.reflectFlaggedByName || t.flaggedByName || null
+            reflectFlaggedByName: t.reflectFlaggedByName || t.flaggedByName || null,
+            // Overdue Task Rollover (V23) - carriedOver only ever comes back true when this
+            // day is today (see EmployeeTreeService#getDayDetail); browsing a past day always
+            // returns that day's own tasks only, so these fields are simply absent there.
+            carriedOver: t.carriedOver === true,
+            dueDate: t.dueDate || null,
+            originalWorkDate: t.originalWorkDate || null,
+            originalDayNumber: t.originalDayNumber ?? null,
+            completedAt: t.completedAt || null
           }));
         } else {
           this.day.tasks = [];
@@ -664,7 +676,17 @@ export class TaskAccountabilityDashboardComponent implements OnInit, OnDestroy {
     if (!this.day || !this.day.tasks || this.day.tasks.length === 0) {
       return false;
     }
-    return this.day.tasks.every(t => {
+    // Submit Day's enablement must mirror the backend's own rule (DayWorkspaceService#submitDay
+    // only ever evaluates findByDayWorkspaceId(workspace.getId()) - this day's own tasks).
+    // Carried-over overdue tasks from earlier days are shown here for visibility only and must
+    // never gate today's submission just because they're visually present on the same screen.
+    const todaysOwnTasks = this.day.tasks.filter(t => !t.carriedOver);
+    if (todaysOwnTasks.length === 0) {
+      // Every visible task is carried-over (e.g. a rest day with no tasks of its own) - the
+      // backend skips the completion check entirely for a day with zero own tasks.
+      return true;
+    }
+    return todaysOwnTasks.every(t => {
       if (!t.status) return false;
       const s = t.status.toUpperCase().trim();
       return s === 'DONE' || s === 'COMPLETED' || s === 'VERIFIED';
@@ -675,7 +697,12 @@ export class TaskAccountabilityDashboardComponent implements OnInit, OnDestroy {
   submitDay(): void {
     if (!this.isAllTasksCompleted) return;
     if (!this.employee || !this.day) return;
-    const dateStr = this.day.dateLabel && this.day.dateLabel.includes('-') ? this.day.dateLabel : this.getLocalDateString();
+    // Pre-existing bug (found during QA, unrelated to the optional-Branch-Partner change):
+    // dateLabel is a display string like "Aug 14" and never contains a dash, so this always
+    // fell through to today's date regardless of which day was actually selected. rawDate
+    // (the real ISO date, already used everywhere else in this file - see loadDayDetailAndTasks)
+    // is what should drive the submit target.
+    const dateStr = (this.day as any).rawDate || (this.day.dateLabel && this.day.dateLabel.includes('-') ? this.day.dateLabel : this.getLocalDateString());
 
     if (this.employee.id && !this.employee.id.startsWith('emp-')) {
       this.service.submitEmployeeDayApi(this.employee.id, dateStr).subscribe({
@@ -704,9 +731,47 @@ export class TaskAccountabilityDashboardComponent implements OnInit, OnDestroy {
     return map[role] || role.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   }
 
+  /**
+   * Tasks stuck at DONE/COMPLETED on a day whose approval pipeline has already fully closed
+   * (ADMIN_VERIFIED). Backend's one-time verifyEligibleTasks sweep only runs the moment the
+   * day itself reaches ADMIN_VERIFIED and skips whatever isn't DONE yet at that exact instant -
+   * a task finished afterwards (e.g. resubmitted late, or simply completed after the fact)
+   * is permanently stuck at DONE unless caught up individually
+   * (DayApprovalService#approveResubmittedTasks now also handles this "late completion" case).
+   */
+  get strayDoneTasks(): TaskItem[] {
+    if (!this.day || !this.day.tasks) return [];
+    const stage = ((this.day as any).approvalStage || this.day.status || '').toString().toUpperCase().trim();
+    if (stage !== 'ADMIN_VERIFIED') return [];
+    return this.day.tasks.filter(t => {
+      const s = (t.status || '').toString().toUpperCase().trim();
+      return s === 'DONE' || s === 'COMPLETED';
+    });
+  }
+
+  get strayDoneTaskIds(): Array<string | number> {
+    return this.strayDoneTasks.map(t => t.id);
+  }
+
+  get isCurrentUserAdmin(): boolean {
+    const user = this.authService.currentUserValue;
+    return (user?.role || '').toString().toUpperCase().trim() === 'ADMIN';
+  }
+
+  /** Whether the header "Approve" button should offer the bulk late-completion catch-up instead of (or on top of) the normal whole-day approve. */
+  get canCatchUpStrayTasks(): boolean {
+    return this.isCurrentUserAdmin && this.strayDoneTasks.length > 0;
+  }
+
   // Whole Day Approval (hasTaskIds: false) or Per-Task Approval (hasTaskIds: true)
   approveDayAction(taskIds?: Array<string | number>, comment?: string): void {
-    if (!this.day || !this.day.canCurrentUserAct) return;
+    if (!this.day) return;
+    // Normal flow still requires canCurrentUserAct (the day itself awaiting this user's
+    // review). The late-completion catch-up is the one exception: the day is already fully
+    // approved (canCurrentUserAct is correctly false), but explicit taskIds were passed for
+    // straggler tasks - the backend independently re-validates ADMIN-only + eligibility.
+    const isCatchUp = !!taskIds && taskIds.length > 0;
+    if (!this.day.canCurrentUserAct && !isCatchUp) return;
     const dayWorkspaceId = (this.day as any).rawDayWorkspaceId || this.day.id.replace('d-', '');
 
     this.service.approveDayApi(dayWorkspaceId, 'APPROVE', comment, taskIds).subscribe({
@@ -714,12 +779,7 @@ export class TaskAccountabilityDashboardComponent implements OnInit, OnDestroy {
         console.log(taskIds && taskIds.length > 0 ? 'Resubmitted tasks approved:' : 'Whole day approved:', res);
         this.loadDayDetailAndTasks();
       },
-      error: (err) => {
-        console.error('Error approving day/tasks:', err);
-        const errorMsg = err?.error?.message || 'Action failed or permissions changed. Please refresh.';
-        alert(errorMsg);
-        this.loadDayDetailAndTasks();
-      }
+      error: (err) => this.handleApprovalActionError(err)
     });
   }
 
@@ -729,7 +789,13 @@ export class TaskAccountabilityDashboardComponent implements OnInit, OnDestroy {
     let targetTaskIds = taskIds;
     if (!targetTaskIds || targetTaskIds.length === 0) {
       if (this.day && this.day.tasks && this.day.tasks.length > 0) {
+        // Backend's sendBackTasks now requires taskIds and validates every one of them
+        // belongs to THIS day's own day_workspace (see DayApprovalService#sendBackTasks) -
+        // a carried-over task's id belongs to an earlier day's workspace, so including it here
+        // would 400 the whole bulk send-back. Carried-over tasks aren't part of this day's
+        // submission anyway; only today's own tasks are eligible for this fallback.
         targetTaskIds = this.day.tasks
+          .filter(t => !t.carriedOver)
           .map(t => typeof t.id === 'number' ? t.id : parseInt(String(t.id).replace(/\D/g, ''), 10))
           .filter(id => !isNaN(id));
       }
@@ -773,13 +839,29 @@ export class TaskAccountabilityDashboardComponent implements OnInit, OnDestroy {
         // what the backend already saved.
         this.loadDayDetailAndTasks();
       },
-      error: (err) => {
-        console.error('Error sending back day/tasks:', err);
-        const errorMsg = err?.error?.message || 'Action failed or permissions changed. Please refresh.';
-        alert(errorMsg);
-        this.loadDayDetailAndTasks();
-      }
+      error: (err) => this.handleApprovalActionError(err)
     });
+  }
+
+  /**
+   * Approve/Send-back can 403 if the day moved past the stage this user could act on before
+   * the request landed - most commonly a Branch Partner racing a Manager who acted first, or
+   * a stale page. Surface a clear, specific message instead of a raw error and refresh so the
+   * screen reflects the day's real current stage.
+   */
+  private handleApprovalActionError(err: any): void {
+    console.error('Error on day approval action:', err);
+    if (err?.status === 403) {
+      const backendMsg = err?.error?.message;
+      this.notificationService.showWarningToast(
+        backendMsg || 'This day has already moved on to the next reviewer. Refreshing the latest status…',
+        'Already Reviewed'
+      );
+    } else {
+      const errorMsg = err?.error?.message || 'Action failed or permissions changed. Please refresh.';
+      this.notificationService.showErrorToast(errorMsg, 'Action Failed');
+    }
+    this.loadDayDetailAndTasks();
   }
 
   markDayComplete(): void {

@@ -7,6 +7,7 @@ import { WeeklyAccountabilityComponent } from './pages/weekly-accountability/wee
 import { ReportsComponent } from './pages/reports/reports.component';
 import { TaskAccountabilityShellComponent } from './components/task-accountability-shell/task-accountability-shell.component';
 import { WeeklyTemplatesComponent } from './pages/weekly-templates/weekly-templates.component';
+import { PendingReviewComponent } from './pages/pending-review/pending-review.component';
 
 const routes: Routes = [
   {
@@ -15,6 +16,7 @@ const routes: Routes = [
     children: [
       { path: '', redirectTo: 'daily', pathMatch: 'full' },
       { path: 'daily', component: TaskAccountabilityDashboardComponent },
+      { path: 'pending-review', component: PendingReviewComponent },
       { path: 'templates', component: RoleTemplatesComponent },
       { path: 'weekly-templates', component: WeeklyTemplatesComponent },
       { path: 'assignments', component: TemplateAssignmentComponent },

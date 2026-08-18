@@ -24,6 +24,15 @@ export interface LeadApi {
   assignedEmployee?: any;
   createdByUser?: any;
   role?: any;
+  // Lead priority/background classification — all optional (see StudentOnboardingRequest.leadClassification
+  // and StudentResponse on the backend). priority/prioritySubCategory/background are the enum codes
+  // (e.g. "P1", "HOT_LEADS", "EDUCATED"); the *DisplayName fields are the ready-to-render labels.
+  priority?: string;
+  priorityDisplayName?: string;
+  prioritySubCategory?: string;
+  prioritySubCategoryDisplayName?: string;
+  background?: string;
+  backgroundDisplayName?: string;
 }
 
 export interface LeadPage {

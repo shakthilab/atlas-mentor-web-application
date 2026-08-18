@@ -246,6 +246,12 @@ app-task-accountability-shell {
     background-color: #f8fafc;
     border-color: #e2e8f0;
   }
+
+  &.status-overdue {
+    color: #dc2626;
+    background-color: #fef2f2;
+    border-color: #fca5a5;
+  }
 }
 
 .status-badge {
@@ -295,6 +301,11 @@ app-task-accountability-shell {
   &.status-todo {
     color: #475569;
     background-color: #f8fafc;
+  }
+
+  &.status-overdue {
+    color: #dc2626;
+    background-color: #fef2f2;
   }
 }
 

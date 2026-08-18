@@ -24,26 +24,23 @@ import { WeeklyTemplateDuplicateDialogComponent } from './weekly-template-duplic
 
       <!-- Filters Panel -->
       <div class="filters-card cardWithShadow p-16 m-b-24">
-        <div class="row align-items-center">
-          <div class="col-sm-4">
-            <mat-form-field appearance="outline" class="w-100" subscriptSizing="dynamic">
-              <mat-label>Filter by Role</mat-label>
-              <mat-select [(value)]="selectedRoleId" (selectionChange)="onFilterChange()">
-                <mat-option [value]="''">All Roles</mat-option>
-                <mat-option *ngFor="let role of roles" [value]="role.id">{{ role.displayName || role.name }}</mat-option>
-              </mat-select>
-            </mat-form-field>
-          </div>
-          <div class="col-sm-4">
-            <mat-form-field appearance="outline" class="w-100" subscriptSizing="dynamic">
-              <mat-label>Filter by Status</mat-label>
-              <mat-select [(value)]="selectedStatus" (selectionChange)="onFilterChange()">
-                <mat-option [value]="''">All Statuses</mat-option>
-                <mat-option [value]="'DRAFT'">Draft</mat-option>
-                <mat-option [value]="'ACTIVE'">Active</mat-option>
-              </mat-select>
-            </mat-form-field>
-          </div>
+        <div class="filters-row">
+          <mat-form-field appearance="outline" class="w-100" subscriptSizing="dynamic">
+            <mat-label>Filter by Role</mat-label>
+            <mat-select [(value)]="selectedRoleId" (selectionChange)="onFilterChange()">
+              <mat-option [value]="''">All Roles</mat-option>
+              <mat-option *ngFor="let role of roles" [value]="role.id">{{ role.displayName || role.name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-100" subscriptSizing="dynamic">
+            <mat-label>Filter by Status</mat-label>
+            <mat-select [(value)]="selectedStatus" (selectionChange)="onFilterChange()">
+              <mat-option [value]="''">All Statuses</mat-option>
+              <mat-option [value]="'DRAFT'">Draft</mat-option>
+              <mat-option [value]="'ACTIVE'">Active</mat-option>
+            </mat-select>
+          </mat-form-field>
         </div>
       </div>
 
@@ -143,22 +140,46 @@ import { WeeklyTemplateDuplicateDialogComponent } from './weekly-template-duplic
   styles: [`
     .templates-container {
       padding: 24px;
+      box-sizing: border-box;
+      max-width: 100%;
+    }
+    .templates-header {
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .templates-header > div:first-child {
+      min-width: 0;
     }
     .section-title {
       font-size: 20px;
       margin-bottom: 4px;
+      word-break: break-word;
     }
     .section-subtitle {
       color: #64748b;
       margin-bottom: 0;
+      word-break: break-word;
     }
     .premium-btn {
       padding: 0 20px;
       font-weight: 600;
+      flex-shrink: 0;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .filters-card {
+      box-sizing: border-box;
+    }
+    .filters-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
     }
     .templates-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 24px;
     }
     
@@ -207,6 +228,7 @@ import { WeeklyTemplateDuplicateDialogComponent } from './weekly-template-duplic
       font-weight: 700;
       color: #1e293b !important;
       margin: 0 0 8px 0;
+      word-break: break-word;
     }
     
     .template-desc {
@@ -296,16 +318,49 @@ import { WeeklyTemplateDuplicateDialogComponent } from './weekly-template-duplic
     
     @media (max-width: 768px) {
       .templates-container {
-        padding: 12px 4px;
+        padding: 16px;
       }
       .templates-header {
-        flex-direction: column;
-        align-items: stretch !important;
-        gap: 16px;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center !important;
+        gap: 12px;
+      }
+      .templates-header > div:first-child {
+        flex: 1 1 0;
+        min-width: 0;
       }
       .premium-btn {
-        width: 100%;
-        height: 42px !important;
+        flex-shrink: 0;
+        height: 38px !important;
+        width: auto !important;
+        padding: 0 16px;
+      }
+      .filters-row {
+        grid-template-columns: 1fr;
+      }
+      .templates-grid {
+        gap: 16px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .templates-container {
+        padding: 12px;
+      }
+      .filters-card {
+        padding: 12px !important;
+      }
+      .filters-row {
+        grid-template-columns: 1fr;
+      }
+      .card-top {
+        padding: 16px;
+      }
+      .card-footer {
+        padding: 12px 16px;
+        flex-wrap: wrap;
+        gap: 10px;
       }
     }
   `]

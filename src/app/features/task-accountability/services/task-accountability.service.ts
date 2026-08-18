@@ -848,6 +848,10 @@ export class TaskAccountabilityService {
     return this.http.patch<any>(`${environment.apiUrl}/tasks/${taskId}/status`, { status });
   }
 
+  public patchTaskPriorityApi(taskId: string | number, priority: string): Observable<any> {
+    return this.http.patch<any>(`${environment.apiUrl}/tasks/${taskId}/priority`, { priority });
+  }
+
   public submitEmployeeDayApi(employeeId: string | number, date: string): Observable<any> {
     return this.http.post<any>(`${environment.apiUrl}/employees/${employeeId}/days/${date}/submit`, {});
   }

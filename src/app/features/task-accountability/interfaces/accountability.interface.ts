@@ -54,6 +54,9 @@ export interface DayNode {
   approvalStage?: string;
   isWeekly?: boolean;
   tasks?: TaskItem[];
+  /** Approval history for this day, lazily fetched to work out whether the optional
+   *  Branch Partner stage was actually reviewed or skipped once the day has moved past it. */
+  approvalTrail?: ApprovalTrailItem[];
 }
 
 export interface CommentItem {
@@ -116,6 +119,23 @@ export interface TaskItem {
   reflectStage?: string | null;
   reflectComment?: string | null;
   reflectFlaggedByName?: string | null;
+
+  /**
+   * Overdue Task Rollover (backend V23): true when this task doesn't actually belong to the
+   * day currently being viewed - it's still OVERDUE/not-DONE from an earlier day and is only
+   * being carried forward into "today's" list until it's completed. Only ever set on a day's
+   * own tasks when that day is today - see EmployeeTreeService#getDayDetail. dueDate/id/status
+   * are untouched by this; false for every task that's genuinely this day's own.
+   */
+  carriedOver?: boolean;
+  /** This task's real, never-changing due date (ISO "YYYY-MM-DD") - distinct from the day being viewed when carriedOver is true. */
+  dueDate?: string | null;
+  /** work_date (ISO) of the day this task actually belongs to - differs from the viewed day only when carriedOver. */
+  originalWorkDate?: string | null;
+  /** Day number (within its own month) of the day this task actually belongs to. */
+  originalDayNumber?: number | null;
+  /** ISO datetime this task was actually marked DONE - independent of dueDate. Null until then. */
+  completedAt?: string | null;
 }
 
 export interface PendingApproval {

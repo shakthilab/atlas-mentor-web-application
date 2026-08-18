@@ -245,12 +245,13 @@
             <!-- Approval Actions Bar for Admin / Reviewer -->
             <div class="header-right approval-actions-container">
               <div class="approval-actions-group">
-                <button 
-                  class="btn-approve-action" 
-                  [disabled]="!day.canCurrentUserAct" 
-                  (click)="approveDayAction()"
+                <button
+                  class="btn-approve-action"
+                  [disabled]="!day.canCurrentUserAct && !canCatchUpStrayTasks"
+                  [title]="!day.canCurrentUserAct && canCatchUpStrayTasks ? (strayDoneTasks.length + ' task(s) finished after this day was fully approved - verify them individually') : null"
+                  (click)="day.canCurrentUserAct ? approveDayAction() : approveDayAction(strayDoneTaskIds)"
                 >
-                  Approve
+                  {{ (!day.canCurrentUserAct && canCatchUpStrayTasks) ? ('Verify ' + strayDoneTasks.length + ' Task' + (strayDoneTasks.length === 1 ? '' : 's')) : 'Approve' }}
                 </button>
 
                 <button 
@@ -263,6 +264,14 @@
 
                 <span class="muted-waiting-tag" *ngIf="!day.canCurrentUserAct && day.nextActionRole">
                   Waiting on {{ formatRole(day.nextActionRole) }}
+                </span>
+
+                <span
+                  class="muted-waiting-tag optional-review-tag"
+                  *ngIf="isCurrentUserBranchPartner && day.canCurrentUserAct"
+                  title="Your review here is optional - the Manager will review this day regardless of whether you act."
+                >
+                  Optional review — Manager will review regardless
                 </span>
               </div>
             </div>

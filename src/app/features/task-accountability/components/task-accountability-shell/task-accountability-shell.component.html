@@ -19,11 +19,13 @@
         </button>
       </div>
 
-      <nav class="workspace-nav">
+      <nav class="workspace-nav" #workspaceNav>
         <a class="nav-tab" routerLink="daily" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Daily Workspace</a>
+        <a class="nav-tab" routerLink="pending-review" routerLinkActive="active" *ngIf="canReviewApprovals">Needs My Review</a>
         <a class="nav-tab" routerLink="templates" routerLinkActive="active">Daily Templates</a>
-        <a class="nav-tab" routerLink="weekly-templates" routerLinkActive="active">Weekly Templates</a>
-        <a class="nav-tab" routerLink="weekly" routerLinkActive="active">Weekly Accountability</a>
+        <!-- Weekly Templates and Weekly Accountability temporarily hidden -->
+        <!-- <a class="nav-tab" routerLink="weekly-templates" routerLinkActive="active">Weekly Templates</a> -->
+        <!-- <a class="nav-tab" routerLink="weekly" routerLinkActive="active">Weekly Accountability</a> -->
       </nav>
     </div>
 

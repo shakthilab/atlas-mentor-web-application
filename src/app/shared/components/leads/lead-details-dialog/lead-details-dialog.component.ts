@@ -137,6 +137,29 @@ import { DocumentViewDialogComponent } from '../document-view-dialog/document-vi
                   {{ fullLead.source || '—' }}
                 </span>
               </div>
+
+              <div class="detail-item" *ngIf="fullLead.priority">
+                <span class="detail-label">Priority</span>
+                <span class="detail-value d-flex align-items-center">
+                  <span class="priority-badge" [ngClass]="fullLead.priority.toLowerCase()">{{ fullLead.priorityDisplayName || fullLead.priority }}</span>
+                </span>
+              </div>
+
+              <div class="detail-item" *ngIf="fullLead.prioritySubCategory">
+                <span class="detail-label">Priority Subcategory</span>
+                <span class="detail-value d-flex align-items-center">
+                  <i-tabler name="tag" class="icon-16 m-r-8 text-muted"></i-tabler>
+                  {{ fullLead.prioritySubCategoryDisplayName || fullLead.prioritySubCategory }}
+                </span>
+              </div>
+
+              <div class="detail-item" *ngIf="fullLead.background">
+                <span class="detail-label">Background</span>
+                <span class="detail-value d-flex align-items-center">
+                  <i-tabler name="school" class="icon-16 m-r-8 text-muted"></i-tabler>
+                  {{ fullLead.backgroundDisplayName || fullLead.background }}
+                </span>
+              </div>
             </div>
           </mat-tab>
 
@@ -287,6 +310,29 @@ import { DocumentViewDialogComponent } from '../document-view-dialog/document-vi
       &.pending, &.prospective, &.lead {
         background-color: rgba(255, 174, 31, 0.1);
         color: #ffae1f;
+      }
+    }
+
+    .priority-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 6px;
+
+      &.p1 {
+        background-color: rgba(250, 137, 107, 0.12);
+        color: #fa896b;
+      }
+      &.p2 {
+        background-color: rgba(255, 174, 31, 0.12);
+        color: #ffae1f;
+      }
+      &.p3 {
+        background-color: rgba(45, 46, 50, 0.1);
+        color: #2D2E32;
       }
     }
 
@@ -441,6 +487,20 @@ import { DocumentViewDialogComponent } from '../document-view-dialog/document-vi
         &.pending, &.prospective, &.lead {
           background-color: rgba(255, 174, 31, 0.2);
           color: #ffca70;
+        }
+      }
+      .priority-badge {
+        &.p1 {
+          background-color: rgba(250, 137, 107, 0.2);
+          color: #ffab91;
+        }
+        &.p2 {
+          background-color: rgba(255, 174, 31, 0.2);
+          color: #ffca70;
+        }
+        &.p3 {
+          background-color: rgba(255, 255, 255, 0.1);
+          color: #ffffff;
         }
       }
     }
