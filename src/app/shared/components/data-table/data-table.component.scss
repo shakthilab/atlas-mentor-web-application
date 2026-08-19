@@ -75,6 +75,34 @@
     padding: 0 $dt-cell-padding-x 10px $dt-cell-padding-x;
     border-bottom: 1px solid $dt-header-border;
     white-space: nowrap;
+
+    &.th-sortable {
+      cursor: pointer;
+      user-select: none;
+
+      &:hover {
+        color: $dt-text-primary;
+      }
+    }
+  }
+
+  .th-label {
+    vertical-align: middle;
+  }
+
+  .th-sort-icon {
+    vertical-align: middle;
+    margin-left: 3px;
+    opacity: 0.4;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+
+    &--active {
+      opacity: 1;
+    }
+
+    &--desc {
+      transform: rotate(180deg);
+    }
   }
 
   tbody tr {
@@ -88,12 +116,62 @@
     &.clickable {
       cursor: pointer;
     }
+
+    &.row-selected {
+      background-color: $dt-row-hover;
+    }
   }
 
   td {
     padding: $dt-cell-padding-y $dt-cell-padding-x;
     font-size: 13px;
     color: $dt-text-primary;
+  }
+}
+
+// ---- Selection checkbox column ----
+.cell-select {
+  width: 40px;
+  padding-right: 0 !important;
+}
+
+.checkbox {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 5px;
+  border: 1.5px solid $dt-header-border;
+  flex-shrink: 0;
+  cursor: pointer;
+  position: relative;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+
+  &--checked,
+  &--indeterminate {
+    background-color: $dt-text-primary;
+    border-color: $dt-text-primary;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      margin: auto;
+    }
+  }
+
+  &--checked::after {
+    width: 8px;
+    height: 4px;
+    top: -2px;
+    border-left: 2px solid #fff;
+    border-bottom: 2px solid #fff;
+    transform: rotate(-45deg);
+  }
+
+  &--indeterminate::after {
+    width: 8px;
+    height: 2px;
+    background: #fff;
   }
 }
 

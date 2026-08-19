@@ -86,20 +86,47 @@
     <table class="app-data-table__table">
       <thead>
         <tr>
+          <th class="cell-select" *ngIf="selectable">
+            <span
+              class="checkbox"
+              [class.checkbox--checked]="isAllSelected"
+              [class.checkbox--indeterminate]="isSomeSelected"
+              (click)="toggleSelectAll($event)"
+            ></span>
+          </th>
           <th
             *ngFor="let col of columns"
             [class]="col.headerClass"
+            [class.th-sortable]="col.sortable"
             [style.text-align]="col.align || (col.type === 'mono-number' ? 'right' : 'left')"
             [style.max-width]="col.maxWidth"
-          >{{ col.header }}</th>
+            (click)="onSortClick(col)"
+          >
+            <span class="th-label">{{ col.header }}</span>
+            <svg
+              *ngIf="col.sortable"
+              class="th-sort-icon"
+              [class.th-sort-icon--active]="sortKey === col.key"
+              [class.th-sort-icon--desc]="sortKey === col.key && sortDirection === 'desc'"
+              viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"
+            ><path d="M6 9l6 6 6-6"/></svg>
+          </th>
         </tr>
       </thead>
       <tbody>
         <tr
           *ngFor="let row of rows; trackBy: trackByFn"
           [class.clickable]="clickableRows"
+          [class.row-selected]="selectable && isRowSelected(row)"
           (click)="onRowClick(row)"
         >
+          <td class="cell-select" *ngIf="selectable" (click)="$event.stopPropagation()">
+            <span
+              class="checkbox"
+              [class.checkbox--checked]="isRowSelected(row)"
+              (click)="toggleRow(row, $event)"
+            ></span>
+          </td>
           <td *ngFor="let col of columns" [style.text-align]="col.align || (col.type === 'mono-number' ? 'right' : 'left')">
             <ng-container *ngTemplateOutlet="cellContent; context: { col: col, row: row }"></ng-container>
           </td>
