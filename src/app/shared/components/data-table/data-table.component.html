@@ -20,9 +20,12 @@
       </div>
     </div>
 
-    <span *ngSwitchCase="'pill'" class="pill" [ngClass]="col.classFn?.(row)">
-      {{ col.valueFn?.(row) }}
-    </span>
+    <app-status-pill
+      *ngSwitchCase="'pill'"
+      [label]="col.valueFn?.(row) || ''"
+      [variant]="pillVariant(col.classFn?.(row))"
+      [dot]="true"
+    ></app-status-pill>
 
     <span class="cell-star" *ngSwitchCase="'star'" [class.cell-star--on]="col.boolFn?.(row)">
       <svg *ngIf="col.boolFn?.(row)" viewBox="0 0 24 24" width="18" height="18" fill="currentColor">

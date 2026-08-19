@@ -243,22 +243,12 @@
   }
 }
 
-.pill {
-  @include dt-pill-base;
-
-  &--success { background-color: $dt-pill-success-bg; color: $dt-pill-success-text; }
-  &--info { background-color: $dt-pill-info-bg; color: $dt-pill-info-text; }
-  &--warning { background-color: $dt-pill-warning-bg; color: $dt-pill-warning-text; }
-  &--danger { background-color: $dt-pill-danger-bg; color: $dt-pill-danger-text; }
-  &--neutral { background-color: $dt-pill-neutral-bg; color: $dt-pill-neutral-text; }
-}
-
 .cell-star {
   display: inline-flex;
   color: #cbd2d9;
 
   &--on {
-    color: #ffae1f;
+    color: #c99a3c; // $gold-500
   }
 }
 
@@ -329,7 +319,7 @@ tbody tr:focus-within .cell-actions {
   font-size: 13px;
 
   &--error {
-    color: #dc2626;
+    color: #c1432b; // $error
   }
 }
 

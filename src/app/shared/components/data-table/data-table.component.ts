@@ -15,11 +15,12 @@ import { TableColumn, TableSortState } from './data-table.models';
 import { TableCellDefDirective } from './table-cell-def.directive';
 import { TableRowActionsDirective } from './table-row-actions.directive';
 import { TableExportService } from './table-export.service';
+import { StatusPillComponent, StatusPillVariant } from '../status-pill/status-pill.component';
 
 @Component({
   selector: 'app-data-table',
   standalone: true,
-  imports: [CommonModule, TablerIconsModule],
+  imports: [CommonModule, TablerIconsModule, StatusPillComponent],
   templateUrl: './data-table.component.html',
   styleUrl: './data-table.component.scss',
 })
@@ -97,6 +98,13 @@ export class DataTableComponent<T = any> implements AfterContentInit {
 
   isEmptyValue(value?: string): boolean {
     return !value || value === '—' || value.toLowerCase() === 'not set';
+  }
+
+  /** Column classFn conventionally returns 'pill--success'/'pill--warning'/etc; maps that to app-status-pill's variant input. */
+  pillVariant(cssClass?: string): StatusPillVariant {
+    const variant = (cssClass || '').replace('pill--', '');
+    const known: StatusPillVariant[] = ['success', 'warning', 'danger', 'info', 'neutral'];
+    return (known as string[]).includes(variant) ? (variant as StatusPillVariant) : 'neutral';
   }
 
   onRowClick(row: T): void {

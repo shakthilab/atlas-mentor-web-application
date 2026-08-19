@@ -1,0 +1,43 @@
+// Literal palette values mirroring src/assets/scss/_variables.scss (ink/teal/gold/blue
+// rebrand) - kept as literals rather than an @import to avoid duplicating the global
+// Google Fonts @import into this component's stylesheet chunk (same convention as
+// shared/components/data-table/_data-table-tokens.scss).
+:host {
+  display: inline-flex;
+}
+
+.app-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+  text-transform: capitalize;
+  white-space: nowrap;
+
+  &__dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+
+  &--success { background-color: #e7f7ef; color: #1f9d6c; }
+  &--warning { background-color: #fdf3e1; color: #b9791e; }
+  &--danger { background-color: #fceae6; color: #c1432b; }
+  &--info { background-color: #e7eefa; color: #2c5aa0; }
+  &--neutral { background-color: #f0f2f5; color: #56607a; }
+}
+
+:host-context(.dark-theme) {
+  .app-status-pill {
+    &--success { background-color: rgba(31, 157, 108, 0.18); color: #4ade95; }
+    &--warning { background-color: rgba(185, 121, 30, 0.18); color: #f0b559; }
+    &--danger { background-color: rgba(193, 67, 43, 0.18); color: #f28b76; }
+    &--info { background-color: rgba(44, 90, 160, 0.22); color: #7ea6e0; }
+    &--neutral { background-color: rgba(255, 255, 255, 0.08); color: #a9b8d4; }
+  }
+}

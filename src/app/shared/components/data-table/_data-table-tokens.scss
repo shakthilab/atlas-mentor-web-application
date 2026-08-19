@@ -13,28 +13,5 @@ $dt-cell-padding-x: 14px;
 $dt-text-primary: #14213d; // ink-900 / $primary
 $dt-text-muted: #9399ac; // text-400
 
-// Pill variant colors (mirrors $success/$warning/$error/$accent + tints)
-$dt-pill-success-bg: #e7f7ef;
-$dt-pill-success-text: #1f9d6c;
-$dt-pill-warning-bg: #fdf3e1;
-$dt-pill-warning-text: #b9791e;
-$dt-pill-danger-bg: #fceae6;
-$dt-pill-danger-text: #c1432b;
-$dt-pill-info-bg: #e7eefa;
-$dt-pill-info-text: #2c5aa0;
-$dt-pill-neutral-bg: #f0f2f5;
-$dt-pill-neutral-text: #56607a;
-
-@mixin dt-pill-base {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  padding: 3px 10px;
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 1.6;
-  border-radius: 999px;
-  text-transform: capitalize;
-  white-space: nowrap;
-}
+// Pill variant colors now live in shared/components/status-pill/ - app-data-table
+// renders <app-status-pill> for the 'pill' column type instead of its own markup.
