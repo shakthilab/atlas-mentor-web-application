@@ -1,0 +1,70 @@
+<div class="pending-review-workspace">
+  <div class="pending-review-header">
+    <div>
+      <h1>Needs My Review</h1>
+      <p class="header-sub">Days waiting on your approval, across your team.</p>
+    </div>
+    <button class="btn-refresh" (click)="loadPending()" [disabled]="isLoading">
+      <i-tabler name="refresh" class="icon-16"></i-tabler>
+      <span>Refresh</span>
+    </button>
+  </div>
+
+  <!-- Branch Partner clarification note: review here is optional, Manager reviews regardless -->
+  <div class="info-note" *ngIf="isBranchPartner">
+    <i-tabler name="info-circle" class="icon-16"></i-tabler>
+    <span>Your review is optional. Skipping a day is fine — the Manager will still review it either way. Approving early just gives them extra context.</span>
+  </div>
+
+  <!-- Manager clarification note: queue mixes both source stages -->
+  <div class="info-note" *ngIf="isManager">
+    <i-tabler name="info-circle" class="icon-16"></i-tabler>
+    <span>This list includes days waiting on you directly, and days the Branch Partner has already approved. Both are yours to act on.</span>
+  </div>
+
+  <!-- Loading -->
+  <div class="state-block" *ngIf="isLoading">
+    <mat-spinner diameter="36"></mat-spinner>
+    <p>Loading pending reviews…</p>
+  </div>
+
+  <!-- Error -->
+  <div class="state-block error" *ngIf="!isLoading && loadError">
+    <i-tabler name="alert-triangle" class="state-icon"></i-tabler>
+    <p>Couldn't load your pending reviews.</p>
+    <button class="btn-retry" (click)="loadPending()">Try again</button>
+  </div>
+
+  <!-- Empty -->
+  <div class="state-block empty" *ngIf="!isLoading && !loadError && rows.length === 0">
+    <i-tabler name="circle-check" class="state-icon success"></i-tabler>
+    <p>You're all caught up — nothing waiting on your review.</p>
+  </div>
+
+  <!-- Rows -->
+  <div class="review-list" *ngIf="!isLoading && !loadError && rows.length > 0">
+    <div class="review-row" *ngFor="let item of rows" (click)="openItem(item)">
+      <div class="row-left">
+        <div class="row-employee">
+          <span class="employee-name">{{ item.employeeName }}</span>
+          <span class="meta-dot">•</span>
+          <span class="branch-name">{{ item.branchName }}</span>
+        </div>
+        <div class="row-meta">
+          <span>{{ formatDate(item.workDate) }}</span>
+          <span class="meta-dot">•</span>
+          <span>Day {{ item.dayNumber }}</span>
+          <ng-container *ngIf="item.dailyCompletionPct !== null && item.dailyCompletionPct !== undefined">
+            <span class="meta-dot">•</span>
+            <span>{{ item.dailyCompletionPct }}% complete</span>
+          </ng-container>
+        </div>
+      </div>
+
+      <div class="row-right">
+        <span class="stage-badge" [ngClass]="item.badge.cssClass">{{ item.badge.text }}</span>
+        <i-tabler name="chevron-right" class="icon-16 chevron"></i-tabler>
+      </div>
+    </div>
+  </div>
+</div>

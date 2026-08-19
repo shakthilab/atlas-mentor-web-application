@@ -17,10 +17,32 @@
         <h2 class="task-title-heading">{{ displayTask.name }}</h2>
         
         <div class="header-badges">
-          <span class="badge priority-badge" [ngClass]="getPriorityColorClass(displayTask.priority)">
+          <!-- Read-only priority for non-reviewer roles -->
+          <span class="badge priority-badge" *ngIf="!isReviewerRole" [ngClass]="getPriorityColorClass(displayTask.priority)">
             <i-tabler name="flag" class="badge-icon"></i-tabler>
             {{ displayTask.priority }}
           </span>
+
+          <!-- Interactive priority dropdown for reviewer roles -->
+          <button class="badge priority-badge priority-badge-btn" *ngIf="isReviewerRole" [ngClass]="getPriorityColorClass(displayTask.priority)" [matMenuTriggerFor]="drawerPriorityMenu">
+            <i-tabler name="flag" class="badge-icon"></i-tabler>
+            {{ displayTask.priority }}
+            <i-tabler name="chevron-down" class="icon-12 ml-1"></i-tabler>
+          </button>
+          <mat-menu #drawerPriorityMenu="matMenu" class="status-options-menu">
+            <button mat-menu-item (click)="changePriority(displayTask, 'URGENT', $event)">
+              <span class="priority-badge" [ngClass]="getPriorityColorClass('URGENT')"><i-tabler name="flag" class="priority-icon"></i-tabler> Urgent</span>
+            </button>
+            <button mat-menu-item (click)="changePriority(displayTask, 'HIGH', $event)">
+              <span class="priority-badge" [ngClass]="getPriorityColorClass('HIGH')"><i-tabler name="flag" class="priority-icon"></i-tabler> High</span>
+            </button>
+            <button mat-menu-item (click)="changePriority(displayTask, 'MEDIUM', $event)">
+              <span class="priority-badge" [ngClass]="getPriorityColorClass('MEDIUM')"><i-tabler name="flag" class="priority-icon"></i-tabler> Medium</span>
+            </button>
+            <button mat-menu-item (click)="changePriority(displayTask, 'LOW', $event)">
+              <span class="priority-badge" [ngClass]="getPriorityColorClass('LOW')"><i-tabler name="flag" class="priority-icon"></i-tabler> Low</span>
+            </button>
+          </mat-menu>
           
           <button 
             class="badge status-badge-btn readonly-badge" 
@@ -42,6 +64,11 @@
 
           <span class="resubmitted-pill-tag ml-1" *ngIf="displayTask.reflectState === 'RESUBMITTED'">
             Awaiting re-review
+          </span>
+
+          <span class="badge carried-over-badge" *ngIf="displayTask.carriedOver" title="Carried over - not one of today's own tasks">
+            <i-tabler name="history" class="carried-badge-icon"></i-tabler>
+            {{ getCarriedOverBadgeLabel(displayTask) }}
           </span>
 
           <mat-menu #drawerStatusMenu="matMenu" class="status-options-menu">
@@ -124,6 +151,48 @@
           </span>
           <span class="meta-value">{{ (displayTask.dueTime && displayTask.dueTime !== '6:00 PM') ? displayTask.dueTime : '11:59 PM' }}</span>
         </div>
+        <!-- Schedule Date Row -->
+        <div class="meta-row" *ngIf="displayTask.dueDate">
+          <span class="meta-label">
+            <i-tabler name="calendar" class="meta-icon icon-blue"></i-tabler> SCHEDULE
+          </span>
+          <span class="meta-value font-semibold">
+            {{ getScheduleShortDate(displayTask) }}
+          </span>
+        </div>
+
+        <!-- Due Date Row -->
+        <div class="meta-row" *ngIf="displayTask.dueDate">
+          <span class="meta-label">
+            <i-tabler name="calendar-event" class="meta-icon" [ngClass]="isTaskOverdue(displayTask) ? 'icon-red' : 'icon-orange'"></i-tabler> DUE
+          </span>
+          <span class="meta-value font-semibold" [class.text-red]="isTaskOverdue(displayTask)">
+            {{ getScheduleShortDate(displayTask) }}
+            <span class="overdue-badge" *ngIf="isTaskOverdue(displayTask)">
+              {{ getOverdueDaysLabel(displayTask) }}
+            </span>
+          </span>
+        </div>
+
+        <!-- Completed Date Row -->
+        <div class="meta-row" *ngIf="displayTask.dueDate">
+          <ng-container *ngIf="displayTask.completedAt; else pendingCompletedRow">
+            <span class="meta-label">
+              <i-tabler name="calendar-check" class="meta-icon icon-green"></i-tabler> COMPLETED
+            </span>
+            <span class="meta-value font-semibold text-green">
+              {{ formatShortDate(displayTask.completedAt) }}
+            </span>
+          </ng-container>
+          <ng-template #pendingCompletedRow>
+            <span class="meta-label">
+              <i-tabler name="calendar-minus" class="meta-icon icon-gray"></i-tabler> COMPLETED
+            </span>
+            <span class="meta-value font-semibold text-gray">
+              Pending
+            </span>
+          </ng-template>
+        </div>
       </div>
 
       <!-- Tab Selector Header -->
@@ -153,7 +222,11 @@
               [class.my-message]="isMyComment(comment)"
               [class.other-message]="!isMyComment(comment)"
             >
-              <span class="avatar-circle comment-avatar blue" *ngIf="!isMyComment(comment)">
+              <span 
+                class="avatar-circle comment-avatar" 
+                [ngClass]="getAvatarColorClass(comment.authorName)" 
+                *ngIf="!isMyComment(comment)"
+              >
                 {{ (comment.authorName || 'User').substring(0,2).toUpperCase() }}
               </span>
 
@@ -228,12 +301,28 @@
         </div>
       </div>
 
-      <div class="footer-section review-actions" *ngIf="canShowReviewActions">
+      <!--
+        Per-task approve/send-back act on THIS day's approval workflow (dayWorkspaceId of the
+        day currently open) - a carried-over task belongs to an earlier day's own workspace, so
+        the backend rejects it ("Task does not belong to this day"). It's reviewed via its
+        original day, not here - hide the actions rather than surface that error.
+      -->
+      <div class="footer-section review-actions" *ngIf="canShowReviewActions && !isCarriedOverTask">
         <span class="footer-lbl">{{ getReviewStageLabel() }}</span>
         <div class="btn-group">
-          <button class="btn-approve" [disabled]="!canCurrentUserAct" (click)="approveTask()">Approve</button>
+          <button
+            class="btn-approve"
+            [disabled]="!canCurrentUserAct && !canCatchUpThisTask"
+            [title]="!canCurrentUserAct && canCatchUpThisTask ? 'This day is already fully approved - verify this task individually' : null"
+            (click)="approveTask()"
+          >{{ (!canCurrentUserAct && canCatchUpThisTask) ? 'Verify' : 'Approve' }}</button>
           <button class="btn-reject" [disabled]="!canCurrentUserAct" (click)="rejectTask()">Send back</button>
         </div>
+      </div>
+
+      <div class="footer-section carried-over-note" *ngIf="canShowReviewActions && isCarriedOverTask">
+        <i-tabler name="info-circle" class="note-icon"></i-tabler>
+        <span>Carried over from an earlier day - reviewed as part of that day's own submission.</span>
       </div>
     </div>
   </div>

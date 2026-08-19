@@ -70,15 +70,18 @@ export class TaskTableComponent implements OnInit, OnDestroy {
       next: (res) => {
         const data = res?.data || res;
         if (Array.isArray(data) && data.length > 0) {
-          this.statusesList = data.map((item: any) => {
-            if (typeof item === 'string') {
-              return { value: item, label: this.formatStatusLabel(item) };
-            }
-            return {
-              value: item.value || item.status || item.name || item,
-              label: item.label || item.name || this.formatStatusLabel(item.value || item.status || item)
-            };
-          });
+          this.statusesList = data
+            .map((item: any) => {
+              if (typeof item === 'string') {
+                return { value: item, label: this.formatStatusLabel(item) };
+              }
+              return {
+                value: item.value || item.status || item.name || item,
+                label: item.label || item.name || this.formatStatusLabel(item.value || item.status || item)
+              };
+            })
+            // Users should never manually set a task TO overdue — exclude it from picker
+            .filter((s: { value: string; label: string }) => s.value?.toUpperCase() !== 'OVERDUE');
         }
       },
       error: (err) => {
@@ -91,6 +94,8 @@ export class TaskTableComponent implements OnInit, OnDestroy {
     if (!task) return false;
     const currentStepLower = (task.currentStep || '').toLowerCase();
     const statusLower = (task.status || '').toLowerCase();
+    // OVERDUE tasks must always be changeable — never disable them
+    if (statusLower === 'overdue') return false;
     return currentStepLower.includes('verified') || 
            statusLower === 'verified' || 
            statusLower === 'closed';
@@ -147,15 +152,34 @@ export class TaskTableComponent implements OnInit, OnDestroy {
     });
   }
 
+  changePriority(task: TaskItem, newPriority: string, event?: MouseEvent): void {
+    if (event) event.stopPropagation();
+    if (task.priority === newPriority) return;
+
+    // Optimistically update
+    task.priority = newPriority as TaskItem['priority'];
+    this.service.triggerRefresh();
+
+    this.service.patchTaskPriorityApi(task.id, newPriority).subscribe({
+      next: () => {
+        this.service.triggerRefresh();
+      },
+      error: (err) => {
+        console.error('Error patching task priority:', err);
+      }
+    });
+  }
+
   formatStatusLabel(status?: string, task?: TaskItem): string {
     if (!status) return 'To Do';
     const s = status.toUpperCase().trim();
-    if (s === 'TODO' || s === 'TO DO' || s === 'NOT_STARTED') return 'To Do';
+    if (s === 'TODO' || s === 'TO Do' || s === 'NOT_STARTED') return 'To Do';
     if (s === 'IN_PROGRESS' || s === 'IN PROGRESS') return 'In Progress';
     if (s === 'DONE' || s === 'COMPLETED') return 'Done';
     if (s === 'REFLECT' || s === 'SEND_BACK' || s === 'REJECTED') return 'Reflect';
     if (s === 'VERIFIED' || s === 'APPROVED') return 'Verified';
     if (s === 'CLOSED') return 'Closed';
+    if (s === 'OVERDUE') return 'Overdue';
     return status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   }
 
@@ -229,6 +253,13 @@ export class TaskTableComponent implements OnInit, OnDestroy {
     };
 
     temp.sort((a, b) => getStatusWeight(a.status) - getStatusWeight(b.status));
+
+    // Overdue Task Rollover: keep carried-over tasks pinned to the top regardless of the
+    // active sort/group mode, so a task that's been outstanding for days never gets buried
+    // under today's fresh ones. Array#sort is stable, so this only reorders across the
+    // carriedOver boundary - each side keeps the priority/status order already applied above.
+    temp.sort((a, b) => (b.carriedOver ? 1 : 0) - (a.carriedOver ? 1 : 0));
+
     this.tasks = temp;
 
     if (this.currentGroup === 'status') {
@@ -276,8 +307,23 @@ export class TaskTableComponent implements OnInit, OnDestroy {
     if (s === 'REJECTED' || s === 'RETURNED' || s === 'REFLECT' || s === 'SEND_BACK' || s === 'MANAGER FEEDBACK' || s === 'ACTION NEEDED') return 'status-feedback';
     if (s === 'IN_PROGRESS' || s === 'IN PROGRESS') return 'status-in-progress';
     if (s === 'TODO' || s === 'TO DO' || s === 'NOT_STARTED') return 'status-todo';
+    if (s === 'OVERDUE') return 'status-overdue';
     if (s === 'CLOSED') return 'status-closed';
     return 'status-todo';
+  }
+
+  /**
+   * Origin label for a carried-over task, e.g. "Overdue since Aug 16" - built from the task's
+   * real dueDate (falling back to originalWorkDate), never today's date, so it reads as "this
+   * has been outstanding since X" rather than restating today.
+   */
+  getCarriedOverBadgeLabel(task: TaskItem): string {
+    const raw = task.dueDate || task.originalWorkDate;
+    if (!raw) return 'Overdue';
+    const d = new Date(raw + 'T00:00:00');
+    if (isNaN(d.getTime())) return 'Overdue';
+    const label = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return `Overdue since ${label}`;
   }
 
   getFormattedDisplayId(task: TaskItem): string {

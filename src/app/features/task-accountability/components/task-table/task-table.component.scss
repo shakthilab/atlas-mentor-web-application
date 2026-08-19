@@ -326,11 +326,41 @@
     box-shadow: 0 1px 2px rgba(37, 99, 235, 0.05);
   }
 
+  .task-name-col {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+  }
+
   .task-name-text {
     font-weight: 600;
     color: #0f172a;
     font-size: 13.5px;
     line-height: 1.3;
+  }
+}
+
+/* Carried-Over Origin Badge - deliberately distinct from the priority/status pills (amber,
+   history icon, sentence-case) so a task outstanding from an earlier day never blends in. */
+.carried-over-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #b45309;
+  background-color: #fffbeb;
+  border: 1px solid #fde68a;
+  padding: 2px 7px;
+  border-radius: 10px;
+  letter-spacing: 0.1px;
+
+  .carried-badge-icon {
+    width: 11px;
+    height: 11px;
+    flex-shrink: 0;
   }
 }
 
@@ -370,6 +400,22 @@
     color: #059669;
     background-color: #f0fdf4;
     border: 1px solid #6ee7b7;
+  }
+}
+
+/* Interactive priority badge button (reviewer roles only) */
+.priority-badge-btn {
+  cursor: pointer;
+  border: none;
+  outline: none;
+  transition: filter 0.15s ease, transform 0.1s ease;
+
+  &:hover {
+    filter: brightness(0.93);
+  }
+
+  &:active {
+    transform: scale(0.97);
   }
 }
 
@@ -442,6 +488,12 @@
     background-color: #f8fafc;
     border-color: #e2e8f0;
   }
+
+  &.status-overdue {
+    color: #dc2626;
+    background-color: #fef2f2;
+    border-color: #fca5a5;
+  }
 }
 
 .status-badge {
@@ -487,6 +539,12 @@
     color: #475569;
     background-color: #f1f5f9;
     border: 1px solid #cbd5e1;
+  }
+
+  &.status-overdue {
+    color: #dc2626;
+    background-color: #fef2f2;
+    border: 1px solid #fca5a5;
   }
 }
 

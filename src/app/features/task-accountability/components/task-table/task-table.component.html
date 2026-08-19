@@ -53,16 +53,44 @@
                   <span class="task-display-id-badge" *ngIf="task.displayId || task.id">
                     {{ getRawDisplayId(task) }}
                   </span>
-                  <span class="task-name-text">{{ task.name }}</span>
+                  <div class="task-name-col">
+                    <span class="task-name-text">{{ task.name }}</span>
+                    <span class="carried-over-badge" *ngIf="task.carriedOver" [title]="'Carried over - not one of today\'s own tasks'">
+                      <i-tabler name="history" class="carried-badge-icon"></i-tabler>
+                      {{ getCarriedOverBadgeLabel(task) }}
+                    </span>
+                  </div>
                 </div>
               </td>
 
-              <!-- Priority Badge -->
-              <td class="col-priority">
-                <span class="priority-badge" [ngClass]="getPriorityColorClass(task.priority)">
+              <!-- Priority Badge (Interactive for reviewer roles) -->
+              <td class="col-priority" (click)="$event.stopPropagation()">
+                <!-- Read-only for non-reviewer roles -->
+                <span class="priority-badge" *ngIf="!isReviewerRole" [ngClass]="getPriorityColorClass(task.priority)">
                   <i-tabler name="flag" class="priority-icon"></i-tabler>
                   {{ task.priority }}
                 </span>
+
+                <!-- Interactive dropdown for reviewer roles -->
+                <button class="priority-badge priority-badge-btn" *ngIf="isReviewerRole" [ngClass]="getPriorityColorClass(task.priority)" [matMenuTriggerFor]="priorityMenu">
+                  <i-tabler name="flag" class="priority-icon"></i-tabler>
+                  {{ task.priority }}
+                  <i-tabler name="chevron-down" class="icon-12 ml-1"></i-tabler>
+                </button>
+                <mat-menu #priorityMenu="matMenu" class="status-options-menu">
+                  <button mat-menu-item (click)="changePriority(task, 'URGENT', $event)">
+                    <span class="priority-badge" [ngClass]="getPriorityColorClass('URGENT')"><i-tabler name="flag" class="priority-icon"></i-tabler> Urgent</span>
+                  </button>
+                  <button mat-menu-item (click)="changePriority(task, 'HIGH', $event)">
+                    <span class="priority-badge" [ngClass]="getPriorityColorClass('HIGH')"><i-tabler name="flag" class="priority-icon"></i-tabler> High</span>
+                  </button>
+                  <button mat-menu-item (click)="changePriority(task, 'MEDIUM', $event)">
+                    <span class="priority-badge" [ngClass]="getPriorityColorClass('MEDIUM')"><i-tabler name="flag" class="priority-icon"></i-tabler> Medium</span>
+                  </button>
+                  <button mat-menu-item (click)="changePriority(task, 'LOW', $event)">
+                    <span class="priority-badge" [ngClass]="getPriorityColorClass('LOW')"><i-tabler name="flag" class="priority-icon"></i-tabler> Low</span>
+                  </button>
+                </mat-menu>
               </td>
 
               <!-- Status Badge (Interactive Dropdown) -->
@@ -159,12 +187,34 @@
               </div>
             </td>
 
-            <!-- Priority Badge -->
-            <td class="col-priority">
-              <span class="priority-badge" [ngClass]="getPriorityColorClass(task.priority)">
+            <!-- Priority Badge (Interactive for reviewer roles) -->
+            <td class="col-priority" (click)="$event.stopPropagation()">
+              <!-- Read-only for non-reviewer roles -->
+              <span class="priority-badge" *ngIf="!isReviewerRole" [ngClass]="getPriorityColorClass(task.priority)">
                 <i-tabler name="flag" class="priority-icon"></i-tabler>
                 {{ task.priority }}
               </span>
+
+              <!-- Interactive dropdown for reviewer roles -->
+              <button class="priority-badge priority-badge-btn" *ngIf="isReviewerRole" [ngClass]="getPriorityColorClass(task.priority)" [matMenuTriggerFor]="flatPriorityMenu">
+                <i-tabler name="flag" class="priority-icon"></i-tabler>
+                {{ task.priority }}
+                <i-tabler name="chevron-down" class="icon-12 ml-1"></i-tabler>
+              </button>
+              <mat-menu #flatPriorityMenu="matMenu" class="status-options-menu">
+                <button mat-menu-item (click)="changePriority(task, 'URGENT', $event)">
+                  <span class="priority-badge" [ngClass]="getPriorityColorClass('URGENT')"><i-tabler name="flag" class="priority-icon"></i-tabler> Urgent</span>
+                </button>
+                <button mat-menu-item (click)="changePriority(task, 'HIGH', $event)">
+                  <span class="priority-badge" [ngClass]="getPriorityColorClass('HIGH')"><i-tabler name="flag" class="priority-icon"></i-tabler> High</span>
+                </button>
+                <button mat-menu-item (click)="changePriority(task, 'MEDIUM', $event)">
+                  <span class="priority-badge" [ngClass]="getPriorityColorClass('MEDIUM')"><i-tabler name="flag" class="priority-icon"></i-tabler> Medium</span>
+                </button>
+                <button mat-menu-item (click)="changePriority(task, 'LOW', $event)">
+                  <span class="priority-badge" [ngClass]="getPriorityColorClass('LOW')"><i-tabler name="flag" class="priority-icon"></i-tabler> Low</span>
+                </button>
+              </mat-menu>
             </td>
 
             <!-- Status Badge (Interactive Dropdown) -->

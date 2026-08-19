@@ -16,6 +16,7 @@ import { MasterDataService, MobileCountryCode, Branch } from '../../../../core/s
 import { AuthService } from '../../../../core/services/auth.service';
 import { environment } from '../../../../../environments/environment';
 import { DocumentViewDialogComponent } from '../document-view-dialog/document-view-dialog.component';
+import { LEAD_PRIORITY_TIERS, LEAD_BACKGROUND_OPTIONS, getSubCategoriesForTier, LeadPrioritySubCategoryOption } from '../../../constants/lead-classification.constants';
 
 @Component({
   selector: 'app-add-lead-dialog',
@@ -96,7 +97,8 @@ import { DocumentViewDialogComponent } from '../document-view-dialog/document-vi
         <div class="dialog-body p-32 flex-1-auto overflow-y-auto" [formGroup]="onboardingForm">
           
           <!-- STEP 1: Personal Information -->
-          <ng-container *ngIf="currentStep === 1" formGroupName="personalInfo">
+          <ng-container *ngIf="currentStep === 1">
+          <div formGroupName="personalInfo">
             <div class="row">
               <div class="col-sm-6 m-b-20">
                 <mat-label class="field-label d-block">FIRST NAME <span class="text-danger">*</span></mat-label>
@@ -207,6 +209,42 @@ import { DocumentViewDialogComponent } from '../document-view-dialog/document-vi
                 <mat-error *ngIf="onboardingForm.get('personalInfo.sourceCustomText')?.invalid">This field is required</mat-error>
               </mat-form-field>
             </div>
+          </div>
+
+          <!-- Priority / Background classification -->
+          <div formGroupName="leadClassification">
+            <div class="row">
+              <div class="col-sm-6 m-b-20">
+                <mat-label class="field-label d-block">PRIORITY</mat-label>
+                <mat-form-field appearance="outline" class="w-100 custom-field" subscriptSizing="dynamic">
+                  <mat-select formControlName="priority" placeholder="Select priority" (selectionChange)="onPriorityChange($event.value)">
+                    <mat-option value="">Not set</mat-option>
+                    <mat-option *ngFor="let tier of priorityTiers" [value]="tier.value">{{ tier.label }}</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+              <div class="col-sm-6 m-b-20">
+                <mat-label class="field-label d-block">PRIORITY SUBCATEGORY</mat-label>
+                <mat-form-field appearance="outline" class="w-100 custom-field" subscriptSizing="dynamic">
+                  <mat-select formControlName="prioritySubCategory"
+                    [placeholder]="onboardingForm.get('leadClassification.priority')?.value ? 'Select subcategory' : 'Select a priority first'"
+                    [disabled]="!onboardingForm.get('leadClassification.priority')?.value">
+                    <mat-option *ngFor="let sub of currentSubCategories" [value]="sub.value">{{ sub.label }}</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+            </div>
+
+            <div class="m-b-20">
+              <mat-label class="field-label d-block">BACKGROUND</mat-label>
+              <mat-form-field appearance="outline" class="w-100 custom-field" subscriptSizing="dynamic">
+                <mat-select formControlName="background" placeholder="Select background">
+                  <mat-option value="">Not set</mat-option>
+                  <mat-option *ngFor="let bg of backgroundOptions" [value]="bg.value">{{ bg.label }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+          </div>
           </ng-container>
 
           <!-- STEP 2: Destination Details -->
@@ -1106,6 +1144,21 @@ export class AddLeadDialogComponent implements OnInit {
   counsellors: { id: number; name: string; roleLabel: string }[] = [];
   counsellorLoading = false;
 
+  // Priority / Background classification (hardcoded, mirrors backend LeadPriority /
+  // LeadPrioritySubCategory / LeadBackground enums exactly — see lead-classification.constants.ts)
+  priorityTiers = LEAD_PRIORITY_TIERS;
+  backgroundOptions = LEAD_BACKGROUND_OPTIONS;
+
+  get currentSubCategories(): LeadPrioritySubCategoryOption[] {
+    return getSubCategoriesForTier(this.onboardingForm?.get('leadClassification.priority')?.value);
+  }
+
+  /** Subcategory only makes sense for the tier it was chosen under, so switching tiers
+   * clears whatever was previously selected rather than leaving a now-invalid value in place. */
+  onPriorityChange(_value: string): void {
+    this.onboardingForm.get('leadClassification.prioritySubCategory')?.setValue('');
+  }
+
   // Passing years: current year down to 100 years ago
   passingYears: number[] = Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i);
 
@@ -1313,6 +1366,11 @@ export class AddLeadDialogComponent implements OnInit {
         leadSourceSelect: [''],
         sourceCustomText: ['']
       }),
+      leadClassification: this.fb.group({
+        priority: [''],
+        prioritySubCategory: [''],
+        background: ['']
+      }),
       destinationDetails: this.fb.group({
         countryId: ['', Validators.required],
         universityId: ['', Validators.required],
@@ -1363,6 +1421,11 @@ export class AddLeadDialogComponent implements OnInit {
       const course = this.data.courseName || this.data.course || '';
       const intake = this.data.intakePeriod || this.data.intake || '';
 
+      // Lead classification (priority/subcategory/background codes, e.g. "P1" / "HOT_LEADS" / "EDUCATED")
+      const priority = this.data.priority || '';
+      const prioritySubCategory = this.data.prioritySubCategory || '';
+      const background = this.data.background || '';
+
       // Academic history
       let tenth = this.data.tenthStandard || this.data.tenth || {};
       let twelfth = this.data.twelfthStandard || this.data.twelfth || {};
@@ -1398,6 +1461,11 @@ export class AddLeadDialogComponent implements OnInit {
           phone,
           branchId,
           countryCode
+        },
+        leadClassification: {
+          priority,
+          prioritySubCategory,
+          background
         },
         destinationDetails: {
           countryId: countryId || '',
@@ -1740,6 +1808,17 @@ export class AddLeadDialogComponent implements OnInit {
     
     delete raw.personalInfo.leadSourceSelect;
     delete raw.personalInfo.sourceCustomText;
+
+    // Priority/subcategory/background are enum fields on the backend — an empty string
+    // fails deserialization (unlike a plain string field), so unset selections must go as
+    // null, not "".
+    if (raw.leadClassification) {
+      raw.leadClassification = {
+        priority: raw.leadClassification.priority || null,
+        prioritySubCategory: raw.leadClassification.prioritySubCategory || null,
+        background: raw.leadClassification.background || null
+      };
+    }
 
     // Convert new files to base64 mapping
     const docPayload: any = {};
