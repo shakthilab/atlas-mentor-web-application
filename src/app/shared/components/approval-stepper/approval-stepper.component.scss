@@ -1,0 +1,56 @@
+// Literal palette values mirroring src/assets/scss/_variables.scss (ink/teal/gold/blue
+// rebrand) - kept as literals per the convention in data-table/_data-table-tokens.scss,
+// status-pill, kpi-card, and avatar - avoids duplicating the global Google Fonts
+// @import into this component's stylesheet chunk.
+:host {
+  display: inline-flex;
+}
+
+.app-approval-stepper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.app-approval-stepper__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #e7eaef; // border
+  border: 1.5px solid #ffffff; // surface
+  box-shadow: 0 0 0 1px #e7eaef;
+  flex-shrink: 0;
+
+  &--done {
+    background: #1f6f6b; // teal-600
+    box-shadow: 0 0 0 1px #1f6f6b;
+  }
+
+  &--current {
+    background: #c99a3c; // gold-500
+    box-shadow: 0 0 0 1px #c99a3c;
+  }
+}
+
+.app-approval-stepper__line {
+  width: 14px;
+  height: 1.5px;
+  background: #e7eaef; // border
+  flex-shrink: 0;
+
+  &--done {
+    background: #1f6f6b; // teal-600
+  }
+}
+
+:host-context(.dark-theme) {
+  .app-approval-stepper__dot {
+    background: #334155;
+    border-color: var(--dark-cardbg, #1e2530);
+    box-shadow: 0 0 0 1px #334155;
+  }
+
+  .app-approval-stepper__line {
+    background: #334155;
+  }
+}

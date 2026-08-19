@@ -1,0 +1,14 @@
+<div class="app-approval-stepper">
+  <ng-container *ngFor="let step of steps; let last = last">
+    <span
+      class="app-approval-stepper__dot"
+      [ngClass]="'app-approval-stepper__dot--' + step.state"
+      [title]="step.label"
+    ></span>
+    <span
+      class="app-approval-stepper__line"
+      *ngIf="!last"
+      [class.app-approval-stepper__line--done]="step.state === 'done'"
+    ></span>
+  </ng-container>
+</div>
