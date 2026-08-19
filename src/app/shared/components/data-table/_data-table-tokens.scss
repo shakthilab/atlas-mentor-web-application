@@ -1,21 +1,37 @@
 // Shared visual tokens for the generic <app-data-table> and (by copied value,
 // not import) the dashboard/report tables and complex tables that keep their
-// own markup but adopt the same look.
-$dt-header-bg: #f7f8fa;
-$dt-row-divider: #eef0f3;
-$dt-row-hover: #f8f9fc;
-$dt-cell-padding-y: 14px;
-$dt-cell-padding-x: 18px;
-$dt-text-primary: #1a1d23;
-$dt-text-muted: #8a94a6;
-$dt-row-height: 54px;
+// own markup but adopt the same look. Values here mirror the redesign palette
+// in src/assets/scss/_variables.scss ($primary/$accent/$success/$warning/$error)
+// as of the ink/teal/gold/blue rebrand — kept as literals rather than an
+// @import to avoid duplicating the global Google Fonts @import into every
+// component stylesheet chunk that pulls this file in.
+$dt-header-border: #e7eaef; // border
+$dt-row-divider: #f0f2f5; // border-soft
+$dt-row-hover: #f6f7f9; // bg
+$dt-cell-padding-y: 13px;
+$dt-cell-padding-x: 14px;
+$dt-text-primary: #14213d; // ink-900 / $primary
+$dt-text-muted: #9399ac; // text-400
+
+// Pill variant colors (mirrors $success/$warning/$error/$accent + tints)
+$dt-pill-success-bg: #e7f7ef;
+$dt-pill-success-text: #1f9d6c;
+$dt-pill-warning-bg: #fdf3e1;
+$dt-pill-warning-text: #b9791e;
+$dt-pill-danger-bg: #fceae6;
+$dt-pill-danger-text: #c1432b;
+$dt-pill-info-bg: #e7eefa;
+$dt-pill-info-text: #2c5aa0;
+$dt-pill-neutral-bg: #f0f2f5;
+$dt-pill-neutral-text: #56607a;
 
 @mixin dt-pill-base {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 4px 12px;
-  font-size: 12px;
+  gap: 5px;
+  padding: 3px 10px;
+  font-size: 11px;
   font-weight: 600;
   line-height: 1.6;
   border-radius: 999px;

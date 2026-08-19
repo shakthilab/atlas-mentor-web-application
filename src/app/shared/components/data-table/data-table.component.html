@@ -46,6 +46,12 @@
       [class.cell-date--muted]="isEmptyValue(col.valueFn?.(row))"
     >{{ col.valueFn?.(row) }}</span>
 
+    <span
+      *ngSwitchCase="'mono-number'"
+      class="cell-mono"
+      [style.max-width]="col.maxWidth"
+    >{{ col.valueFn ? col.valueFn(row) : row[col.key] }}</span>
+
     <ng-container *ngSwitchCase="'custom'">
       <ng-container *ngTemplateOutlet="cellTemplate(col.key) || null; context: { $implicit: row, row: row }"></ng-container>
     </ng-container>
@@ -83,7 +89,7 @@
           <th
             *ngFor="let col of columns"
             [class]="col.headerClass"
-            [style.text-align]="col.align || 'left'"
+            [style.text-align]="col.align || (col.type === 'mono-number' ? 'right' : 'left')"
             [style.max-width]="col.maxWidth"
           >{{ col.header }}</th>
         </tr>
@@ -94,7 +100,7 @@
           [class.clickable]="clickableRows"
           (click)="onRowClick(row)"
         >
-          <td *ngFor="let col of columns" [style.text-align]="col.align || 'left'">
+          <td *ngFor="let col of columns" [style.text-align]="col.align || (col.type === 'mono-number' ? 'right' : 'left')">
             <ng-container *ngTemplateOutlet="cellContent; context: { col: col, row: row }"></ng-container>
           </td>
         </tr>

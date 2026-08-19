@@ -6,6 +6,7 @@ export type TableColumnType =
   | 'star'
   | 'chips'
   | 'date'
+  | 'mono-number'
   | 'custom'
   | 'actions';
 
