@@ -1,0 +1,88 @@
+// Literal palette values mirroring src/assets/scss/_variables.scss (ink/teal/gold/blue
+// rebrand) - kept as literals, same convention as data-table/_data-table-tokens.scss
+// and status-pill, to avoid duplicating the global Google Fonts @import per component.
+:host {
+  display: block;
+}
+
+.app-kpi-card {
+  background: #ffffff;
+  border: 1px solid #e7eaef;
+  border-radius: 16px;
+  padding: 18px 18px 16px 18px;
+  box-shadow: 0 1px 2px rgba(20, 33, 61, 0.05), 0 1px 1px rgba(20, 33, 61, 0.04);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--rail, #2c8d86);
+  }
+}
+
+.app-kpi-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.app-kpi-card__label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #56607a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.app-kpi-card__icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  i-tabler {
+    width: 15px;
+    height: 15px;
+    display: flex;
+  }
+}
+
+.app-kpi-card__value {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 26px;
+  font-weight: 600;
+  color: #14213d;
+  line-height: 1;
+}
+
+.app-kpi-card__delta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  margin-top: 9px;
+  color: #9399ac;
+
+  &--up { color: #1f9d6c; }
+  &--down { color: #c1432b; }
+}
+
+:host-context(.dark-theme) {
+  .app-kpi-card {
+    background: var(--dark-cardbg, #1e2530);
+    border-color: var(--dark-borderColor, #334155);
+  }
+
+  .app-kpi-card__value {
+    color: #f1f5f9;
+  }
+}

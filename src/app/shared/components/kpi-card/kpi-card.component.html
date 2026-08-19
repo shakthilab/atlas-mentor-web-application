@@ -1,0 +1,18 @@
+<div class="app-kpi-card" [style.--rail]="railColor">
+  <div class="app-kpi-card__top">
+    <span class="app-kpi-card__label">{{ label }}</span>
+    <div class="app-kpi-card__icon" *ngIf="icon" [style.background]="iconBg" [style.color]="iconColor">
+      <i-tabler [name]="icon"></i-tabler>
+    </div>
+  </div>
+  <div class="app-kpi-card__value">{{ value }}</div>
+  <div
+    class="app-kpi-card__delta"
+    *ngIf="delta"
+    [ngClass]="'app-kpi-card__delta--' + deltaDirection"
+  >
+    <svg *ngIf="deltaDirection === 'up'" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3"><path d="M7 17L17 7M7 7h10v10"/></svg>
+    <svg *ngIf="deltaDirection === 'down'" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3"><path d="M7 7l10 10M17 7v10H7"/></svg>
+    <span>{{ delta }}</span>
+  </div>
+</div>
