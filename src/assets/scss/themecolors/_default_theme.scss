@@ -20,9 +20,9 @@ $mat-secondary: (
 );
 
 $mat-warn: (
-  100: FDEDE8,
-  500: #fa896b,
-  700: #f3704d,
+  100: $light-error,
+  500: $error,
+  700: darken($error, 8%),
   contrast: (
     100: white,
     500: white,

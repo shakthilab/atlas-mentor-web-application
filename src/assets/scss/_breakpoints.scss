@@ -1,0 +1,17 @@
+// Shared breakpoint tokens for the redesign. Import into a component's SCSS
+// with a relative path where a formalized breakpoint is wanted going forward —
+// this does not retroactively touch existing ad hoc media queries.
+$bp-mobile: 800px;
+$bp-tablet: 1100px;
+
+@mixin bp-mobile {
+  @media (max-width: $bp-mobile) {
+    @content;
+  }
+}
+
+@mixin bp-tablet {
+  @media (max-width: $bp-tablet) {
+    @content;
+  }
+}
