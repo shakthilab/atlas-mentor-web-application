@@ -49,7 +49,7 @@ function waitForServer(timeoutMs) {
 }
 
 // Expected navy brand tokens (see src/assets/scss/_variables.scss $primary / $accent)
-const BRAND_PRIMARY_RGB = 'rgb(27, 42, 74)'; // #1B2A4A
+const BRAND_PRIMARY_RGB = 'rgb(20, 33, 61)'; // #14213D
 
 async function navClick(page, label, failures) {
   try {

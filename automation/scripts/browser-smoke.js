@@ -94,14 +94,19 @@ async function main() {
       console.log('[smoke] PASS: login form fields (email, password, submit) render');
     }
 
-    // ── Check 3: logo/brand asset actually loads (catches broken asset paths) ──
-    const logo = page.locator('img[alt="Atlas Mentor"]');
-    if (await logo.count()) {
-      const naturalWidth = await logo.evaluate((img) => img.naturalWidth).catch(() => 0);
-      if (!naturalWidth) failures.push('Atlas Mentor logo image failed to load (naturalWidth is 0)');
-      else console.log('[smoke] PASS: logo asset loads');
+    // ── Check 3: brand header renders (text-based "Atlas Mentor" wordmark, not an <img>) ──
+    const brandAtlas = page.locator('.brand-atlas');
+    const brandMentor = page.locator('.brand-mentor');
+    if (await brandAtlas.count() && await brandMentor.count()) {
+      const atlasText = (await brandAtlas.innerText()).trim();
+      const mentorText = (await brandMentor.innerText()).trim();
+      if (atlasText !== 'Atlas' || mentorText !== 'Mentor') {
+        failures.push(`Brand header text mismatch: got "${atlasText} ${mentorText}"`);
+      } else {
+        console.log('[smoke] PASS: brand header renders');
+      }
     } else {
-      failures.push('Atlas Mentor logo <img> not found on login page');
+      failures.push('Atlas Mentor brand header (.brand-atlas/.brand-mentor) not found on login page');
     }
 
     // ── Check 4: other role routes also redirect to login when unauthenticated ──

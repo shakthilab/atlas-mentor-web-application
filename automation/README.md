@@ -39,7 +39,7 @@ write real data to production.
 
 1. Unauthenticated `/` redirects to `/auth/login` (confirms `AuthGuard` wiring).
 2. The login form renders its expected fields (email, password, submit button).
-3. The Atlas Mentor logo image asset actually loads (catches broken asset paths).
+3. The Atlas Mentor text-based brand header ("Atlas" / "Mentor" wordmark) renders on the login page.
 4. Unauthenticated role routes (`/admin`, `/manager`, `/employee`, `/student`) all
    redirect to `/auth/login` too.
 5. Captures a screenshot to `automation/tests/last-run-login.png` and reports any
