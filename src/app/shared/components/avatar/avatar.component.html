@@ -1,0 +1,11 @@
+<div
+  class="app-avatar"
+  [style.width.px]="size"
+  [style.height.px]="size"
+  [style.font-size.px]="size * 0.34"
+  [style.background]="imageUrl ? null : background"
+  [style.color]="imageUrl ? null : textColor"
+>
+  <img *ngIf="imageUrl" [src]="imageUrl" [alt]="name" class="app-avatar__img" />
+  <span *ngIf="!imageUrl" class="app-avatar__initials">{{ initials }}</span>
+</div>

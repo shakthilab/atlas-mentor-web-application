@@ -16,11 +16,12 @@ import { TableCellDefDirective } from './table-cell-def.directive';
 import { TableRowActionsDirective } from './table-row-actions.directive';
 import { TableExportService } from './table-export.service';
 import { StatusPillComponent, StatusPillVariant } from '../status-pill/status-pill.component';
+import { AvatarComponent } from '../avatar/avatar.component';
 
 @Component({
   selector: 'app-data-table',
   standalone: true,
-  imports: [CommonModule, TablerIconsModule, StatusPillComponent],
+  imports: [CommonModule, TablerIconsModule, StatusPillComponent, AvatarComponent],
   templateUrl: './data-table.component.html',
   styleUrl: './data-table.component.scss',
 })

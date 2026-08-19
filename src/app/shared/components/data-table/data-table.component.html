@@ -13,7 +13,7 @@
     </div>
 
     <div *ngSwitchCase="'avatar'" class="cell-avatar" [style.max-width]="col.maxWidth">
-      <img [src]="col.avatarFn?.(row)" class="cell-avatar__img" width="36" height="36" alt="" />
+      <app-avatar [imageUrl]="col.avatarFn?.(row)" [name]="col.valueFn?.(row) || ''" [size]="36"></app-avatar>
       <div class="cell-avatar__text">
         <span class="cell-avatar__primary">{{ col.valueFn?.(row) }}</span>
         <span class="cell-avatar__secondary" *ngIf="col.subFn">{{ col.subFn(row) }}</span>

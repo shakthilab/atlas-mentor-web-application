@@ -213,12 +213,6 @@
   align-items: center;
   gap: 10px;
 
-  &__img {
-    border-radius: 50%;
-    object-fit: cover;
-    flex-shrink: 0;
-  }
-
   &__text {
     display: flex;
     flex-direction: column;
