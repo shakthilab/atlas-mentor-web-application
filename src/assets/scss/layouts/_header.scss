@@ -44,6 +44,13 @@ button[mat-icon-button],
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
+  border-radius: var(--radius-sm) !important;
+  color: $text-600;
+  transition: background-color .15s ease;
+
+  &:hover {
+    background-color: var(--bg) !important;
+  }
 
   i-tabler {
     display: flex !important;
@@ -185,7 +192,7 @@ button[mat-icon-button],
     right: 8px;
     width: 6px;
     height: 6px;
-    background-color: #fa896b;
+    background-color: var(--danger);
     border-radius: 50%;
     border: 1px solid #ffffff;
 
@@ -357,13 +364,13 @@ button[mat-icon-button],
 .search-bar-container {
   display: flex;
   align-items: center;
-  background-color: #ffffff;
-  border-radius: 8px;
+  background-color: var(--bg);
+  border-radius: var(--radius-sm);
   padding: 0 14px;
   height: 42px;
   width: 100%;
   max-width: 380px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
   transition: all 0.2s ease-in-out;
 
   @media (max-width: 1024px) {

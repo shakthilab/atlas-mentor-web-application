@@ -18,6 +18,52 @@
   --brand-secondary: #{$accent};
   --brand-secondary-rgb: #{red($accent)}, #{green($accent)}, #{blue($accent)};
   --brand-secondary-dark: #{darken($accent, 12%)};
+
+  // ─── Redesign design tokens (single source of truth for the new UI) ──────
+  --font-sans: #{$font-family};
+  --font-mono: #{$font-mono};
+
+  --ink-900: #{$ink-900};
+  --ink-700: #{$ink-700};
+  --ink-500: #{$ink-500};
+
+  --teal-700: #{$teal-700};
+  --teal-600: #{$teal-600};
+  --teal-500: #{$teal-500};
+  --teal-100: #{$teal-100};
+  --teal-50: #F2F8F7;
+
+  --gold-600: #{$gold-600};
+  --gold-500: #{$gold-500};
+  --gold-100: #{$gold-100};
+
+  --blue-700: #{$blue-700};
+  --blue-600: #{$blue-600};
+  --blue-500: #{$blue-500};
+  --blue-100: #{$blue-100};
+
+  --bg: #{$surface-bg};
+  --surface: #{$surface-card};
+  --border: #{$surface-border};
+  --border-soft: #{$surface-border-soft};
+
+  --text-900: #{$text-900};
+  --text-600: #{$text-600};
+  --text-400: #{$text-400};
+
+  --success: #{$success};
+  --success-bg: #{$light-success};
+  --warning: #{$warning};
+  --warning-bg: #{$light-warning};
+  --danger: #{$error};
+  --danger-bg: #{$light-error};
+
+  --radius-lg: #{$radius-lg};
+  --radius-md: #{$radius-md};
+  --radius-sm: #{$radius-sm};
+
+  --shadow-sm: 0 1px 2px rgba(20, 33, 61, .05), 0 1px 1px rgba(20, 33, 61, .04);
+  --shadow-md: 0 8px 24px rgba(20, 33, 61, .08);
 }
 
 // ─── Thin, auto-fading scrollbars app-wide ─────────────────────────────────
@@ -83,6 +129,7 @@ $darkblue-theme: mat.define-dark-theme((
 // pages
 @import "pages/dashboards";
 @import "pages/auth";
+@import "page-shell";
 
 // ─── Smooth theme transition ───────────────────────────────────────────────
 // Applied briefly via ThemeService during the toggle, then removed
@@ -296,7 +343,7 @@ body.theme-transitioning * {
 .shared-web-footer {
   background-color: #f8fafc;
   padding: 16px 24px;
-  font-family: 'Inter', sans-serif;
+  font-family: $font-family;
   font-size: 12px;
   color: #64748b;
   width: 100%;

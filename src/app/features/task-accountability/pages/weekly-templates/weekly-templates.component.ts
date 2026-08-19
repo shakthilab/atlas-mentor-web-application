@@ -245,7 +245,7 @@ import { WeeklyTemplateDuplicateDialogComponent } from './weekly-template-duplic
     
     .status-chip {
       font-size: 10px;
-      font-weight: 800;
+      font-weight: 700;
       padding: 3px 8px;
       border-radius: 6px;
       text-transform: uppercase;

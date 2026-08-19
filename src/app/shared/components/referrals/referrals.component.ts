@@ -13,6 +13,13 @@ import { createSearchPredicate, encodeSearch } from '../data-table/table-filter.
 @Component({
   selector: 'app-referrals',
   template: `
+    <div class="page-head">
+      <div>
+        <div class="eyebrow">Organization</div>
+        <h1 class="page-title">Referrals Directory</h1>
+        <p class="page-sub">Manage partners, influencers, and track conversion metrics.</p>
+      </div>
+    </div>
     <div class="table-container">
       <mat-card class="cardWithShadow">
         <mat-card-header class="d-flex align-items-center justify-content-between p-x-24 p-y-16">

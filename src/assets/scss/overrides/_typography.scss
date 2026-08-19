@@ -9,9 +9,15 @@
   color: $textPrimary;
 }
 
-// Inter — optimized for screen UI and tabular data
+// Helvetica — the app-wide typeface (see CLAUDE.md). Material's
+// font-shorthand mixin assigns `font-family: $font-family;` directly
+// (not via #{} interpolation), so a quoted Sass string with embedded
+// commas would compile to CSS as ONE literal (nonexistent) font name —
+// e.g. font-family: "Helvetica Neue, Helvetica, Arial, sans-serif"; —
+// which browsers can't resolve and silently fall back to the UA default
+// (serif). unquote() makes Sass emit a real comma-separated font stack.
 $theme-typography: mat.define-typography-config(
-  $font-family: "Inter",
+  $font-family: unquote('"Helvetica Neue", Helvetica, Arial, sans-serif'),
   $subtitle-2: mat.define-typography-level(13px, 20px, 500),
   $subtitle-1: mat.define-typography-level(20px, 26px, 600),
   $headline-6: mat.define-typography-level(18px, 26px, 600),

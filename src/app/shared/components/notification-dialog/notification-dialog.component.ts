@@ -87,7 +87,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
       font-weight: 700;
       margin-bottom: 12px;
       color: var(--brand-primary);
-      font-family: 'Outfit', 'Inter', sans-serif;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
       letter-spacing: -0.3px;
     }
 
@@ -96,7 +96,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
       color: #64748b;
       line-height: 1.5;
       margin-bottom: 28px;
-      font-family: 'Inter', sans-serif;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     }
 
     .dialog-actions {
@@ -117,7 +117,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
         box-shadow: none !important;
         text-transform: uppercase;
         letter-spacing: 0.8px;
-        font-family: 'Inter', sans-serif;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
         transition: background-color 0.2s ease;
         
         &:hover {

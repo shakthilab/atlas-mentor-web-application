@@ -36,6 +36,13 @@ export interface Student {
 @Component({
   selector: 'app-students',
   template: `
+    <div class="page-head">
+      <div>
+        <div class="eyebrow">Management</div>
+        <h1 class="page-title">Students Directory</h1>
+        <p class="page-sub">Track every enrolled and prospective student in one place.</p>
+      </div>
+    </div>
     <div class="table-container">
       <mat-card class="cardWithShadow">
         <mat-card-header class="d-flex align-items-center justify-content-between p-x-24 p-y-16">

@@ -197,9 +197,17 @@ export class AdminDashboardComponent implements OnInit {
             }));
           }
           if (res.data.intakeCountrySeries) {
+            // Match the acquisition-funnel chart's rounded bar corners for any
+            // bar-type series the backend returns here, without touching the
+            // underlying data/colors it supplies.
+            const roundedSeries = (res.data.intakeCountrySeries as any[]).map((s: any) =>
+              s?.type === 'bar'
+                ? { ...s, itemStyle: { borderRadius: [8, 8, 0, 0], ...(s.itemStyle || {}) } }
+                : s
+            );
             this.intakeCountryOptions = {
               ...this.intakeCountryOptions,
-              series: res.data.intakeCountrySeries
+              series: roundedSeries
             };
           }
         }

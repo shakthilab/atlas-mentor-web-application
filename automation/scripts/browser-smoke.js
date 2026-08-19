@@ -74,7 +74,9 @@ async function main() {
     page.on('pageerror', (err) => consoleErrors.push(`pageerror: ${err.message}`));
 
     // ── Check 1: root route redirects unauthenticated users to /auth/login ──
-    await page.goto(BASE_URL + '/', { waitUntil: 'networkidle' });
+    // 'load' rather than 'networkidle': this dev server's Vite/esbuild HMR
+    // client keeps a persistent WebSocket open, so 'networkidle' never fires.
+    await page.goto(BASE_URL + '/', { waitUntil: 'load' });
     await page.waitForURL('**/auth/login**', { timeout: 10_000 }).catch(() => {});
     const urlAfterRoot = page.url();
     if (!urlAfterRoot.includes('/auth/login')) {
@@ -111,7 +113,7 @@ async function main() {
 
     // ── Check 4: other role routes also redirect to login when unauthenticated ──
     for (const route of ['/admin', '/manager', '/employee', '/student']) {
-      await page.goto(BASE_URL + route, { waitUntil: 'networkidle' });
+      await page.goto(BASE_URL + route, { waitUntil: 'load' });
       await page.waitForURL('**/auth/login**', { timeout: 10_000 }).catch(() => {});
       const url = page.url();
       if (!url.includes('/auth/login')) {

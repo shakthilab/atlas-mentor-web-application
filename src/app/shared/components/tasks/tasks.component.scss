@@ -9,7 +9,7 @@ i-tabler {
   padding: 24px;
   position: relative;
   min-height: calc(100vh - 120px);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 
   @media (max-width: 768px) {
     padding: 12px 8px;
@@ -107,7 +107,7 @@ i-tabler {
   color: #0f172a;
   line-height: 1;
   margin-bottom: 16px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   letter-spacing: -1px;
 }
 
@@ -1647,7 +1647,7 @@ table {
       border-bottom: 1px solid #f1f5f9;
 
       .tasks-title {
-        font-weight: 800;
+        font-weight: 700;
         font-size: 13px;
         color: #1e293b;
         letter-spacing: 0.5px;
@@ -2509,7 +2509,7 @@ table {
   h2 {
     color: #0f172a;
     font-size: 28px;
-    font-weight: 800;
+    font-weight: 700;
     margin-bottom: 4px;
   }
 }
@@ -2613,7 +2613,7 @@ table {
 
   .stat-value {
     font-size: 36px;
-    font-weight: 800;
+    font-weight: 700;
     color: #0f172a;
     line-height: 1.2;
     margin-bottom: 16px;

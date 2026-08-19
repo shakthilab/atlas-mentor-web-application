@@ -23,6 +23,13 @@ export interface Resource {
 @Component({
   selector: 'app-resources',
   template: `
+    <div class="page-head">
+      <div>
+        <div class="eyebrow">Resources</div>
+        <h1 class="page-title">Resources Directory</h1>
+        <p class="page-sub">Shared documents, links, and reference material for the team.</p>
+      </div>
+    </div>
     <div class="table-container">
       <mat-card class="cardWithShadow">
         <mat-card-header class="d-flex align-items-center justify-content-between p-x-24 p-y-16">

@@ -41,6 +41,13 @@ export interface Lead {
 @Component({
   selector: 'app-leads',
   template: `
+    <div class="page-head">
+      <div>
+        <div class="eyebrow">Management</div>
+        <h1 class="page-title">Leads Directory</h1>
+        <p class="page-sub">Every lead across all branches, in one place.</p>
+      </div>
+    </div>
     <div class="table-container">
       <mat-card class="cardWithShadow">
         <mat-card-header class="d-flex align-items-center justify-content-between p-x-24 p-y-16">

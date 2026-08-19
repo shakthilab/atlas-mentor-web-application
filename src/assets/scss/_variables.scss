@@ -1,7 +1,8 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap");
 
-// font
-$font-family: 'Inter', sans-serif;
+// font — Helvetica is the app-wide typeface (see CLAUDE.md); IBM Plex Mono
+// remains for tabular/monospace values (KPI figures, table numeric cells).
+$font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 $font-heading: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 $font-mono: 'IBM Plex Mono', monospace;
 
@@ -64,7 +65,24 @@ $teal-100: #E4F1EF;
 $gold-600: #A87C25;
 $gold-500: #C99A3C;
 $gold-100: #FBF1DD;
+$blue-700: #1E3E72;
+$blue-600: #2C5AA0;
+$blue-500: #3E72C7;
 $blue-100: #E7EEFA;
+
+// ink scale (sidebar / dark surfaces / headings)
+$ink-900: #14213D;
+$ink-700: #243B5C;
+$ink-500: #56607A;
+
+// neutral surfaces / text / borders (redesign)
+$surface-bg: #F6F7F9;
+$surface-card: #FFFFFF;
+$surface-border: #E7EAEF;
+$surface-border-soft: #F0F2F5;
+$text-900: #14213D;
+$text-600: #56607A;
+$text-400: #9399AC;
 
 // layout
 $boxedWidth: 1200px;

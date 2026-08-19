@@ -43,7 +43,10 @@ $bluetheme: mat.define-light-theme(
     ),
     typography:
       mat.define-typography-config(
-        $font-family: "Inter",
+        // unquote() so Sass emits an actual comma-separated CSS font stack
+        // here instead of one literal (nonexistent) quoted font name — see
+        // overrides/_typography.scss for the full explanation.
+        $font-family: unquote('"Helvetica Neue", Helvetica, Arial, sans-serif'),
         $subtitle-2: mat.define-typography-level(13px, 20px, 500),
         $subtitle-1: mat.define-typography-level(20px, 26px, 600),
         $headline-6: mat.define-typography-level(18px, 26px, 600),

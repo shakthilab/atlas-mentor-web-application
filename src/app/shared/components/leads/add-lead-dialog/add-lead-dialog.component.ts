@@ -570,7 +570,7 @@ import { LEAD_PRIORITY_TIERS, LEAD_BACKGROUND_OPTIONS, getSubCategoriesForTier, 
       overflow: hidden;
       overflow-x: hidden !important;
       background-color: var(--mat-dialog-container-color, #ffffff);
-      font-family: 'Outfit', 'Inter', sans-serif;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     }
 
     .step-content-area {

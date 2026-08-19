@@ -19,6 +19,13 @@ import { TableColumn } from '../data-table/data-table.models';
 @Component({
   selector: 'app-employees',
   template: `
+    <div class="page-head">
+      <div>
+        <div class="eyebrow">Management</div>
+        <h1 class="page-title">Employees Directory</h1>
+        <p class="page-sub">Manage your team across all branches.</p>
+      </div>
+    </div>
     <div class="table-container">
       <mat-card class="cardWithShadow">
         <mat-card-header class="d-flex align-items-center justify-content-between p-x-24 p-y-16">

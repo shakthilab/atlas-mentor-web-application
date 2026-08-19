@@ -2,7 +2,7 @@
   display: block;
   height: 100%;
   background-color: #FBFBFC;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   overflow: hidden;
 }
 
@@ -536,7 +536,7 @@
 
     .greeting-heading {
       font-size: 26px;
-      font-weight: 800;
+      font-weight: 700;
       color: #ffffff;
       margin: 0 0 12px 0;
       letter-spacing: -0.5px;
@@ -658,7 +658,7 @@
 
     .date-title {
       font-size: 26px;
-      font-weight: 800;
+      font-weight: 700;
       color: #0f172a;
       margin: 0;
       letter-spacing: -0.4px;
@@ -877,7 +877,7 @@
 
                 &.today:not(.selected) {
                   color: #2563eb !important;
-                  font-weight: 800;
+                  font-weight: 700;
                   background-color: #eff6ff;
                   border: 1.5px solid #93c5fd;
                 }
@@ -885,7 +885,7 @@
                 &.today.selected {
                   background-color: #334155;
                   color: #ffffff !important;
-                  font-weight: 800;
+                  font-weight: 700;
                   box-shadow: 0 0 0 2px #3b82f6;
                 }
               }
@@ -957,7 +957,7 @@
 
           .today-tag {
             font-size: 9px;
-            font-weight: 800;
+            font-weight: 700;
             letter-spacing: 0.5px;
             background-color: #2563eb;
             color: #ffffff;
@@ -969,7 +969,7 @@
 
         .card-day-num {
           font-size: 20px;
-          font-weight: 800;
+          font-weight: 700;
           color: #0f172a;
           margin-top: 2px;
         }
@@ -1036,7 +1036,7 @@
 
       .kpi-value {
         font-size: 28px;
-        font-weight: 800;
+        font-weight: 700;
         color: #0f172a;
         margin-top: 10px;
         letter-spacing: -0.5px;

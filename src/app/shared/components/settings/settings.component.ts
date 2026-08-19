@@ -5,6 +5,13 @@ import { TranslateService } from '@ngx-translate/core';
 @Component({
   selector: 'app-settings',
   template: `
+    <div class="page-head">
+      <div>
+        <div class="eyebrow">Preferences</div>
+        <h1 class="page-title">Workspace Settings</h1>
+        <p class="page-sub">Manage your appearance, localization, and general preferences.</p>
+      </div>
+    </div>
     <div class="settings-container">
       <!-- Appearance Settings -->
       <mat-card class="cardWithShadow">
