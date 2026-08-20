@@ -61,6 +61,7 @@ import { TableColumn } from '../data-table/data-table.models';
               trackByKey="id"
               [clickableRows]="true"
               exportFileName="employees"
+              noFilterResultsMessage="No employees on this page match the current filters. Filters only apply to the currently loaded page — try clearing filters before paging."
               (rowClick)="viewProfile($event)"
             >
               <ng-template appCellDef="employee" let-element="row">
@@ -430,19 +431,31 @@ export class EmployeesComponent implements OnInit, AfterViewInit {
   viewMode: 'table' | 'card' = 'table';
 
   tableColumns: TableColumn<Employee>[] = [
-    { key: 'employee', header: 'Employee', type: 'custom' },
-    { key: 'role', header: 'Role', type: 'text', valueFn: r => this.getRoleDisplayName(r), maxWidth: '160px' },
+    {
+      key: 'employee', header: 'Employee', type: 'custom',
+      filter: { type: 'text', getValue: (r: any) => `${r.firstName || ''} ${r.lastName || ''} ${r.email || ''}` },
+    },
+    {
+      key: 'role', header: 'Role', type: 'text', valueFn: r => this.getRoleDisplayName(r), maxWidth: '160px',
+      filter: { type: 'text' },
+    },
     {
       key: 'branch', header: 'Branch', type: 'text',
       valueFn: (r: any) => r.branch?.name || r.branch || ('Branch ' + r.branchId),
       maxWidth: '160px',
+      filter: { type: 'text' },
     },
     {
       key: 'status', header: 'Status', type: 'pill',
       valueFn: r => this.titleCase(r.status || 'ACTIVE'),
       classFn: r => this.statusPillClass(r.status || 'ACTIVE'),
+      filter: {
+        type: 'select',
+        options: [{ value: 'ACTIVE', label: 'Active' }, { value: 'INACTIVE', label: 'Inactive' }],
+        getValue: r => (r.status || 'ACTIVE').toUpperCase(),
+      },
     },
-    { key: 'phone', header: 'Phone', type: 'text', valueFn: r => r.phone || 'N/A', maxWidth: '130px' },
+    { key: 'phone', header: 'Phone', type: 'text', valueFn: r => r.phone || 'N/A', maxWidth: '130px', filter: { type: 'text' } },
     { key: 'actions', header: 'Actions', type: 'actions', align: 'right' },
   ];
 

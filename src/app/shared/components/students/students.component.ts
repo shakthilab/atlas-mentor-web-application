@@ -28,6 +28,7 @@ export interface Student {
   country: string;
   university: string;
   joinedDate: string;
+  joinedDateRaw?: string;
   rawStatus?: string;
   isActive?: boolean;
   source?: string;
@@ -98,6 +99,7 @@ export interface Student {
               trackByKey="id"
               [clickableRows]="true"
               exportFileName="students"
+              noFilterResultsMessage="No students on this page match the current filters."
               (rowClick)="viewProfile($event)"
             >
               <ng-template appRowActions let-element="row">
@@ -468,37 +470,53 @@ export class StudentsComponent implements OnInit, AfterViewInit, OnDestroy {
     {
       key: 'student', header: 'Student', type: 'avatar',
       avatarFn: r => r.avatar, valueFn: r => r.name, subFn: r => r.major,
+      filter: { type: 'text', getValue: r => `${r.name} ${r.major}` },
     },
     {
       key: 'contactInfo', header: 'Contact Info', type: 'two-line',
       valueFn: r => r.email, subFn: r => r.phone, maxWidth: '170px',
+      filter: { type: 'text', getValue: r => `${r.email} ${r.phone}` },
     },
     {
       key: 'status', header: 'Status', type: 'pill',
       valueFn: r => r.status === 'enrolled' ? 'Enrolled' : r.status === 'pending' ? 'Pending' : 'Completed',
       classFn: r => r.status === 'enrolled' ? 'pill--info' : r.status === 'pending' ? 'pill--warning' : 'pill--success',
+      filter: {
+        type: 'select',
+        options: [
+          { value: 'enrolled', label: 'Enrolled' },
+          { value: 'pending', label: 'Pending' },
+          { value: 'completed', label: 'Completed' },
+        ],
+        getValue: r => r.status,
+      },
     },
-    { key: 'source', header: 'Source', type: 'text', valueFn: r => r.source || '—', maxWidth: '110px' },
+    { key: 'source', header: 'Source', type: 'text', valueFn: r => r.source || '—', maxWidth: '110px', filter: { type: 'text' } },
     {
       key: 'activeStatus', header: 'Active', type: 'pill',
       valueFn: r => r.isActive ? 'Active' : 'Inactive',
       classFn: r => r.isActive ? 'pill--success' : 'pill--danger',
+      filter: { type: 'boolean', trueLabel: 'Active', falseLabel: 'Inactive', getValue: r => !!r.isActive },
     },
     {
       key: 'counsellor', header: 'Counsellor', type: 'avatar',
       avatarFn: r => r.counsellorAvatar, valueFn: r => r.counsellor,
+      filter: { type: 'text' },
     },
     {
       key: 'addedBy', header: 'Added By', type: 'two-line',
       valueFn: r => r.addedBy, subFn: r => r.addedByRole, maxWidth: '150px',
+      filter: { type: 'text', getValue: r => `${r.addedBy} ${r.addedByRole}` },
     },
     {
       key: 'countryUniversity', header: 'Country / University', type: 'two-line',
       valueFn: r => r.country, subFn: r => r.university, maxWidth: '170px',
+      filter: { type: 'text', getValue: r => `${r.country} ${r.university}` },
     },
     {
       key: 'joinedDate', header: 'Joined Date', type: 'date',
       valueFn: r => r.joinedDate,
+      filter: { type: 'date-range', getValue: r => (r.joinedDateRaw ? new Date(r.joinedDateRaw) : null) },
     },
     {
       key: 'actions', header: 'Actions', type: 'actions', align: 'right',
@@ -674,6 +692,7 @@ function mapToStudent(dto: RegisteredStudentDto): Student {
     country: dto.countryName || '—',
     university: dto.universityName || '—',
     joinedDate,
+    joinedDateRaw: dto.createdAt,
     rawStatus: dto.status,
     isActive: dto.isActive,
     source: dto.source || '—',

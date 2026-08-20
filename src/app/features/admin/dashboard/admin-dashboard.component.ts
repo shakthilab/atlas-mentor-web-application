@@ -626,10 +626,10 @@ export class AdminDashboardComponent implements OnInit {
 
   public topPayingEntities: any[] = [];
   public topPayingEntitiesColumns: TableColumn<any>[] = [
-    { key: 'entity', header: 'Entity', type: 'custom', exportValueFn: r => r.entity },
-    { key: 'type', header: 'Type', type: 'custom', exportValueFn: r => r.type },
-    { key: 'amount', header: 'Amount / Status', type: 'custom', exportValueFn: r => `${r.amount} (${r.status})` },
-    { key: 'last', header: 'Last', type: 'custom', align: 'right', exportValueFn: r => r.last },
+    { key: 'entity', header: 'Entity', type: 'custom', exportValueFn: r => r.entity, filter: { type: 'text' } },
+    { key: 'type', header: 'Type', type: 'custom', exportValueFn: r => r.type, filter: { type: 'text' } },
+    { key: 'amount', header: 'Amount / Status', type: 'custom', exportValueFn: r => `${r.amount} (${r.status})`, filter: { type: 'text' } },
+    { key: 'last', header: 'Last', type: 'custom', align: 'right', exportValueFn: r => r.last, filter: { type: 'text' } },
   ];
   public openDisputes: any[] = [];
 
@@ -662,11 +662,11 @@ export class AdminDashboardComponent implements OnInit {
 
   public overdueTasks: any[] = [];
   public overdueTasksColumns: TableColumn<any>[] = [
-    { key: 'task', header: 'Task', type: 'custom', exportValueFn: r => r.task },
-    { key: 'assignee', header: 'Assignee', type: 'custom', exportValueFn: r => r.assignee },
-    { key: 'due', header: 'Due', type: 'custom', exportValueFn: r => r.due },
-    { key: 'priority', header: 'Priority', type: 'custom', exportValueFn: r => r.priority },
-    { key: 'late', header: 'Late', type: 'custom', align: 'right', exportValueFn: r => r.late },
+    { key: 'task', header: 'Task', type: 'custom', exportValueFn: r => r.task, filter: { type: 'text' } },
+    { key: 'assignee', header: 'Assignee', type: 'custom', exportValueFn: r => r.assignee, filter: { type: 'text' } },
+    { key: 'due', header: 'Due', type: 'custom', exportValueFn: r => r.due, filter: { type: 'text' } },
+    { key: 'priority', header: 'Priority', type: 'custom', exportValueFn: r => r.priority, filter: { type: 'text' } },
+    { key: 'late', header: 'Late', type: 'custom', align: 'right', exportValueFn: r => r.late, filter: { type: 'text' } },
   ];
   public workload: any[] = [];
 
@@ -679,13 +679,13 @@ export class AdminDashboardComponent implements OnInit {
 
   public branchPerformance: any[] = [];
   public branchPerformanceColumns: TableColumn<any>[] = [
-    { key: 'branch', header: 'Branch', type: 'custom', exportValueFn: r => r.branch },
-    { key: 'students', header: 'Students', type: 'custom', align: 'center', exportValueFn: r => r.students },
-    { key: 'active', header: 'Active', type: 'custom', align: 'center', exportValueFn: r => r.active },
-    { key: 'revenue', header: 'Revenue', type: 'custom', align: 'center', exportValueFn: r => r.revenue },
-    { key: 'tasks', header: 'Tasks', type: 'custom', align: 'center', exportValueFn: r => r.tasks },
-    { key: 'team', header: 'Team', type: 'custom', align: 'center', exportValueFn: r => r.team },
-    { key: 'health', header: 'Health', type: 'custom', maxWidth: '220px', exportValueFn: r => `${r.health}%` },
+    { key: 'branch', header: 'Branch', type: 'custom', exportValueFn: r => r.branch, filter: { type: 'text' } },
+    { key: 'students', header: 'Students', type: 'custom', align: 'center', exportValueFn: r => r.students, filter: { type: 'number-range', getValue: r => r.students } },
+    { key: 'active', header: 'Active', type: 'custom', align: 'center', exportValueFn: r => r.active, filter: { type: 'number-range', getValue: r => r.active } },
+    { key: 'revenue', header: 'Revenue', type: 'custom', align: 'center', exportValueFn: r => r.revenue, filter: { type: 'text' } },
+    { key: 'tasks', header: 'Tasks', type: 'custom', align: 'center', exportValueFn: r => r.tasks, filter: { type: 'number-range', getValue: r => r.tasks } },
+    { key: 'team', header: 'Team', type: 'custom', align: 'center', exportValueFn: r => r.team, filter: { type: 'number-range', getValue: r => r.team } },
+    { key: 'health', header: 'Health', type: 'custom', maxWidth: '220px', exportValueFn: r => `${r.health}%`, filter: { type: 'number-range', getValue: r => r.health } },
   ];
 
   // --- SECTION 06: REFERRALS & PARTNERS ---
@@ -710,20 +710,20 @@ export class AdminDashboardComponent implements OnInit {
   public topReferrers: any[] = [];
   public topReferrersColumns: TableColumn<any>[] = [
     { key: 'rank', header: '#', type: 'custom', exportValueFn: r => r.rank },
-    { key: 'partner', header: 'Partner', type: 'custom', exportValueFn: r => r.partner },
-    { key: 'type', header: 'Type', type: 'custom', exportValueFn: r => r.type },
-    { key: 'students', header: 'Students', type: 'custom', align: 'center', exportValueFn: r => r.students },
-    { key: 'commission', header: 'Commission', type: 'custom', align: 'right', exportValueFn: r => r.commission },
-    { key: 'share', header: 'Share', type: 'custom', maxWidth: '220px', exportValueFn: r => `${r.share}%` },
+    { key: 'partner', header: 'Partner', type: 'custom', exportValueFn: r => r.partner, filter: { type: 'text' } },
+    { key: 'type', header: 'Type', type: 'custom', exportValueFn: r => r.type, filter: { type: 'text' } },
+    { key: 'students', header: 'Students', type: 'custom', align: 'center', exportValueFn: r => r.students, filter: { type: 'number-range', getValue: r => r.students } },
+    { key: 'commission', header: 'Commission', type: 'custom', align: 'right', exportValueFn: r => r.commission, filter: { type: 'text' } },
+    { key: 'share', header: 'Share', type: 'custom', maxWidth: '220px', exportValueFn: r => `${r.share}%`, filter: { type: 'number-range', getValue: r => r.share } },
   ];
   // --- SECTION 07: AUDIT & ACTIVITY ---
   public auditLog: any[] = [];
   public auditLogColumns: TableColumn<any>[] = [
-    { key: 'time', header: 'Time', type: 'custom', exportValueFn: r => r.time },
-    { key: 'action', header: 'Action', type: 'custom', exportValueFn: r => r.action },
-    { key: 'entity', header: 'Entity', type: 'custom', exportValueFn: r => r.entity },
-    { key: 'actor', header: 'Actor', type: 'custom', exportValueFn: r => r.actor },
-    { key: 'change', header: 'Change', type: 'custom', exportValueFn: r => r.change },
+    { key: 'time', header: 'Time', type: 'custom', exportValueFn: r => r.time, filter: { type: 'text' } },
+    { key: 'action', header: 'Action', type: 'custom', exportValueFn: r => r.action, filter: { type: 'text' } },
+    { key: 'entity', header: 'Entity', type: 'custom', exportValueFn: r => r.entity, filter: { type: 'text' } },
+    { key: 'actor', header: 'Actor', type: 'custom', exportValueFn: r => r.actor, filter: { type: 'text' } },
+    { key: 'change', header: 'Change', type: 'custom', exportValueFn: r => r.change, filter: { type: 'text' } },
   ];
   public activityFeed: any[] = [];
 }

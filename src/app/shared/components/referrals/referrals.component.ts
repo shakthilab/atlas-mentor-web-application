@@ -7,7 +7,7 @@ import { ReferralService } from '../../../core/services/referral.service';
 import { MasterDataService } from '../../../core/services/master-data.service';
 import { AddReferralDialogComponent } from './add-referral-dialog/add-referral-dialog.component';
 import { ReferralDetailDialogComponent } from './referral-detail-dialog/referral-detail-dialog.component';
-import { TableColumn } from '../data-table/data-table.models';
+import { TableColumn, TableFilterChangeEvent, TableFilterOption } from '../data-table/data-table.models';
 import { createSearchPredicate, encodeSearch } from '../data-table/table-filter.util';
 
 @Component({
@@ -33,27 +33,6 @@ import { createSearchPredicate, encodeSearch } from '../data-table/table-filter.
               <input (keyup)="applySearchFilter($event)" placeholder="Search referrals..." class="search-input" />
             </div>
 
-            <!-- Inline Filters (Desktop) -->
-            <div class="branch-filter-inline desktop-only">
-              <button class="filter-trigger-btn d-flex align-items-center" [class.filter-active]="selectedBranchId !== null" [matMenuTriggerFor]="branchFilterMenu">
-                <i-tabler name="filter" class="icon-16 m-r-6"></i-tabler>
-                <span class="f-s-13">{{ selectedBranchId !== null ? getSelectedBranchName() : 'Branch' }}</span>
-                <i-tabler name="chevron-down" class="icon-14 m-l-4"></i-tabler>
-              </button>
-            </div>
-            
-            <div class="type-filter-inline desktop-only">
-              <button class="filter-trigger-btn d-flex align-items-center" [class.filter-active]="selectedType !== null" [matMenuTriggerFor]="typeFilterMenu">
-                <i-tabler name="filter" class="icon-16 m-r-6"></i-tabler>
-                <span class="f-s-13">{{ selectedType !== null ? formatType(selectedType) : 'Type' }}</span>
-                <i-tabler name="chevron-down" class="icon-14 m-l-4"></i-tabler>
-              </button>
-            </div>
-
-            <button *ngIf="selectedBranchId !== null || selectedType !== null" mat-icon-button class="clear-filter-icon-btn desktop-only" matTooltip="Clear filters" (click)="clearFilters()">
-              <i-tabler name="x" class="icon-16"></i-tabler>
-            </button>
-
             <div class="view-mode-toggle d-flex align-items-center">
               <button (click)="viewMode = 'table'" class="toggle-btn" [class.active]="viewMode === 'table'" style="border: none; border-radius: 6px;">
                 <i-tabler name="list" class="icon-18"></i-tabler>
@@ -70,38 +49,6 @@ import { createSearchPredicate, encodeSearch } from '../data-table/table-filter.
           </div>
         </mat-card-header>
 
-        <!-- Mobile Filter Strip -->
-        <div class="mobile-filter-strip d-flex align-items-center gap-12 p-x-16 p-y-10 mobile-only w-100 overflow-auto">
-          <button class="filter-trigger-btn d-flex align-items-center flex-shrink-0" [class.filter-active]="selectedBranchId !== null" [matMenuTriggerFor]="branchFilterMenu">
-            <i-tabler name="filter" class="icon-16 m-r-6"></i-tabler>
-            <span class="f-s-13">{{ selectedBranchId !== null ? getSelectedBranchName() : 'Branch' }}</span>
-            <i-tabler name="chevron-down" class="icon-14 m-l-4"></i-tabler>
-          </button>
-          
-          <button class="filter-trigger-btn d-flex align-items-center flex-shrink-0" [class.filter-active]="selectedType !== null" [matMenuTriggerFor]="typeFilterMenu">
-            <i-tabler name="filter" class="icon-16 m-r-6"></i-tabler>
-            <span class="f-s-13">{{ selectedType !== null ? formatType(selectedType) : 'Type' }}</span>
-            <i-tabler name="chevron-down" class="icon-14 m-l-4"></i-tabler>
-          </button>
-
-          <button *ngIf="selectedBranchId !== null || selectedType !== null" mat-icon-button class="clear-filter-icon-btn flex-shrink-0" (click)="clearFilters()">
-            <i-tabler name="x" class="icon-16"></i-tabler>
-          </button>
-        </div>
-
-        <!-- Menus -->
-        <mat-menu #branchFilterMenu="matMenu" class="branch-filter-menu cardWithShadow">
-          <button mat-menu-item (click)="setBranchFilter(null)" [class.menu-item-active]="selectedBranchId === null">All Branches</button>
-          <mat-divider></mat-divider>
-          <button mat-menu-item *ngFor="let branch of branches" (click)="setBranchFilter(branch.id)" [class.menu-item-active]="selectedBranchId === branch.id">{{ branch.name }}</button>
-        </mat-menu>
-        
-        <mat-menu #typeFilterMenu="matMenu" class="branch-filter-menu cardWithShadow">
-          <button mat-menu-item (click)="setTypeFilter(null)" [class.menu-item-active]="selectedType === null">All Types</button>
-          <mat-divider></mat-divider>
-          <button mat-menu-item *ngFor="let type of referralTypes" (click)="setTypeFilter(type)" [class.menu-item-active]="selectedType === type">{{ formatType(type) }}</button>
-        </mat-menu>
-        
         <mat-card-content class="p-0">
           <div *ngIf="isLoading" class="d-flex align-items-center justify-content-center p-y-40">
             <mat-spinner diameter="40"></mat-spinner>
@@ -117,6 +64,8 @@ import { createSearchPredicate, encodeSearch } from '../data-table/table-filter.
                 [clickableRows]="true"
                 emptyMessage="Try adjusting your filters or add a new referral."
                 exportFileName="referrals"
+                [filterOptions]="filterOptionsMap"
+                (filterChange)="onTableFilterChange($event)"
                 (rowClick)="viewDetails($event)"
               >
                 <ng-template appCellDef="referralName" let-element="row">
@@ -240,8 +189,6 @@ import { createSearchPredicate, encodeSearch } from '../data-table/table-filter.
     .table-container { padding: 24px; @media (max-width: 768px) { padding: 12px 8px; } }
     mat-card-header { @media (max-width: 576px) { flex-direction: column !important; align-items: flex-start !important; gap: 16px; } }
     .header-actions { @media (max-width: 576px) { gap: 8px !important; } button.desktop-add-btn { white-space: nowrap; flex-shrink: 0; @media (max-width: 576px) { display: none !important; } } }
-    .desktop-only { display: block; @media (max-width: 576px) { display: none !important; } }
-    .mobile-only { display: none !important; @media (max-width: 576px) { display: flex !important; } }
     .view-container { animation: fadeIn 0.4s ease-in-out; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; @media (max-width: 576px) { grid-template-columns: 1fr; padding: 16px !important; } }
@@ -251,10 +198,6 @@ import { createSearchPredicate, encodeSearch } from '../data-table/table-filter.
 
     .search-box { position: relative; display: flex; align-items: center; background-color: #f1f5f9; border-radius: 8px; padding: 0 12px; border: 1px solid #e2e8f0; height: 38px; transition: all 0.2s ease-in-out; &:focus-within { background-color: #ffffff; border-color: var(--brand-primary); box-shadow: 0 0 0 3px rgba(var(--brand-primary-rgb), 0.1); } .search-icon { color: #64748b; margin-right: 8px; flex-shrink: 0; } .search-input { border: none; background: transparent; outline: none; width: 100%; font-size: 13px; color: #1e293b; &::placeholder { color: #94a3b8; } } }
     
-    .filter-trigger-btn { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px 12px; color: #475569; font-weight: 500; cursor: pointer; transition: all 0.2s; white-space: nowrap; &:hover { background: #f8fafc; } &.filter-active { background: rgba(var(--brand-primary-rgb),0.1); border-color: var(--brand-primary); color: var(--brand-primary); } }
-    .mobile-filter-strip { background: #f8fafc; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; }
-    .menu-item-active { color: var(--brand-primary) !important; font-weight: 600; background: rgba(var(--brand-primary-rgb),0.05); }
-    .clear-filter-icon-btn { width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; color: #94a3b8; &:hover { color: #fa896b; background: rgba(250, 137, 107, 0.1); } }
 
     .avatar-animated { transition: transform 0.3s ease; }
     .referral-card:hover .avatar-animated { transform: scale(1.1) rotate(5deg); animation: gentle-bounce 1s infinite alternate ease-in-out; }
@@ -276,8 +219,6 @@ import { createSearchPredicate, encodeSearch } from '../data-table/table-filter.
 
     :host-context(.dark-theme) {
       .search-box { background-color: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); .search-input { color: #f8fafc; } }
-      .filter-trigger-btn { background: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); color: #94a3b8; &:hover { background: var(--dark-hoverbgcolor); } &.filter-active { background: rgba(var(--brand-primary-rgb),0.2); border-color: var(--brand-primary); color: #a5a1ff; } }
-      .mobile-filter-strip { background: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); }
       .view-mode-toggle { background-color: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); .toggle-btn { color: #94a3b8; &.active { background-color: var(--brand-primary); color: #ffffff; } &:hover:not(.active) { background-color: var(--dark-hoverbgcolor); } } }
       .status-badge {
         &.active { background-color: rgba(19, 222, 185, 0.2); color: #80f1d4; }
@@ -291,12 +232,19 @@ export class ReferralsComponent implements OnInit, AfterViewInit {
 
   tableColumns: TableColumn<any>[] = [
     { key: 'referralName', header: 'Referral Name', type: 'custom' },
-    { key: 'type', header: 'Type', type: 'text', valueFn: r => this.formatType(r.referralType), maxWidth: '140px' },
-    { key: 'branch', header: 'Branch', type: 'text', valueFn: r => r.branchName || '—', maxWidth: '140px' },
+    {
+      key: 'type', header: 'Type', type: 'text', valueFn: r => this.formatType(r.referralType), maxWidth: '140px',
+      filter: { type: 'select', serverKey: 'referralType', getValue: r => r.referralType },
+    },
+    {
+      key: 'branch', header: 'Branch', type: 'text', valueFn: r => r.branchName || '—', maxWidth: '140px',
+      filter: { type: 'select', serverKey: 'branchId', getValue: r => (r.branchId != null ? String(r.branchId) : '') },
+    },
     {
       key: 'status', header: 'Status', type: 'pill',
       valueFn: r => this.titleCase(r.status),
       classFn: r => this.statusPillClass(r.status),
+      filter: { type: 'select', options: [{ value: 'ACTIVE', label: 'Active' }, { value: 'INACTIVE', label: 'Inactive' }], getValue: r => (r.status || 'ACTIVE').toUpperCase() },
     },
     { key: 'leads', header: 'Leads', type: 'text', valueFn: r => String(r.userCounts?.leadsCount || 0), align: 'right', maxWidth: '70px' },
     { key: 'registered', header: 'Registered', type: 'text', valueFn: r => String(r.userCounts?.registeredCount || 0), align: 'right', maxWidth: '90px' },
@@ -395,25 +343,36 @@ export class ReferralsComponent implements OnInit, AfterViewInit {
     this.loadReferrals();
   }
 
-  setBranchFilter(branchId: number | null): void {
-    this.selectedBranchId = branchId;
-    this.onFilterChange();
+  /** Async-loaded option lists for the 'type'/'branch' header filters — see tableColumns. */
+  get filterOptionsMap(): Record<string, TableFilterOption[]> {
+    return {
+      type: this.referralTypes.map(t => ({ value: t, label: this.formatType(t) })),
+      branch: this.branches.map(b => ({ value: String(b.id), label: b.name })),
+    };
   }
 
-  setTypeFilter(type: string | null): void {
-    this.selectedType = type;
-    this.onFilterChange();
-  }
-
-  clearFilters(): void {
-    this.selectedBranchId = null;
-    this.selectedType = null;
-    this.onFilterChange();
-  }
-
-  getSelectedBranchName(): string {
-    const branch = this.branches.find(b => b.id === this.selectedBranchId);
-    return branch ? branch.name : 'Branch';
+  /**
+   * The table filters every column client-side on its own. 'type' and 'branch'
+   * additionally carry a serverKey (see tableColumns), so when either changes
+   * we also refetch from the API with the same params the old bespoke branch/
+   * type filter menus used — same getReferrals(page, size, type, branchId) call,
+   * just driven by the column header now instead of a separate toolbar menu.
+   */
+  onTableFilterChange(event: TableFilterChangeEvent): void {
+    if (event.cleared) {
+      this.selectedType = null;
+      this.selectedBranchId = null;
+      this.onFilterChange();
+      return;
+    }
+    if (event.serverKey === 'referralType') {
+      this.selectedType = event.filters['type'] ?? null;
+      this.onFilterChange();
+    } else if (event.serverKey === 'branchId') {
+      const branchValue = event.filters['branch'];
+      this.selectedBranchId = branchValue ? Number(branchValue) : null;
+      this.onFilterChange();
+    }
   }
 
   applySearchFilter(event: Event): void {

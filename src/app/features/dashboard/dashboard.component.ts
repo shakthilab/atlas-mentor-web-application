@@ -144,10 +144,23 @@ export class AppDashboardComponent {
     {
       key: 'assigned', header: 'Assigned', type: 'avatar',
       avatarFn: r => r.imagePath, valueFn: r => r.uname, subFn: r => r.position,
+      filter: { type: 'text', getValue: r => `${r.uname} ${r.position}` },
     },
-    { key: 'name', header: 'Name', type: 'text', valueFn: r => r.productName },
-    { key: 'priority', header: 'Priority', type: 'custom', exportValueFn: r => r.priority },
-    { key: 'budget', header: 'Budget', type: 'text', valueFn: r => '$' + r.budget + 'k' },
+    { key: 'name', header: 'Name', type: 'text', valueFn: r => r.productName, filter: { type: 'text' } },
+    {
+      key: 'priority', header: 'Priority', type: 'custom', exportValueFn: r => r.priority,
+      filter: {
+        type: 'select',
+        options: [
+          { value: 'low', label: 'Low' },
+          { value: 'medium', label: 'Medium' },
+          { value: 'high', label: 'High' },
+          { value: 'critical', label: 'Critical' },
+        ],
+        getValue: r => r.priority,
+      },
+    },
+    { key: 'budget', header: 'Budget', type: 'text', valueFn: r => '$' + r.budget + 'k', filter: { type: 'number-range', getValue: r => r.budget } },
   ];
 
   months: month[] = [

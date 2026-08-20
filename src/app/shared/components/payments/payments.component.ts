@@ -16,11 +16,14 @@ export interface Payment {
   assigned: string;
   assignedAvatar: string;
   paid: string;
+  paidAmount: number;
   balance: string;
+  balanceAmount: number;
   studentStatus: 'active' | 'inactive';
   paymentStatus: 'paid' | 'pending' | 'overdue';
   approval: 'approved' | 'pending' | 'rejected';
   date: string;
+  dateRaw?: string;
 }
 
 @Component({
@@ -67,6 +70,7 @@ export interface Payment {
               trackByKey="id"
               [clickableRows]="true"
               exportFileName="payments"
+              noFilterResultsMessage="No payments on this page match the current filters."
               (rowClick)="viewDetails($event)"
             >
               <ng-template appCellDef="studentName" let-element="row">
@@ -275,30 +279,57 @@ export class PaymentsComponent implements OnInit, AfterViewInit {
   dataSource = new MatTableDataSource<Payment>([]);
 
   tableColumns: TableColumn<Payment>[] = [
-    { key: 'studentName', header: 'Student Name', type: 'custom', exportValueFn: r => r.studentName },
-    { key: 'source', header: 'Source', type: 'text', valueFn: r => r.source, maxWidth: '110px' },
+    { key: 'studentName', header: 'Student Name', type: 'custom', exportValueFn: r => r.studentName, filter: { type: 'text', getValue: r => r.studentName } },
+    { key: 'source', header: 'Source', type: 'text', valueFn: r => r.source, maxWidth: '110px', filter: { type: 'text' } },
     {
       key: 'assigned', header: 'Assigned By', type: 'avatar',
       avatarFn: r => r.assignedAvatar, valueFn: r => r.assigned,
+      filter: { type: 'text' },
     },
-    { key: 'paid', header: 'Paid', type: 'text', valueFn: r => r.paid, align: 'right', maxWidth: '90px' },
-    { key: 'balance', header: 'Balance', type: 'text', valueFn: r => r.balance, align: 'right', maxWidth: '90px' },
+    { key: 'paid', header: 'Paid', type: 'text', valueFn: r => r.paid, align: 'right', maxWidth: '90px', filter: { type: 'number-range', getValue: r => r.paidAmount } },
+    { key: 'balance', header: 'Balance', type: 'text', valueFn: r => r.balance, align: 'right', maxWidth: '90px', filter: { type: 'number-range', getValue: r => r.balanceAmount } },
     {
       key: 'studentStatus', header: 'Student Status', type: 'pill',
       valueFn: r => this.titleCase(r.studentStatus),
       classFn: r => this.studentStatusPillClass(r.studentStatus),
+      filter: {
+        type: 'select',
+        options: [{ value: 'active', label: 'Active' }, { value: 'inactive', label: 'Inactive' }],
+        getValue: r => r.studentStatus,
+      },
     },
     {
       key: 'paymentStatus', header: 'Payment Status', type: 'pill',
       valueFn: r => this.titleCase(r.paymentStatus),
       classFn: r => this.paymentStatusPillClass(r.paymentStatus),
+      filter: {
+        type: 'select',
+        options: [
+          { value: 'paid', label: 'Paid' },
+          { value: 'pending', label: 'Pending' },
+          { value: 'overdue', label: 'Overdue' },
+        ],
+        getValue: r => r.paymentStatus,
+      },
     },
     {
       key: 'approval', header: 'Approval', type: 'pill',
       valueFn: r => this.titleCase(r.approval),
       classFn: r => this.approvalPillClass(r.approval),
+      filter: {
+        type: 'select',
+        options: [
+          { value: 'approved', label: 'Approved' },
+          { value: 'pending', label: 'Pending' },
+          { value: 'rejected', label: 'Rejected' },
+        ],
+        getValue: r => r.approval,
+      },
     },
-    { key: 'date', header: 'Date', type: 'date', valueFn: r => r.date },
+    {
+      key: 'date', header: 'Date', type: 'date', valueFn: r => r.date,
+      filter: { type: 'date-range', getValue: r => (r.dateRaw ? new Date(r.dateRaw) : null) },
+    },
     { key: 'actions', header: 'Actions', type: 'actions', align: 'right' },
   ];
 
@@ -358,11 +389,14 @@ export class PaymentsComponent implements OnInit, AfterViewInit {
       assigned: payout.user?.username || 'Unassigned',
       assignedAvatar: `/assets/images/profile/user-${assignedIndex}.jpg`,
       paid: `$${payout.paidAmount || 0}`,
+      paidAmount: payout.paidAmount || 0,
       balance: `$${payout.balanceAmount || 0}`,
+      balanceAmount: payout.balanceAmount || 0,
       studentStatus: 'active', // Placeholder as not in API
       paymentStatus: this.mapStatus(payout.payoutStatus) as any,
       approval: payout.paymentStageDisplay as any || 'Pending',
-      date: formattedDate
+      date: formattedDate,
+      dateRaw: rawDate,
     };
   }
 

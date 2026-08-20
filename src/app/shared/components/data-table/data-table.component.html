@@ -67,6 +67,15 @@
 
 <div class="app-data-table">
   <div class="app-data-table__toolbar" *ngIf="hasToolbar">
+    <button
+      type="button"
+      class="toolbar-clear-filters"
+      *ngIf="hasActiveFilters"
+      (click)="clearAllFilters()"
+    >
+      <i-tabler name="x" class="icon-14"></i-tabler>
+      Clear filters ({{ activeFilterCount }})
+    </button>
     <div class="toolbar-export" *ngIf="exportFileName">
       <button
         type="button"
@@ -113,49 +122,146 @@
               [class.th-sort-icon--desc]="sortKey === col.key && sortDirection === 'desc'"
               viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"
             ><path d="M6 9l6 6 6-6"/></svg>
+
+            <ng-container *ngIf="col.filter">
+              <button
+                type="button"
+                class="th-filter-btn"
+                [class.th-filter-btn--active]="isColumnFilterActive(col)"
+                [attr.aria-label]="'Filter by ' + col.header"
+                [attr.aria-expanded]="filterTrigger.menuOpen"
+                [matMenuTriggerFor]="filterMenu"
+                #filterTrigger="matMenuTrigger"
+                (click)="$event.stopPropagation()"
+              >
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 5h16l-6 7v6l-4 2v-8z" />
+                </svg>
+              </button>
+
+              <mat-menu #filterMenu="matMenu" class="dt-filter-panel-menu" xPosition="before">
+                <div class="dt-filter-panel" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+                  <ng-container [ngSwitch]="col.filter.type">
+                    <div class="dt-filter-panel__field" *ngSwitchCase="'text'">
+                      <label [attr.for]="'dt-filter-' + col.key">{{ col.header }}</label>
+                      <input
+                        type="text"
+                        [id]="'dt-filter-' + col.key"
+                        [placeholder]="col.filter.placeholder || ('Search ' + col.header.toLowerCase() + '...')"
+                        [value]="columnFilters[col.key] || ''"
+                        (input)="onTextFilterInput(col, $event)"
+                        (keydown.enter)="onTextFilterEnter(col, $event)"
+                      />
+                    </div>
+
+                    <div class="dt-filter-panel__field dt-filter-panel__field--range" *ngSwitchCase="'number-range'">
+                      <label>{{ col.header }}</label>
+                      <div class="dt-filter-panel__range-row">
+                        <input type="number" aria-label="Minimum" placeholder="Min" [value]="numberDraftValue(col, 'min') ?? ''" (input)="onNumberFilterInput(col, 'min', $event)" />
+                        <span class="dt-filter-panel__range-sep">–</span>
+                        <input type="number" aria-label="Maximum" placeholder="Max" [value]="numberDraftValue(col, 'max') ?? ''" (input)="onNumberFilterInput(col, 'max', $event)" />
+                      </div>
+                    </div>
+
+                    <div class="dt-filter-panel__field dt-filter-panel__field--range" *ngSwitchCase="'date-range'">
+                      <label>{{ col.header }}</label>
+                      <div class="dt-filter-panel__range-row">
+                        <input type="date" aria-label="From date" [value]="dateDraftValue(col, 'start') || ''" (change)="onDateFilterChange(col, 'start', $event)" />
+                        <span class="dt-filter-panel__range-sep">–</span>
+                        <input type="date" aria-label="To date" [value]="dateDraftValue(col, 'end') || ''" (change)="onDateFilterChange(col, 'end', $event)" />
+                      </div>
+                    </div>
+
+                    <div class="dt-filter-panel__options" *ngSwitchCase="'select'">
+                      <button type="button" class="dt-filter-panel__option" [class.dt-filter-panel__option--active]="!selectedOptionValue(col)" (click)="onSelectFilterChange(col, null); filterTrigger.closeMenu()">All</button>
+                      <button type="button" class="dt-filter-panel__option" *ngFor="let opt of effectiveOptions(col)" [class.dt-filter-panel__option--active]="selectedOptionValue(col) === opt.value" (click)="onSelectFilterChange(col, opt.value); filterTrigger.closeMenu()">{{ opt.label }}</button>
+                    </div>
+
+                    <div class="dt-filter-panel__options" *ngSwitchCase="'multi-select'">
+                      <mat-checkbox
+                        class="dt-filter-panel__checkbox"
+                        *ngFor="let opt of effectiveOptions(col)"
+                        [checked]="isMultiSelectChecked(col, opt.value)"
+                        (change)="onMultiSelectFilterToggle(col, opt.value, $event.checked)"
+                      >{{ opt.label }}</mat-checkbox>
+                    </div>
+
+                    <div class="dt-filter-panel__options" *ngSwitchCase="'boolean'">
+                      <button type="button" class="dt-filter-panel__option" [class.dt-filter-panel__option--active]="columnFilters[col.key] == null" (click)="onBooleanFilterChange(col, null); filterTrigger.closeMenu()">All</button>
+                      <button type="button" class="dt-filter-panel__option" [class.dt-filter-panel__option--active]="columnFilters[col.key] === true" (click)="onBooleanFilterChange(col, true); filterTrigger.closeMenu()">{{ col.filter.trueLabel || 'Yes' }}</button>
+                      <button type="button" class="dt-filter-panel__option" [class.dt-filter-panel__option--active]="columnFilters[col.key] === false" (click)="onBooleanFilterChange(col, false); filterTrigger.closeMenu()">{{ col.filter.falseLabel || 'No' }}</button>
+                    </div>
+                  </ng-container>
+
+                  <div class="dt-filter-panel__actions">
+                    <button type="button" class="dt-filter-panel__clear" (click)="clearColumnFilter(col); filterTrigger.closeMenu()">Clear filter</button>
+                  </div>
+                </div>
+              </mat-menu>
+            </ng-container>
           </th>
         </tr>
       </thead>
       <tbody>
-        <tr
-          *ngFor="let row of rows; trackBy: trackByFn"
-          [class.clickable]="clickableRows"
-          [class.row-selected]="selectable && isRowSelected(row)"
-          (click)="onRowClick(row)"
-        >
-          <td class="cell-select" *ngIf="selectable" (click)="$event.stopPropagation()">
-            <span
-              class="checkbox"
-              [class.checkbox--checked]="isRowSelected(row)"
-              (click)="toggleRow(row, $event)"
-            ></span>
-          </td>
-          <td *ngFor="let col of columns" [style.text-align]="col.align || (col.type === 'mono-number' ? 'right' : 'left')">
-            <ng-container *ngTemplateOutlet="cellContent; context: { col: col, row: row }"></ng-container>
-          </td>
-        </tr>
+        <ng-container *ngIf="filteredRows.length > 0; else noFilterMatchRow">
+          <tr
+            *ngFor="let row of filteredRows; trackBy: trackByFn"
+            [class.clickable]="clickableRows"
+            [class.row-selected]="selectable && isRowSelected(row)"
+            (click)="onRowClick(row)"
+          >
+            <td class="cell-select" *ngIf="selectable" (click)="$event.stopPropagation()">
+              <span
+                class="checkbox"
+                [class.checkbox--checked]="isRowSelected(row)"
+                (click)="toggleRow(row, $event)"
+              ></span>
+            </td>
+            <td *ngFor="let col of columns" [style.text-align]="col.align || (col.type === 'mono-number' ? 'right' : 'left')">
+              <ng-container *ngTemplateOutlet="cellContent; context: { col: col, row: row }"></ng-container>
+            </td>
+          </tr>
+        </ng-container>
+        <ng-template #noFilterMatchRow>
+          <tr class="app-data-table__no-match-row">
+            <td class="app-data-table__no-match-cell" [attr.colspan]="columns.length + (selectable ? 1 : 0)">
+              <div class="app-data-table__no-match">
+                <span>{{ noFilterResultsMessage }}</span>
+                <button type="button" class="state-clear-filters" *ngIf="hasActiveFilters" (click)="clearAllFilters()">Clear filters</button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
       </tbody>
     </table>
   </div>
 
   <div class="app-data-table__mobile" *ngIf="!loading && !hasError && rows.length > 0">
-    <div
-      class="mobile-card"
-      *ngFor="let row of rows; trackBy: trackByFn"
-      [class.clickable]="clickableRows"
-      (click)="onRowClick(row)"
-    >
-      <div class="mobile-card__header">
-        <ng-container *ngIf="primaryColumn" [ngTemplateOutlet]="cellContent" [ngTemplateOutletContext]="{ col: primaryColumn, row: row }"></ng-container>
-        <span class="mobile-card__actions" *ngIf="hasActionsColumn" (click)="$event.stopPropagation()">
-          <ng-container *ngTemplateOutlet="actionsDef?.templateRef || null; context: { $implicit: row, row: row }"></ng-container>
-        </span>
+    <ng-container *ngIf="filteredRows.length > 0; else noFilterMatchMobile">
+      <div
+        class="mobile-card"
+        *ngFor="let row of filteredRows; trackBy: trackByFn"
+        [class.clickable]="clickableRows"
+        (click)="onRowClick(row)"
+      >
+        <div class="mobile-card__header">
+          <ng-container *ngIf="primaryColumn" [ngTemplateOutlet]="cellContent" [ngTemplateOutletContext]="{ col: primaryColumn, row: row }"></ng-container>
+          <span class="mobile-card__actions" *ngIf="hasActionsColumn" (click)="$event.stopPropagation()">
+            <ng-container *ngTemplateOutlet="actionsDef?.templateRef || null; context: { $implicit: row, row: row }"></ng-container>
+          </span>
+        </div>
+        <div class="mobile-card__field" *ngFor="let col of mobileDetailColumns">
+          <span class="mobile-card__label">{{ col.header }}</span>
+          <ng-container *ngTemplateOutlet="cellContent; context: { col: col, row: row }"></ng-container>
+        </div>
       </div>
-      <div class="mobile-card__field" *ngFor="let col of mobileDetailColumns">
-        <span class="mobile-card__label">{{ col.header }}</span>
-        <ng-container *ngTemplateOutlet="cellContent; context: { col: col, row: row }"></ng-container>
+    </ng-container>
+    <ng-template #noFilterMatchMobile>
+      <div class="app-data-table__no-match app-data-table__no-match--mobile">
+        <span>{{ noFilterResultsMessage }}</span>
+        <button type="button" class="state-clear-filters" *ngIf="hasActiveFilters" (click)="clearAllFilters()">Clear filters</button>
       </div>
-    </div>
+    </ng-template>
   </div>
 
   <div class="app-data-table__state" *ngIf="loading">

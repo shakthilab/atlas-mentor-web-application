@@ -25,6 +25,55 @@
   margin-left: auto;
 }
 
+.toolbar-clear-filters {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid $dt-header-border;
+  background: #ffffff;
+  color: $dt-text-muted;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    color: $dt-text-primary;
+    border-color: $dt-text-primary;
+  }
+}
+
+// ---- Header column-filter trigger ----
+.th-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-left: 4px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: $dt-text-muted;
+  cursor: pointer;
+  vertical-align: middle;
+  border-radius: 4px;
+  opacity: 0.55;
+  transition: opacity 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+
+  &:hover {
+    opacity: 1;
+    background-color: $dt-row-hover;
+  }
+
+  &--active {
+    opacity: 1;
+    color: var(--brand-primary, #14213d);
+  }
+}
+
 .export-icon-btn {
   display: inline-flex;
   align-items: center;
@@ -302,6 +351,165 @@ tbody tr:focus-within .cell-actions {
   opacity: 1;
 }
 
+.state-clear-filters {
+  border: none;
+  background: transparent;
+  color: var(--brand-primary, #14213d);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+// ---- Header filter popover (rendered into the CDK overlay, outside this
+// component's view — must be styled globally, matching the ::ng-deep pattern
+// already used elsewhere in the app for mat-menu panels, e.g. leads/referrals/
+// companies' status and branch/type filter menus). ----
+::ng-deep .dt-filter-panel-menu {
+  min-width: 220px !important;
+  border-radius: 10px !important;
+  border: 1px solid $dt-header-border !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.06) !important;
+
+  .mat-mdc-menu-content {
+    padding: 0 !important;
+  }
+}
+
+::ng-deep .dt-filter-panel {
+  padding: 12px;
+  min-width: 220px;
+
+  label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: $dt-text-muted;
+    margin-bottom: 6px;
+  }
+
+  input[type='text'],
+  input[type='number'],
+  input[type='date'] {
+    width: 100%;
+    border: 1px solid $dt-header-border;
+    border-radius: 6px;
+    padding: 7px 9px;
+    font-size: 13px;
+    color: $dt-text-primary;
+    background: #ffffff;
+    outline: none;
+    box-sizing: border-box;
+
+    &:focus {
+      border-color: var(--brand-primary, #14213d);
+    }
+  }
+
+  &__field--range .dt-filter-panel__range-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    input {
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+  }
+
+  &__range-sep {
+    color: $dt-text-muted;
+    flex-shrink: 0;
+  }
+
+  &__options {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-height: 240px;
+    overflow-y: auto;
+  }
+
+  &__option {
+    display: block;
+    width: 100%;
+    text-align: left;
+    border: none;
+    background: transparent;
+    padding: 7px 8px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: $dt-text-primary;
+    cursor: pointer;
+
+    &:hover {
+      background-color: $dt-row-hover;
+    }
+
+    &--active {
+      background-color: $dt-row-hover;
+      font-weight: 600;
+      color: var(--brand-primary, #14213d);
+    }
+  }
+
+  &__checkbox {
+    display: block;
+    font-size: 13px;
+    padding: 2px 0;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid $dt-row-divider;
+  }
+
+  &__clear {
+    border: none;
+    background: transparent;
+    color: $dt-text-muted;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 6px;
+
+    &:hover {
+      color: #c1432b; // $error
+    }
+  }
+}
+
+// ---- Inline "no rows match the current filter" state (keeps the header,
+// and any open filter popover, mounted — unlike the fully-empty state below,
+// which only applies when there is no underlying data at all) ----
+.app-data-table__no-match-cell {
+  padding: 32px 16px !important;
+  text-align: center;
+}
+
+.app-data-table__no-match {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: $dt-text-muted;
+  font-size: 13px;
+
+  &--mobile {
+    padding: 32px 16px;
+  }
+}
+
 // ---- States ----
 .app-data-table__state {
   display: flex;
@@ -407,5 +615,72 @@ tbody tr:focus-within .cell-actions {
 
   .mobile-card {
     border-color: var(--dark-formborderColor, #334155);
+  }
+
+  .toolbar-clear-filters {
+    background: var(--dark-sidebarbg, #232a35);
+    border-color: var(--dark-formborderColor, #334155);
+    color: #94a3b8;
+
+    &:hover {
+      color: #f1f5f9;
+      border-color: #94a3b8;
+    }
+  }
+
+  .th-filter-btn {
+    color: #94a3b8;
+
+    &:hover {
+      background-color: var(--dark-hoverbgcolor, #232a35);
+    }
+  }
+
+  .state-clear-filters {
+    color: var(--brand-primary, #a5a2ff);
+  }
+
+  ::ng-deep .dt-filter-panel-menu {
+    background-color: var(--dark-sidebarbg, #1e293b) !important;
+    border-color: var(--dark-formborderColor, #334155) !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  ::ng-deep .dt-filter-panel {
+    label {
+      color: #94a3b8;
+    }
+
+    input[type='text'],
+    input[type='number'],
+    input[type='date'] {
+      background: var(--dark-sidebarbg, #232a35);
+      border-color: var(--dark-formborderColor, #334155);
+      color: #f1f5f9;
+    }
+
+    &__range-sep {
+      color: #94a3b8;
+    }
+
+    &__option {
+      color: #f1f5f9;
+
+      &:hover {
+        background-color: var(--dark-hoverbgcolor, #232a35);
+      }
+
+      &--active {
+        background-color: var(--dark-hoverbgcolor, #232a35);
+      }
+    }
+
+    &__actions {
+      border-top-color: var(--dark-formborderColor, #334155);
+    }
+
+    &__clear {
+      color: #94a3b8;
+    }
   }
 }

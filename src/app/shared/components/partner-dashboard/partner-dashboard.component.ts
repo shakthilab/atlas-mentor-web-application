@@ -18,11 +18,11 @@ export class PartnerDashboardComponent implements OnInit {
   public payoutDistLegends: any[] = [];
   public recentStudents: any[] = [];
   public recentStudentsColumns: TableColumn<any>[] = [
-    { key: 'name', header: 'Student', type: 'custom', exportValueFn: r => r.name },
-    { key: 'enrolled', header: 'Enrolled', type: 'custom', exportValueFn: r => r.enrolled },
-    { key: 'status', header: 'Status', type: 'custom', exportValueFn: r => r.status },
-    { key: 'amount', header: 'Amount', type: 'custom', exportValueFn: r => r.amount },
-    { key: 'progress', header: 'Progress', type: 'custom', align: 'right', maxWidth: '160px', exportValueFn: r => `${r.progress}%` },
+    { key: 'name', header: 'Student', type: 'custom', exportValueFn: r => r.name, filter: { type: 'text' } },
+    { key: 'enrolled', header: 'Enrolled', type: 'custom', exportValueFn: r => r.enrolled, filter: { type: 'text' } },
+    { key: 'status', header: 'Status', type: 'custom', exportValueFn: r => r.status, filter: { type: 'text' } },
+    { key: 'amount', header: 'Amount', type: 'custom', exportValueFn: r => r.amount, filter: { type: 'text' } },
+    { key: 'progress', header: 'Progress', type: 'custom', align: 'right', maxWidth: '160px', exportValueFn: r => `${r.progress}%`, filter: { type: 'number-range', getValue: r => r.progress } },
   ];
   public quickStats: any[] = [];
   public greeting = '';

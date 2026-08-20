@@ -9,7 +9,7 @@ import { LeadDetailsDialogComponent } from './lead-details-dialog/lead-details-d
 import { ReasonDialogComponent } from './reason-dialog/reason-dialog.component';
 import { AddLeadDialogComponent } from './add-lead-dialog/add-lead-dialog.component';
 import { ImportLeadsDialogComponent } from './import-leads-dialog/import-leads-dialog.component';
-import { TableColumn } from '../data-table/data-table.models';
+import { TableColumn, TableFilterOption } from '../data-table/data-table.models';
 import { createSearchPredicate, encodeSearch } from '../data-table/table-filter.util';
 
 export interface Lead {
@@ -27,6 +27,7 @@ export interface Lead {
   country: string;
   university: string;
   leadDate: string;
+  leadDateRaw?: string;
   isUpdatingStatus?: boolean;
   branchId?: number;
   countryCode?: string;
@@ -108,6 +109,8 @@ export interface Lead {
               trackByKey="id"
               [clickableRows]="true"
               exportFileName="leads"
+              [filterOptions]="filterOptionsMap"
+              noFilterResultsMessage="No leads match the current filters."
               (rowClick)="viewDetails($event)"
             >
               <ng-template appCellDef="lead" let-element="row">
@@ -600,20 +603,47 @@ export class LeadsComponent implements OnInit, AfterViewInit {
   availableStatuses: { id: number; enum: string; displayName: string }[] = [];
 
   tableColumns: TableColumn<Lead>[] = [
-    { key: 'lead', header: 'Lead', type: 'custom', exportValueFn: r => `${r.name} (${r.role})` },
-    { key: 'contactInfo', header: 'Contact Info', type: 'custom', maxWidth: '170px', exportValueFn: r => `${r.email || 'N/A'} / ${r.phone || 'N/A'}` },
-    { key: 'status', header: 'Status', type: 'custom', exportValueFn: r => this.getStatusDisplayName(r.status) },
-    { key: 'source', header: 'Source', type: 'text', valueFn: r => r.source || '—', maxWidth: '110px' },
-    { key: 'assignedTo', header: 'Assigned To', type: 'custom', exportValueFn: r => r.assignedTo },
-    { key: 'addedBy', header: 'Added By', type: 'two-line', valueFn: r => r.addedBy, subFn: r => r.addedByRole, maxWidth: '150px' },
-    { key: 'countryUniversity', header: 'Country / University', type: 'custom', maxWidth: '170px', exportValueFn: r => `${r.country || 'N/A'} / ${r.university || 'N/A'}` },
-    { key: 'leadDate', header: 'Lead Date', type: 'date', valueFn: r => r.leadDate },
+    { key: 'lead', header: 'Lead', type: 'custom', exportValueFn: r => `${r.name} (${r.role})`, filter: { type: 'text' } },
+    { key: 'contactInfo', header: 'Contact Info', type: 'custom', maxWidth: '170px', exportValueFn: r => `${r.email || 'N/A'} / ${r.phone || 'N/A'}`, filter: { type: 'text' } },
+    {
+      key: 'status', header: 'Status', type: 'custom', exportValueFn: r => this.getStatusDisplayName(r.status),
+      filter: { type: 'select', getValue: r => (r.status || '').toUpperCase() },
+    },
+    { key: 'source', header: 'Source', type: 'text', valueFn: r => r.source || '—', maxWidth: '110px', filter: { type: 'text' } },
+    { key: 'assignedTo', header: 'Assigned To', type: 'custom', exportValueFn: r => r.assignedTo, filter: { type: 'text' } },
+    {
+      key: 'addedBy', header: 'Added By', type: 'two-line', valueFn: r => r.addedBy, subFn: r => r.addedByRole, maxWidth: '150px',
+      filter: { type: 'text', getValue: r => `${r.addedBy} ${r.addedByRole}` },
+    },
+    { key: 'countryUniversity', header: 'Country / University', type: 'custom', maxWidth: '170px', exportValueFn: r => `${r.country || 'N/A'} / ${r.university || 'N/A'}`, filter: { type: 'text' } },
+    {
+      key: 'leadDate', header: 'Lead Date', type: 'date', valueFn: r => r.leadDate,
+      filter: { type: 'date-range', getValue: r => (r.leadDateRaw ? new Date(r.leadDateRaw) : null) },
+    },
     { key: 'actions', header: 'Actions', type: 'actions', align: 'right' },
   ];
 
   private searchText = '';
 
   dataSource = new MatTableDataSource<Lead>([]);
+
+  /**
+   * Options for the 'status' header filter, from the same availableStatuses
+   * loaded for the status-change menu.
+   *
+   * NOTE: this table view is fed `dataSource.filteredData` (post-search,
+   * pre-pagination) while `MatPaginator` below only actually drives the
+   * separate card view — the table view already shows all ~100 fetched
+   * leads unpaginated today, independent of this filter feature. Header
+   * filters apply on top of whatever rows are already there, consistent
+   * with the existing search box; this pre-existing quirk is unrelated to
+   * filtering and intentionally left as-is.
+   */
+  get filterOptionsMap(): Record<string, TableFilterOption[]> {
+    return {
+      status: this.availableStatuses.map(s => ({ value: s.enum, label: s.displayName })),
+    };
+  }
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
@@ -725,6 +755,7 @@ export class LeadsComponent implements OnInit, AfterViewInit {
       country: l.countryName || l.country || '',
       university: l.universityName || l.university || '',
       leadDate: leadDate,
+      leadDateRaw: rawDate,
       branchId: l.branch?.id || l.branchId || u.branchId || null,
       countryCode: l.mcc?.mobileCode || u.mcc?.mobileCode || l.countryCode || u.countryCode || '+91',
       counsellorId: l.assignedTo?.id || l.assignedBy?.id || l.counsellorId || null,

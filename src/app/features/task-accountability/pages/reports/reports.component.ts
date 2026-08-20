@@ -37,11 +37,11 @@ export class ReportsComponent implements OnInit {
   monthlyRate = 88;
 
   pendingReviewsColumns: TableColumn<PendingReviewItem>[] = [
-    { key: 'employeeName', header: 'Employee', type: 'custom', exportValueFn: r => r.employeeName },
-    { key: 'roleName', header: 'Role', type: 'custom', exportValueFn: r => r.roleName },
-    { key: 'taskName', header: 'Submitted Item', type: 'custom', exportValueFn: r => r.taskName },
-    { key: 'stage', header: 'Status Stage', type: 'custom', exportValueFn: r => r.stage },
-    { key: 'submittedAt', header: 'Submitted At', type: 'custom', exportValueFn: r => r.submittedAt },
+    { key: 'employeeName', header: 'Employee', type: 'custom', exportValueFn: r => r.employeeName, filter: { type: 'text' } },
+    { key: 'roleName', header: 'Role', type: 'custom', exportValueFn: r => r.roleName, filter: { type: 'text' } },
+    { key: 'taskName', header: 'Submitted Item', type: 'custom', exportValueFn: r => r.taskName, filter: { type: 'text' } },
+    { key: 'stage', header: 'Status Stage', type: 'custom', exportValueFn: r => r.stage, filter: { type: 'text' } },
+    { key: 'submittedAt', header: 'Submitted At', type: 'custom', exportValueFn: r => r.submittedAt, filter: { type: 'text' } },
     { key: 'actions', header: 'Actions', type: 'actions', align: 'right' },
   ];
 

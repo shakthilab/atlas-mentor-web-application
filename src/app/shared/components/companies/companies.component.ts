@@ -9,7 +9,7 @@ import { MasterDataService } from '../../../core/services/master-data.service';
 import { environment } from '../../../../environments/environment';
 import { CompanyDetailDialogComponent } from './company-detail-dialog/company-detail-dialog.component';
 import { AddCompanyDialogComponent } from './add-company-dialog/add-company-dialog.component';
-import { TableColumn } from '../data-table/data-table.models';
+import { TableColumn, TableFilterChangeEvent, TableFilterOption } from '../data-table/data-table.models';
 import { createSearchPredicate, encodeSearch } from '../data-table/table-filter.util';
 
 export interface Company {
@@ -59,29 +59,6 @@ export interface BranchOption {
               <i-tabler name="search" class="icon-16 search-icon"></i-tabler>
               <input (keyup)="applyFilter($event)" placeholder="Search companies..." class="search-input" />
             </div>
-            <!-- Branch Filter inline -->
-            <div class="branch-filter-inline">
-              <button class="filter-trigger-btn d-flex align-items-center" [class.filter-active]="selectedBranchId !== null" [matMenuTriggerFor]="branchFilterMenu">
-                <i-tabler name="filter" class="icon-16 m-r-6"></i-tabler>
-                <span class="f-s-13">{{ selectedBranchId !== null ? getSelectedBranchName() : 'Branch' }}</span>
-                <i-tabler name="chevron-down" class="icon-14 m-l-4"></i-tabler>
-              </button>
-              <mat-menu #branchFilterMenu="matMenu" class="branch-filter-menu cardWithShadow">
-                <button mat-menu-item (click)="setBranchFilter(null)" [class.menu-item-active]="selectedBranchId === null">
-                  <i-tabler name="list" class="icon-16 m-r-8"></i-tabler>
-                  All Branches
-                </button>
-                <mat-divider></mat-divider>
-                <button mat-menu-item *ngFor="let branch of branches" (click)="setBranchFilter(branch.id)" [class.menu-item-active]="selectedBranchId === branch.id">
-                  <i-tabler name="building" class="icon-16 m-r-8"></i-tabler>
-                  {{ branch.name }}
-                </button>
-              </mat-menu>
-            </div>
-            <!-- Clear filter badge -->
-            <button *ngIf="selectedBranchId !== null" mat-icon-button class="clear-filter-icon-btn" matTooltip="Clear branch filter" (click)="clearFilter()">
-              <i-tabler name="x" class="icon-16"></i-tabler>
-            </button>
             <div class="view-mode-toggle d-flex align-items-center">
               <button (click)="viewMode = 'table'" class="toggle-btn" [class.active]="viewMode === 'table'">
                 <i-tabler name="list" class="icon-18"></i-tabler>
@@ -97,34 +74,6 @@ export interface BranchOption {
           </div>
         </mat-card-header>
 
-        <!-- Mobile-only filter strip (shown below search bar on small screens) -->
-        <div class="mobile-filter-strip d-flex align-items-center gap-12 p-x-16 p-y-10">
-          <div class="branch-filter-inline">
-            <button class="filter-trigger-btn d-flex align-items-center" [class.filter-active]="selectedBranchId !== null" [matMenuTriggerFor]="mobileFilterMenu">
-              <i-tabler name="filter" class="icon-16 m-r-6"></i-tabler>
-              <span class="f-s-13">{{ selectedBranchId !== null ? getSelectedBranchName() : 'Branch' }}</span>
-              <i-tabler name="chevron-down" class="icon-14 m-l-4"></i-tabler>
-            </button>
-            <mat-menu #mobileFilterMenu="matMenu" class="branch-filter-menu cardWithShadow">
-              <button mat-menu-item (click)="setBranchFilter(null)" [class.menu-item-active]="selectedBranchId === null">
-                <i-tabler name="list" class="icon-16 m-r-8"></i-tabler>
-                All Branches
-              </button>
-              <mat-divider></mat-divider>
-              <button mat-menu-item *ngFor="let branch of branches" (click)="setBranchFilter(branch.id)" [class.menu-item-active]="selectedBranchId === branch.id">
-                <i-tabler name="building" class="icon-16 m-r-8"></i-tabler>
-                {{ branch.name }}
-              </button>
-            </mat-menu>
-          </div>
-          <button *ngIf="selectedBranchId !== null" mat-icon-button class="clear-filter-icon-btn" matTooltip="Clear filter" (click)="clearFilter()">
-            <i-tabler name="x" class="icon-16"></i-tabler>
-          </button>
-          <span *ngIf="selectedBranchId !== null" class="mobile-filter-chip f-s-12">
-            {{ getSelectedBranchName() }}
-          </span>
-        </div>
-
         <mat-card-content class="p-0">
           <!-- Loading Spinner -->
           <div *ngIf="isLoading" class="d-flex align-items-center justify-content-center p-y-40">
@@ -139,8 +88,11 @@ export interface BranchOption {
                 [rows]="dataSource.filteredData"
                 trackByKey="id"
                 [clickableRows]="true"
-                [emptyMessage]="selectedBranchId !== null ? 'No companies match the selected branch filter.' : 'Get started by adding your first company.'"
+                emptyMessage="Get started by adding your first company."
+                noFilterResultsMessage="No companies match the selected filters."
                 exportFileName="companies"
+                [filterOptions]="filterOptionsMap"
+                (filterChange)="onTableFilterChange($event)"
                 (rowClick)="viewDetails($event)"
               >
                 <ng-template appCellDef="companyName" let-element="row">
@@ -305,35 +257,6 @@ export interface BranchOption {
       @media (max-width: 576px) { display: flex !important; align-items: center; justify-content: center; }
     }
 
-    .branch-filter-inline { position: relative; }
-    /* Hide inline filter on mobile — shown in the mobile strip instead */
-    @media (max-width: 576px) { .header-actions .branch-filter-inline, .header-actions .clear-filter-icon-btn { display: none !important; } }
-    .filter-trigger-btn {
-      height: 38px; padding: 0 12px; border-radius: 8px; border: 1px solid #e2e8f0;
-      background: #f1f5f9; color: #64748b; cursor: pointer; gap: 6px;
-      font-size: 13px; font-weight: 500; transition: all 0.2s ease;
-      white-space: nowrap;
-      &:hover { background: #e8edf5; border-color: #cbd5e1; }
-      &.filter-active {
-        background: rgba(var(--brand-primary-rgb),0.1); border-color: var(--brand-primary);
-        color: var(--brand-primary); font-weight: 600;
-      }
-    }
-    .clear-filter-icon-btn { width: 32px; height: 32px; color: #fa896b; }
-    .menu-item-active { color: var(--brand-primary); font-weight: 600; }
-    .m-r-6 { margin-right: 6px; } .m-l-4 { margin-left: 4px; }
-
-    /* Mobile filter strip — hidden on desktop */
-    .mobile-filter-strip {
-      display: none;
-      border-bottom: 1px solid #e2e8f0; background: #f8fafc;
-      @media (max-width: 576px) { display: flex; }
-    }
-    .mobile-filter-chip {
-      background: rgba(var(--brand-primary-rgb),0.12); color: var(--brand-primary);
-      border-radius: 20px; padding: 3px 10px; font-weight: 600;
-    }
-
     .cursor-pointer { cursor: pointer; }
 
     .company-avatar {
@@ -400,8 +323,6 @@ export interface BranchOption {
     }
 
     :host-context(.dark-theme) {
-      .mobile-filter-strip { background: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); }
-      .filter-trigger-btn { background: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); color: #94a3b8; &:hover { background: var(--dark-hoverbgcolor); } &.filter-active { background: rgba(var(--brand-primary-rgb),0.2); border-color: var(--brand-primary); color: #a5a1ff; } }
       .element-row:hover { background-color: var(--dark-hoverbgcolor); }
       .search-box { background-color: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); .search-input { color: #f8fafc; } }
       .view-mode-toggle {
@@ -421,15 +342,27 @@ export class CompaniesComponent implements OnInit, AfterViewInit {
   viewMode: 'table' | 'card' = 'table';
 
   tableColumns: TableColumn<Company>[] = [
-    { key: 'companyName', header: 'Company Name', type: 'custom' },
-    { key: 'industry', header: 'Industry', type: 'text', valueFn: r => r.industry || '—', maxWidth: '140px' },
-    { key: 'location', header: 'Location', type: 'text', valueFn: r => r.location || '—', maxWidth: '160px' },
-    { key: 'website', header: 'Website', type: 'custom', maxWidth: '150px' },
-    { key: 'branch', header: 'Branch', type: 'custom' },
+    { key: 'companyName', header: 'Company Name', type: 'custom', filter: { type: 'text', getValue: r => r.companyName || '' } },
+    { key: 'industry', header: 'Industry', type: 'text', valueFn: r => r.industry || '—', maxWidth: '140px', filter: { type: 'text' } },
+    { key: 'location', header: 'Location', type: 'text', valueFn: r => r.location || '—', maxWidth: '160px', filter: { type: 'text' } },
+    { key: 'website', header: 'Website', type: 'custom', maxWidth: '150px', filter: { type: 'text', getValue: r => r.website || '' } },
+    {
+      key: 'branch', header: 'Branch', type: 'custom',
+      filter: { type: 'select', serverKey: 'branchId', getValue: r => (r.branchId != null ? String(r.branchId) : '') },
+    },
     {
       key: 'status', header: 'Status', type: 'pill',
       valueFn: r => this.titleCase(r.status),
       classFn: r => this.statusPillClass(r.status),
+      filter: {
+        type: 'select',
+        options: [
+          { value: 'ACTIVE', label: 'Active' },
+          { value: 'PENDING', label: 'Pending' },
+          { value: 'INACTIVE', label: 'Inactive' },
+        ],
+        getValue: r => (r.status || 'ACTIVE').toUpperCase(),
+      },
     },
     { key: 'actions', header: 'Actions', type: 'actions', align: 'right' },
   ];
@@ -531,25 +464,36 @@ export class CompaniesComponent implements OnInit, AfterViewInit {
     this.loadCompanies();
   }
 
-  setBranchFilter(branchId: number | null): void {
-    this.selectedBranchId = branchId;
-    this.onBranchFilterChange();
-  }
-
-  getSelectedBranchName(): string {
-    const branch = this.branches.find(b => b.id === this.selectedBranchId);
-    return branch ? branch.name : 'Branch';
-  }
-
   onBranchFilterChange(): void {
     this.currentPage = 0;
     if (this.paginator) this.paginator.firstPage();
     this.loadCompanies();
   }
 
-  clearFilter(): void {
-    this.selectedBranchId = null;
-    this.onBranchFilterChange();
+  /** Async-loaded options for the 'branch' header filter — see tableColumns. */
+  get filterOptionsMap(): Record<string, TableFilterOption[]> {
+    return {
+      branch: this.branches.map(b => ({ value: String(b.id), label: b.name })),
+    };
+  }
+
+  /**
+   * All columns filter client-side inside the table itself. 'branch' also
+   * carries serverKey: 'branchId' (see tableColumns), so a change there
+   * additionally refetches from the API — same getCompanies(page, size,
+   * branchId) call the old bespoke branch-filter menu used.
+   */
+  onTableFilterChange(event: TableFilterChangeEvent): void {
+    if (event.cleared) {
+      this.selectedBranchId = null;
+      this.onBranchFilterChange();
+      return;
+    }
+    if (event.serverKey === 'branchId') {
+      const branchValue = event.filters['branch'];
+      this.selectedBranchId = branchValue ? Number(branchValue) : null;
+      this.onBranchFilterChange();
+    }
   }
 
   applyFilter(event: Event): void {

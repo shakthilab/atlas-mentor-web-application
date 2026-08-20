@@ -83,6 +83,7 @@ export interface Branch {
                 trackByKey="id"
                 [clickableRows]="true"
                 exportFileName="branches"
+                noFilterResultsMessage="No branches on this page match the current filters."
                 (rowClick)="viewDetails($event)"
               >
                 <ng-template appCellDef="name" let-element="row">
@@ -284,20 +285,36 @@ export class BranchesComponent implements OnInit {
   viewMode: 'table' | 'card' = 'table';
 
   tableColumns: TableColumn<Branch>[] = [
-    { key: 'name', header: 'Branch Name', type: 'custom' },
-    { key: 'location', header: 'Location', type: 'text', valueFn: r => r.location, maxWidth: '220px' },
+    { key: 'name', header: 'Branch Name', type: 'custom', filter: { type: 'text', getValue: r => r.name } },
+    { key: 'location', header: 'Location', type: 'text', valueFn: r => r.location, maxWidth: '220px', filter: { type: 'text' } },
     {
       key: 'manager', header: 'Manager', type: 'avatar',
       avatarFn: r => this.getManagerAvatar(r.manager?.id),
       valueFn: r => r.manager?.name || 'N/A',
       subFn: r => r.manager?.email || '',
+      filter: { type: 'text', getValue: r => `${r.manager?.name || ''} ${r.manager?.email || ''}` },
     },
-    { key: 'employees', header: 'Staff', type: 'text', valueFn: r => String(r.userCounts?.totalStaffs ?? 0), align: 'right', maxWidth: '70px' },
-    { key: 'students', header: 'Students', type: 'text', valueFn: r => String(r.userCounts?.totalStudents ?? 0), align: 'right', maxWidth: '80px' },
+    {
+      key: 'employees', header: 'Staff', type: 'text', valueFn: r => String(r.userCounts?.totalStaffs ?? 0), align: 'right', maxWidth: '70px',
+      filter: { type: 'number-range', getValue: r => r.userCounts?.totalStaffs ?? 0 },
+    },
+    {
+      key: 'students', header: 'Students', type: 'text', valueFn: r => String(r.userCounts?.totalStudents ?? 0), align: 'right', maxWidth: '80px',
+      filter: { type: 'number-range', getValue: r => r.userCounts?.totalStudents ?? 0 },
+    },
     {
       key: 'status', header: 'Status', type: 'pill',
       valueFn: r => this.titleCase(r.status),
       classFn: r => this.statusPillClass(r.status),
+      filter: {
+        type: 'select',
+        options: [
+          { value: 'ACTIVE', label: 'Active' },
+          { value: 'SETUP', label: 'Setup' },
+          { value: 'INACTIVE', label: 'Inactive' },
+        ],
+        getValue: r => (r.status || 'ACTIVE').toUpperCase(),
+      },
     },
     { key: 'actions', header: 'Actions', type: 'actions', align: 'right' },
   ];

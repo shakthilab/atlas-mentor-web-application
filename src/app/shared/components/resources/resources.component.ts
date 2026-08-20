@@ -85,6 +85,7 @@ export interface Resource {
               trackByKey="id"
               [clickableRows]="true"
               exportFileName="resources"
+              noFilterResultsMessage="No resources on this page match the current filters."
               (rowClick)="viewDetails($event)"
             >
               <ng-template appCellDef="resourceDetail" let-element="row">
@@ -279,16 +280,28 @@ export class ResourcesComponent implements OnInit, AfterViewInit {
   dataSource = new MatTableDataSource<Resource>([]);
 
   tableColumns: TableColumn<Resource>[] = [
-    { key: 'resourceDetail', header: 'Resource Detail', type: 'custom' },
-    { key: 'type', header: 'Type', type: 'text', valueFn: r => r.type, maxWidth: '120px' },
-    { key: 'ownership', header: 'Owner Type', type: 'text', valueFn: r => r.ownership, maxWidth: '120px' },
-    { key: 'storage', header: 'Storage', type: 'text', valueFn: r => r.storage, maxWidth: '110px' },
+    { key: 'resourceDetail', header: 'Resource Detail', type: 'custom', filter: { type: 'text', getValue: r => r.resourceDetail } },
+    { key: 'type', header: 'Type', type: 'text', valueFn: r => r.type, maxWidth: '120px', filter: { type: 'text' } },
+    { key: 'ownership', header: 'Owner Type', type: 'text', valueFn: r => r.ownership, maxWidth: '120px', filter: { type: 'text' } },
+    { key: 'storage', header: 'Storage', type: 'text', valueFn: r => r.storage, maxWidth: '110px', filter: { type: 'text' } },
     {
       key: 'status', header: 'Status', type: 'pill',
       valueFn: r => this.titleCase(r.status),
       classFn: r => this.statusPillClass(r.status),
+      filter: {
+        type: 'select',
+        options: [
+          { value: 'available', label: 'Available' },
+          { value: 'in-use', label: 'In Use' },
+          { value: 'archived', label: 'Archived' },
+        ],
+        getValue: r => r.status,
+      },
     },
-    { key: 'created', header: 'Created', type: 'date', valueFn: r => r.created },
+    {
+      key: 'created', header: 'Created', type: 'date', valueFn: r => r.created,
+      filter: { type: 'date-range', getValue: r => (r.originalData?.createdAt ? new Date(r.originalData.createdAt) : null) },
+    },
     { key: 'actions', header: 'Actions', type: 'actions', align: 'right' },
   ];
   

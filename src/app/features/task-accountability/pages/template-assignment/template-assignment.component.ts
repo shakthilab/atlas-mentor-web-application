@@ -15,10 +15,24 @@ export class TemplateAssignmentComponent implements OnInit, OnDestroy {
   branches: BranchNode[] = [];
 
   assignmentsColumns: TableColumn<TemplateAssignment>[] = [
-    { key: 'templateName', header: 'Template', type: 'custom', exportValueFn: r => r.templateName },
-    { key: 'targetName', header: 'Assigned To', type: 'custom', exportValueFn: r => r.targetName },
-    { key: 'assignType', header: 'Type', type: 'custom', exportValueFn: r => r.assignType },
-    { key: 'effectiveDate', header: 'Effective Date', type: 'custom', exportValueFn: r => r.effectiveDate },
+    { key: 'templateName', header: 'Template', type: 'custom', exportValueFn: r => r.templateName, filter: { type: 'text' } },
+    { key: 'targetName', header: 'Assigned To', type: 'custom', exportValueFn: r => r.targetName, filter: { type: 'text' } },
+    {
+      key: 'assignType', header: 'Type', type: 'custom', exportValueFn: r => r.assignType,
+      filter: {
+        type: 'select',
+        options: [
+          { value: 'role', label: 'Role' },
+          { value: 'branch', label: 'Branch' },
+          { value: 'employee', label: 'Employee' },
+        ],
+        getValue: r => r.assignType,
+      },
+    },
+    {
+      key: 'effectiveDate', header: 'Effective Date', type: 'custom', exportValueFn: r => r.effectiveDate,
+      filter: { type: 'date-range', getValue: r => (r.effectiveDate ? new Date(r.effectiveDate) : null) },
+    },
     { key: 'status', header: 'Status', type: 'custom', exportValueFn: () => 'Active' },
     { key: 'actions', header: 'Actions', type: 'actions', align: 'right' },
   ];
