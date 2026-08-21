@@ -10,6 +10,7 @@ import { StudentService, RegisteredStudentDto } from '../../../core/services/stu
 import { LeadService } from '../../../core/services/lead.service';
 import { StudentDetailsDialogComponent } from './student-details-dialog/student-details-dialog.component';
 import { AddLeadDialogComponent } from '../leads/add-lead-dialog/add-lead-dialog.component';
+import { getPriorityTierLabel, getPrioritySubCategoryLabel } from '../../constants/lead-classification.constants';
 
 export interface Student {
   id: number;
@@ -29,6 +30,10 @@ export interface Student {
   rawStatus?: string;
   isActive?: boolean;
   source?: string;
+  priority?: string;
+  priorityDisplayName?: string;
+  prioritySubCategory?: string;
+  prioritySubCategoryDisplayName?: string;
 }
 
 @Component({
@@ -123,6 +128,25 @@ export interface Student {
                 <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Source</th>
                 <td mat-cell *matCellDef="let element">
                   <span class="f-w-600 text-dark f-s-13">{{ element.source || '—' }}</span>
+                </td>
+              </ng-container>
+
+              <!-- Priority Column -->
+              <ng-container matColumnDef="priority">
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Priority</th>
+                <td mat-cell *matCellDef="let element">
+                  <span *ngIf="element.priority" class="priority-badge" [ngClass]="element.priority.toLowerCase()">
+                    {{ element.priorityDisplayName || getPriorityLabel(element.priority) }}
+                  </span>
+                  <span *ngIf="!element.priority" class="text-muted f-s-13">—</span>
+                </td>
+              </ng-container>
+
+              <!-- Sub Category Column -->
+              <ng-container matColumnDef="subCategory">
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Sub Category</th>
+                <td mat-cell *matCellDef="let element" class="text-dark f-s-13">
+                  {{ element.prioritySubCategoryDisplayName || getSubCategoryLabel(element.prioritySubCategory) || '—' }}
                 </td>
               </ng-container>
 
@@ -408,7 +432,7 @@ export interface Student {
     }
     
     table {
-      min-width: 1050px;
+      min-width: 1250px;
     }
 
     .student-row {
@@ -452,6 +476,29 @@ export interface Student {
       &.inactive {
         background-color: rgba(250, 137, 107, 0.1);
         color: #fa896b;
+      }
+    }
+
+    .priority-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 6px;
+
+      &.p1 {
+        background-color: rgba(250, 137, 107, 0.12);
+        color: #fa896b;
+      }
+      &.p2 {
+        background-color: rgba(255, 174, 31, 0.12);
+        color: #ffae1f;
+      }
+      &.p3 {
+        background-color: rgba(45, 46, 50, 0.1);
+        color: #2D2E32;
       }
     }
 
@@ -551,6 +598,20 @@ export interface Student {
           color: #ffab91;
         }
       }
+      .priority-badge {
+        &.p1 {
+          background-color: rgba(250, 137, 107, 0.2);
+          color: #ffab91;
+        }
+        &.p2 {
+          background-color: rgba(255, 174, 31, 0.2);
+          color: #ffca70;
+        }
+        &.p3 {
+          background-color: rgba(255, 255, 255, 0.1);
+          color: #ffffff;
+        }
+      }
     }
   `]
 })
@@ -565,6 +626,8 @@ export class StudentsComponent implements OnInit, AfterViewInit, OnDestroy {
     'contactInfo',
     'status',
     'source',
+    'priority',
+    'subCategory',
     'activeStatus',
     'counsellor',
     'addedBy',
@@ -699,6 +762,14 @@ export class StudentsComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  getPriorityLabel(priority: string): string {
+    return getPriorityTierLabel(priority);
+  }
+
+  getSubCategoryLabel(subCategory: string): string {
+    return getPrioritySubCategoryLabel(subCategory);
+  }
+
   toggleStatus(student: Student): void {
     if (!student.id) return;
     
@@ -741,6 +812,10 @@ function mapToStudent(dto: RegisteredStudentDto): Student {
     rawStatus: dto.status,
     isActive: dto.isActive,
     source: dto.source || '—',
+    priority: dto.priority || '',
+    priorityDisplayName: dto.priorityDisplayName || '',
+    prioritySubCategory: dto.prioritySubCategory || '',
+    prioritySubCategoryDisplayName: dto.prioritySubCategoryDisplayName || '',
   };
 }
 

@@ -89,6 +89,10 @@ export class LeadService {
     return this.http.put<any>(`${environment.apiUrl}/students/${id}/status`, payload);
   }
 
+  updateLeadSource(id: number, source: string): Observable<any> {
+    return this.http.put<any>(`${environment.apiUrl}/students/${id}/source`, { source });
+  }
+
   deleteLead(id: number): Observable<void> {
     return this.http.delete<void>(`${environment.apiUrl}/students/${id}`);
   }

@@ -24,6 +24,10 @@ export interface RegisteredStudentDto {
   createdByName?: string;
   assignedByName?: string | null;
   source?: string | null;
+  priority?: string | null;
+  priorityDisplayName?: string | null;
+  prioritySubCategory?: string | null;
+  prioritySubCategoryDisplayName?: string | null;
 }
 
 export interface Payout {

@@ -9,6 +9,9 @@ import { LeadDetailsDialogComponent } from './lead-details-dialog/lead-details-d
 import { ReasonDialogComponent } from './reason-dialog/reason-dialog.component';
 import { AddLeadDialogComponent } from './add-lead-dialog/add-lead-dialog.component';
 import { ImportLeadsDialogComponent } from './import-leads-dialog/import-leads-dialog.component';
+import { MasterDataService } from '../../../core/services/master-data.service';
+import { SourceDialogComponent } from './source-dialog/source-dialog.component';
+import { getPriorityTierLabel, getPrioritySubCategoryLabel } from '../../../shared/constants/lead-classification.constants';
 
 export interface Lead {
   id?: number;
@@ -26,6 +29,7 @@ export interface Lead {
   university: string;
   leadDate: string;
   isUpdatingStatus?: boolean;
+  isUpdatingSource?: boolean;
   branchId?: number;
   countryCode?: string;
   counsellorId?: number;
@@ -34,6 +38,10 @@ export interface Lead {
   course?: string;
   intake?: string;
   source?: string;
+  priority?: string;
+  priorityDisplayName?: string;
+  prioritySubCategory?: string;
+  prioritySubCategoryDisplayName?: string;
 }
 
 @Component({
@@ -118,11 +126,14 @@ export interface Lead {
                 </td>
               </ng-container>
 
+              <!-- Shared dummy empty menu used when a column is in loading state (avoids null panelId crash) -->
+              <mat-menu #loadingMenu="matMenu"></mat-menu>
+
               <!-- Status Column -->
               <ng-container matColumnDef="status">
                 <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Status</th>
                 <td mat-cell *matCellDef="let element" (click)="$event.stopPropagation()">
-                  <span class="status-badge cursor-pointer d-inline-flex align-items-center" [ngClass]="getStatusClass(element.status)" [matMenuTriggerFor]="element.isUpdatingStatus ? null : statusMenu">
+                  <span class="status-badge cursor-pointer d-inline-flex align-items-center" [ngClass]="getStatusClass(element.status)" [matMenuTriggerFor]="element.isUpdatingStatus ? loadingMenu : statusMenu">
                     {{ getStatusDisplayName(element.status) }}
                     <i-tabler *ngIf="!element.isUpdatingStatus" name="chevron-down" class="icon-14 m-l-4"></i-tabler>
                     <i-tabler *ngIf="element.isUpdatingStatus" name="loader" class="icon-14 m-l-4 spinning"></i-tabler>
@@ -141,8 +152,36 @@ export interface Lead {
               <!-- Source Column -->
               <ng-container matColumnDef="source">
                 <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Source</th>
+                <td mat-cell *matCellDef="let element" (click)="$event.stopPropagation()">
+                  <span class="source-badge cursor-pointer d-inline-flex align-items-center" [matMenuTriggerFor]="element.isUpdatingSource ? loadingMenu : sourceMenu">
+                    {{ element.source || 'Not Set' }}
+                    <i-tabler *ngIf="!element.isUpdatingSource" name="chevron-down" class="icon-14 m-l-4"></i-tabler>
+                    <i-tabler *ngIf="element.isUpdatingSource" name="loader" class="icon-14 m-l-4 spinning"></i-tabler>
+                  </span>
+                  <mat-menu #sourceMenu="matMenu" class="source-menu-panel" xPosition="before">
+                    <button mat-menu-item *ngFor="let s of availableSources" (click)="changeSource(element, s.displayName, s.enum)" class="source-menu-btn">
+                        <span class="source-menu-text f-w-500">{{ s.displayName }}</span>
+                    </button>
+                  </mat-menu>
+                </td>
+              </ng-container>
+
+              <!-- Priority Column -->
+              <ng-container matColumnDef="priority">
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Priority</th>
                 <td mat-cell *matCellDef="let element">
-                  <span class="f-w-600 text-dark f-s-13">{{ element.source || '—' }}</span>
+                  <span *ngIf="element.priority" class="priority-badge" [ngClass]="element.priority.toLowerCase()">
+                    {{ element.priorityDisplayName || getPriorityLabel(element.priority) }}
+                  </span>
+                  <span *ngIf="!element.priority" class="text-muted f-s-13">—</span>
+                </td>
+              </ng-container>
+
+              <!-- Sub Category Column -->
+              <ng-container matColumnDef="subCategory">
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Sub Category</th>
+                <td mat-cell *matCellDef="let element" class="text-dark f-s-13">
+                  {{ element.prioritySubCategoryDisplayName || getSubCategoryLabel(element.prioritySubCategory) || '—' }}
                 </td>
               </ng-container>
 
@@ -408,7 +447,7 @@ export interface Lead {
     }
     
     table {
-      min-width: 900px;
+      min-width: 1100px;
     }
 
     .lead-row {
@@ -447,6 +486,71 @@ export interface Lead {
       &.in-progress, &.document-submitted {
         background-color: rgba(45,46,50, 0.1);
         color: #2D2E32;
+      }
+    }
+
+    .source-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 6px;
+      background-color: #f1f5f9;
+      color: #334155;
+      border: 1px solid #e2e8f0;
+      transition: all 0.2s ease;
+      &:hover {
+        background-color: #e2e8f0;
+      }
+    }
+
+    .priority-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 6px;
+
+      &.p1 {
+        background-color: rgba(250, 137, 107, 0.12);
+        color: #fa896b;
+      }
+      &.p2 {
+        background-color: rgba(255, 174, 31, 0.12);
+        color: #ffae1f;
+      }
+      &.p3 {
+        background-color: rgba(45, 46, 50, 0.1);
+        color: #2D2E32;
+      }
+    }
+
+    ::ng-deep .source-menu-panel {
+      min-width: 160px !important;
+      border-radius: 12px !important;
+      border: 1px solid #e2e8f0 !important;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.06), 0 8px 10px -6px rgba(0,0,0,0.06) !important;
+      background-color: #ffffff !important;
+      padding: 6px 0 !important;
+      overflow: hidden !important;
+      
+      .source-menu-btn {
+        height: 40px !important;
+        line-height: 40px !important;
+        padding: 0 16px !important;
+        transition: all 0.15s ease !important;
+        
+        &:hover {
+          background-color: #f8fafc !important;
+        }
+      }
+      .source-menu-text {
+        font-size: 13px;
+        color: #334155;
       }
     }
 
@@ -645,6 +749,44 @@ export interface Lead {
           }
         }
       }
+
+      .source-badge {
+        background-color: var(--dark-sidebarbg, #1e293b);
+        color: #f8fafc;
+        border-color: var(--dark-formborderColor, #334155);
+        &:hover {
+          background-color: var(--dark-hoverbgcolor, #334155);
+        }
+      }
+
+      .priority-badge {
+        &.p1 {
+          background-color: rgba(250, 137, 107, 0.2);
+          color: #ffab91;
+        }
+        &.p2 {
+          background-color: rgba(255, 174, 31, 0.2);
+          color: #ffca70;
+        }
+        &.p3 {
+          background-color: rgba(255, 255, 255, 0.1);
+          color: #ffffff;
+        }
+      }
+
+      ::ng-deep .source-menu-panel {
+        background-color: var(--dark-sidebarbg, #1e293b) !important;
+        border-color: var(--dark-formborderColor, #334155) !important;
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3), 0 8px 10px -6px rgba(0,0,0,0.3) !important;
+        .source-menu-btn {
+          &:hover {
+            background-color: var(--dark-hoverbgcolor, #334155) !important;
+          }
+        }
+        .source-menu-text {
+          color: #f8fafc;
+        }
+      }
     }
   `]
 })
@@ -654,12 +796,15 @@ export class LeadsComponent implements OnInit, AfterViewInit {
   hasError = false;
 
   availableStatuses: { id: number; enum: string; displayName: string }[] = [];
+  availableSources: any[] = [];
 
   displayedColumns: string[] = [
     'lead',
     'contactInfo',
     'status',
     'source',
+    'priority',
+    'subCategory',
     'assignedTo',
     'addedBy',
     'countryUniversity',
@@ -675,11 +820,13 @@ export class LeadsComponent implements OnInit, AfterViewInit {
     private notificationService: NotificationService,
     private leadService: LeadService,
     private dialog: MatDialog,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private masterDataService: MasterDataService
   ) {}
 
   ngOnInit(): void {
     this.loadStudentStatuses();
+    this.loadLeadSources();
     this.loadLeads();
     this.route.queryParams.subscribe(params => {
       if (params['openAdd'] === 'true') {
@@ -704,6 +851,27 @@ export class LeadsComponent implements OnInit, AfterViewInit {
           { id: 6, enum: 'IN_PROGRESS', displayName: 'In Progress' },
           { id: 7, enum: 'FOLLOWUP', displayName: 'Followup' },
           { id: 8, enum: 'DOCUMENT_SUBMITTED', displayName: 'Document Submitted' }
+        ];
+      }
+    });
+  }
+
+  loadLeadSources(): void {
+    this.masterDataService.getLeadSources().subscribe({
+      next: (res) => {
+        this.availableSources = res.data || [];
+      },
+      error: (err) => {
+        console.error('Failed to load lead sources:', err);
+        this.availableSources = [
+          { id: 1, enum: 'INSTAGRAM', displayName: 'Instagram' },
+          { id: 2, enum: 'FACEBOOK', displayName: 'Facebook' },
+          { id: 3, enum: 'GOOGLE_SEARCH', displayName: 'Google Search' },
+          { id: 4, enum: 'WHATSAPP', displayName: 'WhatsApp' },
+          { id: 5, enum: 'REFERRAL', displayName: 'Referral' },
+          { id: 6, enum: 'COLLEGE_SEMINAR', displayName: 'College Seminar' },
+          { id: 7, enum: 'FLYERS', displayName: 'Flyers' },
+          { id: 8, enum: 'OTHER', displayName: 'Other' }
         ];
       }
     });
@@ -784,8 +952,20 @@ export class LeadsComponent implements OnInit, AfterViewInit {
       universityId: l.university?.id || l.universityId || null,
       source: l.source || '—',
       course: l.courseName || l.course || '',
-      intake: l.intakePeriod || l.intake || ''
+      intake: l.intakePeriod || l.intake || '',
+      priority: l.priority || '',
+      priorityDisplayName: l.priorityDisplayName || '',
+      prioritySubCategory: l.prioritySubCategory || '',
+      prioritySubCategoryDisplayName: l.prioritySubCategoryDisplayName || ''
     };
+  }
+
+  getPriorityLabel(priority: string): string {
+    return getPriorityTierLabel(priority);
+  }
+
+  getSubCategoryLabel(subCategory: string): string {
+    return getPrioritySubCategoryLabel(subCategory);
   }
 
   applyFilter(event: Event): void {
@@ -912,6 +1092,47 @@ export class LeadsComponent implements OnInit, AfterViewInit {
     } else {
       this.executeStatusUpdate(lead, newStatus);
     }
+  }
+
+  changeSource(lead: Lead, displayName: string, sourceEnum: string): void {
+    const requiresInput = ['PERSON', 'OTHER'].includes(sourceEnum?.toUpperCase());
+    if (requiresInput) {
+      // Defer dialog open until after the mat-menu has fully closed and Angular Material
+      // has finished restoring focus — otherwise the dialog intermittently fails to open.
+      setTimeout(() => {
+        const dialogRef = this.dialog.open(SourceDialogComponent, {
+          width: '420px',
+          panelClass: 'source-dialog',
+          data: { sourceType: displayName }
+        });
+        dialogRef.afterClosed().subscribe((customText: string | undefined) => {
+          if (customText) {
+            this.executeSourceUpdate(lead, customText);
+          }
+        });
+      }, 150);
+    } else {
+      if (lead.source === displayName) return;
+      this.executeSourceUpdate(lead, displayName);
+    }
+  }
+
+  private executeSourceUpdate(lead: Lead, source: string): void {
+    if (!lead.id) return;
+    lead.isUpdatingSource = true;
+    this.leadService.updateLeadSource(lead.id, source).subscribe({
+      next: () => {
+        lead.isUpdatingSource = false;
+        this.notificationService.showSuccessToast(`Source updated to "${source}".`, 'Success');
+        this.loadLeads();
+      },
+      error: (err) => {
+        lead.isUpdatingSource = false;
+        console.error('Failed to update source:', err);
+        const errorMessage = err.error?.message || err.message || 'An unexpected error occurred while updating the source.';
+        this.notificationService.showErrorPopup(errorMessage, 'Update Failed', 'Close').subscribe();
+      }
+    });
   }
 
   private executeStatusUpdate(lead: Lead, status: string, reason?: string): void {

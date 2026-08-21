@@ -251,40 +251,40 @@ import { LEAD_PRIORITY_TIERS, LEAD_BACKGROUND_OPTIONS, getSubCategoriesForTier, 
           <ng-container *ngIf="currentStep === 2" formGroupName="destinationDetails">
             <div class="row">
               <div class="col-sm-6 m-b-24">
-                <mat-label class="field-label d-block">DESTINATION COUNTRY <span class="text-danger">*</span></mat-label>
+                <mat-label class="field-label d-block">DESTINATION COUNTRY</mat-label>
                 <mat-form-field appearance="outline" class="w-100 custom-field" subscriptSizing="dynamic">
                   <mat-select formControlName="countryId" placeholder="Select country" (selectionChange)="onCountryChange($event.value)">
+                    <mat-option [value]="null">Not set</mat-option>
                     <mat-option *ngIf="countriesLoading">Loading...</mat-option>
                     <mat-option *ngFor="let c of countries" [value]="c.id">{{ c.name }}</mat-option>
                   </mat-select>
-                  <mat-error *ngIf="onboardingForm.get('destinationDetails.countryId')?.hasError('required')">Destination country is required</mat-error>
                 </mat-form-field>
               </div>
               <div class="col-sm-6 m-b-24">
-                <mat-label class="field-label d-block">TARGET UNIVERSITY <span class="text-danger">*</span></mat-label>
+                <mat-label class="field-label d-block">TARGET UNIVERSITY</mat-label>
                 <mat-form-field appearance="outline" class="w-100 custom-field" subscriptSizing="dynamic">
                   <mat-select formControlName="universityId"
                     [placeholder]="universitiesLoading ? 'Loading...' : (onboardingForm.get('destinationDetails.countryId')?.value ? 'Select a university' : 'Select a country first')"
                     [disabled]="universitiesLoading || !onboardingForm.get('destinationDetails.countryId')?.value">
+                    <mat-option [value]="null">Not set</mat-option>
                     <mat-option *ngIf="universitiesLoading">Loading...</mat-option>
                     <mat-option *ngIf="!universitiesLoading && universities.length === 0 && onboardingForm.get('destinationDetails.countryId')?.value">No universities found</mat-option>
                     <mat-option *ngFor="let u of universities" [value]="u.id">{{ u.name }}</mat-option>
                   </mat-select>
-                  <mat-error *ngIf="onboardingForm.get('destinationDetails.universityId')?.hasError('required')">Target university is required</mat-error>
                 </mat-form-field>
               </div>
             </div>
 
             <div class="row">
               <div class="col-sm-6 m-b-24">
-                <mat-label class="field-label d-block">COURSE NAME <span class="text-danger">*</span></mat-label>
+                <mat-label class="field-label d-block">COURSE NAME</mat-label>
                 <mat-form-field appearance="outline" class="w-100 custom-field" subscriptSizing="dynamic">
                   <mat-select formControlName="course" placeholder="Select course">
+                    <mat-option value="">Not set</mat-option>
                     <mat-option value="MBBS">MBBS</mat-option>
                     <mat-option value="MD">MD</mat-option>
                     <mat-option value="BDS">BDS</mat-option>
                   </mat-select>
-                  <mat-error *ngIf="onboardingForm.get('destinationDetails.course')?.hasError('required')">Course selection is required</mat-error>
                 </mat-form-field>
               </div>
               <div class="col-sm-6 m-b-24">
@@ -1372,9 +1372,9 @@ export class AddLeadDialogComponent implements OnInit {
         background: ['']
       }),
       destinationDetails: this.fb.group({
-        countryId: ['', Validators.required],
-        universityId: ['', Validators.required],
-        course: ['', Validators.required],
+        countryId: [''],
+        universityId: [''],
+        course: [''],
         intake: ['']
       }),
       academicHistory: this.fb.group({
@@ -1817,6 +1817,15 @@ export class AddLeadDialogComponent implements OnInit {
         priority: raw.leadClassification.priority || null,
         prioritySubCategory: raw.leadClassification.prioritySubCategory || null,
         background: raw.leadClassification.background || null
+      };
+    }
+
+    if (raw.destinationDetails) {
+      raw.destinationDetails = {
+        countryId: raw.destinationDetails.countryId || null,
+        universityId: raw.destinationDetails.universityId || null,
+        course: raw.destinationDetails.course || null,
+        intake: raw.destinationDetails.intake || null
       };
     }
 

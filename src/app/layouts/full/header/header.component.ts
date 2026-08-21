@@ -38,6 +38,8 @@ export class HeaderComponent implements OnDestroy {
   languages = [
     { code: 'en', name: 'English' },
     { code: 'uz', name: "O'zbek" },
+    { code: 'ru', name: 'Русский' },
+    { code: 'ka', name: 'ქართული' },
     { code: 'fr', name: 'Français' },
     { code: 'de', name: 'Deutsch' },
   ];
