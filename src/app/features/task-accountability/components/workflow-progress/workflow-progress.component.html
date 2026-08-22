@@ -1,8 +1,8 @@
 <div class="workflow-container" *ngIf="day">
   <div class="workflow-title-row">
-    <h4>DAY APPROVAL WORKFLOW</h4>
+    <h4>{{ 'taskAccountability.workflow.title' | translate }}</h4>
     <div class="current-status-info">
-      Currently at <span class="status-name">{{ getFormattedStatus(day.status) }}</span>
+      {{ 'taskAccountability.workflow.currentlyAt' | translate }} <span class="status-name">{{ getFormattedStatus(day.status) }}</span>
     </div>
   </div>
 
@@ -23,9 +23,9 @@
         </span>
         <span class="step-label">
           {{ step.label }}
-          <span class="optional-tag" *ngIf="step.optional">(optional)</span>
+          <span class="optional-tag" *ngIf="step.optional">({{ 'taskAccountability.workflow.optional' | translate }})</span>
         </span>
-        <span class="skipped-tag" *ngIf="getStepClass(i) === 'step-skipped'">Skipped</span>
+        <span class="skipped-tag" *ngIf="getStepClass(i) === 'step-skipped'">{{ 'taskAccountability.workflow.skipped' | translate }}</span>
       </div>
 
       <!-- Connector line (only render between items) -->

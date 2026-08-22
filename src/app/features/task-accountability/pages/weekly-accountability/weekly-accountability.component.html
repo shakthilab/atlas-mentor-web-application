@@ -1,16 +1,16 @@
 <div class="weekly-workspace">
   <!-- Center Content Panel -->
   <div class="weekly-content-panel">
-    
+
     <!-- Meta Breadcrumbs -->
     <div class="meta-breadcrumbs m-b-16" *ngIf="selectedEmployee || !isAdminTreeRole">
-      <span>Accountability</span>
+      <span>{{ 'taskAccountability.weekly.accountability' | translate }}</span>
       <span class="separator">/</span>
       <span *ngIf="isAdminTreeRole && selectedBranch">{{ selectedBranch.name }}</span>
       <span class="separator" *ngIf="isAdminTreeRole && selectedBranch">/</span>
       <span *ngIf="isAdminTreeRole">{{ selectedEmployee?.name }}</span>
       <span class="separator" *ngIf="isAdminTreeRole">/</span>
-      <span class="current">Weekly Accountability</span>
+      <span class="current">{{ 'taskAccountability.shell.weeklyAccountability' | translate }}</span>
     </div>
 
     <!-- 1. Reviewer Dashboard Header (When Employee Selected) -->
@@ -21,7 +21,7 @@
         </div>
         <div>
           <h2 class="emp-name">{{ selectedEmployee.name }}</h2>
-          <p class="emp-meta">{{ selectedEmployee.role || 'Employee' }} • Review Workspace</p>
+          <p class="emp-meta">{{ selectedEmployee.role || ('taskAccountability.weekly.employee' | translate) }} • {{ 'taskAccountability.weekly.reviewWorkspace' | translate }}</p>
         </div>
       </div>
     </div>
@@ -29,34 +29,34 @@
     <!-- 2. Employee Dashboard Header (Self) -->
     <div class="weekly-header-row m-b-24" *ngIf="!isAdminTreeRole">
       <div>
-        <h2 class="emp-name">Weekly Accountability Check-in</h2>
-        <p class="emp-meta">Complete and submit your weekly check-in questionnaires.</p>
+        <h2 class="emp-name">{{ 'taskAccountability.weekly.checkinTitle' | translate }}</h2>
+        <p class="emp-meta">{{ 'taskAccountability.weekly.checkinSubtitle' | translate }}</p>
       </div>
     </div>
 
     <!-- Checkpoint Navigation Strip (Day 7, 14, 21, 28) -->
     <div class="checkpoint-navigation m-b-24" *ngIf="selectedEmployee || !isAdminTreeRole">
-      <h4 class="f-s-12 text-muted text-uppercase font-semibold letter-spacing-1 m-b-12">Select Weekly Checkpoint</h4>
+      <h4 class="f-s-12 text-muted text-uppercase font-semibold letter-spacing-1 m-b-12">{{ 'taskAccountability.weekly.selectCheckpoint' | translate }}</h4>
       <div class="checkpoint-chips-strip d-flex gap-12">
-        <button 
+        <button
           *ngFor="let num of [7, 14, 21, 28]"
           class="checkpoint-chip"
           [class.active]="selectedDayNum === num"
           (click)="selectCheckpoint(num)"
         >
           <i-tabler name="checkbox" class="icon-16 m-r-4" *ngIf="selectedDayNum === num"></i-tabler>
-          <span>Day {{ num }} Check-in</span>
+          <span>{{ 'taskAccountability.weekly.dayCheckin' | translate:{ day: num } }}</span>
         </button>
       </div>
       <p class="checkpoint-date-meta m-t-8 text-muted f-s-12">
-        Checkpoint date corresponding to this selection: <strong class="text-dark">{{ checkpointDate }}</strong>
+        {{ 'taskAccountability.weekly.checkpointDateFor' | translate }} <strong class="text-dark">{{ checkpointDate }}</strong>
       </p>
     </div>
 
     <!-- Loading Indicator -->
     <div class="text-center p-40" *ngIf="isLoading">
       <mat-spinner diameter="40" class="m-x-auto"></mat-spinner>
-      <p class="text-muted m-t-16">Loading checkpoint details...</p>
+      <p class="text-muted m-t-16">{{ 'taskAccountability.weekly.loadingCheckpoint' | translate }}</p>
     </div>
 
     <!-- Main Workspace Content (When Not Loading) -->
@@ -70,34 +70,34 @@
 
       <div class="alert alert-warning m-b-20" *ngIf="noTemplateAssigned">
         <i-tabler name="info-circle" class="icon-18 m-r-8"></i-tabler>
-        <span>No weekly check-in assigned to your role right now.</span>
+        <span>{{ 'taskAccountability.weekly.noTemplateAssigned' | translate }}</span>
       </div>
 
       <div class="alert alert-info m-b-20" *ngIf="isAdminTreeRole && !selectedEmployee">
         <i-tabler name="user-check" class="icon-18 m-r-8"></i-tabler>
-        <span>Select an employee from the hierarchy tree on the left to review their weekly accountability.</span>
+        <span>{{ 'taskAccountability.weekly.selectFromTree' | translate }}</span>
       </div>
 
       <div class="alert alert-warning m-b-20" *ngIf="isAdminTreeRole && selectedEmployee && notYetAnswered">
         <i-tabler name="help" class="icon-18 m-r-8"></i-tabler>
-        <span>Employee {{ selectedEmployee.name }} has not submitted their responses for the Day {{ selectedDayNum }} checkpoint yet.</span>
+        <span>{{ 'taskAccountability.weekly.notYetAnswered' | translate:{ name: selectedEmployee.name, day: selectedDayNum } }}</span>
       </div>
 
       <div class="alert alert-info m-b-20" *ngIf="!isAdminTreeRole && isReadOnly && !hasError && !noTemplateAssigned">
         <i-tabler name="lock" class="icon-18 m-r-8"></i-tabler>
-        <span>Historical Checkpoint: Viewing answers for <strong>{{ checkpointDate }}</strong> in read-only mode. Forms are locked.</span>
+        <span>{{ 'taskAccountability.weekly.historicalCheckpointPrefix' | translate }} <strong>{{ checkpointDate }}</strong>{{ 'taskAccountability.weekly.historicalCheckpointSuffix' | translate }}</span>
       </div>
 
       <div class="alert alert-success m-b-20" *ngIf="isSuccess">
         <i-tabler name="circle-check" class="icon-18 m-r-8"></i-tabler>
-        <span>Your weekly accountability answers have been successfully submitted.</span>
+        <span>{{ 'taskAccountability.weekly.submitSuccess' | translate }}</span>
       </div>
 
 
       <!-- ==================== B. EMPLOYEE / EDITABLE FORM MODE ==================== -->
       <div class="weekly-form-card cardWithShadow p-24" *ngIf="!isAdminTreeRole && template && !noTemplateAssigned">
         <h3 class="card-title m-b-8 text-dark">{{ template.name }}</h3>
-        <p class="text-muted f-s-13 m-b-24">Please answer each question honestly. Answers can be resubmitted today.</p>
+        <p class="text-muted f-s-13 m-b-24">{{ 'taskAccountability.weekly.answerHonestly' | translate }}</p>
 
         <div class="questions-list">
           <div class="question-item m-b-24" *ngFor="let q of questions; let i = index">
@@ -105,19 +105,19 @@
               <label class="question-label text-dark font-semibold f-s-14">
                 {{ i + 1 }}. {{ q.questionText }}
               </label>
-              
+
               <!-- Saved Confirmation Badge -->
               <span class="saved-badge d-flex align-items-center text-success f-s-11 font-semibold" *ngIf="savedTimestamps[q.id]">
                 <i-tabler name="check" class="icon-12 m-r-4"></i-tabler>
-                Saved ({{ savedTimestamps[q.id] | date:'shortTime' }})
+                {{ 'taskAccountability.weekly.savedAt' | translate:{ time: (savedTimestamps[q.id] | date:'shortTime') } }}
               </span>
             </div>
-            
-            <textarea 
-              [(ngModel)]="answers[q.id]" 
-              rows="4" 
-              class="form-textarea w-100" 
-              placeholder="Type your detailed weekly response here..."
+
+            <textarea
+              [(ngModel)]="answers[q.id]"
+              rows="4"
+              class="form-textarea w-100"
+              [placeholder]="'taskAccountability.weekly.responsePlaceholder' | translate"
               [disabled]="isReadOnly"
             ></textarea>
           </div>
@@ -126,7 +126,7 @@
         <div class="form-actions d-flex justify-content-end gap-12 border-top p-t-16" *ngIf="!isReadOnly">
           <button mat-flat-button color="primary" class="submit-btn" (click)="submitAnswers()" [disabled]="isSaving">
             <i-tabler name="send" class="icon-16 m-r-8"></i-tabler>
-            {{ isSaving ? 'Submitting...' : 'Submit Responses' }}
+            {{ (isSaving ? 'taskAccountability.weekly.submitting' : 'taskAccountability.weekly.submitResponses') | translate }}
           </button>
         </div>
       </div>
@@ -139,7 +139,7 @@
             <h4 class="font-semibold text-dark f-s-14 m-b-0">{{ i + 1 }}. {{ q.questionText }}</h4>
             <span class="timestamp-badge f-s-11 text-muted d-flex align-items-center" *ngIf="savedTimestamps[q.id]">
               <i-tabler name="clock" class="icon-12 m-r-4"></i-tabler>
-              Submitted at: {{ savedTimestamps[q.id] | date:'medium' }}
+              {{ 'taskAccountability.weekly.submittedAt' | translate:{ time: (savedTimestamps[q.id] | date:'medium') } }}
             </span>
           </div>
 

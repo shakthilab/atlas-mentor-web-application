@@ -4,6 +4,7 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { EmployeeNode, DayNode, YearNode, MonthNode, BranchNode, RoleNode } from '../../interfaces/accountability.interface';
 import { Subscription } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-weekly-accountability',
@@ -48,7 +49,8 @@ export class WeeklyAccountabilityComponent implements OnInit, OnDestroy {
   constructor(
     private service: TaskAccountabilityService,
     private authService: AuthService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private translate: TranslateService
   ) {
     this.todayDate = this.getLocalDateString();
   }
@@ -234,7 +236,7 @@ export class WeeklyAccountabilityComponent implements OnInit, OnDestroy {
       next: (res) => {
         this.isSaving = false;
         this.isSuccess = true;
-        this.notificationService.showSuccessToast('Weekly check-in submitted successfully.', 'Success');
+        this.notificationService.showSuccessToast(this.translate.instant('taskAccountability.weekly.submitToast'), this.translate.instant('common.success'));
         
         // Update timestamps with returned answeredAt details
         const savedList = res.data || [];
@@ -278,7 +280,7 @@ export class WeeklyAccountabilityComponent implements OnInit, OnDestroy {
 
         responseData.forEach((item: any, idx: number) => {
           const key = item.questionId || idx;
-          this.answers[key] = item.answerText || 'No answer provided.';
+          this.answers[key] = item.answerText || this.translate.instant('taskAccountability.weekly.noAnswerProvided');
           this.savedTimestamps[key] = item.answeredAt;
         });
       },
@@ -286,11 +288,11 @@ export class WeeklyAccountabilityComponent implements OnInit, OnDestroy {
         this.isLoading = false;
         if (err.status === 403) {
           this.isForbidden = true;
-          this.errorMessage = '403 Forbidden: You do not have permission to view this employee\'s weekly accountability review.';
+          this.errorMessage = this.translate.instant('taskAccountability.weekly.error403');
           this.notificationService.showErrorPopup(
-            'You are not authorized to view this employee\'s weekly checkpoint responses. Access restricted.',
-            'Access Forbidden',
-            'Back to Workspace'
+            this.translate.instant('taskAccountability.weekly.accessForbiddenMessage'),
+            this.translate.instant('taskAccountability.weekly.accessForbiddenTitle'),
+            this.translate.instant('taskAccountability.weekly.backToWorkspace')
           ).subscribe(() => {
             this.service.resetSelections();
           });
@@ -320,17 +322,17 @@ export class WeeklyAccountabilityComponent implements OnInit, OnDestroy {
     
     // Map specific backend business-rule error strings
     if (statusMsg.includes("checkpointDate isn't today")) {
-      this.errorMessage = 'Business Rule Violation: This checkpoint cannot be edited because it is not today.';
+      this.errorMessage = this.translate.instant('taskAccountability.weekly.errorNotToday');
     } else if (statusMsg.includes('No work day exists yet')) {
-      this.errorMessage = 'No work day exists yet for the selected checkpoint date.';
+      this.errorMessage = this.translate.instant('taskAccountability.weekly.errorNoWorkDay');
     } else if (statusMsg.includes("isn't a checkpoint day for this employee")) {
-      this.errorMessage = 'The selected date is not a designated weekly checkpoint day for this employee.';
+      this.errorMessage = this.translate.instant('taskAccountability.weekly.errorNotCheckpointDay');
     } else if (statusMsg.includes('No ACTIVE template')) {
-      this.errorMessage = 'No active check-in template is currently assigned to this role.';
+      this.errorMessage = this.translate.instant('taskAccountability.weekly.errorNoActiveTemplate');
     } else if (statusMsg.includes("doesn't belong to that active template")) {
-      this.errorMessage = 'Validation Error: Some questions do not belong to the active template.';
+      this.errorMessage = this.translate.instant('taskAccountability.weekly.errorQuestionsMismatch');
     } else {
-      this.errorMessage = statusMsg || 'An error occurred while loading weekly accountability data.';
+      this.errorMessage = statusMsg || this.translate.instant('taskAccountability.weekly.errorGeneric');
     }
   }
 }

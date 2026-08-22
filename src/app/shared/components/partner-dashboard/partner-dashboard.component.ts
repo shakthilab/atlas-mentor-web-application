@@ -4,6 +4,7 @@ import * as echarts from 'echarts';
 import { PartnerService } from '../../../core/services/partner.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { TableColumn } from '../data-table/data-table.models';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-partner-dashboard',
@@ -18,11 +19,11 @@ export class PartnerDashboardComponent implements OnInit {
   public payoutDistLegends: any[] = [];
   public recentStudents: any[] = [];
   public recentStudentsColumns: TableColumn<any>[] = [
-    { key: 'name', header: 'Student', type: 'custom', exportValueFn: r => r.name, filter: { type: 'text' } },
-    { key: 'enrolled', header: 'Enrolled', type: 'custom', exportValueFn: r => r.enrolled, filter: { type: 'text' } },
-    { key: 'status', header: 'Status', type: 'custom', exportValueFn: r => r.status, filter: { type: 'text' } },
-    { key: 'amount', header: 'Amount', type: 'custom', exportValueFn: r => r.amount, filter: { type: 'text' } },
-    { key: 'progress', header: 'Progress', type: 'custom', align: 'right', maxWidth: '160px', exportValueFn: r => `${r.progress}%`, filter: { type: 'number-range', getValue: r => r.progress } },
+    { key: 'name', header: this.translate.instant('partnerDashboard.student'), type: 'custom', exportValueFn: r => r.name, filter: { type: 'text' } },
+    { key: 'enrolled', header: this.translate.instant('partnerDashboard.enrolled'), type: 'custom', exportValueFn: r => r.enrolled, filter: { type: 'text' } },
+    { key: 'status', header: this.translate.instant('taskAccountability.taskTable.colStatus'), type: 'custom', exportValueFn: r => r.status, filter: { type: 'text' } },
+    { key: 'amount', header: this.translate.instant('partnerDashboard.amount'), type: 'custom', exportValueFn: r => r.amount, filter: { type: 'text' } },
+    { key: 'progress', header: this.translate.instant('partnerDashboard.progress'), type: 'custom', align: 'right', maxWidth: '160px', exportValueFn: r => `${r.progress}%`, filter: { type: 'number-range', getValue: r => r.progress } },
   ];
   public quickStats: any[] = [];
   public greeting = '';
@@ -32,7 +33,8 @@ export class PartnerDashboardComponent implements OnInit {
 
   constructor(
     private partnerService: PartnerService,
-    private authService: AuthService
+    private authService: AuthService,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -42,13 +44,12 @@ export class PartnerDashboardComponent implements OnInit {
 
   private setGreeting(): void {
     const user = this.authService.currentUserValue;
-    if (user) {
-      this.userName = user.name || 'User';
-    }
+    const userName = user?.name || this.translate.instant('common.user');
     const hour = new Date().getHours();
-    if (hour < 12) this.greeting = 'Good morning';
-    else if (hour < 17) this.greeting = 'Good afternoon';
-    else this.greeting = 'Good evening';
+    const timeOfDay = hour < 12 ? this.translate.instant('common.timeOfDay.morning')
+      : hour < 17 ? this.translate.instant('common.timeOfDay.afternoon')
+      : this.translate.instant('common.timeOfDay.evening');
+    this.greeting = this.translate.instant('common.greetingWithName', { timeOfDay, name: userName });
   }
 
   public onPeriodChange(event: Event): void {
@@ -75,29 +76,29 @@ export class PartnerDashboardComponent implements OnInit {
     // 1. Summary Cards
     const s = data.summary;
     this.summaryCards = [
-      { 
-        title: 'STUDENTS REFERRED', 
-        value: ((s.studentsReferred.prefix || '') + s.studentsReferred.value + (s.studentsReferred.suffix || '')), 
-        trend: s.studentsReferred.trend, 
-        trendColor: s.studentsReferred.trendColor 
+      {
+        title: this.translate.instant('partnerDashboard.studentsReferred'),
+        value: ((s.studentsReferred.prefix || '') + s.studentsReferred.value + (s.studentsReferred.suffix || '')),
+        trend: s.studentsReferred.trend,
+        trendColor: s.studentsReferred.trendColor
       },
-      { 
-        title: 'ASSIGNED AMOUNT', 
-        value: ((s.assignedAmount.prefix || '') + s.assignedAmount.value + (s.assignedAmount.suffix || '')), 
-        trend: s.assignedAmount.trend, 
-        trendColor: s.assignedAmount.trendColor 
+      {
+        title: this.translate.instant('partnerDashboard.assignedAmount'),
+        value: ((s.assignedAmount.prefix || '') + s.assignedAmount.value + (s.assignedAmount.suffix || '')),
+        trend: s.assignedAmount.trend,
+        trendColor: s.assignedAmount.trendColor
       },
-      { 
-        title: 'PAID AMOUNT', 
-        value: ((s.paidAmount.prefix || '') + s.paidAmount.value + (s.paidAmount.suffix || '')), 
-        trend: s.paidAmount.trend, 
-        trendColor: s.paidAmount.trendColor 
+      {
+        title: this.translate.instant('partnerDashboard.paidAmount'),
+        value: ((s.paidAmount.prefix || '') + s.paidAmount.value + (s.paidAmount.suffix || '')),
+        trend: s.paidAmount.trend,
+        trendColor: s.paidAmount.trendColor
       },
-      { 
-        title: 'PENDING BALANCE', 
-        value: ((s.pendingBalance.prefix || '') + s.pendingBalance.value + (s.pendingBalance.suffix || '')), 
-        trend: s.pendingBalance.trend, 
-        trendColor: s.pendingBalance.trendColor 
+      {
+        title: this.translate.instant('partnerDashboard.pendingBalance'),
+        value: ((s.pendingBalance.prefix || '') + s.pendingBalance.value + (s.pendingBalance.suffix || '')),
+        trend: s.pendingBalance.trend,
+        trendColor: s.pendingBalance.trendColor
       }
     ];
 
@@ -105,7 +106,7 @@ export class PartnerDashboardComponent implements OnInit {
     this.earningsOverviewOptions = {
       tooltip: { trigger: 'axis' },
       legend: {
-        data: ['Assigned', 'Paid'],
+        data: [this.translate.instant('partnerDashboard.payoutAssigned'), this.translate.instant('partnerDashboard.payoutPaid')],
         top: 10,
         right: 10,
         icon: 'circle',
@@ -126,7 +127,7 @@ export class PartnerDashboardComponent implements OnInit {
       },
       series: [
         {
-          name: 'Assigned',
+          name: this.translate.instant('partnerDashboard.payoutAssigned'),
           type: 'line',
           smooth: true,
           data: data.earningsOverview.datasets.assigned,
@@ -140,7 +141,7 @@ export class PartnerDashboardComponent implements OnInit {
           }
         },
         {
-          name: 'Paid',
+          name: this.translate.instant('partnerDashboard.payoutPaid'),
           type: 'line',
           smooth: true,
           data: data.earningsOverview.datasets.paid,
@@ -161,16 +162,16 @@ export class PartnerDashboardComponent implements OnInit {
     const totalPayouts = data.payoutStatus.totalPayouts || 0;
 
     this.payoutDistLegends = [
-      { label: 'Assigned', value: pDist.assigned, color: '#0d6efd' },
-      { label: 'Paid', value: pDist.paid, color: '#20c997' },
-      { label: 'Pending', value: pDist.pending, color: '#6c757d' },
-      { label: 'Partial', value: pDist.partial, color: '#fd7e14' },
-      { label: 'Dispute', value: pDist.dispute, color: '#dc3545' }
+      { label: this.translate.instant('partnerDashboard.payoutAssigned'), value: pDist.assigned, color: '#0d6efd' },
+      { label: this.translate.instant('partnerDashboard.payoutPaid'), value: pDist.paid, color: '#20c997' },
+      { label: this.translate.instant('partnerDashboard.payoutPending'), value: pDist.pending, color: '#6c757d' },
+      { label: this.translate.instant('partnerDashboard.payoutPartial'), value: pDist.partial, color: '#fd7e14' },
+      { label: this.translate.instant('partnerDashboard.payoutDispute'), value: pDist.dispute, color: '#dc3545' }
     ];
 
     this.payoutStatusOptions = {
       title: {
-        text: `{val|${totalPayouts}}\n{lbl|TOTAL PAYOUTS}`,
+        text: `{val|${totalPayouts}}\n{lbl|${this.translate.instant('partnerDashboard.totalPayouts')}}`,
         left: 'center',
         top: 'center',
         textStyle: {
@@ -195,18 +196,18 @@ export class PartnerDashboardComponent implements OnInit {
       legend: { show: false },
       series: [
         {
-          name: 'Payout Status',
+          name: this.translate.instant('partnerDashboard.payoutStatus'),
           type: 'pie',
           radius: ['55%', '85%'],
           avoidLabelOverlap: false,
           label: { show: false },
           itemStyle: { borderWidth: 2, borderColor: 'transparent' },
           data: [
-            { value: pDist.assigned, name: 'Assigned', itemStyle: { color: '#0d6efd' } },
-            { value: pDist.paid, name: 'Paid', itemStyle: { color: '#20c997' } },
-            { value: pDist.pending, name: 'Pending', itemStyle: { color: '#6c757d' } },
-            { value: pDist.partial, name: 'Partial', itemStyle: { color: '#fd7e14' } },
-            { value: pDist.dispute, name: 'Dispute', itemStyle: { color: '#dc3545' } }
+            { value: pDist.assigned, name: this.translate.instant('partnerDashboard.payoutAssigned'), itemStyle: { color: '#0d6efd' } },
+            { value: pDist.paid, name: this.translate.instant('partnerDashboard.payoutPaid'), itemStyle: { color: '#20c997' } },
+            { value: pDist.pending, name: this.translate.instant('partnerDashboard.payoutPending'), itemStyle: { color: '#6c757d' } },
+            { value: pDist.partial, name: this.translate.instant('partnerDashboard.payoutPartial'), itemStyle: { color: '#fd7e14' } },
+            { value: pDist.dispute, name: this.translate.instant('partnerDashboard.payoutDispute'), itemStyle: { color: '#dc3545' } }
           ]
         }
       ]
@@ -225,10 +226,10 @@ export class PartnerDashboardComponent implements OnInit {
     // 5. Quick Stats
     const q = data.quickStats;
     this.quickStats = [
-      { icon: 'file-description', color: 'primary', label: 'ACTIVE RESOURCES', value: q.activeResources },
-      { icon: 'alert-circle', color: 'danger', label: 'OPEN DISPUTES', value: q.openDisputes },
-      { icon: 'calendar-event', color: 'success', label: 'PARTNER SINCE', value: q.partnerSince },
-      { icon: 'user', color: 'warning', label: 'ASSIGNED MANAGER', value: q.assignedManager || 'None' }
+      { icon: 'file-description', color: 'primary', label: this.translate.instant('partnerDashboard.activeResources'), value: q.activeResources },
+      { icon: 'alert-circle', color: 'danger', label: this.translate.instant('partnerDashboard.openDisputes'), value: q.openDisputes },
+      { icon: 'calendar-event', color: 'success', label: this.translate.instant('partnerDashboard.partnerSince'), value: q.partnerSince },
+      { icon: 'user', color: 'warning', label: this.translate.instant('partnerDashboard.assignedManager'), value: q.assignedManager || this.translate.instant('partnerDashboard.none') }
     ];
   }
 

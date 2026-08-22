@@ -5,7 +5,7 @@
   <div class="drawer-header">
     <div class="header-title">
       <i-tabler name="plus" class="title-icon"></i-tabler>
-      <h3>Create Ad-hoc Task</h3>
+      <h3>{{ 'taskAccountability.createTask.title' | translate }}</h3>
     </div>
     <button mat-icon-button class="close-btn" (click)="closeDrawer()">
       <i-tabler name="x" class="icon-18"></i-tabler>
@@ -14,35 +14,35 @@
 
   <!-- Drawer Scrollable Content -->
   <div class="drawer-content">
-    
+
     <!-- Section: General -->
     <div class="drawer-section">
-      <h4 class="section-title">General</h4>
+      <h4 class="section-title">{{ 'taskAccountability.createTask.general' | translate }}</h4>
       <div class="form-group">
-        <label class="required-label">Task Name</label>
-        <input type="text" [(ngModel)]="taskName" placeholder="e.g. Call lead backlog" class="form-input" />
+        <label class="required-label">{{ 'taskAccountability.createTask.taskName' | translate }}</label>
+        <input type="text" [(ngModel)]="taskName" [placeholder]="'taskAccountability.createTask.taskNamePlaceholder' | translate" class="form-input" />
       </div>
       <div class="form-group">
-        <label>Description</label>
-        <textarea [(ngModel)]="description" rows="3" placeholder="Provide detailed instructions..." class="form-textarea"></textarea>
+        <label>{{ 'taskAccountability.createTask.description' | translate }}</label>
+        <textarea [(ngModel)]="description" rows="3" [placeholder]="'taskAccountability.createTask.descriptionPlaceholder' | translate" class="form-textarea"></textarea>
       </div>
     </div>
 
     <!-- Section: Assignment -->
     <div class="drawer-section">
-      <h4 class="section-title">Assignment</h4>
+      <h4 class="section-title">{{ 'taskAccountability.createTask.assignment' | translate }}</h4>
       <div class="form-row">
         <div class="form-group flex-1">
-          <label>Assign to Role</label>
+          <label>{{ 'taskAccountability.createTask.assignToRole' | translate }}</label>
           <select [(ngModel)]="selectedRole" class="form-select">
-            <option value="">Select Role</option>
+            <option value="">{{ 'taskAccountability.createTask.selectRole' | translate }}</option>
             <option *ngFor="let role of availableRoles" [value]="role">{{ role }}</option>
           </select>
         </div>
         <div class="form-group flex-1">
-          <label>Assign to Employee</label>
+          <label>{{ 'taskAccountability.createTask.assignToEmployee' | translate }}</label>
           <select [(ngModel)]="selectedEmployeeId" class="form-select">
-            <option value="">Select Employee</option>
+            <option value="">{{ 'taskAccountability.createTask.selectEmployee' | translate }}</option>
             <option *ngFor="let emp of employees" [value]="emp.id">{{ emp.name }}</option>
           </select>
         </div>
@@ -51,9 +51,9 @@
 
     <!-- Section: Task Type -->
     <div class="drawer-section">
-      <h4 class="section-title">Task Type</h4>
+      <h4 class="section-title">{{ 'taskAccountability.createTask.taskType' | translate }}</h4>
       <div class="form-group">
-        <label>Verification Action Type</label>
+        <label>{{ 'taskAccountability.createTask.verificationActionType' | translate }}</label>
         <select [(ngModel)]="taskType" class="form-select">
           <option *ngFor="let t of taskTypes" [value]="t.value">{{ t.label }}</option>
         </select>
@@ -62,69 +62,69 @@
 
     <!-- Section: Validation -->
     <div class="drawer-section">
-      <h4 class="section-title">Validation & Constraints</h4>
+      <h4 class="section-title">{{ 'taskAccountability.createTask.validationConstraints' | translate }}</h4>
       <div class="form-group" *ngIf="taskType === 'NUMERIC'">
-        <label>Target Value</label>
-        <input type="text" [(ngModel)]="targetValue" placeholder="e.g. 150 calls" class="form-input" />
+        <label>{{ 'taskAccountability.createTask.targetValue' | translate }}</label>
+        <input type="text" [(ngModel)]="targetValue" [placeholder]="'taskAccountability.createTask.targetValuePlaceholder' | translate" class="form-input" />
       </div>
       <div class="form-group">
-        <label>Validation Rules</label>
+        <label>{{ 'taskAccountability.createTask.validationRules' | translate }}</label>
         <select [(ngModel)]="validationRules" class="form-select">
-          <option value="None">No custom validation</option>
-          <option value="Non-Zero">Must be greater than 0</option>
-          <option value="Positive">Must be positive number</option>
+          <option value="None">{{ 'taskAccountability.createTask.noCustomValidation' | translate }}</option>
+          <option value="Non-Zero">{{ 'taskAccountability.createTask.mustBeGreaterThanZero' | translate }}</option>
+          <option value="Positive">{{ 'taskAccountability.createTask.mustBePositive' | translate }}</option>
         </select>
       </div>
       <div class="checkbox-group m-t-12">
         <label class="checkbox-label">
           <input type="checkbox" [(ngModel)]="commentsEnabled" />
-          <span>Allow Comments & Feedback</span>
+          <span>{{ 'taskAccountability.createTask.allowComments' | translate }}</span>
         </label>
       </div>
       <div class="checkbox-group m-t-8">
         <label class="checkbox-label">
           <input type="checkbox" [(ngModel)]="attachmentsEnabled" />
-          <span>Require File Attachments</span>
+          <span>{{ 'taskAccountability.createTask.requireAttachments' | translate }}</span>
         </label>
       </div>
     </div>
 
     <!-- Section: Workflow -->
     <div class="drawer-section">
-      <h4 class="section-title">Workflow Settings</h4>
+      <h4 class="section-title">{{ 'taskAccountability.createTask.workflowSettings' | translate }}</h4>
       <div class="form-row">
         <div class="form-group flex-1">
-          <label>Priority</label>
+          <label>{{ 'taskAccountability.createTask.priority' | translate }}</label>
           <select [(ngModel)]="priority" class="form-select">
-            <option *ngFor="let p of priorities" [value]="p">{{ p }}</option>
+            <option *ngFor="let p of priorities" [value]="p">{{ ('common.priority.' + p.toLowerCase()) | translate }}</option>
           </select>
         </div>
         <div class="form-group flex-1">
-          <label>Due Date & Time</label>
+          <label>{{ 'taskAccountability.createTask.dueDateTime' | translate }}</label>
           <input type="datetime-local" [(ngModel)]="dueDate" class="form-input" />
         </div>
       </div>
       <div class="checkbox-group m-t-12">
         <label class="checkbox-label">
           <input type="checkbox" [(ngModel)]="recurring" />
-          <span>Is Recurring Task</span>
+          <span>{{ 'taskAccountability.createTask.isRecurring' | translate }}</span>
         </label>
       </div>
       <div class="checkbox-group m-t-8">
         <label class="checkbox-label">
           <input type="checkbox" [(ngModel)]="approvalRequired" />
-          <span>Require Manager Approval</span>
+          <span>{{ 'taskAccountability.createTask.requireApproval' | translate }}</span>
         </label>
       </div>
     </div>
 
     <!-- Section: Attachments -->
     <div class="drawer-section">
-      <h4 class="section-title">Attachments</h4>
+      <h4 class="section-title">{{ 'taskAccountability.createTask.attachments' | translate }}</h4>
       <div class="upload-area">
         <i-tabler name="cloud-upload" class="upload-icon"></i-tabler>
-        <p class="upload-text">Drag & drop files or click to upload</p>
-        <span class="upload-subtext">Supports PNG, PDF, JPG up to 10MB</span>
+        <p class="upload-text">{{ 'taskAccountability.createTask.dragDrop' | translate }}</p>
+        <span class="upload-subtext">{{ 'taskAccountability.createTask.uploadSupport' | translate }}</span>
       </div>
     </div>
 
@@ -132,10 +132,10 @@
 
   <!-- Drawer Footer Actions -->
   <div class="drawer-footer">
-    <button mat-button class="cancel-btn" (click)="closeDrawer()">Cancel</button>
+    <button mat-button class="cancel-btn" (click)="closeDrawer()">{{ 'common.cancel' | translate }}</button>
     <button mat-flat-button color="primary" class="save-btn" (click)="saveTask()" [disabled]="!taskName.trim()">
       <i-tabler name="device-floppy" class="icon-16 m-r-8"></i-tabler>
-      Save & Assign Task
+      {{ 'taskAccountability.createTask.saveAndAssign' | translate }}
     </button>
   </div>
 </div>

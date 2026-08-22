@@ -6,6 +6,7 @@ import { MaterialModule } from './material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import * as TablerIcons from 'angular-tabler-icons/icons';
 import { NgxEchartsModule } from 'ngx-echarts';
+import { TranslateModule } from '@ngx-translate/core';
 import { AdminDashboardComponent, AnimatedNumberDirective } from '../features/admin/dashboard/admin-dashboard.component';
 import { PartnerDashboardComponent } from './components/partner-dashboard/partner-dashboard.component';
 import { ComingSoonComponent } from './components/coming-soon/coming-soon.component';
@@ -56,6 +57,7 @@ import { TableRowActionsDirective } from './components/data-table/table-row-acti
     ReactiveFormsModule,
     MaterialModule,
     TablerIconsModule.pick(TablerIcons),
+    TranslateModule,
     NgxEchartsModule.forRoot({
       echarts: () => import('echarts')
     }),
@@ -71,6 +73,7 @@ import { TableRowActionsDirective } from './components/data-table/table-row-acti
     ReactiveFormsModule,
     MaterialModule,
     TablerIconsModule,
+    TranslateModule,
     ComingSoonComponent,
     SettingsComponent,
     LeadsComponent,

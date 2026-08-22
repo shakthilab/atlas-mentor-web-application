@@ -1,11 +1,11 @@
 <div class="tree-container">
   <div class="tree-header">
     <div class="header-left">
-      <h3>Employee Tree</h3>
-      <span class="subtext">3 branches · 42 people</span>
+      <h3>{{ 'taskAccountability.employeeTree.title' | translate }}</h3>
+      <span class="subtext">{{ 'taskAccountability.employeeTree.subtext' | translate:{ branches: 3, people: 42 } }}</span>
     </div>
     <button class="expand-all-btn" (click)="expandAll()">
-      {{ isAllExpanded ? 'Collapse all' : 'Expand all' }}
+      {{ (isAllExpanded ? 'taskAccountability.employeeTree.collapseAll' : 'taskAccountability.employeeTree.expandAll') | translate }}
     </button>
   </div>
 
@@ -13,15 +13,15 @@
   <div class="tree-search-wrapper">
     <div class="tree-search-container">
       <i-tabler name="search" class="search-icon"></i-tabler>
-      <input type="text" [(ngModel)]="searchQuery" (input)="onSearchChange()" placeholder="Search employees..." class="tree-search-input" />
+      <input type="text" [(ngModel)]="searchQuery" (input)="onSearchChange()" [placeholder]="'taskAccountability.employeeTree.searchPlaceholder' | translate" class="tree-search-input" />
     </div>
   </div>
 
   <div class="tree-body">
     <div class="tree-empty-state" *ngIf="branches.length === 0">
       <i-tabler name="folder-off" class="empty-icon"></i-tabler>
-      <span class="empty-title">No data found</span>
-      <span class="empty-sub">No employee hierarchy available.</span>
+      <span class="empty-title">{{ 'taskAccountability.employeeTree.noDataFound' | translate }}</span>
+      <span class="empty-sub">{{ 'taskAccountability.employeeTree.noHierarchy' | translate }}</span>
     </div>
 
     <!-- Branch Node -->
@@ -72,7 +72,7 @@
                       <div class="node-row" (click)="toggleExpand(month, $event, employee, year)">
                         <i-tabler [name]="month.expanded ? 'chevron-down' : 'chevron-right'" class="caret-icon"></i-tabler>
                         <span class="node-name">{{ month.name }}</span>
-                        <span class="live-badge" *ngIf="month.isLive">live</span>
+                        <span class="live-badge" *ngIf="month.isLive">{{ 'taskAccountability.employeeTree.live' | translate }}</span>
                       </div>
 
                       <!-- Days Nested -->

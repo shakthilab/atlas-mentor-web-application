@@ -6,6 +6,7 @@ import { AuthService } from '../../../../core/services/auth.service';
 
 import { MatDialog } from '@angular/material/dialog';
 import { SendBackReasonDialogComponent } from '../send-back-reason-dialog/send-back-reason-dialog.component';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-task-details-drawer',
@@ -48,7 +49,8 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
     private service: TaskAccountabilityService,
     private renderer: Renderer2,
     private authService: AuthService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private translate: TranslateService
   ) {}
 
   loadStatuses(): void {
@@ -77,16 +79,26 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
   }
 
   formatStatusLabel(status?: string): string {
-    if (!status) return 'To Do';
+    if (!status) return this.translate.instant('common.status.todo');
     const s = status.toUpperCase().trim();
-    if (s === 'TODO' || s === 'TO DO' || s === 'NOT_STARTED') return 'To Do';
-    if (s === 'IN_PROGRESS' || s === 'IN PROGRESS') return 'In Progress';
-    if (s === 'DONE' || s === 'COMPLETED') return 'Done';
-    if (s === 'VERIFIED' || s === 'APPROVED') return 'Verified';
-    if (s === 'CLOSED') return 'Closed';
-    if (s === 'REFLECT' || s === 'SEND_BACK' || s === 'REJECTED') return 'Reflect';
-    if (s === 'OVERDUE') return 'Overdue';
+    if (s === 'TODO' || s === 'TO DO' || s === 'NOT_STARTED') return this.translate.instant('common.status.todo');
+    if (s === 'IN_PROGRESS' || s === 'IN PROGRESS') return this.translate.instant('common.status.inProgress');
+    if (s === 'DONE' || s === 'COMPLETED') return this.translate.instant('common.status.done');
+    if (s === 'VERIFIED' || s === 'APPROVED') return this.translate.instant('common.status.verified');
+    if (s === 'CLOSED') return this.translate.instant('common.status.closed');
+    if (s === 'REFLECT' || s === 'SEND_BACK' || s === 'REJECTED') return this.translate.instant('common.status.reflect');
+    if (s === 'OVERDUE') return this.translate.instant('common.status.overdue');
     return status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  getPriorityLabel(priority?: string): string {
+    if (!priority) return this.translate.instant('common.priority.medium');
+    const p = priority.toUpperCase().trim();
+    if (p === 'URGENT') return this.translate.instant('common.priority.urgent');
+    if (p === 'HIGH') return this.translate.instant('common.priority.high');
+    if (p === 'MEDIUM') return this.translate.instant('common.priority.medium');
+    if (p === 'LOW') return this.translate.instant('common.priority.low');
+    return priority;
   }
 
   get canCurrentUserAct(): boolean {
@@ -134,20 +146,20 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
 
   getReviewStageLabel(): string {
     const user = this.authService.currentUserValue;
-    if (!user || !user.role) return 'REVIEW';
+    if (!user || !user.role) return this.translate.instant('taskAccountability.taskDetails.review');
 
     const role = user.role.toUpperCase().trim();
     switch (role) {
       case 'ADMIN':
-        return 'ADMIN REVIEW';
+        return this.translate.instant('taskAccountability.taskDetails.adminReview');
       case 'MANAGER':
-        return 'MANAGER REVIEW';
+        return this.translate.instant('taskAccountability.taskDetails.managerReview');
       case 'BRANCH_PARTNER':
-        return 'BRANCH PARTNER REVIEW';
+        return this.translate.instant('taskAccountability.taskDetails.branchPartnerReview');
       case 'ADMINISTRATIVE_ASSISTANT':
-        return 'ADMINISTRATIVE ASSISTANT REVIEW';
+        return this.translate.instant('taskAccountability.taskDetails.adminAssistantReview');
       default:
-        return 'REVIEW';
+        return this.translate.instant('taskAccountability.taskDetails.review');
     }
   }
 
@@ -753,19 +765,20 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
 
   /** Origin label for a carried-over task, matching the task table's badge - e.g. "Overdue since Aug 16". */
   getCarriedOverBadgeLabel(task: TaskItem | null): string {
-    if (!task) return 'Overdue';
+    if (!task) return this.translate.instant('common.status.overdue');
     const raw = task.dueDate || task.originalWorkDate;
-    if (!raw) return 'Overdue';
+    if (!raw) return this.translate.instant('common.status.overdue');
     const d = new Date(raw + 'T00:00:00');
-    if (isNaN(d.getTime())) return 'Overdue';
-    return `Overdue since ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+    if (isNaN(d.getTime())) return this.translate.instant('common.status.overdue');
+    const label = d.toLocaleDateString(this.translate.currentLang || 'en', { month: 'short', day: 'numeric' });
+    return this.translate.instant('taskAccountability.taskTable.overdueSince', { date: label });
   }
 
   formatShortDate(dateStr?: string | null): string {
     if (!dateStr) return '';
     const d = new Date(dateStr.length <= 10 ? `${dateStr}T00:00:00` : dateStr);
     if (isNaN(d.getTime())) return '';
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return d.toLocaleDateString(this.translate.currentLang || 'en', { month: 'short', day: 'numeric' });
   }
 
   getDaysOverdue(dueDateStr?: string | null): number {
@@ -786,7 +799,7 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
     if (!task || !task.dueDate) return '';
     const days = this.getDaysOverdue(task.dueDate);
     if (days <= 0) return '';
-    return `${days}d overdue`;
+    return this.translate.instant('taskAccountability.taskDetails.daysOverdueShort', { days });
   }
 
   getAvatarColorClass(name?: string): string {
@@ -813,16 +826,16 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
     if (!task.completedAt) {
       const daysOverdue = this.getDaysOverdue(task.dueDate);
       if (daysOverdue > 0) {
-        return `Due: ${dueLabel} (${daysOverdue} day${daysOverdue === 1 ? '' : 's'} overdue)`;
+        return this.translate.instant('taskAccountability.taskDetails.dueLineOverdue', { date: dueLabel, days: daysOverdue });
       }
     }
-    return `Due: ${dueLabel}`;
+    return this.translate.instant('taskAccountability.taskDetails.dueLine', { date: dueLabel });
   }
 
   /** "Completed: Aug 18" on its own row - only rendered once completedAt is actually set. */
   getCompletedLineText(task: TaskItem | null): string {
     if (!task || !task.completedAt) return '';
-    return `Completed: ${this.formatShortDate(task.completedAt)}`;
+    return this.translate.instant('taskAccountability.taskDetails.completedLine', { date: this.formatShortDate(task.completedAt) });
   }
 
   get isCarriedOverTask(): boolean {
@@ -830,11 +843,11 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
   }
 
   getFormattedDisplayId(task: TaskItem | null): string {
-    if (!task) return 'Task';
+    if (!task) return this.translate.instant('taskAccountability.taskTable.taskWord');
     const id = task.displayId || task.id;
-    if (!id) return 'Task';
+    if (!id) return this.translate.instant('taskAccountability.taskTable.taskWord');
     if (id.toLowerCase().startsWith('task -')) return id;
-    if (id.toLowerCase().startsWith('task-')) return `Task - ${id.substring(5)}`;
-    return `Task - ${id}`;
+    const rawId = id.toLowerCase().startsWith('task-') ? id.substring(5) : id;
+    return this.translate.instant('taskAccountability.taskTable.taskIdPrefix', { id: rawId });
   }
 }

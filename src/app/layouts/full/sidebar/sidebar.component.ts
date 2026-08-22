@@ -5,7 +5,7 @@ import { NavService } from '../../../core/services/nav.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { UserRole } from '../../../shared/models/user.model';
 import { ThemeService } from '../../../core/services/theme.service';
-import { TranslateService } from '@ngx-translate/core';
+import { LanguageService } from '../../../core/services/language.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -16,24 +16,13 @@ export class SidebarComponent implements OnInit {
   filteredNavItems: NavItem[] = [];
   normalNavItems: NavItem[] = [];
   settingsItem: NavItem | null = null;
-  currentLang = 'en';
-
-  languages = [
-    { code: 'en', name: 'English' },
-    { code: 'uz', name: "O'zbek" },
-    { code: 'fr', name: 'Français' },
-    { code: 'de', name: 'Deutsch' },
-  ];
 
   constructor(
     public navService: NavService,
     private authService: AuthService,
     public themeService: ThemeService,
-    private translate: TranslateService
-  ) {
-    const saved = localStorage.getItem('educrm-lang') || 'en';
-    this.currentLang = saved;
-  }
+    private languageService: LanguageService
+  ) {}
 
   ngOnInit(): void {
     this.filteredNavItems = this.getNavItemsForCurrentUser();
@@ -50,14 +39,11 @@ export class SidebarComponent implements OnInit {
   }
 
   changeLanguage(code: string): void {
-    this.currentLang = code;
-    this.translate.use(code);
-    localStorage.setItem('educrm-lang', code);
+    this.languageService.changeLanguage(code);
   }
 
   get currentLangName(): string {
-    const lang = this.languages.find(l => l.code === this.currentLang);
-    return lang ? lang.name : 'English';
+    return this.languageService.currentLangName;
   }
 
   private getNavItemsForCurrentUser(): NavItem[] {

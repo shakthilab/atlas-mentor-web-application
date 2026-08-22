@@ -2,12 +2,12 @@
   <!-- Top Bar -->
   <div class="templates-header m-b-24">
     <div>
-      <h2 class="section-title">Role Templates</h2>
-      <p class="section-subtitle">Define daily operational responsibilities and KPIs for each employee role.</p>
+      <h2 class="section-title">{{ 'taskAccountability.templates.title' | translate }}</h2>
+      <p class="section-subtitle">{{ 'taskAccountability.templates.subtitle' | translate }}</p>
     </div>
     <button mat-flat-button color="primary" class="premium-btn" (click)="openNewTemplateModal()">
       <i-tabler name="plus" class="icon-18 m-r-8"></i-tabler>
-      New Template
+      {{ 'taskAccountability.templates.newTemplate' | translate }}
     </button>
   </div>
 
@@ -19,17 +19,16 @@
         <div class="card-top-row">
           <span class="status-indicator-badge"
             [ngClass]="(temp.status || (temp.active ? 'ACTIVE' : 'DRAFT')).toLowerCase()">
-            {{ (temp.status || (temp.active ? 'ACTIVE' : 'DRAFT')) | uppercase }}
+            {{ getTemplateStatusLabel(temp) }}
           </span>
           <span class="created-date-label">
-            Created {{ temp.createdAt | date:'MMM d' }}
+            {{ 'taskAccountability.templates.created' | translate }} {{ temp.createdAt | date:'MMM d' }}
           </span>
         </div>
 
         <!-- Middle: Title and Description -->
         <h3 class="template-name">{{ temp.name }}</h3>
-        <p class="template-desc">{{ temp.description || 'Standard operational procedures and daily responsibilities
-          assigned to this role.' }}</p>
+        <p class="template-desc">{{ temp.description || ('taskAccountability.templates.defaultDescription' | translate) }}</p>
 
         <!-- Divider line -->
         <hr class="card-divider" />
@@ -37,8 +36,8 @@
         <!-- Bottom Bar: Metadata Badges and Actions -->
         <div class="card-bottom-row">
           <div class="bottom-badges-container">
-            <span class="meta-pill-badge">Branch: {{ getBranchDisplayName(temp) }}</span>
-            <span class="meta-pill-badge">{{ getTemplateTasksCount(temp) }} Tasks</span>
+            <span class="meta-pill-badge">{{ 'taskAccountability.templates.branchLabel' | translate }}: {{ getBranchDisplayName(temp) }}</span>
+            <span class="meta-pill-badge">{{ 'taskAccountability.templates.tasksCount' | translate:{ count: getTemplateTasksCount(temp) } }}</span>
           </div>
 
           <div class="card-actions-wrapper" (click)="$event.stopPropagation()">
@@ -51,26 +50,26 @@
                 <i-tabler name="send" class="icon-16 m-r-8 text-primary"
                   [class.text-muted]="temp.status === 'ACTIVE'"></i-tabler>
                 <span class="text-primary font-semibold" [class.text-muted]="temp.status === 'ACTIVE'">
-                  {{ temp.status === 'ACTIVE' ? 'Published' : 'Publish Template' }}
+                  {{ (temp.status === 'ACTIVE' ? 'taskAccountability.templates.published' : 'taskAccountability.templates.publishTemplate') | translate }}
                 </span>
               </button>
               <mat-divider></mat-divider>
               <button mat-menu-item (click)="openEditTemplateModal(temp)">
                 <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
-                <span>Edit Template</span>
+                <span>{{ 'taskAccountability.templates.editTemplate' | translate }}</span>
               </button>
               <button mat-menu-item (click)="duplicateTemplate(temp)">
                 <i-tabler name="copy" class="icon-16 m-r-8"></i-tabler>
-                <span>Duplicate</span>
+                <span>{{ 'common.duplicate' | translate }}</span>
               </button>
               <button mat-menu-item (click)="toggleActive(temp)">
                 <i-tabler name="power" class="icon-16 m-r-8"></i-tabler>
-                <span>{{ temp.active ? 'Deactivate' : 'Activate' }}</span>
+                <span>{{ (temp.active ? 'common.deactivate' : 'common.activate') | translate }}</span>
               </button>
               <mat-divider></mat-divider>
               <button mat-menu-item class="text-danger" (click)="deleteTemplate(temp.id)">
                 <i-tabler name="trash" class="icon-16 m-r-8"></i-tabler>
-                <span>Delete</span>
+                <span>{{ 'common.delete' | translate }}</span>
               </button>
             </mat-menu>
           </div>
@@ -83,11 +82,11 @@
       <div class="empty-icon-wrapper">
         <i-tabler name="layout-grid-add" class="empty-icon"></i-tabler>
       </div>
-      <h3 class="empty-title">No Role Templates Found</h3>
-      <p class="empty-subtitle">Get started by creating your first daily operational role template.</p>
+      <h3 class="empty-title">{{ 'taskAccountability.templates.noTemplatesFound' | translate }}</h3>
+      <p class="empty-subtitle">{{ 'taskAccountability.templates.getStarted' | translate }}</p>
       <button mat-flat-button color="primary" class="create-first-btn" (click)="openNewTemplateModal()">
         <i-tabler name="plus" class="icon-18 m-r-8"></i-tabler>
-        Create Role Template
+        {{ 'taskAccountability.templates.createRoleTemplate' | translate }}
       </button>
     </div>
   </ng-container>
@@ -96,25 +95,24 @@
   <div class="modal-overlay" *ngIf="showPublishModal && publishingTemplate">
     <div class="publish-card">
       <div class="modal-header">
-        <h3>Publish to Employee Workspace</h3>
+        <h3>{{ 'taskAccountability.templates.publishToWorkspace' | translate }}</h3>
         <button mat-icon-button (click)="closePublishModal()">
           <i-tabler name="x" class="icon-18"></i-tabler>
         </button>
       </div>
       <div class="modal-body">
         <p class="publish-desc">
-          Publishing template <strong>"{{ publishingTemplate.name }}"</strong> will construct the operational months,
-          daily checklists, and weekly review cards directly into the chosen employee's workspace.
+          {{ 'taskAccountability.templates.publishDesc' | translate:{ name: publishingTemplate.name } }}
         </p>
         <div class="form-group m-b-16">
-          <label class="required-label">Select Employee</label>
+          <label class="required-label">{{ 'taskAccountability.templates.selectEmployee' | translate }}</label>
           <select [(ngModel)]="selectedEmployeeId" class="form-select">
-            <option value="">Choose employee...</option>
+            <option value="">{{ 'taskAccountability.templates.chooseEmployee' | translate }}</option>
             <option *ngFor="let emp of employeesList" [value]="emp.id">{{ emp.name }} ({{ emp.role }})</option>
           </select>
         </div>
         <div class="form-group">
-          <label>Target Workspace Year</label>
+          <label>{{ 'taskAccountability.templates.targetWorkspaceYear' | translate }}</label>
           <select [(ngModel)]="selectedYear" class="form-select">
             <option [value]="2026">2026</option>
             <option [value]="2027">2027</option>
@@ -122,11 +120,11 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button mat-button class="cancel-btn" (click)="closePublishModal()">Cancel</button>
+        <button mat-button class="cancel-btn" (click)="closePublishModal()">{{ 'common.cancel' | translate }}</button>
         <button mat-flat-button color="primary" class="save-btn" (click)="publishTemplate()"
           [disabled]="!selectedEmployeeId">
           <i-tabler name="send" class="icon-16 m-r-8"></i-tabler>
-          Publish Now
+          {{ 'taskAccountability.templates.publishNow' | translate }}
         </button>
       </div>
     </div>
@@ -146,8 +144,8 @@
         <!-- Header -->
         <div class="modal-header">
           <div class="header-left">
-            <h3>{{ editingTemplate.id ? 'Edit Role Template' : 'Create Role Template' }}</h3>
-            <p class="subtitle">Define the daily accountability plan applied to everyone in this role.</p>
+            <h3>{{ (editingTemplate.id ? 'taskAccountability.templates.editRoleTemplate' : 'taskAccountability.templates.createRoleTemplate') | translate }}</h3>
+            <p class="subtitle">{{ 'taskAccountability.templates.modalSubtitle' | translate }}</p>
           </div>
           <div class="header-right">
             <button mat-icon-button (click)="closeModal()" class="close-btn">
@@ -161,28 +159,27 @@
           <!-- Parameters configuration card -->
           <div class="params-card">
             <div class="param-group">
-              <label>Template name</label>
-              <input type="text" [(ngModel)]="editingTemplate.name" placeholder="e.g. Senior Counsellor — 30 Day"
+              <label>{{ 'taskAccountability.templates.templateName' | translate }}</label>
+              <input type="text" [(ngModel)]="editingTemplate.name" [placeholder]="'taskAccountability.templates.templateNamePlaceholder' | translate"
                 class="form-input" />
             </div>
             <div class="param-group">
-              <label>Target employee role</label>
-              <mat-select [(ngModel)]="editingTemplate.role" placeholder="Select Role"
+              <label>{{ 'taskAccountability.templates.targetEmployeeRole' | translate }}</label>
+              <mat-select [(ngModel)]="editingTemplate.role" [placeholder]="'taskAccountability.createTask.selectRole' | translate"
                 class="form-select" panelClass="custom-select-panel">
                 <mat-option *ngFor="let opt of roleOptions" [value]="opt.value">{{ opt.label }}</mat-option>
               </mat-select>
             </div>
             <div class="param-group">
-              <label>Branch</label>
-              <mat-select [(ngModel)]="editingTemplate.branch" placeholder="Select Branch"
+              <label>{{ 'taskAccountability.templates.branch' | translate }}</label>
+              <mat-select [(ngModel)]="editingTemplate.branch" [placeholder]="'taskAccountability.templates.selectBranch' | translate"
                 class="form-select" panelClass="custom-select-panel">
                 <mat-option *ngFor="let opt of branchOptions" [value]="opt.value">{{ opt.label }}</mat-option>
               </mat-select>
             </div>
 
             <div class="params-summary">
-              {{ getConfiguredDaysCount() }} of {{ getDaysCount() }} days configured · {{ getTotalTasksCount() }} tasks
-              total
+              {{ 'taskAccountability.templates.daysConfiguredSummary' | translate:{ configured: getConfiguredDaysCount(), total: getDaysCount(), tasks: getTotalTasksCount() } }}
             </div>
           </div>
 
@@ -190,8 +187,8 @@
           <div class="template-days-section">
             <div class="section-header">
               <div class="header-title-container">
-                <h4>Template days</h4>
-                <p class="description">Click a day to edit its tasks. Shift-click to multi-select for bulk duplication.
+                <h4>{{ 'taskAccountability.templates.templateDays' | translate }}</h4>
+                <p class="description">{{ 'taskAccountability.templates.templateDaysDesc' | translate }}
                 </p>
               </div>
               <div class="header-actions">
@@ -208,7 +205,7 @@
                 <button mat-button class="select-btn" [class.active]="multiSelectMode"
                   (click)="toggleMultiSelectMode()">
                   <i-tabler name="pointer" class="icon-16 m-r-4"></i-tabler>
-                  Select
+                  {{ 'common.select' | translate }}
                 </button>
 
 
@@ -216,18 +213,18 @@
                 <!-- Bulk Actions -->
                 <button mat-flat-button color="primary" class="bulk-duplicate-btn"
                   *ngIf="selectedDaysForDuplication.size > 0" [matMenuTriggerFor]="duplicateToMenu">
-                  Duplicate ({{ selectedDaysForDuplication.size }})
+                  {{ 'taskAccountability.templates.duplicateCount' | translate:{ count: selectedDaysForDuplication.size } }}
                 </button>
                 <mat-menu #duplicateToMenu="matMenu" xPosition="before">
                   <button mat-menu-item *ngFor="let targetDay of getDaysList()"
                     (click)="duplicateSelectedDaysTo(targetDay)">
-                    Duplicate tasks to {{ targetDay.name }}
+                    {{ 'taskAccountability.templates.duplicateTasksTo' | translate:{ day: targetDay.name } }}
                   </button>
                 </mat-menu>
 
                 <button mat-button color="warn" class="bulk-delete-btn" *ngIf="selectedDaysForDuplication.size > 0"
                   (click)="deleteSelectedDays()">
-                  Delete ({{ selectedDaysForDuplication.size }})
+                  {{ 'common.deleteCount' | translate:{ count: selectedDaysForDuplication.size } }}
                 </button>
               </div>
             </div>
@@ -235,13 +232,13 @@
             <!-- Calendar Grid Wrapper -->
             <div class="calendar-grid-wrapper">
               <div class="calendar-weekdays">
-                <div>Sun</div>
-                <div>Mon</div>
-                <div>Tue</div>
-                <div>Wed</div>
-                <div>Thu</div>
-                <div>Fri</div>
-                <div>Sat</div>
+                <div>{{ 'common.weekdaysShort.sun' | translate }}</div>
+                <div>{{ 'common.weekdaysShort.mon' | translate }}</div>
+                <div>{{ 'common.weekdaysShort.tue' | translate }}</div>
+                <div>{{ 'common.weekdaysShort.wed' | translate }}</div>
+                <div>{{ 'common.weekdaysShort.thu' | translate }}</div>
+                <div>{{ 'common.weekdaysShort.fri' | translate }}</div>
+                <div>{{ 'common.weekdaysShort.sat' | translate }}</div>
               </div>
               <div class="days-grid">
                 <!-- Empty offset cards -->
@@ -257,20 +254,20 @@
                   <div class="day-card-header">
                     <span class="month-label">{{ getMonthAbbreviation() }}</span>
                     <i-tabler name="flag" class="icon-12 flag-icon" *ngIf="isSaturday(idx)"
-                      title="Weekly Checkpoint"></i-tabler>
+                      [title]="'taskAccountability.templates.weeklyCheckpoint' | translate"></i-tabler>
                   </div>
                   <div class="day-card-body">
                     <span class="day-number">{{ idx + 1 }}</span>
                   </div>
                   <div class="day-footer">
                     <span class="tasks-count-text" *ngIf="day.tasks.length > 0">
-                      {{ day.tasks.length }} {{ (day.tasks.length === 1) ? 'Task' : 'Tasks' }}
+                      {{ (day.tasks.length === 1 ? 'taskAccountability.templates.taskCountSingular' : 'taskAccountability.templates.taskCountPlural') | translate:{ count: day.tasks.length } }}
                     </span>
                     <span class="tasks-count-text text-muted" *ngIf="day.tasks.length === 0">
-                      No tasks
+                      {{ 'taskAccountability.templates.noTasks' | translate }}
                     </span>
                     <button class="delete-day-hover-btn" *ngIf="!isPastDay(idx)"
-                      (click)="removeTemplateDay(idx, $event)" title="Delete day">
+                      (click)="removeTemplateDay(idx, $event)" [title]="'taskAccountability.templates.deleteDay' | translate">
                       <i-tabler name="trash" class="icon-12"></i-tabler>
                     </button>
                   </div>
@@ -288,14 +285,14 @@
         <div class="modal-footer">
           <div class="footer-left">
             <span class="validation-message" *ngIf="!canPublish(editingTemplate)">
-              Add a name, select a target role, and configure at least one task to publish
+              {{ 'taskAccountability.templates.publishValidationMsg' | translate }}
             </span>
           </div>
           <div class="footer-right">
-            <button mat-button class="cancel-btn" (click)="closeModal()">Cancel</button>
+            <button mat-button class="cancel-btn" (click)="closeModal()">{{ 'common.cancel' | translate }}</button>
             <button mat-flat-button color="primary" class="publish-btn" (click)="publishTemplateFromModal()"
               [disabled]="!canPublish(editingTemplate)">
-              Publish
+              {{ 'taskAccountability.templates.publish' | translate }}
             </button>
           </div>
         </div>
@@ -308,8 +305,8 @@
           <div class="sidebar-header-left">
             <h3>{{ day.name }}</h3>
             <p class="subtitle">
-              {{ day.tasks?.length || 0 }} {{ (day.tasks?.length === 1) ? 'task' : 'tasks' }}
-              <span class="past-day-badge" *ngIf="isPastDay(selectedDayIndex)"> &bull; Past Day (Read-only)</span>
+              {{ (day.tasks?.length === 1 ? 'taskAccountability.templates.taskCountSingularLower' : 'taskAccountability.templates.taskCountPluralLower') | translate:{ count: day.tasks?.length || 0 } }}
+              <span class="past-day-badge" *ngIf="isPastDay(selectedDayIndex)"> &bull; {{ 'taskAccountability.templates.pastDayReadOnly' | translate }}</span>
             </p>
           </div>
           <button mat-icon-button (click)="closeSidebar()" class="close-btn">
@@ -342,13 +339,13 @@
               <div class="task-row-actions" *ngIf="!isPastDay(selectedDayIndex)" (click)="$event.stopPropagation()">
                 <button class="task-action-btn copy-btn" [disabled]="isTemplateUnsaved()"
                   [class.disabled]="isTemplateUnsaved()"
-                  [matTooltip]="isTemplateUnsaved() ? 'Save template first to duplicate tasks' : 'Duplicate task'"
+                  [matTooltip]="isTemplateUnsaved() ? ('taskAccountability.templates.saveFirstTooltip' | translate) : ('taskAccountability.templates.duplicateTaskTooltip' | translate)"
                   matTooltipPosition="above" (click)="duplicateTaskToSameDay(task, day)">
                   <i-tabler name="copy" class="icon-14"></i-tabler>
                 </button>
 
                 <button class="task-action-btn delete-btn" (click)="removeTaskFromSelectedDay(tIdx)"
-                  title="Delete task">
+                  [title]="'taskAccountability.templates.deleteTask' | translate">
                   <i-tabler name="trash" class="icon-14"></i-tabler>
                 </button>
               </div>
@@ -357,12 +354,12 @@
 
           <ng-template #noTasksState>
             <div class="empty-sidebar-tasks" *ngIf="!showAddForm">
-              <p>No tasks for this day yet.</p>
+              <p>{{ 'taskAccountability.templates.noTasksForDay' | translate }}</p>
               <button class="add-task-outline-btn" *ngIf="!isPastDay(selectedDayIndex)" (click)="toggleAddForm(true)">
-                <i-tabler name="plus" class="icon-14 m-r-4"></i-tabler> Add task
+                <i-tabler name="plus" class="icon-14 m-r-4"></i-tabler> {{ 'taskAccountability.templates.addTask' | translate }}
               </button>
               <p class="past-notice-text" *ngIf="isPastDay(selectedDayIndex)">
-                Can't add tasks to past days.
+                {{ 'taskAccountability.templates.cantAddPastDay' | translate }}
               </p>
             </div>
           </ng-template>
@@ -371,28 +368,28 @@
           <div class="add-task-form-card"
             *ngIf="!isPastDay(selectedDayIndex) && (showAddForm || (day.tasks && day.tasks.length === 0))">
             <div class="form-body">
-              <input type="text" [(ngModel)]="newTaskTitle" placeholder="Task title" class="task-title-input"
+              <input type="text" [(ngModel)]="newTaskTitle" [placeholder]="'taskAccountability.templates.taskTitle' | translate" class="task-title-input"
                 (keyup.enter)="quickAddTask(day)" />
 
               <div class="description-section">
                 <a href="javascript:void(0)" class="add-desc-link" *ngIf="!showDescField"
                   (click)="showDescField = true">
-                  + Add description
+                  + {{ 'taskAccountability.templates.addDescription' | translate }}
                 </a>
-                <textarea [(ngModel)]="newTaskDescription" placeholder="Description (optional)"
+                <textarea [(ngModel)]="newTaskDescription" [placeholder]="'taskAccountability.templates.descriptionOptional' | translate"
                   class="task-desc-textarea" *ngIf="showDescField" rows="2"></textarea>
               </div>
             </div>
             <div class="form-footer">
               <select [(ngModel)]="newTaskPriority" class="priority-select">
-                <option value="LOW">Low</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="HIGH">High</option>
+                <option value="LOW">{{ 'common.priority.low' | translate }}</option>
+                <option value="MEDIUM">{{ 'common.priority.medium' | translate }}</option>
+                <option value="HIGH">{{ 'common.priority.high' | translate }}</option>
               </select>
               <div class="footer-actions">
-                <button mat-button class="done-btn" (click)="toggleAddForm(false)">Done</button>
+                <button mat-button class="done-btn" (click)="toggleAddForm(false)">{{ 'common.done' | translate }}</button>
                 <button mat-flat-button color="primary" class="add-btn" (click)="quickAddTask(day)"
-                  [disabled]="!newTaskTitle.trim()">Add</button>
+                  [disabled]="!newTaskTitle.trim()">{{ 'common.add' | translate }}</button>
               </div>
             </div>
           </div>
@@ -400,7 +397,7 @@
           <!-- Add task inline trigger button at bottom of list if tasks exist and form is not shown -->
           <button class="add-task-bottom-trigger" *ngIf="day.tasks && day.tasks.length > 0 && !showAddForm"
             (click)="toggleAddForm(true)">
-            <i-tabler name="plus" class="icon-14 m-r-4"></i-tabler> Add task
+            <i-tabler name="plus" class="icon-14 m-r-4"></i-tabler> {{ 'taskAccountability.templates.addTask' | translate }}
           </button>
         </div>
 
@@ -408,7 +405,7 @@
         <div class="sidebar-footer">
           <button mat-button class="duplicate-day-btn" (click)="openDuplicateDayModal()">
             <i-tabler name="copy" class="icon-14 m-r-6"></i-tabler>
-            Duplicate this day...
+            {{ 'taskAccountability.templates.duplicateThisDay' | translate }}
           </button>
         </div>
       </div>
@@ -418,8 +415,8 @@
         <div class="duplicate-dialog-card" (click)="$event.stopPropagation()">
           <div class="dialog-header">
             <div class="header-titles">
-              <h3>Duplicate {{ getSelectedDay()?.name }} Tasks</h3>
-              <p class="subtitle">Select target days to copy {{ getSelectedDay()?.tasks?.length || 0 }} task(s) into</p>
+              <h3>{{ 'taskAccountability.templates.duplicateDayTasks' | translate:{ day: getSelectedDay()?.name } }}</h3>
+              <p class="subtitle">{{ 'taskAccountability.templates.selectTargetDays' | translate:{ count: getSelectedDay()?.tasks?.length || 0 } }}</p>
             </div>
             <button mat-icon-button (click)="closeDuplicateDayModal()" class="close-btn">
               <i-tabler name="x" class="icon-18"></i-tabler>
@@ -427,11 +424,11 @@
           </div>
 
           <div class="dialog-toolbar">
-            <button type="button" class="link-btn" (click)="selectAllValidTargetDays()">Select All Valid Days</button>
+            <button type="button" class="link-btn" (click)="selectAllValidTargetDays()">{{ 'taskAccountability.templates.selectAllValidDays' | translate }}</button>
             <span class="dot-separator">&bull;</span>
-            <button type="button" class="link-btn" (click)="deselectAllTargetDays()">Deselect All</button>
+            <button type="button" class="link-btn" (click)="deselectAllTargetDays()">{{ 'taskAccountability.templates.deselectAll' | translate }}</button>
             <span class="selected-badge" *ngIf="selectedTargetDaysForDuplication.size > 0">
-              {{ selectedTargetDaysForDuplication.size }} day(s) selected
+              {{ 'taskAccountability.templates.daysSelected' | translate:{ count: selectedTargetDaysForDuplication.size } }}
             </span>
           </div>
 
@@ -447,18 +444,18 @@
                 </div>
                 <div class="item-label">
                   <span class="day-name">{{ otherDay.name }}</span>
-                  <span class="status-tag current" *ngIf="otherIdx === selectedDayIndex">Current Day</span>
-                  <span class="status-tag past" *ngIf="isPastDay(otherIdx)">Past Day (Disabled)</span>
+                  <span class="status-tag current" *ngIf="otherIdx === selectedDayIndex">{{ 'taskAccountability.templates.currentDay' | translate }}</span>
+                  <span class="status-tag past" *ngIf="isPastDay(otherIdx)">{{ 'taskAccountability.templates.pastDayDisabled' | translate }}</span>
                 </div>
               </div>
             </div>
           </div>
 
           <div class="dialog-footer">
-            <button mat-button class="cancel-btn" (click)="closeDuplicateDayModal()">Cancel</button>
+            <button mat-button class="cancel-btn" (click)="closeDuplicateDayModal()">{{ 'common.cancel' | translate }}</button>
             <button mat-flat-button color="primary" class="confirm-btn"
               [disabled]="selectedTargetDaysForDuplication.size === 0" (click)="confirmDuplicateDayToSelected()">
-              Duplicate to {{ selectedTargetDaysForDuplication.size }} Day(s)
+              {{ 'taskAccountability.templates.duplicateToNDays' | translate:{ count: selectedTargetDaysForDuplication.size } }}
             </button>
           </div>
         </div>
@@ -484,7 +481,7 @@
           <i-tabler name="chevron-right" class="icon-12 separator"></i-tabler>
           <span>{{ selectedEditingTaskDay?.name }}</span>
         </div>
-        <button mat-icon-button class="close-btn" (click)="closeTaskDrawer()" title="Close Drawer">
+        <button mat-icon-button class="close-btn" (click)="closeTaskDrawer()" [title]="'common.closeDrawer' | translate">
           <i-tabler name="x" class="icon-18"></i-tabler>
         </button>
       </div>
@@ -493,7 +490,7 @@
       <div class="drawer-body">
         <!-- Title Input (frameless and large) -->
         <div class="title-container">
-          <input type="text" [(ngModel)]="selectedEditingTask.name" placeholder="Task name..."
+          <input type="text" [(ngModel)]="selectedEditingTask.name" [placeholder]="'taskAccountability.templates.taskNameDots' | translate"
             class="task-title-input" />
         </div>
 
@@ -501,26 +498,26 @@
         <div class="properties-grid">
           <!-- Status -->
           <div class="property-row">
-            <span class="property-label">Status</span>
+            <span class="property-label">{{ 'taskAccountability.taskTable.colStatus' | translate }}</span>
             <div class="property-value">
               <select [ngModel]="selectedEditingTask.status || 'Active'" (ngModelChange)="updateTaskStatus($event)"
                 class="property-select status-select">
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
+                <option value="Active">{{ 'common.active' | translate }}</option>
+                <option value="Inactive">{{ 'common.inactive' | translate }}</option>
               </select>
             </div>
           </div>
 
           <!-- Priority Chips -->
           <div class="property-row">
-            <span class="property-label">Priority</span>
+            <span class="property-label">{{ 'taskAccountability.taskTable.colPriority' | translate }}</span>
             <div class="property-value">
               <div class="priority-chips-group">
                 <button *ngFor="let p of ['Low', 'Medium', 'High', 'Urgent']" class="priority-chip"
                   [class.active]="selectedEditingTask.priority === p" [ngClass]="'chip-' + p.toLowerCase()"
                   (click)="updateTaskPriority(p)">
                   <span class="dot"></span>
-                  {{ p }}
+                  {{ ('common.priority.' + p.toLowerCase()) | translate }}
                 </button>
               </div>
             </div>
@@ -528,7 +525,7 @@
 
           <!-- Assigned Role -->
           <div class="property-row">
-            <span class="property-label">Assigned Role</span>
+            <span class="property-label">{{ 'taskAccountability.templates.assignedRole' | translate }}</span>
             <div class="property-value">
               <div class="role-display-badge">
                 <i-tabler name="user" class="icon-14 m-r-6"></i-tabler>
@@ -539,7 +536,7 @@
 
           <!-- Due Time -->
           <div class="property-row">
-            <span class="property-label">Due Time</span>
+            <span class="property-label">{{ 'taskAccountability.templates.dueTime' | translate }}</span>
             <div class="property-value">
               <input type="text" [(ngModel)]="selectedEditingTask.dueTime" placeholder="e.g. 6:00 PM"
                 class="property-input time-input" />
@@ -548,7 +545,7 @@
 
           <!-- Required Toggle -->
           <div class="property-row">
-            <span class="property-label">Required</span>
+            <span class="property-label">{{ 'taskAccountability.templates.required' | translate }}</span>
             <div class="property-value">
               <label class="switch-toggle">
                 <input type="checkbox" [ngModel]="selectedEditingTask.required"
@@ -560,7 +557,7 @@
 
           <!-- Employee Response Type -->
           <div class="property-row employee-response-row">
-            <span class="property-label">Employee Response</span>
+            <span class="property-label">{{ 'taskAccountability.templates.employeeResponse' | translate }}</span>
             <div class="property-value response-type-options">
               <div class="response-grid">
                 <button *ngFor="let rt of taskResponseTypes" class="response-type-btn"
@@ -574,12 +571,12 @@
 
           <!-- Smart Field: Target (only when response type is Number) -->
           <div class="property-row target-row" *ngIf="selectedEditingTask.type === 'NUMERIC'">
-            <span class="property-label highlight-label">Target Goal</span>
+            <span class="property-label highlight-label">{{ 'taskAccountability.templates.targetGoal' | translate }}</span>
             <div class="property-value">
               <div class="target-input-wrapper">
                 <input type="text" [(ngModel)]="selectedEditingTask.targetValue" placeholder="e.g. 150"
                   class="property-input target-input" />
-                <span class="target-suffix">numerical value</span>
+                <span class="target-suffix">{{ 'taskAccountability.templates.numericalValue' | translate }}</span>
               </div>
             </div>
           </div>
@@ -591,9 +588,9 @@
         <div class="workflow-section">
           <h4 class="section-heading">
             <i-tabler name="hierarchy" class="icon-16 m-r-6"></i-tabler>
-            Approval Workflow
+            {{ 'taskAccountability.templates.approvalWorkflow' | translate }}
           </h4>
-          <p class="section-desc">Workflow is automatically generated based on the assigned role.</p>
+          <p class="section-desc">{{ 'taskAccountability.templates.workflowAutoDesc' | translate }}</p>
           <div class="workflow-steps-path">
             <div *ngFor="let step of getWorkflowStepsForRole(editingTemplate?.role || ''); let isLast = last"
               class="workflow-step-item">
@@ -612,22 +609,22 @@
         <!-- Description & Detailed Instructions -->
         <div class="details-section">
           <div class="detail-field">
-            <h4 class="section-heading">Description</h4>
-            <textarea [(ngModel)]="selectedEditingTask.description" placeholder="Add description..."
+            <h4 class="section-heading">{{ 'taskAccountability.taskDetails.description' | translate }}</h4>
+            <textarea [(ngModel)]="selectedEditingTask.description" [placeholder]="'taskAccountability.templates.addDescriptionPlaceholder' | translate"
               class="clickup-textarea description-textarea"></textarea>
           </div>
 
           <div class="detail-field">
-            <h4 class="section-heading">Employee Instructions</h4>
+            <h4 class="section-heading">{{ 'taskAccountability.templates.employeeInstructions' | translate }}</h4>
             <textarea [(ngModel)]="selectedEditingTask.employeeInstructions"
-              placeholder="Specific step-by-step instructions for the employee..."
+              [placeholder]="'taskAccountability.templates.employeeInstructionsPlaceholder' | translate"
               class="clickup-textarea instructions-textarea"></textarea>
           </div>
 
           <div class="detail-field">
-            <h4 class="section-heading">Expected Output</h4>
+            <h4 class="section-heading">{{ 'taskAccountability.templates.expectedOutput' | translate }}</h4>
             <textarea [(ngModel)]="selectedEditingTask.expectedOutput"
-              placeholder="Specify what the output looks like (e.g., PDF template, CRM update logs)..."
+              [placeholder]="'taskAccountability.templates.expectedOutputPlaceholder' | translate"
               class="clickup-textarea output-textarea"></textarea>
           </div>
         </div>
@@ -638,7 +635,7 @@
         <div class="attachments-section">
           <h4 class="section-heading">
             <i-tabler name="paperclip" class="icon-16 m-r-6"></i-tabler>
-            Attachments Reference
+            {{ 'taskAccountability.templates.attachmentsReference' | translate }}
           </h4>
           <div class="attachments-list"
             *ngIf="selectedEditingTask.attachments && selectedEditingTask.attachments.length > 0">
@@ -647,22 +644,22 @@
               <span class="attachment-name" [title]="att.name">{{ att.name }}</span>
               <span class="attachment-size">({{ att.size }})</span>
               <button mat-icon-button class="remove-att-btn" (click)="removeAttachmentFromTask(attIdx)"
-                title="Remove Attachment">
+                [title]="'taskAccountability.templates.removeAttachment' | translate">
                 <i-tabler name="trash" class="icon-14"></i-tabler>
               </button>
             </div>
           </div>
           <div class="empty-attachments"
             *ngIf="!selectedEditingTask.attachments || selectedEditingTask.attachments.length === 0">
-            <p>No reference files attached to this template task.</p>
+            <p>{{ 'taskAccountability.templates.noAttachments' | translate }}</p>
           </div>
           <!-- Add Attachment Form -->
           <div class="add-attachment-input-row">
             <input type="text" [(ngModel)]="newAttachmentName"
-              placeholder="Enter file name (e.g. Lead_Sheet_Template.xlsx)..." class="attachment-input"
+              [placeholder]="'taskAccountability.templates.enterFileName' | translate" class="attachment-input"
               (keyup.enter)="addAttachmentToTask()" />
             <button class="add-attachment-btn" (click)="addAttachmentToTask()" [disabled]="!newAttachmentName.trim()">
-              Add File
+              {{ 'taskAccountability.templates.addFile' | translate }}
             </button>
           </div>
         </div>
@@ -673,7 +670,7 @@
         <div class="comments-section">
           <h4 class="section-heading">
             <i-tabler name="messages" class="icon-16 m-r-6"></i-tabler>
-            Comments
+            {{ 'taskAccountability.taskDetails.comments' | translate }}
           </h4>
           <div class="comments-list" *ngIf="selectedEditingTask.comments && selectedEditingTask.comments.length > 0">
             <div class="comment-item" *ngFor="let comm of selectedEditingTask.comments">
@@ -694,15 +691,15 @@
           </div>
           <div class="empty-comments"
             *ngIf="!selectedEditingTask.comments || selectedEditingTask.comments.length === 0">
-            <p>No comments on this task template yet.</p>
+            <p>{{ 'taskAccountability.templates.noCommentsTemplate' | translate }}</p>
           </div>
           <!-- Add Comment Form -->
           <div class="comment-editor">
-            <textarea [(ngModel)]="newCommentText" placeholder="Write a comment..." class="comment-textarea"
+            <textarea [(ngModel)]="newCommentText" [placeholder]="'taskAccountability.taskDetails.writeComment' | translate" class="comment-textarea"
               (keyup.enter)="addCommentToTask()"></textarea>
             <div class="comment-actions">
               <button class="comment-submit-btn" (click)="addCommentToTask()" [disabled]="!newCommentText.trim()">
-                Comment
+                {{ 'taskAccountability.templates.comment' | translate }}
               </button>
             </div>
           </div>
@@ -714,7 +711,7 @@
         <div class="activity-timeline-section">
           <h4 class="section-heading">
             <i-tabler name="activity" class="icon-16 m-r-6"></i-tabler>
-            Activity Timeline
+            {{ 'taskAccountability.templates.activityTimeline' | translate }}
           </h4>
           <div class="activity-list"
             *ngIf="selectedEditingTask.activities && selectedEditingTask.activities.length > 0">

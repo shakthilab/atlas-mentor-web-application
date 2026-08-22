@@ -6,7 +6,7 @@
     <!-- Greeting Section -->
     <div class="d-flex align-items-center mb-4 animate-card">
       <div>
-        <h2 class="fs-2 fw-bolder text-dark mb-1">{{ greeting }}, {{ userName }}! 👋</h2>
+        <h2 class="fs-2 fw-bolder text-dark mb-1">{{ greeting }} 👋</h2>
       </div>
     </div>
 
@@ -17,7 +17,7 @@
     </div>
 
     <!-- SECTION 01: Top KPI Cards -->
-    <div class="section-label animate-section">SECTION 01 — KPI CARDS</div>
+    <div class="section-label animate-section">{{ 'adminDashboard.section1' | translate }}</div>
     <div class="metrics-grid mb-4">
       <div class="op-card card-sm m-0 animate-card" *ngFor="let card of summaryCards; let i = index"
         [style.animation-delay]="(i * 55) + 'ms'">
@@ -36,21 +36,21 @@
     </div>
 
     <!-- SECTION 02: STUDENTS -->
-    <div class="section-label animate-section">SECTION 02 — STUDENTS</div>
+    <div class="section-label animate-section">{{ 'adminDashboard.section2' | translate }}</div>
     <div class="row g-4 mb-5">
       <div class="col-lg-8">
         <div class="op-card h-100 p-4 animate-card" style="animation-delay:80ms">
           <div class="d-flex justify-content-between mb-4">
             <div>
-              <div class="card-label text-primary">STUDENTS</div>
-              <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">Acquisition funnel</div>
+              <div class="card-label text-primary">{{ 'adminDashboard.students' | translate }}</div>
+              <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">{{ 'adminDashboard.acquisitionFunnel' | translate }}</div>
             </div>
           </div>
           <div style="height: 280px;" class="mt-4 pt-2">
             <div echarts [options]="acquisitionFunnelOptions" style="height: 100%;"></div>
           </div>
           <div class="mt-4 pt-4 border-top">
-            <div class="card-label text-muted mb-3">ENHANCED STATUS BREAKDOWN</div>
+            <div class="card-label text-muted mb-3">{{ 'adminDashboard.statusBreakdown' | translate }}</div>
             <div class="status-row" *ngFor="let st of statusBreakdown">
               <div class="label">{{ st.label }}</div>
               <div class="bar-container">
@@ -63,8 +63,8 @@
       </div>
       <div class="col-lg-4 d-flex flex-column gap-4">
         <div class="op-card p-4 flex-grow-1 animate-card" style="animation-delay:120ms" *ngIf="!isCounsellor">
-          <div class="card-label text-primary">SOURCE</div>
-          <div class="fs-5 fw-bold text-dark mb-2" style="font-weight: 700 !important;">Referral vs Company</div>
+          <div class="card-label text-primary">{{ 'adminDashboard.source' | translate }}</div>
+          <div class="fs-5 fw-bold text-dark mb-2" style="font-weight: 700 !important;">{{ 'adminDashboard.referralVsCompany' | translate }}</div>
           <div style="height: 200px;">
             <div echarts [options]="referralCompanyOptions" style="height: 100%;"></div>
           </div>
@@ -77,8 +77,8 @@
           </div>
         </div>
         <div class="op-card p-4 flex-grow-1 animate-card" style="animation-delay:160ms">
-          <div class="card-label text-primary">GEO</div>
-          <div class="fs-5 fw-bold text-dark mb-3" style="font-weight: 700 !important;">Top countries</div>
+          <div class="card-label text-primary">{{ 'adminDashboard.geo' | translate }}</div>
+          <div class="fs-5 fw-bold text-dark mb-3" style="font-weight: 700 !important;">{{ 'adminDashboard.topCountries' | translate }}</div>
           <div class="list-row" *ngFor="let country of topCountries">
             <div class="rank-badge">{{ country.rank }}</div>
             <div>
@@ -94,8 +94,8 @@
     <div class="row g-4 mb-5">
       <div class="col-12">
         <div class="op-card p-4 animate-card" style="animation-delay:100ms">
-          <div class="card-label text-primary">TREND</div>
-          <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">Intake by destination country</div>
+          <div class="card-label text-primary">{{ 'adminDashboard.trend' | translate }}</div>
+          <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">{{ 'adminDashboard.intakeByCountry' | translate }}</div>
           <div style="height: 250px;">
             <div echarts [options]="intakeCountryOptions" style="height: 100%;"></div>
           </div>
@@ -105,7 +105,7 @@
 
     <!-- SECTION 03: FINANCIAL -->
     <ng-container *ngIf="!isCounsellor">
-      <div class="section-label animate-section">SECTION 03 — FINANCIAL</div>
+      <div class="section-label animate-section">{{ 'adminDashboard.section3' | translate }}</div>
       <div class="row g-4 mb-5">
         <div class="col" *ngFor="let m of financialMetrics; let i = index">
           <div class="op-card financial-metric-card animate-card" [style.border-left-color]="m.borderColor"
@@ -118,9 +118,9 @@
       <div class="row g-4 mb-5">
         <div class="col-lg-8">
           <div class="op-card p-4 h-100 animate-card" style="animation-delay:80ms">
-            <div class="card-label text-primary">PAYMENTS</div>
-            <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">Status breakdown by month</div>
-            <div class="text-muted fs-2 mb-4">₹ in lakhs</div>
+            <div class="card-label text-primary">{{ 'adminDashboard.payments' | translate }}</div>
+            <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">{{ 'adminDashboard.statusByMonth' | translate }}</div>
+            <div class="text-muted fs-2 mb-4">{{ 'adminDashboard.inLakhs' | translate }}</div>
             <div style="height: 250px;">
               <div echarts [options]="paymentsStatusOptions" style="height: 100%;"></div>
             </div>
@@ -128,8 +128,8 @@
         </div>
         <div class="col-lg-4">
           <div class="op-card p-4 h-100 animate-card" style="animation-delay:140ms">
-            <div class="card-label text-primary">METHODS</div>
-            <div class="fs-5 fw-bold text-dark mb-4" style="font-weight: 700 !important;">Payment distribution</div>
+            <div class="card-label text-primary">{{ 'adminDashboard.methods' | translate }}</div>
+            <div class="fs-5 fw-bold text-dark mb-4" style="font-weight: 700 !important;">{{ 'adminDashboard.paymentDistribution' | translate }}</div>
             <div style="height: 220px;">
               <div echarts [options]="paymentDistributionOptions" style="height: 100%;"></div>
             </div>
@@ -152,10 +152,10 @@
           <div class="op-card p-4 h-100 animate-card" style="animation-delay:80ms">
             <div class="d-flex justify-content-between mb-4">
               <div>
-                <div class="card-label text-primary">RECEIVABLES</div>
-                <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">Top paying entities</div>
+                <div class="card-label text-primary">{{ 'adminDashboard.receivables' | translate }}</div>
+                <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">{{ 'adminDashboard.topPayingEntities' | translate }}</div>
               </div>
-              <a href="#" class="link-all-details">All Details <i-tabler name="chevron-right"
+              <a href="#" class="link-all-details">{{ 'partnerDashboard.allDetails' | translate }} <i-tabler name="chevron-right"
                   class="icon-14"></i-tabler></a>
             </div>
             <app-data-table
@@ -177,10 +177,10 @@
           <div class="op-card p-4 h-100 animate-card" style="animation-delay:140ms">
             <div class="d-flex justify-content-between align-items-start mb-4">
               <div>
-                <div class="card-label text-primary">DISPUTES</div>
-                <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">Open disputes</div>
+                <div class="card-label text-primary">{{ 'adminDashboard.disputes' | translate }}</div>
+                <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">{{ 'adminDashboard.openDisputes' | translate }}</div>
               </div>
-              <span class="badge bg-danger-subtle text-danger fw-bold py-1 px-2" style="font-size:11px;">2 OPEN</span>
+              <span class="badge bg-danger-subtle text-danger fw-bold py-1 px-2" style="font-size:11px;">{{ 'adminDashboard.openCount' | translate:{ count: 2 } }}</span>
             </div>
             <div class="dispute-card" *ngFor="let disp of openDisputes">
               <div class="d-flex justify-content-between mb-1">
@@ -190,8 +190,8 @@
               <div class="text-muted fs-3 mb-1">{{ disp.sub1 }}</div>
               <div class="text-dark fs-3 fst-italic mb-3">{{ disp.sub2 }}</div>
               <div class="d-flex gap-2 mt-2">
-                <button class="btn-dispute-view">VIEW</button>
-                <button class="btn-dispute-respond">RESPOND</button>
+                <button class="btn-dispute-view">{{ 'adminDashboard.view' | translate }}</button>
+                <button class="btn-dispute-respond">{{ 'adminDashboard.respond' | translate }}</button>
               </div>
             </div>
           </div>
@@ -200,19 +200,19 @@
     </ng-container>
 
     <!-- SECTION 04: TASKS -->
-    <div class="section-label animate-section">SECTION 04 — TASKS</div>
+    <div class="section-label animate-section">{{ 'adminDashboard.section4' | translate }}</div>
     <div class="row g-4 mb-5">
       <div class="col-lg-5">
         <div class="op-card p-4 h-100 animate-card" style="animation-delay:60ms">
-          <div class="card-label text-primary">TASKS</div>
-          <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">Priority heatmap</div>
-          <div class="text-muted fs-2 mb-4">Status &times; Priority</div>
+          <div class="card-label text-primary">{{ 'taskAccountability.shell.title' | translate }}</div>
+          <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">{{ 'adminDashboard.priorityHeatmap' | translate }}</div>
+          <div class="text-muted fs-2 mb-4">{{ 'adminDashboard.statusXPriority' | translate }}</div>
           <div class="heatmap-grid">
             <div class="hm-header">
               <div></div>
-              <div>LOW</div>
-              <div>MED</div>
-              <div>HIGH</div>
+              <div>{{ 'adminDashboard.low' | translate }}</div>
+              <div>{{ 'adminDashboard.med' | translate }}</div>
+              <div>{{ 'adminDashboard.high' | translate }}</div>
             </div>
             <div class="hm-row" *ngFor="let row of priorityHeatmap; let i = index">
               <div class="hm-label">{{ row.status }}</div>
@@ -225,15 +225,15 @@
           </div>
           <div class="mt-4 text-danger fs-2 d-flex align-items-center gap-2">
             <i-tabler name="alert-triangle" class="icon-14"></i-tabler>
-            High-priority overdue cell escalated automatically.
+            {{ 'adminDashboard.escalatedNote' | translate }}
           </div>
         </div>
       </div>
       <div class="col-lg-7">
         <div class="op-card p-4 h-100 animate-card" style="animation-delay:120ms">
-          <div class="card-label text-primary">THROUGHPUT</div>
-          <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">Created vs completed</div>
-          <div class="text-muted fs-2 mb-4">Weekly trend</div>
+          <div class="card-label text-primary">{{ 'adminDashboard.throughput' | translate }}</div>
+          <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">{{ 'adminDashboard.createdVsCompleted' | translate }}</div>
+          <div class="text-muted fs-2 mb-4">{{ 'adminDashboard.weeklyTrend' | translate }}</div>
           <div style="height: 260px;">
             <div echarts [options]="throughputOptions" style="height: 100%;"></div>
           </div>
@@ -245,11 +245,10 @@
         <div class="op-card p-4 h-100 animate-card" style="animation-delay:80ms">
           <div class="d-flex justify-content-between mb-4">
             <div>
-              <div class="card-label text-primary">ALERTS</div>
-              <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">Overdue tasks</div>
+              <div class="card-label text-primary">{{ 'adminDashboard.alerts' | translate }}</div>
+              <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">{{ 'adminDashboard.overdueTasks' | translate }}</div>
             </div>
-            <span class="badge bg-danger-subtle text-danger fw-bold py-1 px-2" style="font-size:11px;">{{
-              overdueTasks.length }} ITEMS</span>
+            <span class="badge bg-danger-subtle text-danger fw-bold py-1 px-2" style="font-size:11px;">{{ 'adminDashboard.itemsCount' | translate:{ count: overdueTasks.length } }}</span>
           </div>
           <app-data-table
             [columns]="overdueTasksColumns"
@@ -268,8 +267,8 @@
       </div>
       <div class="col-lg-5" *ngIf="!isCounsellor">
         <div class="op-card p-4 h-100 animate-card" style="animation-delay:140ms">
-          <div class="card-label text-primary">WORKLOAD</div>
-          <div class="fs-5 fw-bold text-dark mb-4" style="font-weight: 700 !important;">Employee task load</div>
+          <div class="card-label text-primary">{{ 'adminDashboard.workload' | translate }}</div>
+          <div class="fs-5 fw-bold text-dark mb-4" style="font-weight: 700 !important;">{{ 'adminDashboard.employeeTaskLoad' | translate }}</div>
           <div class="mb-4 pb-1" *ngFor="let w of workload">
             <div class="d-flex justify-content-between fw-bold fs-3 mb-2">
               <div class="text-dark">{{ w.name }}</div>
@@ -280,9 +279,9 @@
                 style="border-radius:3px;transition:width 1s ease;"></div>
             </div>
             <div class="d-flex align-items-center fs-2 text-muted fw-medium">
-              <span>{{ w.active }} active</span>
+              <span>{{ 'adminDashboard.activeCount' | translate:{ count: w.active } }}</span>
               <span [class.text-danger]="w.overdue > 0" class="ms-3">
-                {{ w.overdue > 0 ? w.overdue + ' overdue' : '' }}
+                {{ w.overdue > 0 ? ('adminDashboard.overdueCount' | translate:{ count: w.overdue }) : '' }}
               </span>
             </div>
           </div>
@@ -292,12 +291,12 @@
 
     <!-- SECTION 05: TEAM & BRANCHES -->
     <ng-container *ngIf="!isCounsellor">
-      <div class="section-label animate-section">SECTION 05 — TEAM & BRANCHES</div>
+      <div class="section-label animate-section">{{ 'adminDashboard.section5' | translate }}</div>
       <div class="row g-4 mb-5">
         <div class="col-lg-4">
           <div class="op-card p-4 h-100 animate-card" style="animation-delay:60ms">
-            <div class="card-label text-primary">TEAM</div>
-            <div class="fs-5 fw-bold text-dark mb-4" style="font-weight: 700 !important;">Role breakdown</div>
+            <div class="card-label text-primary">{{ 'adminDashboard.team' | translate }}</div>
+            <div class="fs-5 fw-bold text-dark mb-4" style="font-weight: 700 !important;">{{ 'adminDashboard.roleBreakdown' | translate }}</div>
             <div class="mb-4" *ngFor="let r of roleBreakdown">
               <div class="d-flex justify-content-between fw-bold fs-3 mb-2">
                 <div class="text-dark">{{ r.role }}</div>
@@ -314,8 +313,8 @@
           <div class="op-card p-4 h-100 animate-card" style="animation-delay:120ms">
             <div class="d-flex justify-content-between mb-4">
               <div>
-                <div class="card-label text-primary">PERFORMANCE</div>
-                <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">Leaderboard</div>
+                <div class="card-label text-primary">{{ 'adminDashboard.performance' | translate }}</div>
+                <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">{{ 'adminDashboard.leaderboard' | translate }}</div>
               </div>
               <i-tabler name="trophy" class="text-warning" style="width:22px;height:22px;"></i-tabler>
             </div>
@@ -334,8 +333,8 @@
         </div>
         <div class="col-lg-4">
           <div class="op-card p-4 h-100 dark-card animate-card" style="animation-delay:180ms">
-            <div class="card-label" style="color:#5b7fa6;">QUICK</div>
-            <div class="fs-5 fw-bold text-white mb-4" style="font-weight: 700 !important;">Pending approvals</div>
+            <div class="card-label" style="color:#5b7fa6;">{{ 'partnerDashboard.quick' | translate }}</div>
+            <div class="fs-5 fw-bold text-white mb-4" style="font-weight: 700 !important;">{{ 'adminDashboard.pendingApprovals' | translate }}</div>
             <div class="quick-card" *ngFor="let qa of pendingApprovals">
               <div class="icon-box {{ qa.color }}">
                 <i-tabler [name]="qa.icon" class="icon-16"></i-tabler>
@@ -349,9 +348,9 @@
       <div class="row g-4 mb-5">
         <div class="col-12">
           <div class="op-card p-4 animate-card" style="animation-delay:80ms">
-            <div class="card-label text-primary">NETWORK</div>
-            <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">Branch performance</div>
-            <div class="text-muted fs-2 mb-4">Composite health, ranked by revenue</div>
+            <div class="card-label text-primary">{{ 'adminDashboard.network' | translate }}</div>
+            <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">{{ 'adminDashboard.branchPerformance' | translate }}</div>
+            <div class="text-muted fs-2 mb-4">{{ 'adminDashboard.compositeHealth' | translate }}</div>
             <app-data-table [columns]="branchPerformanceColumns" [rows]="branchPerformance" exportFileName="branch-performance">
               <ng-template appCellDef="branch" let-b="row"><span class="fw-bold">{{ b.branch }}</span></ng-template>
               <ng-template appCellDef="students" let-b="row"><span class="text-muted fw-normal">{{ b.students }}</span></ng-template>
@@ -376,7 +375,7 @@
 
     <!-- SECTION 06: REFERRALS & PARTNERS -->
     <ng-container *ngIf="!isCounsellor">
-      <div class="section-label animate-section">SECTION 06 — REFERRALS & PARTNERS</div>
+      <div class="section-label animate-section">{{ 'adminDashboard.section6' | translate }}</div>
       <div class="row g-4 mb-5">
         <div class="col" *ngFor="let rm of referralMetrics; let i = index">
           <div class="op-card p-4 animate-card" [style.animation-delay]="(i * 55) + 'ms'">
@@ -389,9 +388,9 @@
       <div class="row g-4 mb-5">
         <div class="col-lg-8">
           <div class="op-card p-4 h-100 animate-card" style="animation-delay:80ms">
-            <div class="card-label text-primary">COMMISSIONS</div>
-            <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">Earnings by partner type</div>
-            <div class="text-muted fs-2 mb-4">₹ in lakhs</div>
+            <div class="card-label text-primary">{{ 'adminDashboard.commissions' | translate }}</div>
+            <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">{{ 'adminDashboard.earningsByPartnerType' | translate }}</div>
+            <div class="text-muted fs-2 mb-4">{{ 'adminDashboard.inLakhs' | translate }}</div>
             <div style="height: 250px;">
               <div echarts [options]="earningsPartnerOptions" style="height: 100%;"></div>
             </div>
@@ -399,8 +398,8 @@
         </div>
         <div class="col-lg-4">
           <div class="op-card p-4 h-100 animate-card" style="animation-delay:140ms">
-            <div class="card-label text-primary">CONVERSION</div>
-            <div class="fs-5 fw-bold text-dark mb-4" style="font-weight: 700 !important;">Referral funnel</div>
+            <div class="card-label text-primary">{{ 'adminDashboard.conversion' | translate }}</div>
+            <div class="fs-5 fw-bold text-dark mb-4" style="font-weight: 700 !important;">{{ 'adminDashboard.referralFunnel' | translate }}</div>
             <div class="mb-3" *ngFor="let rf of referralFunnel">
               <div class="d-flex justify-content-between fw-bold fs-3 mb-2">
                 <div class="text-dark">{{ rf.label }}</div>
@@ -419,8 +418,8 @@
       <div class="row g-4 mb-5">
         <div class="col-12">
           <div class="op-card p-4 animate-card" style="animation-delay:80ms">
-            <div class="card-label text-primary">PARTNERS</div>
-            <div class="fs-5 fw-bold text-dark mb-4" style="font-weight: 700 !important;">Top referrers</div>
+            <div class="card-label text-primary">{{ 'adminDashboard.partners' | translate }}</div>
+            <div class="fs-5 fw-bold text-dark mb-4" style="font-weight: 700 !important;">{{ 'adminDashboard.topReferrers' | translate }}</div>
             <app-data-table
               [columns]="topReferrersColumns"
               [rows]="topReferrers"
@@ -447,14 +446,14 @@
 
     <!-- SECTION 07: AUDIT & ACTIVITY -->
     <ng-container *ngIf="!isCounsellor">
-      <div class="section-label animate-section">SECTION 07 — AUDIT & ACTIVITY</div>
+      <div class="section-label animate-section">{{ 'adminDashboard.section7' | translate }}</div>
       <div class="row g-4 mb-5">
         <div class="col-lg-8">
           <div class="op-card p-4 h-100 animate-card" style="animation-delay:60ms">
             <div class="d-flex justify-content-between align-items-start mb-4">
               <div>
-                <div class="card-label text-primary">COMPLIANCE</div>
-                <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">Recent financial audit log</div>
+                <div class="card-label text-primary">{{ 'adminDashboard.compliance' | translate }}</div>
+                <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">{{ 'adminDashboard.auditLog' | translate }}</div>
               </div>
             </div>
             <app-data-table
@@ -473,8 +472,8 @@
         <div class="col-lg-4">
           <div class="op-card p-4 h-100 dark-card animate-card" style="animation-delay:120ms">
             <div class="d-flex align-items-center gap-2 mb-4">
-              <span class="live-badge">LIVE</span>
-              <div class="fs-5 fw-bold text-white" style="font-weight: 700 !important;">Activity feed</div>
+              <span class="live-badge">{{ 'adminDashboard.live' | translate }}</span>
+              <div class="fs-5 fw-bold text-white" style="font-weight: 700 !important;">{{ 'adminDashboard.activityFeed' | translate }}</div>
             </div>
             <div class="activity-item" *ngFor="let item of activityFeed">
               <span class="activity-dot dot-{{ item.color }}"></span>
@@ -483,7 +482,7 @@
                 <div class="activity-time">{{ item.time }}</div>
               </div>
             </div>
-            <button class="btn-view-timeline">View Full Timeline</button>
+            <button class="btn-view-timeline">{{ 'adminDashboard.viewFullTimeline' | translate }}</button>
           </div>
         </div>
       </div>
@@ -493,13 +492,13 @@
     <!-- GLOBAL TIME FILTER (FLOATING) -->
     <div class="dashboard-time-filter animate-card" style="animation-delay:200ms">
       <select (change)="onPeriodChange($event)" [value]="currentPeriod">
-        <option value="7d">7 Days</option>
-        <option value="15d">15 Days</option>
-        <option value="30d">30 Days</option>
-        <option value="60d">60 Days</option>
-        <option value="90d">90 Days</option>
-        <option value="1y">1 Year</option>
-        <option value="5y">5 Years</option>
+        <option value="7d">{{ 'partnerDashboard.days7' | translate }}</option>
+        <option value="15d">{{ 'partnerDashboard.days15' | translate }}</option>
+        <option value="30d">{{ 'partnerDashboard.days30' | translate }}</option>
+        <option value="60d">{{ 'partnerDashboard.days60' | translate }}</option>
+        <option value="90d">{{ 'partnerDashboard.days90' | translate }}</option>
+        <option value="1y">{{ 'partnerDashboard.year1' | translate }}</option>
+        <option value="5y">{{ 'partnerDashboard.years5' | translate }}</option>
       </select>
       <i-tabler name="chevron-down" class="icon-chevron"></i-tabler>
     </div>

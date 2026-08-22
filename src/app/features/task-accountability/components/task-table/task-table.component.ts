@@ -3,6 +3,7 @@ import { TaskAccountabilityService } from '../../services/task-accountability.se
 import { AuthService } from '../../../../core/services/auth.service';
 import { TaskItem, DayNode } from '../../interfaces/accountability.interface';
 import { Subscription } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-task-table',
@@ -36,7 +37,8 @@ export class TaskTableComponent implements OnInit, OnDestroy {
 
   constructor(
     private service: TaskAccountabilityService,
-    private authService: AuthService
+    private authService: AuthService,
+    private translate: TranslateService
   ) {}
 
   get isReviewerRole(): boolean {
@@ -170,17 +172,41 @@ export class TaskTableComponent implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Maps a raw backend status code to a translated display label. Backend statuses are
+   * fixed English enum values (TODO, IN_PROGRESS, ...) that are never localized server-side,
+   * so the mapping to a translation key happens here on the frontend.
+   */
   formatStatusLabel(status?: string, task?: TaskItem): string {
-    if (!status) return 'To Do';
+    if (!status) return this.translate.instant('common.status.todo');
     const s = status.toUpperCase().trim();
-    if (s === 'TODO' || s === 'TO Do' || s === 'NOT_STARTED') return 'To Do';
-    if (s === 'IN_PROGRESS' || s === 'IN PROGRESS') return 'In Progress';
-    if (s === 'DONE' || s === 'COMPLETED') return 'Done';
-    if (s === 'REFLECT' || s === 'SEND_BACK' || s === 'REJECTED') return 'Reflect';
-    if (s === 'VERIFIED' || s === 'APPROVED') return 'Verified';
-    if (s === 'CLOSED') return 'Closed';
-    if (s === 'OVERDUE') return 'Overdue';
+    if (s === 'TODO' || s === 'TO Do' || s === 'NOT_STARTED') return this.translate.instant('common.status.todo');
+    if (s === 'IN_PROGRESS' || s === 'IN PROGRESS') return this.translate.instant('common.status.inProgress');
+    if (s === 'DONE' || s === 'COMPLETED') return this.translate.instant('common.status.done');
+    if (s === 'REFLECT' || s === 'SEND_BACK' || s === 'REJECTED') return this.translate.instant('common.status.reflect');
+    if (s === 'VERIFIED' || s === 'APPROVED') return this.translate.instant('common.status.verified');
+    if (s === 'CLOSED') return this.translate.instant('common.status.closed');
+    if (s === 'OVERDUE') return this.translate.instant('common.status.overdue');
+    // Unknown/custom status codes: fall back to a readable version of the raw code
+    // rather than a translation key, since there's no key for an arbitrary backend value.
     return status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  /** Same idea as formatStatusLabel(), for the priority enum (URGENT/HIGH/MEDIUM/LOW). */
+  getPriorityLabel(priority?: string): string {
+    if (!priority) return this.translate.instant('common.priority.medium');
+    const p = priority.toUpperCase().trim();
+    if (p === 'URGENT') return this.translate.instant('common.priority.urgent');
+    if (p === 'HIGH') return this.translate.instant('common.priority.high');
+    if (p === 'MEDIUM') return this.translate.instant('common.priority.medium');
+    if (p === 'LOW') return this.translate.instant('common.priority.low');
+    return priority;
+  }
+
+  getFlaggedByText(task: TaskItem): string {
+    const name = task.reflectFlaggedByName || this.translate.instant('taskAccountability.taskTable.reviewer');
+    const reason = task.reflectComment || task.comment || this.translate.instant('taskAccountability.taskTable.needsRework');
+    return this.translate.instant('taskAccountability.taskTable.flaggedBy', { name, reason });
   }
 
   ngOnDestroy(): void {
@@ -319,11 +345,11 @@ export class TaskTableComponent implements OnInit, OnDestroy {
    */
   getCarriedOverBadgeLabel(task: TaskItem): string {
     const raw = task.dueDate || task.originalWorkDate;
-    if (!raw) return 'Overdue';
+    if (!raw) return this.translate.instant('common.status.overdue');
     const d = new Date(raw + 'T00:00:00');
-    if (isNaN(d.getTime())) return 'Overdue';
-    const label = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    return `Overdue since ${label}`;
+    if (isNaN(d.getTime())) return this.translate.instant('common.status.overdue');
+    const label = d.toLocaleDateString(this.translate.currentLang || 'en', { month: 'short', day: 'numeric' });
+    return this.translate.instant('taskAccountability.taskTable.overdueSince', { date: label });
   }
 
   getFormattedDisplayId(task: TaskItem): string {
@@ -331,8 +357,8 @@ export class TaskTableComponent implements OnInit, OnDestroy {
     const id = task.displayId || task.id;
     if (!id) return '';
     if (id.toLowerCase().startsWith('task -')) return id;
-    if (id.toLowerCase().startsWith('task-')) return `Task - ${id.substring(5)}`;
-    return `Task - ${id}`;
+    const rawId = id.toLowerCase().startsWith('task-') ? id.substring(5) : id;
+    return this.translate.instant('taskAccountability.taskTable.taskIdPrefix', { id: rawId });
   }
 
   getRawDisplayId(task: TaskItem): string {

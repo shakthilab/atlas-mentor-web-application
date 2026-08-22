@@ -1,82 +1,82 @@
 <div class="assignments-container">
   <div class="assignments-header m-b-24">
-    <h2 class="section-title">Template Assignment</h2>
-    <p class="section-subtitle">Map daily accountability templates to employees, roles, or branches.</p>
+    <h2 class="section-title">{{ 'taskAccountability.assignments.title' | translate }}</h2>
+    <p class="section-subtitle">{{ 'taskAccountability.assignments.subtitle' | translate }}</p>
   </div>
 
   <div class="assignments-content">
     <!-- Left Panel: Assignment Form -->
     <div class="form-card">
-      <h3 class="card-title m-b-20">Create New Assignment</h3>
-      
+      <h3 class="card-title m-b-20">{{ 'taskAccountability.assignments.createNew' | translate }}</h3>
+
       <div class="form-group m-b-20">
-        <label>Select Role Template</label>
+        <label>{{ 'taskAccountability.assignments.selectRoleTemplate' | translate }}</label>
         <select [(ngModel)]="selectedTemplateId" class="form-select">
           <option *ngFor="let temp of templates$ | async" [value]="temp.id">{{ temp.name }} ({{ temp.role }})</option>
         </select>
       </div>
 
       <div class="form-group m-b-20">
-        <label>Assignment Scope</label>
+        <label>{{ 'taskAccountability.assignments.scope' | translate }}</label>
         <div class="scope-toggle-group">
           <button type="button" class="scope-btn" [class.active]="assignType === 'role'" (click)="assignType = 'role'; onTypeChange()">
-            <i-tabler name="id" class="icon-14 m-r-4"></i-tabler> Role
+            <i-tabler name="id" class="icon-14 m-r-4"></i-tabler> {{ 'taskAccountability.assignments.role' | translate }}
           </button>
           <button type="button" class="scope-btn" [class.active]="assignType === 'branch'" (click)="assignType = 'branch'; onTypeChange()">
-            <i-tabler name="building" class="icon-14 m-r-4"></i-tabler> Branch
+            <i-tabler name="building" class="icon-14 m-r-4"></i-tabler> {{ 'taskAccountability.templates.branch' | translate }}
           </button>
           <button type="button" class="scope-btn" [class.active]="assignType === 'employee'" (click)="assignType = 'employee'; onTypeChange()">
-            <i-tabler name="user" class="icon-14 m-r-4"></i-tabler> Employee
+            <i-tabler name="user" class="icon-14 m-r-4"></i-tabler> {{ 'taskAccountability.assignments.employee' | translate }}
           </button>
         </div>
       </div>
 
       <div class="form-group m-b-20">
-        <label *ngIf="assignType === 'role'">Target Role</label>
-        <label *ngIf="assignType === 'branch'">Target Branch</label>
-        <label *ngIf="assignType === 'employee'">Target Employee</label>
-        
+        <label *ngIf="assignType === 'role'">{{ 'taskAccountability.assignments.targetRole' | translate }}</label>
+        <label *ngIf="assignType === 'branch'">{{ 'taskAccountability.assignments.targetBranch' | translate }}</label>
+        <label *ngIf="assignType === 'employee'">{{ 'taskAccountability.assignments.targetEmployee' | translate }}</label>
+
         <select [(ngModel)]="targetName" class="form-select" *ngIf="assignType === 'role'">
           <option *ngFor="let r of rolesList" [value]="r">{{ r }}</option>
         </select>
-        
+
         <select [(ngModel)]="targetName" class="form-select" *ngIf="assignType === 'branch'">
           <option *ngFor="let b of branchesList" [value]="b">{{ b }}</option>
         </select>
-        
+
         <select [(ngModel)]="targetName" class="form-select" *ngIf="assignType === 'employee'">
           <option *ngFor="let e of employeesList" [value]="e">{{ e }}</option>
         </select>
       </div>
 
       <div class="form-group m-b-24">
-        <label>Effective Date</label>
+        <label>{{ 'taskAccountability.assignments.effectiveDate' | translate }}</label>
         <input type="date" [(ngModel)]="effectiveDate" class="form-input" />
       </div>
 
       <button mat-flat-button color="primary" class="premium-btn w-100" (click)="assignTemplate()">
         <i-tabler name="link" class="icon-16 m-r-8"></i-tabler>
-        Assign Template
+        {{ 'taskAccountability.assignments.assignTemplate' | translate }}
       </button>
     </div>
 
     <!-- Right Panel: Active Assignments Table -->
     <div class="list-card">
-      <h3 class="card-title m-b-20">Active Assignments</h3>
-      
+      <h3 class="card-title m-b-20">{{ 'taskAccountability.assignments.activeAssignments' | translate }}</h3>
+
       <div class="table-container">
         <ng-container *ngIf="(assignments$ | async) || [] as allAssignments">
           <app-data-table
             [columns]="assignmentsColumns"
             [rows]="allAssignments"
-            emptyMessage="No templates assigned yet. Fill out the assignment form to allocate responsibility."
+            [emptyMessage]="'taskAccountability.assignments.emptyState' | translate"
             exportFileName="template-assignments"
           >
           <ng-template appCellDef="templateName" let-assign="row"><span class="font-semibold">{{ assign.templateName }}</span></ng-template>
           <ng-template appCellDef="targetName" let-assign="row"><span class="target-chip">{{ assign.targetName }}</span></ng-template>
           <ng-template appCellDef="assignType" let-assign="row"><span class="type-badge" [class]="assign.assignType">{{ assign.assignType | uppercase }}</span></ng-template>
           <ng-template appCellDef="effectiveDate" let-assign="row">{{ assign.effectiveDate | date:'mediumDate' }}</ng-template>
-          <ng-template appCellDef="status" let-assign="row"><span class="status-dot-active"><span class="dot"></span> Active</span></ng-template>
+          <ng-template appCellDef="status" let-assign="row"><span class="status-dot-active"><span class="dot"></span> {{ 'common.active' | translate }}</span></ng-template>
           <ng-template appRowActions let-assign="row">
             <button mat-icon-button color="warn" (click)="removeAssignment(assign.id)">
               <i-tabler name="trash" class="icon-16"></i-tabler>

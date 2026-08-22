@@ -3,9 +3,10 @@ import { Router } from '@angular/router';
 import { TaskAccountabilityService } from '../../services/task-accountability.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { BranchNode, DayNode, EmployeeNode, PendingApproval } from '../../interfaces/accountability.interface';
+import { TranslateService } from '@ngx-translate/core';
 
 interface StageBadge {
-  text: string;
+  textKey: string;
   cssClass: string;
 }
 
@@ -14,10 +15,10 @@ interface PendingReviewRow extends PendingApproval {
 }
 
 const STAGE_BADGES: Record<string, StageBadge> = {
-  COMPLETED: { text: 'Awaiting Branch Partner (optional)', cssClass: 'badge-neutral' },
-  PARTNER_REVIEW: { text: 'Branch Partner approved', cssClass: 'badge-approved' },
-  MANAGER_REVIEW: { text: 'Manager approved', cssClass: 'badge-approved' },
-  ADMIN_VERIFIED: { text: 'Fully approved', cssClass: 'badge-approved' }
+  COMPLETED: { textKey: 'taskAccountability.pendingReview.awaitingBranchPartner', cssClass: 'badge-neutral' },
+  PARTNER_REVIEW: { textKey: 'taskAccountability.pendingReview.branchPartnerApproved', cssClass: 'badge-approved' },
+  MANAGER_REVIEW: { textKey: 'taskAccountability.pendingReview.managerApproved', cssClass: 'badge-approved' },
+  ADMIN_VERIFIED: { textKey: 'taskAccountability.pendingReview.fullyApproved', cssClass: 'badge-approved' }
 };
 
 @Component({
@@ -37,8 +38,15 @@ export class PendingReviewComponent implements OnInit {
   constructor(
     private service: TaskAccountabilityService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private translate: TranslateService
   ) {}
+
+  getBadgeText(item: PendingReviewRow): string {
+    return item.badge.textKey.startsWith('taskAccountability.')
+      ? this.translate.instant(item.badge.textKey)
+      : item.badge.textKey;
+  }
 
   ngOnInit(): void {
     const user = this.authService.currentUserValue;
@@ -59,7 +67,7 @@ export class PendingReviewComponent implements OnInit {
         this.rows = items.map(item => ({
           ...item,
           badge: STAGE_BADGES[(item.approvalStage || '').toString().toUpperCase().trim()]
-            || { text: this.formatStage(item.approvalStage), cssClass: 'badge-neutral' }
+            || { textKey: this.formatStage(item.approvalStage), cssClass: 'badge-neutral' }
         }));
         this.isLoading = false;
       },
@@ -73,7 +81,7 @@ export class PendingReviewComponent implements OnInit {
   }
 
   formatStage(stage?: string): string {
-    if (!stage) return 'Pending';
+    if (!stage) return this.translate.instant('taskAccountability.pendingReview.pending');
     return stage.toString().toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   }
 
@@ -81,7 +89,7 @@ export class PendingReviewComponent implements OnInit {
     if (!dateStr) return '';
     const dt = new Date(dateStr + 'T00:00:00');
     if (isNaN(dt.getTime())) return dateStr;
-    return dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    return dt.toLocaleDateString(this.translate.currentLang || 'en', { weekday: 'short', month: 'short', day: 'numeric' });
   }
 
   openItem(item: PendingReviewRow): void {

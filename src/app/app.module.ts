@@ -321,6 +321,11 @@ import { HomeComponent } from './features/home/home.component';
         provide: TranslateLoader,
         useClass: TranslateHttpLoader,
         },
+      // `fallbackLang` (not just `defaultLanguage`) is what makes ngx-translate serve the
+      // English string instead of the raw "SECTION.KEY" when a key is missing from the
+      // active language file — required so ru/ka (and any future partial locale) never
+      // show a raw translation key on screen.
+      fallbackLang: 'en',
       defaultLanguage: 'en',
     }),
     ServiceWorkerModule.register('ngsw-worker.js', {

@@ -4,6 +4,7 @@ import * as echarts from 'echarts';
 import { DashboardService } from '../../../core/services/dashboard.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { TableColumn } from '../../../shared/components/data-table/data-table.models';
+import { TranslateService } from '@ngx-translate/core';
 
 @Directive({
   selector: '[appAnimatedNumber]'
@@ -62,7 +63,8 @@ export class AdminDashboardComponent implements OnInit {
 
   constructor(
     private dashboardService: DashboardService,
-    private authService: AuthService
+    private authService: AuthService,
+    private translate: TranslateService
   ) { }
 
   ngOnInit(): void {
@@ -72,15 +74,18 @@ export class AdminDashboardComponent implements OnInit {
 
   private setGreeting(): void {
     const user = this.authService.currentUserValue;
+    let userName = this.translate.instant('common.user');
     if (user) {
-      this.userName = user.name || 'User';
+      userName = user.name || userName;
       const role = (user.role || '').toUpperCase().replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
       this.isCounsellor = (role === 'JUNIOR COUNSELLOR' || role === 'SENIOR COUNSELLOR');
     }
+    this.userName = userName;
     const hour = new Date().getHours();
-    if (hour < 12) this.greeting = 'Good morning';
-    else if (hour < 17) this.greeting = 'Good afternoon';
-    else this.greeting = 'Good evening';
+    const timeOfDay = hour < 12 ? this.translate.instant('common.timeOfDay.morning')
+      : hour < 17 ? this.translate.instant('common.timeOfDay.afternoon')
+      : this.translate.instant('common.timeOfDay.evening');
+    this.greeting = this.translate.instant('common.greetingWithName', { timeOfDay, name: userName });
   }
 
   onPeriodChange(event: Event): void {
@@ -626,10 +631,10 @@ export class AdminDashboardComponent implements OnInit {
 
   public topPayingEntities: any[] = [];
   public topPayingEntitiesColumns: TableColumn<any>[] = [
-    { key: 'entity', header: 'Entity', type: 'custom', exportValueFn: r => r.entity, filter: { type: 'text' } },
-    { key: 'type', header: 'Type', type: 'custom', exportValueFn: r => r.type, filter: { type: 'text' } },
-    { key: 'amount', header: 'Amount / Status', type: 'custom', exportValueFn: r => `${r.amount} (${r.status})`, filter: { type: 'text' } },
-    { key: 'last', header: 'Last', type: 'custom', align: 'right', exportValueFn: r => r.last, filter: { type: 'text' } },
+    { key: 'entity', header: this.translate.instant('adminDashboard.entity'), type: 'custom', exportValueFn: r => r.entity, filter: { type: 'text' } },
+    { key: 'type', header: this.translate.instant('adminDashboard.type'), type: 'custom', exportValueFn: r => r.type, filter: { type: 'text' } },
+    { key: 'amount', header: this.translate.instant('adminDashboard.amountStatus'), type: 'custom', exportValueFn: r => `${r.amount} (${r.status})`, filter: { type: 'text' } },
+    { key: 'last', header: this.translate.instant('adminDashboard.last'), type: 'custom', align: 'right', exportValueFn: r => r.last, filter: { type: 'text' } },
   ];
   public openDisputes: any[] = [];
 
@@ -662,11 +667,11 @@ export class AdminDashboardComponent implements OnInit {
 
   public overdueTasks: any[] = [];
   public overdueTasksColumns: TableColumn<any>[] = [
-    { key: 'task', header: 'Task', type: 'custom', exportValueFn: r => r.task, filter: { type: 'text' } },
-    { key: 'assignee', header: 'Assignee', type: 'custom', exportValueFn: r => r.assignee, filter: { type: 'text' } },
-    { key: 'due', header: 'Due', type: 'custom', exportValueFn: r => r.due, filter: { type: 'text' } },
-    { key: 'priority', header: 'Priority', type: 'custom', exportValueFn: r => r.priority, filter: { type: 'text' } },
-    { key: 'late', header: 'Late', type: 'custom', align: 'right', exportValueFn: r => r.late, filter: { type: 'text' } },
+    { key: 'task', header: this.translate.instant('taskAccountability.taskTable.colTask'), type: 'custom', exportValueFn: r => r.task, filter: { type: 'text' } },
+    { key: 'assignee', header: this.translate.instant('adminDashboard.assignee'), type: 'custom', exportValueFn: r => r.assignee, filter: { type: 'text' } },
+    { key: 'due', header: this.translate.instant('taskAccountability.taskDetails.due'), type: 'custom', exportValueFn: r => r.due, filter: { type: 'text' } },
+    { key: 'priority', header: this.translate.instant('taskAccountability.taskTable.colPriority'), type: 'custom', exportValueFn: r => r.priority, filter: { type: 'text' } },
+    { key: 'late', header: this.translate.instant('adminDashboard.late'), type: 'custom', align: 'right', exportValueFn: r => r.late, filter: { type: 'text' } },
   ];
   public workload: any[] = [];
 
@@ -679,13 +684,13 @@ export class AdminDashboardComponent implements OnInit {
 
   public branchPerformance: any[] = [];
   public branchPerformanceColumns: TableColumn<any>[] = [
-    { key: 'branch', header: 'Branch', type: 'custom', exportValueFn: r => r.branch, filter: { type: 'text' } },
-    { key: 'students', header: 'Students', type: 'custom', align: 'center', exportValueFn: r => r.students, filter: { type: 'number-range', getValue: r => r.students } },
-    { key: 'active', header: 'Active', type: 'custom', align: 'center', exportValueFn: r => r.active, filter: { type: 'number-range', getValue: r => r.active } },
-    { key: 'revenue', header: 'Revenue', type: 'custom', align: 'center', exportValueFn: r => r.revenue, filter: { type: 'text' } },
-    { key: 'tasks', header: 'Tasks', type: 'custom', align: 'center', exportValueFn: r => r.tasks, filter: { type: 'number-range', getValue: r => r.tasks } },
-    { key: 'team', header: 'Team', type: 'custom', align: 'center', exportValueFn: r => r.team, filter: { type: 'number-range', getValue: r => r.team } },
-    { key: 'health', header: 'Health', type: 'custom', maxWidth: '220px', exportValueFn: r => `${r.health}%`, filter: { type: 'number-range', getValue: r => r.health } },
+    { key: 'branch', header: this.translate.instant('adminDashboard.branch'), type: 'custom', exportValueFn: r => r.branch, filter: { type: 'text' } },
+    { key: 'students', header: this.translate.instant('adminDashboard.studentsCol'), type: 'custom', align: 'center', exportValueFn: r => r.students, filter: { type: 'number-range', getValue: r => r.students } },
+    { key: 'active', header: this.translate.instant('common.active'), type: 'custom', align: 'center', exportValueFn: r => r.active, filter: { type: 'number-range', getValue: r => r.active } },
+    { key: 'revenue', header: this.translate.instant('adminDashboard.revenue'), type: 'custom', align: 'center', exportValueFn: r => r.revenue, filter: { type: 'text' } },
+    { key: 'tasks', header: this.translate.instant('nav.tasks'), type: 'custom', align: 'center', exportValueFn: r => r.tasks, filter: { type: 'number-range', getValue: r => r.tasks } },
+    { key: 'team', header: this.translate.instant('adminDashboard.team'), type: 'custom', align: 'center', exportValueFn: r => r.team, filter: { type: 'number-range', getValue: r => r.team } },
+    { key: 'health', header: this.translate.instant('adminDashboard.health'), type: 'custom', maxWidth: '220px', exportValueFn: r => `${r.health}%`, filter: { type: 'number-range', getValue: r => r.health } },
   ];
 
   // --- SECTION 06: REFERRALS & PARTNERS ---
@@ -710,20 +715,20 @@ export class AdminDashboardComponent implements OnInit {
   public topReferrers: any[] = [];
   public topReferrersColumns: TableColumn<any>[] = [
     { key: 'rank', header: '#', type: 'custom', exportValueFn: r => r.rank },
-    { key: 'partner', header: 'Partner', type: 'custom', exportValueFn: r => r.partner, filter: { type: 'text' } },
-    { key: 'type', header: 'Type', type: 'custom', exportValueFn: r => r.type, filter: { type: 'text' } },
-    { key: 'students', header: 'Students', type: 'custom', align: 'center', exportValueFn: r => r.students, filter: { type: 'number-range', getValue: r => r.students } },
-    { key: 'commission', header: 'Commission', type: 'custom', align: 'right', exportValueFn: r => r.commission, filter: { type: 'text' } },
-    { key: 'share', header: 'Share', type: 'custom', maxWidth: '220px', exportValueFn: r => `${r.share}%`, filter: { type: 'number-range', getValue: r => r.share } },
+    { key: 'partner', header: this.translate.instant('adminDashboard.partner'), type: 'custom', exportValueFn: r => r.partner, filter: { type: 'text' } },
+    { key: 'type', header: this.translate.instant('adminDashboard.type'), type: 'custom', exportValueFn: r => r.type, filter: { type: 'text' } },
+    { key: 'students', header: this.translate.instant('adminDashboard.studentsCol'), type: 'custom', align: 'center', exportValueFn: r => r.students, filter: { type: 'number-range', getValue: r => r.students } },
+    { key: 'commission', header: this.translate.instant('adminDashboard.commission'), type: 'custom', align: 'right', exportValueFn: r => r.commission, filter: { type: 'text' } },
+    { key: 'share', header: this.translate.instant('adminDashboard.share'), type: 'custom', maxWidth: '220px', exportValueFn: r => `${r.share}%`, filter: { type: 'number-range', getValue: r => r.share } },
   ];
   // --- SECTION 07: AUDIT & ACTIVITY ---
   public auditLog: any[] = [];
   public auditLogColumns: TableColumn<any>[] = [
-    { key: 'time', header: 'Time', type: 'custom', exportValueFn: r => r.time, filter: { type: 'text' } },
-    { key: 'action', header: 'Action', type: 'custom', exportValueFn: r => r.action, filter: { type: 'text' } },
-    { key: 'entity', header: 'Entity', type: 'custom', exportValueFn: r => r.entity, filter: { type: 'text' } },
-    { key: 'actor', header: 'Actor', type: 'custom', exportValueFn: r => r.actor, filter: { type: 'text' } },
-    { key: 'change', header: 'Change', type: 'custom', exportValueFn: r => r.change, filter: { type: 'text' } },
+    { key: 'time', header: this.translate.instant('adminDashboard.time'), type: 'custom', exportValueFn: r => r.time, filter: { type: 'text' } },
+    { key: 'action', header: this.translate.instant('adminDashboard.action'), type: 'custom', exportValueFn: r => r.action, filter: { type: 'text' } },
+    { key: 'entity', header: this.translate.instant('adminDashboard.entity'), type: 'custom', exportValueFn: r => r.entity, filter: { type: 'text' } },
+    { key: 'actor', header: this.translate.instant('adminDashboard.actor'), type: 'custom', exportValueFn: r => r.actor, filter: { type: 'text' } },
+    { key: 'change', header: this.translate.instant('adminDashboard.change'), type: 'custom', exportValueFn: r => r.change, filter: { type: 'text' } },
   ];
   public activityFeed: any[] = [];
 }

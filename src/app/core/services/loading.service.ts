@@ -11,19 +11,21 @@ export class LoadingService {
 
   show(): void {
     this.activeRequests++;
-    this.loadingSubject.next(true);
+    // Defer emission to the next microtask to avoid NG0100
+    // ExpressionChangedAfterItHasBeenCheckedError when called during change detection.
+    Promise.resolve().then(() => this.loadingSubject.next(true));
   }
 
   hide(): void {
     this.activeRequests--;
     if (this.activeRequests <= 0) {
       this.activeRequests = 0;
-      this.loadingSubject.next(false);
+      Promise.resolve().then(() => this.loadingSubject.next(false));
     }
   }
 
   forceHide(): void {
     this.activeRequests = 0;
-    this.loadingSubject.next(false);
+    Promise.resolve().then(() => this.loadingSubject.next(false));
   }
 }

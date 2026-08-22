@@ -4,16 +4,16 @@
     <div class="toolbar-left">
       <button class="tool-btn" (click)="toggleSortByPriority()" [class.active-filter]="currentSort === 'priority'">
         <i-tabler name="arrows-sort" class="tool-icon"></i-tabler>
-        Sort by Priority
+        {{ 'taskAccountability.taskTable.sortByPriority' | translate }}
       </button>
       <button class="tool-btn" (click)="toggleGroupByStatus()" [class.active-filter]="currentGroup === 'status'">
         <i-tabler name="chart-bubble" class="tool-icon"></i-tabler>
-        Group by Status
+        {{ 'taskAccountability.taskTable.groupByStatus' | translate }}
       </button>
     </div>
-    
+
     <div class="toolbar-right">
-      <span class="task-count-text">{{ tasks.length }} of {{ tasks.length }} tasks</span>
+      <span class="task-count-text">{{ 'taskAccountability.taskTable.taskCount' | translate:{ count: tasks.length, total: tasks.length } }}</span>
     </div>
   </div>
 
@@ -22,12 +22,12 @@
     <table class="clickup-table">
       <thead>
         <tr>
-          <th class="col-task-name">TASK</th>
-          <th class="col-priority">PRIORITY</th>
-          <th class="col-status">STATUS</th>
-          <th class="col-current-step">CURRENT STEP</th>
-          <th class="col-next-step">NEXT STEP</th>
-          <th class="col-comment">COMMENT</th>
+          <th class="col-task-name">{{ 'taskAccountability.taskTable.colTask' | translate }}</th>
+          <th class="col-priority">{{ 'taskAccountability.taskTable.colPriority' | translate }}</th>
+          <th class="col-status">{{ 'taskAccountability.taskTable.colStatus' | translate }}</th>
+          <th class="col-current-step">{{ 'taskAccountability.taskTable.colCurrentStep' | translate }}</th>
+          <th class="col-next-step">{{ 'taskAccountability.taskTable.colNextStep' | translate }}</th>
+          <th class="col-comment">{{ 'taskAccountability.taskTable.colComment' | translate }}</th>
         </tr>
       </thead>
       <tbody>
@@ -36,8 +36,8 @@
             <tr class="status-group-header-row">
               <td colspan="6">
                 <div class="status-group-title">
-                  <span class="status-badge" [ngClass]="group.statusClass">{{ group.statusName }}</span>
-                  <span class="group-count-tag">{{ group.count }} {{ group.count === 1 ? 'task' : 'tasks' }}</span>
+                  <span class="status-badge" [ngClass]="group.statusClass">{{ formatStatusLabel(group.statusName) }}</span>
+                  <span class="group-count-tag">{{ (group.count === 1 ? 'taskAccountability.taskTable.taskSingular' : 'taskAccountability.taskTable.taskPlural') | translate:{ count: group.count } }}</span>
                 </div>
               </td>
             </tr>
@@ -55,7 +55,7 @@
                   </span>
                   <div class="task-name-col">
                     <span class="task-name-text">{{ task.name }}</span>
-                    <span class="carried-over-badge" *ngIf="task.carriedOver" [title]="'Carried over - not one of today\'s own tasks'">
+                    <span class="carried-over-badge" *ngIf="task.carriedOver" [title]="'taskAccountability.taskTable.carriedOverTooltip' | translate">
                       <i-tabler name="history" class="carried-badge-icon"></i-tabler>
                       {{ getCarriedOverBadgeLabel(task) }}
                     </span>
@@ -68,27 +68,27 @@
                 <!-- Read-only for non-reviewer roles -->
                 <span class="priority-badge" *ngIf="!isReviewerRole" [ngClass]="getPriorityColorClass(task.priority)">
                   <i-tabler name="flag" class="priority-icon"></i-tabler>
-                  {{ task.priority }}
+                  {{ getPriorityLabel(task.priority) }}
                 </span>
 
                 <!-- Interactive dropdown for reviewer roles -->
                 <button class="priority-badge priority-badge-btn" *ngIf="isReviewerRole" [ngClass]="getPriorityColorClass(task.priority)" [matMenuTriggerFor]="priorityMenu">
                   <i-tabler name="flag" class="priority-icon"></i-tabler>
-                  {{ task.priority }}
+                  {{ getPriorityLabel(task.priority) }}
                   <i-tabler name="chevron-down" class="icon-12 ml-1"></i-tabler>
                 </button>
                 <mat-menu #priorityMenu="matMenu" class="status-options-menu">
                   <button mat-menu-item (click)="changePriority(task, 'URGENT', $event)">
-                    <span class="priority-badge" [ngClass]="getPriorityColorClass('URGENT')"><i-tabler name="flag" class="priority-icon"></i-tabler> Urgent</span>
+                    <span class="priority-badge" [ngClass]="getPriorityColorClass('URGENT')"><i-tabler name="flag" class="priority-icon"></i-tabler> {{ 'common.priority.urgent' | translate }}</span>
                   </button>
                   <button mat-menu-item (click)="changePriority(task, 'HIGH', $event)">
-                    <span class="priority-badge" [ngClass]="getPriorityColorClass('HIGH')"><i-tabler name="flag" class="priority-icon"></i-tabler> High</span>
+                    <span class="priority-badge" [ngClass]="getPriorityColorClass('HIGH')"><i-tabler name="flag" class="priority-icon"></i-tabler> {{ 'common.priority.high' | translate }}</span>
                   </button>
                   <button mat-menu-item (click)="changePriority(task, 'MEDIUM', $event)">
-                    <span class="priority-badge" [ngClass]="getPriorityColorClass('MEDIUM')"><i-tabler name="flag" class="priority-icon"></i-tabler> Medium</span>
+                    <span class="priority-badge" [ngClass]="getPriorityColorClass('MEDIUM')"><i-tabler name="flag" class="priority-icon"></i-tabler> {{ 'common.priority.medium' | translate }}</span>
                   </button>
                   <button mat-menu-item (click)="changePriority(task, 'LOW', $event)">
-                    <span class="priority-badge" [ngClass]="getPriorityColorClass('LOW')"><i-tabler name="flag" class="priority-icon"></i-tabler> Low</span>
+                    <span class="priority-badge" [ngClass]="getPriorityColorClass('LOW')"><i-tabler name="flag" class="priority-icon"></i-tabler> {{ 'common.priority.low' | translate }}</span>
                   </button>
                 </mat-menu>
               </td>
@@ -126,7 +126,7 @@
                       *ngFor="let st of statusesList" 
                       (click)="changeTaskStatus(task, st.value, $event)"
                     >
-                      <span class="status-badge" [ngClass]="getStatusColorClass(st.value)">{{ st.label }}</span>
+                      <span class="status-badge" [ngClass]="getStatusColorClass(st.value)">{{ formatStatusLabel(st.value) }}</span>
                     </button>
                   </ng-template>
                 </mat-menu>
@@ -162,7 +162,7 @@
                   </span>
                   <div class="reflect-reason-note" *ngIf="task.status === 'REFLECT'">
                     <i-tabler name="alert-circle" class="icon-12 text-warn"></i-tabler>
-                    Flagged by {{ task.reflectFlaggedByName || 'Reviewer' }}: "{{ task.reflectComment || task.comment || 'Needs rework' }}"
+                    {{ getFlaggedByText(task) }}
                   </div>
                 </div>
               </td>
@@ -192,13 +192,13 @@
               <!-- Read-only for non-reviewer roles -->
               <span class="priority-badge" *ngIf="!isReviewerRole" [ngClass]="getPriorityColorClass(task.priority)">
                 <i-tabler name="flag" class="priority-icon"></i-tabler>
-                {{ task.priority }}
+                {{ getPriorityLabel(task.priority) }}
               </span>
 
               <!-- Interactive dropdown for reviewer roles -->
               <button class="priority-badge priority-badge-btn" *ngIf="isReviewerRole" [ngClass]="getPriorityColorClass(task.priority)" [matMenuTriggerFor]="flatPriorityMenu">
                 <i-tabler name="flag" class="priority-icon"></i-tabler>
-                {{ task.priority }}
+                {{ getPriorityLabel(task.priority) }}
                 <i-tabler name="chevron-down" class="icon-12 ml-1"></i-tabler>
               </button>
               <mat-menu #flatPriorityMenu="matMenu" class="status-options-menu">
@@ -241,7 +241,7 @@
                 <ng-container *ngIf="isReflectTask(task) && canResubmitTask; else normalFlatMenu">
                   <button mat-menu-item (click)="resubmitTask(task, $event)">
                     <i-tabler name="send" class="icon-14 text-primary mr-2"></i-tabler>
-                    <span><strong>Resubmit for review</strong></span>
+                    <span><strong>{{ 'taskAccountability.taskTable.resubmitForReview' | translate }}</strong></span>
                   </button>
                 </ng-container>
                 <ng-template #normalFlatMenu>
@@ -262,7 +262,7 @@
                 {{ task.currentStep }}
               </span>
               <span class="reflect-pill-tag" *ngIf="!task.currentStep && task.status === 'REFLECT'">
-                Returned for rework
+                {{ 'taskAccountability.taskTable.returnedForRework' | translate }}
               </span>
               <span class="no-step-text" *ngIf="!task.currentStep && task.status !== 'REFLECT'">—</span>
             </td>
@@ -273,7 +273,7 @@
                 {{ task.nextStep }}
               </span>
               <span class="resubmitted-pill-tag" *ngIf="!task.nextStep && task.reflectState === 'RESUBMITTED'">
-                Awaiting re-review
+                {{ 'taskAccountability.taskTable.awaitingReReview' | translate }}
               </span>
               <span class="no-step-text" *ngIf="!task.nextStep && task.reflectState !== 'RESUBMITTED'">—</span>
             </td>
@@ -291,8 +291,8 @@
           <td colspan="6" class="empty-table-row">
             <div class="empty-state-container">
               <i-tabler name="clipboard-off" class="empty-state-icon"></i-tabler>
-              <h4 class="empty-state-title">No data found</h4>
-              <p class="empty-state-subtitle">No tasks found for this selected day.</p>
+              <h4 class="empty-state-title">{{ 'taskAccountability.taskTable.noDataFound' | translate }}</h4>
+              <p class="empty-state-subtitle">{{ 'taskAccountability.taskTable.noTasksForDay' | translate }}</p>
             </div>
           </td>
         </tr>

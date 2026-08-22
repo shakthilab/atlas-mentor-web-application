@@ -7,6 +7,7 @@ import { StudentService, Payout } from '../../../core/services/student.service';
 import { PaymentDetailsDialogComponent } from './payment-details-dialog/payment-details-dialog.component';
 import { TableColumn } from '../data-table/data-table.models';
 import { createSearchPredicate, encodeSearch } from '../data-table/table-filter.util';
+import { TranslateService } from '@ngx-translate/core';
 
 export interface Payment {
   id: number;
@@ -40,28 +41,28 @@ export interface Payment {
       <mat-card class="cardWithShadow">
         <mat-card-header class="d-flex align-items-center justify-content-between p-x-24 p-y-16">
           <mat-card-title>
-            <h5 class="mat-headline-6 f-w-600 m-b-0">Payments Directory</h5>
+            <h5 class="mat-headline-6 f-w-600 m-b-0">{{ 'payments.title' | translate }}</h5>
           </mat-card-title>
           <div class="header-actions d-flex align-items-center gap-12">
             <div class="search-box flex-1-auto">
               <i-tabler name="search" class="icon-16 search-icon"></i-tabler>
-              <input (keyup)="applyFilter($event)" placeholder="Search payments..." class="search-input" />
+              <input (keyup)="applyFilter($event)" [placeholder]="'payments.searchPlaceholder' | translate" class="search-input" />
             </div>
             <div class="view-mode-toggle d-flex align-items-center">
-              <button (click)="viewMode = 'table'" class="toggle-btn" [class.active]="viewMode === 'table'" title="List view">
+              <button (click)="viewMode = 'table'" class="toggle-btn" [class.active]="viewMode === 'table'" [title]="'leads.listView' | translate">
                 <i-tabler name="list" class="icon-18"></i-tabler>
               </button>
-              <button (click)="viewMode = 'card'" class="toggle-btn" [class.active]="viewMode === 'card'" title="Card view">
+              <button (click)="viewMode = 'card'" class="toggle-btn" [class.active]="viewMode === 'card'" [title]="'leads.cardView' | translate">
                 <i-tabler name="layout-grid" class="icon-18"></i-tabler>
               </button>
             </div>
             <button mat-flat-button color="primary" class="d-flex align-items-center add-btn desktop-add-btn" (click)="addPayment()">
               <i-tabler name="plus" class="icon-18 m-r-4"></i-tabler>
-              <span class="add-btn-text">Add Payment</span>
+              <span class="add-btn-text">{{ 'payments.addPayment' | translate }}</span>
             </button>
           </div>
         </mat-card-header>
-        
+
         <mat-card-content class="p-0">
           <div *ngIf="viewMode === 'table'" class="view-container">
             <app-data-table
@@ -87,16 +88,16 @@ export interface Payment {
                 <mat-menu #menu="matMenu" class="cardWithShadow">
                   <button mat-menu-item (click)="viewDetails(element)">
                     <i-tabler name="eye" class="icon-16 m-r-8"></i-tabler>
-                    <span>View details</span>
+                    <span>{{ 'leads.viewDetails' | translate }}</span>
                   </button>
                   <button mat-menu-item (click)="editPayment(element)">
                     <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
-                    <span>Edit payment</span>
+                    <span>{{ 'payments.editPayment' | translate }}</span>
                   </button>
                   <mat-divider></mat-divider>
                   <button mat-menu-item class="text-danger" (click)="deletePayment(element)">
                     <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
-                    <span>Delete</span>
+                    <span>{{ 'common.delete' | translate }}</span>
                   </button>
                 </mat-menu>
               </ng-template>
@@ -120,31 +121,31 @@ export interface Payment {
                     <mat-menu #cardMenu="matMenu" class="cardWithShadow">
                       <button mat-menu-item (click)="viewDetails(element)">
                         <i-tabler name="eye" class="icon-16 m-r-8"></i-tabler>
-                        <span>View details</span>
+                        <span>{{ 'leads.viewDetails' | translate }}</span>
                       </button>
                       <button mat-menu-item (click)="editPayment(element)">
                         <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
-                        <span>Edit payment</span>
+                        <span>{{ 'payments.editPayment' | translate }}</span>
                       </button>
                       <mat-divider></mat-divider>
                       <button mat-menu-item class="text-danger" (click)="deletePayment(element)">
                         <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
-                        <span>Delete</span>
+                        <span>{{ 'common.delete' | translate }}</span>
                       </button>
                     </mat-menu>
                   </div>
                 </div>
-                
+
                 <div class="d-flex align-items-center justify-content-between m-b-12">
-                  <span class="f-s-13 text-muted">Paid: <span class="text-dark f-w-500">{{ element.paid }}</span></span>
-                  <span class="f-s-13 text-muted">Balance: <span class="text-dark f-w-500">{{ element.balance }}</span></span>
+                  <span class="f-s-13 text-muted">{{ 'payments.colPaid' | translate }}: <span class="text-dark f-w-500">{{ element.paid }}</span></span>
+                  <span class="f-s-13 text-muted">{{ 'payments.colBalance' | translate }}: <span class="text-dark f-w-500">{{ element.balance }}</span></span>
                 </div>
-                
+
                 <div class="d-flex align-items-center justify-content-between m-b-16">
                   <span class="status-badge" [ngClass]="element.paymentStatus">{{ element.paymentStatus | titlecase }}</span>
                   <span class="status-badge" [ngClass]="element.approval">{{ element.approval | titlecase }}</span>
                 </div>
-                
+
                 <mat-divider class="m-b-12"></mat-divider>
                 <div class="d-flex align-items-center justify-content-between text-muted f-s-12">
                   <span class="d-flex align-items-center"><img [src]="element.assignedAvatar" class="rounded-circle m-r-4 object-cover" width="16" height="16" /> {{ element.assigned }}</span>
@@ -158,7 +159,7 @@ export interface Payment {
                          [pageSize]="pageSize"
                          [pageSizeOptions]="[5, 10, 15]"
                          (page)="pageChanged($event)"
-                         showFirstLastButtons 
+                         showFirstLastButtons
                          class="p-y-12">
           </mat-paginator>
         </mat-card-content>
@@ -166,7 +167,7 @@ export interface Payment {
     </div>
 
     <!-- Mobile FAB -->
-    <button mat-fab color="primary" class="payment-mobile-fab" (click)="addPayment()" aria-label="Add Payment">
+    <button mat-fab color="primary" class="payment-mobile-fab" (click)="addPayment()" [attr.aria-label]="'payments.addPayment' | translate">
       <i-tabler name="plus" class="icon-24"></i-tabler>
     </button>
   `,
@@ -345,7 +346,8 @@ export class PaymentsComponent implements OnInit, AfterViewInit {
   constructor(
     private notificationService: NotificationService,
     private studentService: StudentService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private translate: TranslateService
   ) {
     this.dataSource.filterPredicate = createSearchPredicate();
   }
@@ -369,7 +371,7 @@ export class PaymentsComponent implements OnInit, AfterViewInit {
       },
       error: (err) => {
         console.error('Error fetching payments:', err);
-        this.notificationService.showErrorToast('Failed to load payments.', 'Error');
+        this.notificationService.showErrorToast(this.translate.instant('payments.toast.loadFailed'), this.translate.instant('employees.toast.errorTitle'));
       }
     });
   }
@@ -454,7 +456,7 @@ export class PaymentsComponent implements OnInit, AfterViewInit {
   }
 
   addPayment(): void {
-    this.notificationService.showSuccessToast('Payment created successfully.', 'Success');
+    this.notificationService.showSuccessToast(this.translate.instant('payments.toast.created'), this.translate.instant('common.success'));
   }
 
   viewDetails(payment: Payment): void {
@@ -466,10 +468,10 @@ export class PaymentsComponent implements OnInit, AfterViewInit {
   }
 
   editPayment(payment: Payment): void {
-    this.notificationService.showSuccessToast(`Updates saved for ${payment.studentName}.`, 'Saved');
+    this.notificationService.showSuccessToast(this.translate.instant('payments.toast.updatesSaved', { name: payment.studentName }), this.translate.instant('payments.toast.savedTitle'));
   }
 
   deletePayment(payment: Payment): void {
-    this.notificationService.showErrorToast(`Payment for ${payment.studentName} deleted.`, 'Deleted');
+    this.notificationService.showErrorToast(this.translate.instant('payments.toast.deleted', { name: payment.studentName }), this.translate.instant('leads.toast.deleted'));
   }
 }

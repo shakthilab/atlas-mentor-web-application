@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { NotificationService } from 'src/app/core/services/notification.service';
 import { HierarchyService } from 'src/app/core/services/hierarchy.service';
+import { TranslateService } from '@ngx-translate/core';
 
 export interface AssignDialogData {
   managerId: string;
@@ -31,7 +32,8 @@ export class HierarchyAssignDialogComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: AssignDialogData,
     private fb: FormBuilder,
     private hierarchyService: HierarchyService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private translate: TranslateService
   ) {
     this.assignForm = this.fb.group({
       roleId: ['', Validators.required]
@@ -78,7 +80,7 @@ export class HierarchyAssignDialogComponent implements OnInit {
       },
       error: (err) => {
         console.error(err);
-        this.notificationService.showErrorToast('Failed to load roles.');
+        this.notificationService.showErrorToast(this.translate.instant('hierarchy.toast.loadRolesFailed'));
         this.isLoadingRoles = false;
       }
     });
@@ -86,7 +88,7 @@ export class HierarchyAssignDialogComponent implements OnInit {
 
   loadCandidates(roleName: string): void {
     if (!this.data.branchId) {
-      this.notificationService.showErrorToast('Manager branch ID is missing.');
+      this.notificationService.showErrorToast(this.translate.instant('hierarchy.toast.missingBranchId'));
       return;
     }
     this.isLoadingCandidates = true;
@@ -97,7 +99,7 @@ export class HierarchyAssignDialogComponent implements OnInit {
       },
       error: (err) => {
         console.error(err);
-        this.notificationService.showErrorToast(`Failed to load candidates for ${roleName}.`);
+        this.notificationService.showErrorToast(this.translate.instant('hierarchy.toast.loadCandidatesFailed', { role: roleName }));
         this.candidates = [];
         this.isLoadingCandidates = false;
       }
@@ -131,12 +133,12 @@ export class HierarchyAssignDialogComponent implements OnInit {
 
       this.hierarchyService.assignJuniorCounsellors(payload).subscribe({
         next: () => {
-          this.notificationService.showSuccessToast(`Successfully mapped ${this.selectedCandidates.size} employees.`);
+          this.notificationService.showSuccessToast(this.translate.instant('hierarchy.toast.mappedSuccess', { count: this.selectedCandidates.size }));
           this.dialogRef.close(true);
         },
         error: (err) => {
           console.error(err);
-          this.notificationService.showErrorToast('Failed to assign employees.');
+          this.notificationService.showErrorToast(this.translate.instant('hierarchy.toast.assignFailed'));
           this.isSubmitting = false;
         }
       });
@@ -149,12 +151,12 @@ export class HierarchyAssignDialogComponent implements OnInit {
 
       this.hierarchyService.assignEmployeeByRoles(payload).subscribe({
         next: () => {
-          this.notificationService.showSuccessToast(`Successfully mapped ${this.selectedCandidates.size} employees.`);
+          this.notificationService.showSuccessToast(this.translate.instant('hierarchy.toast.mappedSuccess', { count: this.selectedCandidates.size }));
           this.dialogRef.close(true);
         },
         error: (err) => {
           console.error(err);
-          this.notificationService.showErrorToast('Failed to assign employees.');
+          this.notificationService.showErrorToast(this.translate.instant('hierarchy.toast.assignFailed'));
           this.isSubmitting = false;
         }
       });

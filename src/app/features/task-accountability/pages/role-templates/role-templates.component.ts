@@ -3,6 +3,7 @@ import { TaskAccountabilityService } from '../../services/task-accountability.se
 import { RoleTemplate, TemplateMonth, TemplateDay, TemplateQuestion, EmployeeNode, TemplateTask } from '../../interfaces/accountability.interface';
 import { Observable } from 'rxjs';
 import { MasterDataService } from '../../../../core/services/master-data.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-role-templates',
@@ -27,7 +28,9 @@ export class RoleTemplatesComponent implements OnInit {
   newTaskTitle = '';
   newTaskDescription = '';
   newTaskPriority = 'MEDIUM';
-  pastDayTooltip = "Can't add tasks to past days";
+  get pastDayTooltip(): string {
+    return this.t('taskAccountability.templates.cantAddPastDay');
+  }
   toastMessage = '';
   showDuplicateDayModal = false;
   selectedTargetDaysForDuplication = new Set<number>();
@@ -91,9 +94,22 @@ export class RoleTemplatesComponent implements OnInit {
 
   constructor(
     private service: TaskAccountabilityService,
-    private masterDataService: MasterDataService
+    private masterDataService: MasterDataService,
+    private translate: TranslateService
   ) {
     this.templates$ = this.service.templates$;
+  }
+
+  private t(key: string, params?: object): string {
+    return this.translate.instant(key, params);
+  }
+
+  getTemplateStatusLabel(temp: RoleTemplate): string {
+    const status = ((temp as any).status || (temp.active ? 'ACTIVE' : 'DRAFT')).toUpperCase();
+    if (status === 'ACTIVE') return this.t('common.active');
+    if (status === 'DRAFT') return this.t('taskAccountability.templates.draft');
+    if (status === 'INACTIVE') return this.t('common.inactive');
+    return status;
   }
 
   ngOnInit(): void {
@@ -401,7 +417,7 @@ export class RoleTemplatesComponent implements OnInit {
     );
 
     this.closePublishModal();
-    alert('Success: Role template has been published to employee workspace!');
+    alert(this.t('taskAccountability.templates.toast.publishedToWorkspace'));
   }
 
   // Month actions
@@ -483,7 +499,7 @@ export class RoleTemplatesComponent implements OnInit {
     if (templateId && templateId !== '' && !templateId.startsWith('temp-') && deletedTask && deletedTask.id && !deletedTask.id.startsWith('t-')) {
       this.service.deleteTaskApi(templateId, dayNumber, deletedTask.id).subscribe({
         next: () => {
-          this.showToast('Task deleted successfully');
+          this.showToast(this.t('taskAccountability.templates.toast.taskDeleted'));
           // Call GET API to update UI with latest server state
           this.service.getRoleTemplateByIdApi(templateId).subscribe(updatedTemplate => {
             if (updatedTemplate && this.editingTemplate) {
@@ -498,11 +514,11 @@ export class RoleTemplatesComponent implements OnInit {
         },
         error: (err) => {
           console.error('Failed to delete task via API:', err);
-          this.showToast('Failed to delete task via server.');
+          this.showToast(this.t('taskAccountability.templates.toast.taskDeleteFailed'));
         }
       });
     } else {
-      this.showToast('Task deleted successfully');
+      this.showToast(this.t('taskAccountability.templates.toast.taskDeleted'));
     }
   }
 
@@ -889,7 +905,7 @@ export class RoleTemplatesComponent implements OnInit {
     const executeAddTaskApi = (tempId: string | number) => {
       this.service.addTaskApi(tempId, dayNumber, taskPayload).subscribe({
         next: () => {
-          this.showToast('Task added successfully via API!');
+          this.showToast(this.t('taskAccountability.templates.toast.taskAdded'));
           // Call GET API to update UI with latest server data
           this.service.getRoleTemplateByIdApi(tempId).subscribe(updatedTemplate => {
             if (updatedTemplate && this.editingTemplate) {
@@ -922,7 +938,7 @@ export class RoleTemplatesComponent implements OnInit {
             expectedOutput: ''
           };
           day.tasks.push(newTask);
-          this.showToast('Task added locally.');
+          this.showToast(this.t('taskAccountability.templates.toast.taskAddedLocally'));
         }
       });
     };
@@ -996,7 +1012,7 @@ export class RoleTemplatesComponent implements OnInit {
       });
     } else {
       // Template has no name specified yet
-      this.showToast('Please enter a Template name before adding tasks.');
+      this.showToast(this.t('taskAccountability.templates.toast.enterNameFirst'));
       const newTask: TemplateTask = {
         id: `t-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
         name: title,
@@ -1025,7 +1041,7 @@ export class RoleTemplatesComponent implements OnInit {
   openDuplicateDayModal(): void {
     const day = this.getSelectedDay();
     if (!day || day.tasks.length === 0) {
-      this.showToast('No tasks to duplicate on this day.');
+      this.showToast(this.t('taskAccountability.templates.toast.noTasksToDuplicateDay'));
       return;
     }
     this.selectedTargetDaysForDuplication.clear();
@@ -1062,13 +1078,13 @@ export class RoleTemplatesComponent implements OnInit {
   confirmDuplicateDayToSelected(): void {
     const sourceDay = this.getSelectedDay();
     if (!sourceDay || sourceDay.tasks.length === 0) {
-      this.showToast('No tasks to duplicate in this day.');
+      this.showToast(this.t('taskAccountability.templates.toast.noTasksToDuplicateDay'));
       this.closeDuplicateDayModal();
       return;
     }
 
     if (this.selectedTargetDaysForDuplication.size === 0) {
-      this.showToast('Please select at least one target day.');
+      this.showToast(this.t('taskAccountability.templates.toast.selectTargetDay'));
       return;
     }
 
@@ -1114,7 +1130,7 @@ export class RoleTemplatesComponent implements OnInit {
       }, 300);
     }
 
-    this.showToast(`Tasks duplicated successfully to ${countCopied} day(s)!`);
+    this.showToast(this.t('taskAccountability.templates.toast.tasksDuplicatedToDays', { count: countCopied }));
     this.closeDuplicateDayModal();
   }
 
@@ -1129,7 +1145,7 @@ export class RoleTemplatesComponent implements OnInit {
       clonedTask.id = `t-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
       targetDay.tasks.push(clonedTask);
     });
-    this.showToast(`Tasks duplicated successfully to ${targetDay.name}!`);
+    this.showToast(this.t('taskAccountability.templates.toast.tasksDuplicatedToDay', { day: targetDay.name }));
   }
 
   duplicateSingleTask(task: TemplateTask, targetDay: TemplateDay): void {
@@ -1141,7 +1157,7 @@ export class RoleTemplatesComponent implements OnInit {
     const clonedTask = JSON.parse(JSON.stringify(task));
     clonedTask.id = `t-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
     targetDay.tasks.push(clonedTask);
-    this.showToast(`Copied task to ${targetDay.name}`);
+    this.showToast(this.t('taskAccountability.templates.toast.taskCopiedTo', { day: targetDay.name }));
   }
 
   duplicateTaskToSameDay(task: TemplateTask, day: TemplateDay): void {
@@ -1150,7 +1166,7 @@ export class RoleTemplatesComponent implements OnInit {
       return;
     }
     if (this.isTemplateUnsaved()) {
-      this.showToast('Please save template first before duplicating tasks.');
+      this.showToast(this.t('taskAccountability.templates.toast.saveTemplateFirst'));
       return;
     }
 
@@ -1164,7 +1180,7 @@ export class RoleTemplatesComponent implements OnInit {
 
     this.service.addTaskApi(templateId, dayNumber, taskPayload).subscribe({
       next: () => {
-        this.showToast('Task duplicated successfully!');
+        this.showToast(this.t('taskAccountability.templates.toast.taskDuplicated'));
         this.service.getRoleTemplateByIdApi(templateId).subscribe(updatedTemplate => {
           if (updatedTemplate && this.editingTemplate) {
             const currentMonthName = this.editingTemplate.months?.[0]?.name || this.monthsList[0];
@@ -1178,7 +1194,7 @@ export class RoleTemplatesComponent implements OnInit {
       },
       error: (err) => {
         console.error('Failed to duplicate task via API:', err);
-        this.showToast('Failed to duplicate task.');
+        this.showToast(this.t('taskAccountability.templates.toast.taskDuplicateFailed'));
       }
     });
   }
@@ -1334,16 +1350,16 @@ export class RoleTemplatesComponent implements OnInit {
         next: () => {
           this.service.publishRoleTemplateApi(template.id).subscribe({
             next: () => {
-              this.showToast(`Template "${template.name}" published successfully!`);
+              this.showToast(this.t('taskAccountability.templates.toast.templatePublished', { name: template.name }));
               this.closeModal();
             },
             error: () => {
-              this.showToast('Failed to publish template');
+              this.showToast(this.t('taskAccountability.templates.toast.publishFailed'));
             }
           });
         },
         error: () => {
-          this.showToast('Failed to save template edits before publishing');
+          this.showToast(this.t('taskAccountability.templates.toast.saveBeforePublishFailed'));
         }
       });
     } else {
@@ -1353,19 +1369,19 @@ export class RoleTemplatesComponent implements OnInit {
             const newId = res.data.id;
             this.service.publishRoleTemplateApi(newId).subscribe({
               next: () => {
-                this.showToast(`Template "${template.name}" published successfully!`);
+                this.showToast(this.t('taskAccountability.templates.toast.templatePublished', { name: template.name }));
                 this.closeModal();
               },
               error: () => {
-                this.showToast('Failed to publish new template');
+                this.showToast(this.t('taskAccountability.templates.toast.publishFailed'));
               }
             });
           } else {
-            this.showToast('Failed to create template before publishing');
+            this.showToast(this.t('taskAccountability.templates.toast.createBeforePublishFailed'));
           }
         },
         error: () => {
-          this.showToast('Failed to create template before publishing');
+          this.showToast(this.t('taskAccountability.templates.toast.createBeforePublishFailed'));
         }
       });
     }
@@ -1417,21 +1433,21 @@ export class RoleTemplatesComponent implements OnInit {
     if (this.editingTemplate.id && !this.editingTemplate.id.startsWith('temp-')) {
       this.service.updateRoleTemplateApi(this.editingTemplate.id, payload).subscribe({
         next: () => {
-          this.showToast('Template saved successfully!');
+          this.showToast(this.t('taskAccountability.templates.toast.templateSaved'));
           this.closeModal();
         },
         error: () => {
-          this.showToast('Failed to save template');
+          this.showToast(this.t('taskAccountability.templates.toast.templateSaveFailed'));
         }
       });
     } else {
       this.service.createRoleTemplateApi(payload).subscribe({
         next: () => {
-          this.showToast('Template created successfully!');
+          this.showToast(this.t('taskAccountability.templates.toast.templateCreated'));
           this.closeModal();
         },
         error: () => {
-          this.showToast('Failed to create template');
+          this.showToast(this.t('taskAccountability.templates.toast.templateCreateFailed'));
         }
       });
     }
@@ -1442,32 +1458,32 @@ export class RoleTemplatesComponent implements OnInit {
     if (template.id && !template.id.startsWith('temp-')) {
       this.service.duplicateRoleTemplateApi(template.id).subscribe({
         next: () => {
-          this.showToast(`Template "${template.name}" duplicated successfully!`);
+          this.showToast(this.t('taskAccountability.templates.toast.templateDuplicated', { name: template.name }));
           this.service.getRoleTemplatesApi().subscribe();
         },
         error: (err) => {
           console.error('Failed to duplicate template via API:', err);
-          this.showToast('Failed to duplicate template.');
+          this.showToast(this.t('taskAccountability.templates.toast.templateDuplicateFailed'));
         }
       });
     } else {
       this.service.duplicateTemplate(template);
-      this.showToast(`Template "${template.name}" duplicated locally.`);
+      this.showToast(this.t('taskAccountability.templates.toast.templateDuplicatedLocally', { name: template.name }));
     }
   }
 
   deleteTemplate(id: string): void {
-    if (confirm('Are you sure you want to delete this template?')) {
+    if (confirm(this.t('taskAccountability.templates.confirmDeleteTemplate'))) {
       if (id.startsWith('temp-')) {
         this.service.deleteTemplate(id);
       } else {
         this.service.deleteRoleTemplateApi(id).subscribe({
           next: () => {
-            this.showToast('Template deleted successfully!');
+            this.showToast(this.t('taskAccountability.templates.toast.templateDeleted'));
             // Re-fetch templates list via GET API to update UI
             this.service.getRoleTemplatesApi().subscribe();
           },
-          error: () => this.showToast('Failed to delete template')
+          error: () => this.showToast(this.t('taskAccountability.templates.toast.templateDeleteFailed'))
         });
       }
     }
@@ -1481,17 +1497,17 @@ export class RoleTemplatesComponent implements OnInit {
     if (template.id && !template.id.startsWith('temp-')) {
       this.service.updateTemplateStatusApi(template.id, targetStatus).subscribe({
         next: () => {
-          this.showToast(`Template ${targetStatus === 'ACTIVE' ? 'activated' : 'deactivated'} successfully!`);
+          this.showToast(targetStatus === 'ACTIVE' ? this.t('taskAccountability.templates.toast.templateActivated') : this.t('taskAccountability.templates.toast.templateDeactivated'));
           this.service.getRoleTemplatesApi().subscribe();
         },
         error: (err) => {
           console.error('Failed to update template status via API:', err);
-          this.showToast('Failed to update template status.');
+          this.showToast(this.t('taskAccountability.templates.toast.statusUpdateFailed'));
         }
       });
     } else {
       this.service.toggleTemplateActive(template.id);
-      this.showToast(`Template status changed to ${targetStatus}`);
+      this.showToast(this.t('taskAccountability.templates.toast.statusChangedTo', { status: this.getTemplateStatusLabel({ status: targetStatus } as any) }));
     }
   }
 }

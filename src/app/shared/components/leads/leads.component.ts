@@ -11,6 +11,10 @@ import { AddLeadDialogComponent } from './add-lead-dialog/add-lead-dialog.compon
 import { ImportLeadsDialogComponent } from './import-leads-dialog/import-leads-dialog.component';
 import { TableColumn, TableFilterOption } from '../data-table/data-table.models';
 import { createSearchPredicate, encodeSearch } from '../data-table/table-filter.util';
+import { MasterDataService } from '../../../core/services/master-data.service';
+import { SourceDialogComponent } from './source-dialog/source-dialog.component';
+import { getPriorityTierLabel, getPrioritySubCategoryLabel } from '../../../shared/constants/lead-classification.constants';
+import { TranslateService } from '@ngx-translate/core';
 
 export interface Lead {
   id?: number;
@@ -29,6 +33,7 @@ export interface Lead {
   leadDate: string;
   leadDateRaw?: string;
   isUpdatingStatus?: boolean;
+  isUpdatingSource?: boolean;
   branchId?: number;
   countryCode?: string;
   counsellorId?: number;
@@ -37,6 +42,10 @@ export interface Lead {
   course?: string;
   intake?: string;
   source?: string;
+  priority?: string;
+  priorityDisplayName?: string;
+  prioritySubCategory?: string;
+  prioritySubCategoryDisplayName?: string;
 }
 
 @Component({
@@ -53,53 +62,53 @@ export interface Lead {
       <mat-card class="cardWithShadow">
         <mat-card-header class="d-flex align-items-center justify-content-between p-x-24 p-y-16">
           <mat-card-title>
-            <h5 class="mat-headline-6 f-w-600 m-b-0">Sales Leads Queue</h5>
+            <h5 class="mat-headline-6 f-w-600 m-b-0">{{ 'leads.title' | translate }}</h5>
           </mat-card-title>
           <div class="header-actions d-flex align-items-center gap-12">
             <div class="search-box flex-1-auto">
               <i-tabler name="search" class="icon-16 search-icon"></i-tabler>
-              <input (keyup)="applyFilter($event)" placeholder="Search leads..." class="search-input" />
+              <input (keyup)="applyFilter($event)" [placeholder]="'leads.searchPlaceholder' | translate" class="search-input" />
             </div>
             <div class="view-mode-toggle d-flex align-items-center">
-              <button (click)="viewMode = 'table'" class="toggle-btn" [class.active]="viewMode === 'table'" title="List view">
+              <button (click)="viewMode = 'table'" class="toggle-btn" [class.active]="viewMode === 'table'" [title]="'leads.listView' | translate">
                 <i-tabler name="list" class="icon-18"></i-tabler>
               </button>
-              <button (click)="viewMode = 'card'" class="toggle-btn" [class.active]="viewMode === 'card'" title="Card view">
+              <button (click)="viewMode = 'card'" class="toggle-btn" [class.active]="viewMode === 'card'" [title]="'leads.cardView' | translate">
                 <i-tabler name="layout-grid" class="icon-18"></i-tabler>
               </button>
             </div>
             <button mat-stroked-button color="primary" class="d-flex align-items-center import-btn desktop-import-btn m-r-8" (click)="openImportDialog()" style="border-radius: 8px; border-width: 1.5px; height: 38px;">
               <i-tabler name="upload" class="icon-18 m-r-4"></i-tabler>
-              <span class="import-btn-text">Import Data</span>
+              <span class="import-btn-text">{{ 'leads.importData' | translate }}</span>
             </button>
             <button mat-flat-button color="primary" class="d-flex align-items-center add-btn desktop-add-btn" (click)="addLead()">
               <i-tabler name="plus" class="icon-18 m-r-4"></i-tabler>
-              <span class="add-btn-text">Add Lead</span>
+              <span class="add-btn-text">{{ 'leads.addLead' | translate }}</span>
             </button>
           </div>
         </mat-card-header>
-        
+
         <mat-card-content class="p-0">
-          
+
           <!-- Loading State -->
           <div *ngIf="isLoading" class="d-flex justify-content-center align-items-center p-24">
             <i-tabler name="loader" class="icon-24 spinning text-primary m-r-8"></i-tabler>
-            <span class="f-s-14 text-muted">Loading leads...</span>
+            <span class="f-s-14 text-muted">{{ 'leads.loading' | translate }}</span>
           </div>
 
           <!-- Error State -->
           <div *ngIf="!isLoading && hasError" class="d-flex flex-column justify-content-center align-items-center p-24">
             <i-tabler name="alert-circle" class="icon-48 text-danger m-b-8"></i-tabler>
-            <h6 class="mat-subtitle-1 m-b-4">Failed to load leads</h6>
-            <span class="f-s-14 text-muted m-b-16">There was an error communicating with the server.</span>
-            <button mat-stroked-button color="primary" (click)="loadLeads()">Try Again</button>
+            <h6 class="mat-subtitle-1 m-b-4">{{ 'leads.loadFailedTitle' | translate }}</h6>
+            <span class="f-s-14 text-muted m-b-16">{{ 'leads.loadFailedDesc' | translate }}</span>
+            <button mat-stroked-button color="primary" (click)="loadLeads()">{{ 'common.tryAgain' | translate }}</button>
           </div>
 
           <!-- Empty State -->
           <div *ngIf="!isLoading && !hasError && dataSource.data.length === 0" class="d-flex flex-column justify-content-center align-items-center p-24">
             <i-tabler name="inbox" class="icon-48 text-muted m-b-8"></i-tabler>
-            <h6 class="mat-subtitle-1 m-b-4">No leads found</h6>
-            <span class="f-s-14 text-muted">Get started by adding a new lead.</span>
+            <h6 class="mat-subtitle-1 m-b-4">{{ 'leads.noLeadsFound' | translate }}</h6>
+            <span class="f-s-14 text-muted">{{ 'leads.getStarted' | translate }}</span>
           </div>
 
           <div *ngIf="!isLoading && !hasError && dataSource.data.length > 0 && viewMode === 'table'" class="view-container">
@@ -124,13 +133,16 @@ export interface Lead {
               </ng-template>
 
               <ng-template appCellDef="contactInfo" let-element="row">
-                <span class="d-flex align-items-center f-w-500 text-dark f-s-13 m-b-4"><i-tabler name="mail" class="icon-14 m-r-4 text-muted"></i-tabler>{{ element.email || 'N/A' }}</span>
-                <span class="d-flex align-items-center text-muted f-s-12"><i-tabler name="phone" class="icon-14 m-r-4"></i-tabler>{{ element.phone || 'N/A' }}</span>
+                <span class="d-flex align-items-center f-w-500 text-dark f-s-13 m-b-4"><i-tabler name="mail" class="icon-14 m-r-4 text-muted"></i-tabler>{{ element.email || ('leads.notAvailable' | translate) }}</span>
+                <span class="d-flex align-items-center text-muted f-s-12"><i-tabler name="phone" class="icon-14 m-r-4"></i-tabler>{{ element.phone || ('leads.notAvailable' | translate) }}</span>
               </ng-template>
+
+              <!-- Shared dummy empty menu used when a column is in loading state (avoids null panelId crash) -->
+              <mat-menu #loadingMenu="matMenu"></mat-menu>
 
               <ng-template appCellDef="status" let-element="row">
                 <span (click)="$event.stopPropagation()">
-                  <span class="status-badge cursor-pointer d-inline-flex align-items-center" [ngClass]="getStatusClass(element.status)" [matMenuTriggerFor]="element.isUpdatingStatus ? null : statusMenu">
+                  <span class="status-badge cursor-pointer d-inline-flex align-items-center" [ngClass]="getStatusClass(element.status)" [matMenuTriggerFor]="element.isUpdatingStatus ? loadingMenu : statusMenu">
                     {{ getStatusDisplayName(element.status) }}
                     <i-tabler *ngIf="!element.isUpdatingStatus" name="chevron-down" class="icon-14 m-l-4"></i-tabler>
                     <i-tabler *ngIf="element.isUpdatingStatus" name="loader" class="icon-14 m-l-4 spinning"></i-tabler>
@@ -146,6 +158,28 @@ export interface Lead {
                 </span>
               </ng-template>
 
+              <ng-template appCellDef="source" let-element="row">
+                <span (click)="$event.stopPropagation()">
+                  <span class="source-badge cursor-pointer d-inline-flex align-items-center" [matMenuTriggerFor]="element.isUpdatingSource ? loadingMenu : sourceMenu">
+                    {{ element.source || ('leads.notSet' | translate) }}
+                    <i-tabler *ngIf="!element.isUpdatingSource" name="chevron-down" class="icon-14 m-l-4"></i-tabler>
+                    <i-tabler *ngIf="element.isUpdatingSource" name="loader" class="icon-14 m-l-4 spinning"></i-tabler>
+                  </span>
+                  <mat-menu #sourceMenu="matMenu" class="source-menu-panel" xPosition="before">
+                    <button mat-menu-item *ngFor="let s of availableSources" (click)="changeSource(element, s.displayName, s.enum)" class="source-menu-btn">
+                        <span class="source-menu-text f-w-500">{{ s.displayName }}</span>
+                    </button>
+                  </mat-menu>
+                </span>
+              </ng-template>
+
+              <ng-template appCellDef="priority" let-element="row">
+                <span *ngIf="element.priority" class="priority-badge" [ngClass]="element.priority.toLowerCase()">
+                  {{ element.priorityDisplayName || getPriorityLabel(element.priority) }}
+                </span>
+                <span *ngIf="!element.priority" class="text-muted f-s-13">—</span>
+              </ng-template>
+
               <ng-template appCellDef="assignedTo" let-element="row">
                 <div class="d-flex align-items-center">
                   <img [src]="element.assignedAvatar" class="rounded-circle m-r-8 object-cover" width="28" height="28" />
@@ -154,8 +188,8 @@ export interface Lead {
               </ng-template>
 
               <ng-template appCellDef="countryUniversity" let-element="row">
-                <span class="d-flex align-items-center f-w-500 text-dark f-s-13 m-b-4"><i-tabler name="map-pin" class="icon-14 m-r-4 text-muted"></i-tabler>{{ element.country || 'N/A' }}</span>
-                <span class="d-flex align-items-center text-muted f-s-12"><i-tabler name="building" class="icon-14 m-r-4"></i-tabler>{{ element.university || 'N/A' }}</span>
+                <span class="d-flex align-items-center f-w-500 text-dark f-s-13 m-b-4"><i-tabler name="map-pin" class="icon-14 m-r-4 text-muted"></i-tabler>{{ element.country || ('leads.notAvailable' | translate) }}</span>
+                <span class="d-flex align-items-center text-muted f-s-12"><i-tabler name="building" class="icon-14 m-r-4"></i-tabler>{{ element.university || ('leads.notAvailable' | translate) }}</span>
               </ng-template>
 
               <ng-template appRowActions let-element="row">
@@ -165,16 +199,16 @@ export interface Lead {
                 <mat-menu #menu="matMenu" class="cardWithShadow">
                   <button mat-menu-item (click)="viewDetails(element)">
                     <i-tabler name="eye" class="icon-16 m-r-8"></i-tabler>
-                    <span>View details</span>
+                    <span>{{ 'leads.viewDetails' | translate }}</span>
                   </button>
                   <button mat-menu-item (click)="editLead(element)">
                     <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
-                    <span>Edit lead</span>
+                    <span>{{ 'leads.editLead' | translate }}</span>
                   </button>
                   <mat-divider></mat-divider>
                   <button mat-menu-item class="text-danger" (click)="deleteLead(element)">
                     <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
-                    <span>Delete</span>
+                    <span>{{ 'common.delete' | translate }}</span>
                   </button>
                 </mat-menu>
               </ng-template>
@@ -198,28 +232,28 @@ export interface Lead {
                     <mat-menu #cardMenu="matMenu" class="cardWithShadow">
                       <button mat-menu-item (click)="viewDetails(element)">
                         <i-tabler name="eye" class="icon-16 m-r-8"></i-tabler>
-                        <span>View details</span>
+                        <span>{{ 'leads.viewDetails' | translate }}</span>
                       </button>
                       <button mat-menu-item (click)="editLead(element)">
                         <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
-                        <span>Edit lead</span>
+                        <span>{{ 'leads.editLead' | translate }}</span>
                       </button>
                       <mat-divider></mat-divider>
                       <button mat-menu-item class="text-danger" (click)="deleteLead(element)">
                         <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
-                        <span>Delete</span>
+                        <span>{{ 'common.delete' | translate }}</span>
                       </button>
                     </mat-menu>
                   </div>
                 </div>
-                
+
                 <div class="d-flex align-items-center justify-content-between m-b-12">
-                  <span class="f-s-13 text-muted d-flex align-items-center"><i-tabler name="mail" class="icon-16 m-r-4"></i-tabler> {{ element.email || 'N/A' }}</span>
+                  <span class="f-s-13 text-muted d-flex align-items-center"><i-tabler name="mail" class="icon-16 m-r-4"></i-tabler> {{ element.email || ('leads.notAvailable' | translate) }}</span>
                 </div>
                 <div class="d-flex align-items-center justify-content-between m-b-16">
-                  <span class="f-s-13 text-muted d-flex align-items-center"><i-tabler name="phone" class="icon-16 m-r-4"></i-tabler> {{ element.phone || 'N/A' }}</span>
+                  <span class="f-s-13 text-muted d-flex align-items-center"><i-tabler name="phone" class="icon-16 m-r-4"></i-tabler> {{ element.phone || ('leads.notAvailable' | translate) }}</span>
                 </div>
-                
+
                 <div class="d-flex align-items-center justify-content-between m-b-16">
                   <div class="d-flex align-items-center">
                     <img [src]="element.assignedAvatar" class="rounded-circle m-r-8 object-cover" width="24" height="24" />
@@ -239,15 +273,15 @@ export interface Lead {
                     </button>
                   </mat-menu>
                 </div>
-                
+
                 <mat-divider class="m-b-12"></mat-divider>
                 <div class="d-flex align-items-center justify-content-between text-muted f-s-12 m-b-8">
-                  <span class="d-flex align-items-center"><i-tabler name="map-pin" class="icon-14 m-r-4"></i-tabler> {{ element.country || 'N/A' }}</span>
-                  <span class="d-flex align-items-center"><i-tabler name="calendar" class="icon-14 m-r-4"></i-tabler> {{ element.leadDate || 'N/A' }}</span>
+                  <span class="d-flex align-items-center"><i-tabler name="map-pin" class="icon-14 m-r-4"></i-tabler> {{ element.country || ('leads.notAvailable' | translate) }}</span>
+                  <span class="d-flex align-items-center"><i-tabler name="calendar" class="icon-14 m-r-4"></i-tabler> {{ element.leadDate || ('leads.notAvailable' | translate) }}</span>
                 </div>
                 <div class="d-flex align-items-center justify-content-between text-muted f-s-12">
-                  <span class="d-flex align-items-center"><i-tabler name="building" class="icon-14 m-r-4"></i-tabler> {{ element.university || 'N/A' }}</span>
-                  <span class="d-flex align-items-center"><i-tabler name="world" class="icon-14 m-r-4"></i-tabler> Source: {{ element.source || '—' }}</span>
+                  <span class="d-flex align-items-center"><i-tabler name="building" class="icon-14 m-r-4"></i-tabler> {{ element.university || ('leads.notAvailable' | translate) }}</span>
+                  <span class="d-flex align-items-center"><i-tabler name="world" class="icon-14 m-r-4"></i-tabler> {{ 'leads.colSource' | translate }}: {{ element.source || '—' }}</span>
                 </div>
               </mat-card-content>
             </mat-card>
@@ -256,7 +290,7 @@ export interface Lead {
           <mat-paginator [pageSizeOptions]="[5, 10, 15]" [pageSize]="10" showFirstLastButtons class="p-y-12"></mat-paginator>
         </mat-card-content>
       </mat-card>
-      
+
       <!-- Mobile FAB -->
       <button mat-fab color="primary" class="mobile-fab" (click)="addLead()">
         <i-tabler name="plus" class="icon-24"></i-tabler>
@@ -368,7 +402,7 @@ export interface Lead {
         }
       }
     }
-    
+
     .status-badge {
       display: inline-flex;
       align-items: center;
@@ -397,6 +431,71 @@ export interface Lead {
       &.in-progress, &.document-submitted {
         background-color: rgba(var(--brand-primary-rgb), 0.1);
         color: var(--brand-primary);
+      }
+    }
+
+    .source-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 6px;
+      background-color: #f1f5f9;
+      color: #334155;
+      border: 1px solid #e2e8f0;
+      transition: all 0.2s ease;
+      &:hover {
+        background-color: #e2e8f0;
+      }
+    }
+
+    .priority-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 6px;
+
+      &.p1 {
+        background-color: rgba(250, 137, 107, 0.12);
+        color: #fa896b;
+      }
+      &.p2 {
+        background-color: rgba(255, 174, 31, 0.12);
+        color: #ffae1f;
+      }
+      &.p3 {
+        background-color: rgba(45, 46, 50, 0.1);
+        color: #2D2E32;
+      }
+    }
+
+    ::ng-deep .source-menu-panel {
+      min-width: 160px !important;
+      border-radius: 12px !important;
+      border: 1px solid #e2e8f0 !important;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.06), 0 8px 10px -6px rgba(0,0,0,0.06) !important;
+      background-color: #ffffff !important;
+      padding: 6px 0 !important;
+      overflow: hidden !important;
+      
+      .source-menu-btn {
+        height: 40px !important;
+        line-height: 40px !important;
+        padding: 0 16px !important;
+        transition: all 0.15s ease !important;
+        
+        &:hover {
+          background-color: #f8fafc !important;
+        }
+      }
+      .source-menu-text {
+        font-size: 13px;
+        color: #334155;
       }
     }
 
@@ -592,6 +691,44 @@ export interface Lead {
           }
         }
       }
+
+      .source-badge {
+        background-color: var(--dark-sidebarbg, #1e293b);
+        color: #f8fafc;
+        border-color: var(--dark-formborderColor, #334155);
+        &:hover {
+          background-color: var(--dark-hoverbgcolor, #334155);
+        }
+      }
+
+      .priority-badge {
+        &.p1 {
+          background-color: rgba(250, 137, 107, 0.2);
+          color: #ffab91;
+        }
+        &.p2 {
+          background-color: rgba(255, 174, 31, 0.2);
+          color: #ffca70;
+        }
+        &.p3 {
+          background-color: rgba(255, 255, 255, 0.1);
+          color: #ffffff;
+        }
+      }
+
+      ::ng-deep .source-menu-panel {
+        background-color: var(--dark-sidebarbg, #1e293b) !important;
+        border-color: var(--dark-formborderColor, #334155) !important;
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3), 0 8px 10px -6px rgba(0,0,0,0.3) !important;
+        .source-menu-btn {
+          &:hover {
+            background-color: var(--dark-hoverbgcolor, #334155) !important;
+          }
+        }
+        .source-menu-text {
+          color: #f8fafc;
+        }
+      }
     }
   `]
 })
@@ -601,6 +738,7 @@ export class LeadsComponent implements OnInit, AfterViewInit {
   hasError = false;
 
   availableStatuses: { id: number; enum: string; displayName: string }[] = [];
+  availableSources: any[] = [];
 
   tableColumns: TableColumn<Lead>[] = [
     { key: 'lead', header: 'Lead', type: 'custom', exportValueFn: r => `${r.name} (${r.role})`, filter: { type: 'text' } },
@@ -609,7 +747,16 @@ export class LeadsComponent implements OnInit, AfterViewInit {
       key: 'status', header: 'Status', type: 'custom', exportValueFn: r => this.getStatusDisplayName(r.status),
       filter: { type: 'select', getValue: r => (r.status || '').toUpperCase() },
     },
-    { key: 'source', header: 'Source', type: 'text', valueFn: r => r.source || '—', maxWidth: '110px', filter: { type: 'text' } },
+    { key: 'source', header: 'Source', type: 'custom', exportValueFn: r => r.source || '—', maxWidth: '140px', filter: { type: 'text' } },
+    {
+      key: 'priority', header: 'Priority', type: 'custom', exportValueFn: r => r.priorityDisplayName || this.getPriorityLabel(r.priority || '') || '—',
+      filter: { type: 'text' },
+    },
+    {
+      key: 'subCategory', header: 'Sub Category', type: 'text', maxWidth: '150px',
+      valueFn: r => r.prioritySubCategoryDisplayName || this.getSubCategoryLabel(r.prioritySubCategory || '') || '—',
+      filter: { type: 'text' },
+    },
     { key: 'assignedTo', header: 'Assigned To', type: 'custom', exportValueFn: r => r.assignedTo, filter: { type: 'text' } },
     {
       key: 'addedBy', header: 'Added By', type: 'two-line', valueFn: r => r.addedBy, subFn: r => r.addedByRole, maxWidth: '150px',
@@ -651,13 +798,16 @@ export class LeadsComponent implements OnInit, AfterViewInit {
     private notificationService: NotificationService,
     private leadService: LeadService,
     private dialog: MatDialog,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private masterDataService: MasterDataService,
+    private translate: TranslateService
   ) {
     this.dataSource.filterPredicate = createSearchPredicate();
   }
 
   ngOnInit(): void {
     this.loadStudentStatuses();
+    this.loadLeadSources();
     this.loadLeads();
     this.route.queryParams.subscribe(params => {
       if (params['openAdd'] === 'true') {
@@ -687,8 +837,29 @@ export class LeadsComponent implements OnInit, AfterViewInit {
     });
   }
 
+  loadLeadSources(): void {
+    this.masterDataService.getLeadSources().subscribe({
+      next: (res) => {
+        this.availableSources = res.data || [];
+      },
+      error: (err) => {
+        console.error('Failed to load lead sources:', err);
+        this.availableSources = [
+          { id: 1, enum: 'INSTAGRAM', displayName: 'Instagram' },
+          { id: 2, enum: 'FACEBOOK', displayName: 'Facebook' },
+          { id: 3, enum: 'GOOGLE_SEARCH', displayName: 'Google Search' },
+          { id: 4, enum: 'WHATSAPP', displayName: 'WhatsApp' },
+          { id: 5, enum: 'REFERRAL', displayName: 'Referral' },
+          { id: 6, enum: 'COLLEGE_SEMINAR', displayName: 'College Seminar' },
+          { id: 7, enum: 'FLYERS', displayName: 'Flyers' },
+          { id: 8, enum: 'OTHER', displayName: 'Other' }
+        ];
+      }
+    });
+  }
+
   getStatusDisplayName(status: string): string {
-    if (!status) return 'N/A';
+    if (!status) return this.translate.instant('leads.notAvailable');
     const cleanStatus = status.trim().toUpperCase();
     const match = this.availableStatuses.find(s => s.enum === cleanStatus);
     if (match) return match.displayName;
@@ -763,8 +934,20 @@ export class LeadsComponent implements OnInit, AfterViewInit {
       universityId: l.university?.id || l.universityId || null,
       source: l.source || '—',
       course: l.courseName || l.course || '',
-      intake: l.intakePeriod || l.intake || ''
+      intake: l.intakePeriod || l.intake || '',
+      priority: l.priority || '',
+      priorityDisplayName: l.priorityDisplayName || '',
+      prioritySubCategory: l.prioritySubCategory || '',
+      prioritySubCategoryDisplayName: l.prioritySubCategoryDisplayName || ''
     };
+  }
+
+  getPriorityLabel(priority: string): string {
+    return getPriorityTierLabel(priority);
+  }
+
+  getSubCategoryLabel(subCategory: string): string {
+    return getPrioritySubCategoryLabel(subCategory);
   }
 
   applyFilter(event: Event): void {
@@ -812,7 +995,7 @@ export class LeadsComponent implements OnInit, AfterViewInit {
               'Lead Created',
               'Done'
             ).subscribe(() => {
-              this.notificationService.showSuccessToast('Lead has been created.', 'Success');
+              this.notificationService.showSuccessToast(this.translate.instant('leads.toast.leadCreated'), this.translate.instant('common.success'));
               this.loadLeads(); // Refresh list
             });
           },
@@ -855,7 +1038,7 @@ export class LeadsComponent implements OnInit, AfterViewInit {
           if (result) {
             this.leadService.updateLead(lead.id!, result).subscribe({
               next: () => {
-                this.notificationService.showSuccessToast(`Lead updates saved for ${lead.name}.`, 'Changes Saved');
+                this.notificationService.showSuccessToast(this.translate.instant('leads.toast.updatesSaved', { name: lead.name }), this.translate.instant('leads.toast.changesSaved'));
                 this.loadLeads(); // Refresh the list
               },
               error: (err) => {
@@ -893,13 +1076,54 @@ export class LeadsComponent implements OnInit, AfterViewInit {
     }
   }
 
+  changeSource(lead: Lead, displayName: string, sourceEnum: string): void {
+    const requiresInput = ['PERSON', 'OTHER'].includes(sourceEnum?.toUpperCase());
+    if (requiresInput) {
+      // Defer dialog open until after the mat-menu has fully closed and Angular Material
+      // has finished restoring focus — otherwise the dialog intermittently fails to open.
+      setTimeout(() => {
+        const dialogRef = this.dialog.open(SourceDialogComponent, {
+          width: '420px',
+          panelClass: 'source-dialog',
+          data: { sourceType: displayName }
+        });
+        dialogRef.afterClosed().subscribe((customText: string | undefined) => {
+          if (customText) {
+            this.executeSourceUpdate(lead, customText);
+          }
+        });
+      }, 150);
+    } else {
+      if (lead.source === displayName) return;
+      this.executeSourceUpdate(lead, displayName);
+    }
+  }
+
+  private executeSourceUpdate(lead: Lead, source: string): void {
+    if (!lead.id) return;
+    lead.isUpdatingSource = true;
+    this.leadService.updateLeadSource(lead.id, source).subscribe({
+      next: () => {
+        lead.isUpdatingSource = false;
+        this.notificationService.showSuccessToast(this.translate.instant('leads.toast.sourceUpdated', { source }), this.translate.instant('common.success'));
+        this.loadLeads();
+      },
+      error: (err) => {
+        lead.isUpdatingSource = false;
+        console.error('Failed to update source:', err);
+        const errorMessage = err.error?.message || err.message || 'An unexpected error occurred while updating the source.';
+        this.notificationService.showErrorPopup(errorMessage, 'Update Failed', 'Close').subscribe();
+      }
+    });
+  }
+
   private executeStatusUpdate(lead: Lead, status: string, reason?: string): void {
     if (!lead.id) return;
     lead.isUpdatingStatus = true;
     this.leadService.updateLeadStatus(lead.id, status, reason).subscribe({
       next: () => {
         lead.isUpdatingStatus = false;
-        this.notificationService.showSuccessToast(`Status updated to ${status}.`, 'Success');
+        this.notificationService.showSuccessToast(this.translate.instant('leads.toast.statusUpdated', { status }), this.translate.instant('common.success'));
         this.loadLeads();
       },
       error: (err) => {
@@ -914,19 +1138,19 @@ export class LeadsComponent implements OnInit, AfterViewInit {
   deleteLead(lead: Lead): void {
     if (!lead.id) return;
     this.notificationService.showErrorPopup(
-      `Are you sure you want to permanently delete the lead: ${lead.name}?`,
-      'Confirm Lead Deletion',
-      'Delete'
+      this.translate.instant('leads.confirmDeleteMessage', { name: lead.name }),
+      this.translate.instant('leads.confirmDeleteTitle'),
+      this.translate.instant('common.delete')
     ).subscribe(() => {
       this.leadService.deleteLead(lead.id!).subscribe({
         next: () => {
-          this.notificationService.showSuccessToast(`Lead ${lead.name} deleted successfully.`, 'Deleted');
+          this.notificationService.showSuccessToast(this.translate.instant('leads.toast.leadDeleted', { name: lead.name }), this.translate.instant('leads.toast.deleted'));
           this.loadLeads();
         },
         error: (err) => {
           console.error('Failed to delete lead:', err);
-          const errorMessage = err.error?.message || err.message || 'Failed to delete the lead.';
-          this.notificationService.showErrorPopup(errorMessage, 'Deletion Failed', 'Close').subscribe();
+          const errorMessage = err.error?.message || err.message || this.translate.instant('leads.toast.deleteFailed');
+          this.notificationService.showErrorPopup(errorMessage, this.translate.instant('leads.toast.deletionFailedTitle'), this.translate.instant('common.close')).subscribe();
         }
       });
     });
