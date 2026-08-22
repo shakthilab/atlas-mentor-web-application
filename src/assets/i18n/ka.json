@@ -87,6 +87,7 @@
     "languageDesc": "აირჩიეთ სასურველი ენა Atlas Mentor პლატფორმისთვის."
   },
   "common": {
+    "save": "შენახვა",
     "cancel": "გაუქმება",
     "delete": "წაშლა",
     "deleteCount": "წაშლა ({{count}})",

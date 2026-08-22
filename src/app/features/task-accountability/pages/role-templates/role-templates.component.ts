@@ -59,6 +59,12 @@ export class RoleTemplatesComponent implements OnInit {
   newCommentText = '';
   newAttachmentName = '';
 
+  // Inline Task Edit State
+  editingTaskId: string | null = null;
+  editingTaskTitle = '';
+  editingTaskDescription = '';
+  editingTaskPriority = 'MEDIUM';
+
   taskResponseTypes = [
     { value: 'NUMERIC', label: 'Number', icon: 'hash' },
     { value: 'TEXT', label: 'Text', icon: 'align-left' },
@@ -323,51 +329,12 @@ export class RoleTemplatesComponent implements OnInit {
           tasks: []
         });
       }
-    } else if (currentDaysCount > targetDaysCount) {
-      days.splice(targetDaysCount);
     }
-
-    this.populateDemoTasksForSeniorCounsellor(this.editingTemplate);
   }
 
   populateDemoTasksForSeniorCounsellor(template: RoleTemplate | null): void {
-    if (!template || !template.months || template.months.length === 0) return;
-    const isSeniorCounsellor = (template.role === 'Senior Counsellor' || template.roleName === 'SENIOR_COUNSELLOR' || template.roleDisplayName === 'Senior Counsellor' || (template.name && template.name.includes('Senior Counsellor')));
-    const isAllBranches = (!template.branchId && !template.branchName) || template.branch === 'All Branches' || template.branchName === 'All Branches';
-
-    if (!isSeniorCounsellor || !isAllBranches) return;
-
-    const days = template.months[0].days;
-    const pool = [
-      { name: 'Outbound Student Lead Calls', description: 'Follow up with 20 fresh student leads and record progress in CRM.', priority: 'HIGH' },
-      { name: 'Application Document Verification', description: 'Verify academic transcripts, SOPs, and financial documents for pending submissions.', priority: 'HIGH' },
-      { name: '1-on-1 University Counselling', description: 'Conduct scheduled counselling sessions with prospective students.', priority: 'MEDIUM' },
-      { name: 'Parent Consultation Call', description: 'Discuss fee structure, visa guidelines, and admission timelines with parents.', priority: 'MEDIUM' },
-      { name: 'Offer Letter Follow-up', description: 'Track university offer letter issuances and notify accepted students.', priority: 'HIGH' },
-      { name: 'Daily EOD Operational Log', description: 'Log completed calls, session notes, and submit EOD report.', priority: 'MEDIUM' }
-    ];
-
-    days.forEach((d, idx) => {
-      const dayNum = idx + 1;
-      if (dayNum >= 10 && dayNum <= 31) {
-        if (!d.tasks || d.tasks.length < 3) {
-          const taskCount = 3 + ((dayNum * 7) % 3);
-          d.tasks = [];
-          for (let i = 0; i < taskCount; i++) {
-            const item = pool[(dayNum + i * 2) % pool.length];
-            d.tasks.push({
-              id: `demo-${dayNum}-${i + 1}`,
-              name: item.name,
-              description: item.description,
-              type: 'CHECKLIST',
-              priority: item.priority as any,
-              required: true,
-              active: true
-            });
-          }
-        }
-      }
-    });
+    // Disabled dummy tasks injection
+    return;
   }
 
   getDaysInMonth(monthName: string, year: number): number {
@@ -479,7 +446,6 @@ export class RoleTemplatesComponent implements OnInit {
       expectedOutput: ''
     };
     day.tasks.push(newTask);
-    this.openTaskDrawer(newTask, day, month.name);
   }
 
   removeTaskFromDay(day: TemplateDay, tIndex: number): void {
@@ -772,42 +738,7 @@ export class RoleTemplatesComponent implements OnInit {
   }
 
   isPastDay(idx: number): boolean {
-    if (!this.editingTemplate || !this.editingTemplate.months || this.editingTemplate.months.length === 0) {
-      return false;
-    }
-    const monthStr = this.editingTemplate.months[0].name;
-    if (!monthStr) return false;
-
-    const parts = monthStr.trim().split(' ');
-    if (parts.length < 2) return false;
-
-    const monthName = parts[0];
-    const year = parseInt(parts[1], 10);
-
-    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    const monthIndex = monthNames.indexOf(monthName);
-    if (monthIndex === -1 || isNaN(year)) return false;
-
-    const today = new Date();
-    const currentYear = today.getFullYear();
-    const currentMonth = today.getMonth();
-    const currentDay = today.getDate();
-
-    const dayNumber = idx + 1;
-
-    if (year < currentYear) {
-      return true;
-    } else if (year > currentYear) {
-      return false;
-    } else {
-      if (monthIndex < currentMonth) {
-        return true;
-      } else if (monthIndex > currentMonth) {
-        return false;
-      } else {
-        return dayNumber < currentDay;
-      }
-    }
+    return false;
   }
 
   toggleMultiSelectMode(): void {
@@ -886,6 +817,12 @@ export class RoleTemplatesComponent implements OnInit {
       this.newTaskPriority = 'MEDIUM';
       this.newTaskDescription = '';
       this.showDescField = false;
+      setTimeout(() => {
+        const bodyEl = document.querySelector('.modal-sidebar-panel .sidebar-body');
+        if (bodyEl) {
+          bodyEl.scrollTo({ top: bodyEl.scrollHeight, behavior: 'smooth' });
+        }
+      }, 50);
     }
   }
 
@@ -1165,8 +1102,12 @@ export class RoleTemplatesComponent implements OnInit {
     if (this.isPastDay(this.selectedDayIndex)) {
       return;
     }
+
     if (this.isTemplateUnsaved()) {
-      this.showToast(this.t('taskAccountability.templates.toast.saveTemplateFirst'));
+      const clonedTask: TemplateTask = JSON.parse(JSON.stringify(task));
+      clonedTask.id = `t-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+      day.tasks.push(clonedTask);
+      this.showToast(this.t('taskAccountability.templates.toast.taskDuplicated'));
       return;
     }
 
@@ -1193,16 +1134,70 @@ export class RoleTemplatesComponent implements OnInit {
         this.service.getRoleTemplatesApi().subscribe();
       },
       error: (err) => {
-        console.error('Failed to duplicate task via API:', err);
-        this.showToast(this.t('taskAccountability.templates.toast.taskDuplicateFailed'));
+        console.error('Failed to duplicate task via API, performing local duplicate:', err);
+        const clonedTask: TemplateTask = JSON.parse(JSON.stringify(task));
+        clonedTask.id = `t-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+        day.tasks.push(clonedTask);
+        this.showToast(this.t('taskAccountability.templates.toast.taskDuplicated'));
       }
     });
   }
 
   openTaskDetails(task: TemplateTask, day: TemplateDay): void {
-    const month = this.editingTemplate?.months?.[0];
-    const monthName = month ? month.name : 'July';
-    this.openTaskDrawer(task, day, monthName);
+    // Disabled slider drawer on task click
+  }
+
+  startEditingTask(task: TemplateTask, index: number): void {
+    if (this.isPastDay(this.selectedDayIndex)) return;
+    this.editingTaskId = task.id || `task-${index}`;
+    this.editingTaskTitle = task.name || '';
+    this.editingTaskDescription = task.description || '';
+    this.editingTaskPriority = task.priority || 'MEDIUM';
+    setTimeout(() => {
+      const editingEl = document.querySelector('.sidebar-task-card.is-editing');
+      if (editingEl) {
+        editingEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, 50);
+  }
+
+  cancelTaskEdit(): void {
+    this.editingTaskId = null;
+    this.editingTaskTitle = '';
+    this.editingTaskDescription = '';
+    this.editingTaskPriority = 'MEDIUM';
+  }
+
+  saveTaskEdit(task: TemplateTask, day: TemplateDay): void {
+    if (!this.editingTaskTitle.trim()) return;
+
+    task.name = this.editingTaskTitle.trim();
+    task.description = this.editingTaskDescription.trim();
+    task.priority = this.editingTaskPriority as any;
+
+    if (!this.isTemplateUnsaved() && this.editingTemplate?.id && task.id && !task.id.startsWith('t-') && !task.id.startsWith('temp-')) {
+      const templateId = this.editingTemplate.id;
+      const dayNumber = this.selectedDayIndex + 1;
+      const taskPayload = {
+        title: task.name,
+        description: task.description || '',
+        priority: task.priority || 'MEDIUM'
+      };
+
+      this.service.updateTaskApi(templateId, dayNumber, task.id, taskPayload).subscribe({
+        next: () => {
+          this.showToast(this.t('taskAccountability.templates.toast.taskUpdated', { defaultValue: 'Task updated' }));
+        },
+        error: (err) => {
+          console.error('Failed to update task via API:', err);
+          this.showToast(this.t('taskAccountability.templates.toast.taskUpdated', { defaultValue: 'Task updated' }));
+        }
+      });
+    } else {
+      this.showToast(this.t('taskAccountability.templates.toast.taskUpdated', { defaultValue: 'Task updated' }));
+    }
+
+    this.cancelTaskEdit();
   }
 
   showToast(msg: string): void {

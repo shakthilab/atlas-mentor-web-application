@@ -87,6 +87,7 @@
     "languageDesc": "Select your preferred language for the Atlas Mentor platform."
   },
   "common": {
+    "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
     "deleteCount": "Delete ({{count}})",

@@ -27,80 +27,11 @@ export class TaskAccountabilityService {
   }
 
   // Templates Configuration State
-  private templatesSubject = new BehaviorSubject<RoleTemplate[]>((() => {
-    const pool = [
-      { name: 'Outbound Student Lead Calls', description: 'Follow up with 20 fresh student leads and record progress in CRM.', priority: 'HIGH' },
-      { name: 'Application Document Verification', description: 'Verify academic transcripts, SOPs, and financial documents for pending submissions.', priority: 'HIGH' },
-      { name: '1-on-1 University Counselling', description: 'Conduct scheduled counselling sessions with prospective students.', priority: 'MEDIUM' },
-      { name: 'Parent Consultation Call', description: 'Discuss fee structure, visa guidelines, and admission timelines with parents.', priority: 'MEDIUM' },
-      { name: 'Offer Letter Follow-up', description: 'Track university offer letter issuances and notify accepted students.', priority: 'HIGH' },
-      { name: 'Daily EOD Operational Log', description: 'Log completed calls, session notes, and submit EOD report.', priority: 'MEDIUM' }
-    ];
-
-    const days = [];
-    for (let dayNum = 1; dayNum <= 31; dayNum++) {
-      const tasks = [];
-      if (dayNum >= 10) {
-        const taskCount = 3 + ((dayNum * 7) % 3); // 3, 4, or 5 tasks
-        for (let i = 0; i < taskCount; i++) {
-          const item = pool[(dayNum + i * 2) % pool.length];
-          tasks.push({
-            id: `temp-1-${dayNum}-${i + 1}`,
-            name: item.name,
-            description: item.description,
-            type: 'CHECKLIST' as const,
-            priority: item.priority as any,
-            required: true,
-            active: true
-          });
-        }
-      }
-      days.push({
-        id: `td-temp-1-${dayNum}`,
-        name: `Day ${dayNum}`,
-        isWeekly: false,
-        tasks
-      });
-    }
-
-    return [
-      {
-        id: 'temp-1',
-        name: 'Senior Counsellor Template',
-        role: 'Senior Counsellor',
-        roleName: 'SENIOR_COUNSELLOR',
-        roleDisplayName: 'Senior Counsellor',
-        branch: 'All Branches',
-        branchId: null,
-        branchName: null,
-        status: 'ACTIVE',
-        active: true,
-        createdAt: '2026-08-06',
-        months: [
-          {
-            id: 'tm-temp-1-1',
-            name: 'August 2026',
-            days
-          }
-        ],
-        tasks: []
-      }
-    ];
-  })());
+  private templatesSubject = new BehaviorSubject<RoleTemplate[]>([]);
   public templates$: Observable<RoleTemplate[]> = this.templatesSubject.asObservable();
 
   // Template Assignments State
-  private assignmentsSubject = new BehaviorSubject<TemplateAssignment[]>([
-    {
-      id: 'assign-1',
-      templateId: 'temp-1',
-      templateName: 'Senior Counsellor Template',
-      assignType: 'role',
-      targetName: 'Senior Counsellors',
-      effectiveDate: '2026-04-01',
-      active: true
-    }
-  ]);
+  private assignmentsSubject = new BehaviorSubject<TemplateAssignment[]>([]);
   public assignments$: Observable<TemplateAssignment[]> = this.assignmentsSubject.asObservable();
 
   // Active Selections
@@ -672,33 +603,7 @@ export class TaskAccountabilityService {
   }
 
   private getDemoTasksForDay(dayNumber: number): Array<any> {
-    const pool = [
-      { name: 'Outbound Student Lead Calls', description: 'Follow up with 20 fresh student leads and record progress in CRM.', priority: 'HIGH' },
-      { name: 'Application Document Verification', description: 'Verify academic transcripts, SOPs, and financial documents for pending submissions.', priority: 'HIGH' },
-      { name: '1-on-1 University Counselling', description: 'Conduct scheduled counselling sessions with prospective students.', priority: 'MEDIUM' },
-      { name: 'Parent Consultation Call', description: 'Discuss fee structure, visa guidelines, and admission timelines with parents.', priority: 'MEDIUM' },
-      { name: 'Offer Letter Follow-up', description: 'Track university offer letter issuances and notify accepted students.', priority: 'HIGH' },
-      { name: 'Daily EOD Operational Log', description: 'Log completed calls, session notes, and submit EOD report.', priority: 'MEDIUM' }
-    ];
-
-    const taskCount = 3 + ((dayNumber * 7) % 3); // 3, 4, or 5 tasks
-    const tasks: Array<any> = [];
-
-    for (let i = 0; i < taskCount; i++) {
-      const poolIndex = (dayNumber + i * 2) % pool.length;
-      const item = pool[poolIndex];
-      tasks.push({
-        id: `demo-${dayNumber}-${i + 1}`,
-        name: item.name,
-        description: item.description,
-        type: 'CHECKLIST',
-        priority: item.priority,
-        required: true,
-        active: true
-      });
-    }
-
-    return tasks;
+    return [];
   }
 
   private mapResponseToTemplate(res: any): RoleTemplate {
@@ -733,10 +638,6 @@ export class TaskAccountabilityService {
               required: true,
               active: true
             }));
-
-            if (isSeniorCounsellor && isAllBranches && d.dayNumber >= 10 && d.dayNumber <= 31 && existingTasks.length < 3) {
-              existingTasks = this.getDemoTasksForDay(d.dayNumber);
-            }
 
             return {
               id: `td-${d.id}`,
