@@ -181,12 +181,19 @@ export interface Lead {
                     <i-tabler *ngIf="element.isUpdatingPriority" name="loader" class="icon-14 m-l-4 spinning"></i-tabler>
                   </span>
                   <mat-menu #priorityMenu="matMenu" class="priority-menu-panel" xPosition="before">
-                    <button mat-menu-item *ngFor="let t of priorityTiers" (click)="changePriority(element, t.value)" class="priority-menu-btn">
-                      <div class="d-flex align-items-center gap-8">
-                        <span class="priority-menu-dot" [ngClass]="t.value.toLowerCase()"></span>
-                        <span class="f-w-500">{{ t.label }}</span>
-                      </div>
-                    </button>
+                    <ng-container *ngFor="let t of priorityTiers">
+                      <button mat-menu-item [matMenuTriggerFor]="tierSubMenu" class="priority-menu-btn">
+                        <div class="d-flex align-items-center gap-8">
+                          <span class="priority-menu-dot" [ngClass]="t.value.toLowerCase()"></span>
+                          <span class="f-w-500">{{ t.label }}</span>
+                        </div>
+                      </button>
+                      <mat-menu #tierSubMenu="matMenu" class="subcategory-menu-panel">
+                        <button mat-menu-item *ngFor="let sc of t.subCategories" (click)="changePriorityAndSubCategory(element, t.value, sc.value)">
+                          <span class="f-w-500">{{ sc.label }}</span>
+                        </button>
+                      </mat-menu>
+                    </ng-container>
                   </mat-menu>
                 </td>
               </ng-container>
@@ -1118,6 +1125,28 @@ export class LeadsComponent implements OnInit, AfterViewInit {
         lead.isUpdatingPriority = false;
         console.error('Failed to update priority:', err);
         const errorMessage = err.error?.message || err.message || 'Failed to update priority.';
+        this.notificationService.showErrorPopup(errorMessage, 'Update Failed', 'Close').subscribe();
+      }
+    });
+  }
+
+  changePriorityAndSubCategory(lead: Lead, newPriority: string, newSubCategory: string): void {
+    if (lead.priority === newPriority && lead.prioritySubCategory === newSubCategory) return;
+    if (!lead.id) return;
+    lead.isUpdatingPriority = true;
+    lead.isUpdatingSubCategory = true;
+    this.leadService.updateStudentPriority(lead.id, { priority: newPriority, prioritySubCategory: newSubCategory }).subscribe({
+      next: () => {
+        lead.isUpdatingPriority = false;
+        lead.isUpdatingSubCategory = false;
+        this.notificationService.showSuccessToast(`Priority updated to ${getPriorityTierLabel(newPriority)} and sub-category to ${getPrioritySubCategoryLabel(newSubCategory)}.`, 'Success');
+        this.loadLeads();
+      },
+      error: (err) => {
+        lead.isUpdatingPriority = false;
+        lead.isUpdatingSubCategory = false;
+        console.error('Failed to update priority and sub-category:', err);
+        const errorMessage = err.error?.message || err.message || 'Failed to update priority and sub-category.';
         this.notificationService.showErrorPopup(errorMessage, 'Update Failed', 'Close').subscribe();
       }
     });
