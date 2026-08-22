@@ -171,7 +171,7 @@ export interface Lead {
 
               <!-- Priority Column -->
               <ng-container matColumnDef="priority">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'taskAccountability.taskTable.colPriority' | translate }}</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'leads.colPriority' | translate }}</th>
                 <td mat-cell *matCellDef="let element" (click)="$event.stopPropagation()">
                   <span class="priority-badge cursor-pointer d-inline-flex align-items-center"
                         [ngClass]="element.priority ? element.priority.toLowerCase() : 'none'"

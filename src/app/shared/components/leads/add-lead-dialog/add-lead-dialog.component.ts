@@ -215,7 +215,7 @@ import { LEAD_PRIORITY_TIERS, LEAD_BACKGROUND_OPTIONS, getSubCategoriesForTier, 
           <div formGroupName="leadClassification">
             <div class="row">
               <div class="col-sm-6 m-b-20">
-                <mat-label class="field-label d-block">PRIORITY</mat-label>
+                <mat-label class="field-label d-block">LEAD CLASSIFICATION</mat-label>
                 <mat-form-field appearance="outline" class="w-100 custom-field" subscriptSizing="dynamic">
                   <mat-select formControlName="priority" placeholder="Select priority" (selectionChange)="onPriorityChange($event.value)">
                     <mat-option value="">Not set</mat-option>
