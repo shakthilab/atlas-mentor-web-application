@@ -12,17 +12,17 @@
     <!-- Header / Tab Bar (only visible to Admin Tree roles) -->
     <div class="workspace-header" *ngIf="isAdminTreeRole">
       <div class="workspace-header-top">
-        <span class="workspace-header-title">Task Accountability</span>
+        <span class="workspace-header-title">{{ 'taskAccountability.shell.title' | translate }}</span>
         <button class="tree-toggle-mobile-btn" (click)="toggleTree()">
           <i-tabler name="users" class="icon-16"></i-tabler>
-          <span>Employees</span>
+          <span>{{ 'taskAccountability.shell.employees' | translate }}</span>
         </button>
       </div>
 
       <nav class="workspace-nav" #workspaceNav>
-        <a class="nav-tab" routerLink="daily" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Daily Workspace</a>
-        <a class="nav-tab" routerLink="pending-review" routerLinkActive="active" *ngIf="canReviewApprovals">Needs My Review</a>
-        <a class="nav-tab" routerLink="templates" routerLinkActive="active">Daily Templates</a>
+        <a class="nav-tab" routerLink="daily" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">{{ 'taskAccountability.shell.dailyWorkspace' | translate }}</a>
+        <a class="nav-tab" routerLink="pending-review" routerLinkActive="active" *ngIf="canReviewApprovals">{{ 'taskAccountability.shell.needsMyReview' | translate }}</a>
+        <a class="nav-tab" routerLink="templates" routerLinkActive="active">{{ 'taskAccountability.shell.dailyTemplates' | translate }}</a>
         <!-- Weekly Templates and Weekly Accountability temporarily hidden -->
         <!-- <a class="nav-tab" routerLink="weekly-templates" routerLinkActive="active">Weekly Templates</a> -->
         <!-- <a class="nav-tab" routerLink="weekly" routerLinkActive="active">Weekly Accountability</a> -->

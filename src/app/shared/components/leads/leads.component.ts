@@ -12,6 +12,7 @@ import { ImportLeadsDialogComponent } from './import-leads-dialog/import-leads-d
 import { MasterDataService } from '../../../core/services/master-data.service';
 import { SourceDialogComponent } from './source-dialog/source-dialog.component';
 import { getPriorityTierLabel, getPrioritySubCategoryLabel } from '../../../shared/constants/lead-classification.constants';
+import { TranslateService } from '@ngx-translate/core';
 
 export interface Lead {
   id?: number;
@@ -51,61 +52,61 @@ export interface Lead {
       <mat-card class="cardWithShadow">
         <mat-card-header class="d-flex align-items-center justify-content-between p-x-24 p-y-16">
           <mat-card-title>
-            <h5 class="mat-headline-6 f-w-600 m-b-0">Sales Leads Queue</h5>
+            <h5 class="mat-headline-6 f-w-600 m-b-0">{{ 'leads.title' | translate }}</h5>
           </mat-card-title>
           <div class="header-actions d-flex align-items-center gap-12">
             <div class="search-box flex-1-auto">
               <i-tabler name="search" class="icon-16 search-icon"></i-tabler>
-              <input (keyup)="applyFilter($event)" placeholder="Search leads..." class="search-input" />
+              <input (keyup)="applyFilter($event)" [placeholder]="'leads.searchPlaceholder' | translate" class="search-input" />
             </div>
             <div class="view-mode-toggle d-flex align-items-center">
-              <button (click)="viewMode = 'table'" class="toggle-btn" [class.active]="viewMode === 'table'" title="List view">
+              <button (click)="viewMode = 'table'" class="toggle-btn" [class.active]="viewMode === 'table'" [title]="'leads.listView' | translate">
                 <i-tabler name="list" class="icon-18"></i-tabler>
               </button>
-              <button (click)="viewMode = 'card'" class="toggle-btn" [class.active]="viewMode === 'card'" title="Card view">
+              <button (click)="viewMode = 'card'" class="toggle-btn" [class.active]="viewMode === 'card'" [title]="'leads.cardView' | translate">
                 <i-tabler name="layout-grid" class="icon-18"></i-tabler>
               </button>
             </div>
             <button mat-stroked-button color="primary" class="d-flex align-items-center import-btn desktop-import-btn m-r-8" (click)="openImportDialog()" style="border-radius: 8px; border-width: 1.5px; height: 38px;">
               <i-tabler name="upload" class="icon-18 m-r-4"></i-tabler>
-              <span class="import-btn-text">Import Data</span>
+              <span class="import-btn-text">{{ 'leads.importData' | translate }}</span>
             </button>
             <button mat-flat-button color="primary" class="d-flex align-items-center add-btn desktop-add-btn" (click)="addLead()">
               <i-tabler name="plus" class="icon-18 m-r-4"></i-tabler>
-              <span class="add-btn-text">Add Lead</span>
+              <span class="add-btn-text">{{ 'leads.addLead' | translate }}</span>
             </button>
           </div>
         </mat-card-header>
-        
+
         <mat-card-content class="p-0">
-          
+
           <!-- Loading State -->
           <div *ngIf="isLoading" class="d-flex justify-content-center align-items-center p-24">
             <i-tabler name="loader" class="icon-24 spinning text-primary m-r-8"></i-tabler>
-            <span class="f-s-14 text-muted">Loading leads...</span>
+            <span class="f-s-14 text-muted">{{ 'leads.loading' | translate }}</span>
           </div>
 
           <!-- Error State -->
           <div *ngIf="!isLoading && hasError" class="d-flex flex-column justify-content-center align-items-center p-24">
             <i-tabler name="alert-circle" class="icon-48 text-danger m-b-8"></i-tabler>
-            <h6 class="mat-subtitle-1 m-b-4">Failed to load leads</h6>
-            <span class="f-s-14 text-muted m-b-16">There was an error communicating with the server.</span>
-            <button mat-stroked-button color="primary" (click)="loadLeads()">Try Again</button>
+            <h6 class="mat-subtitle-1 m-b-4">{{ 'leads.loadFailedTitle' | translate }}</h6>
+            <span class="f-s-14 text-muted m-b-16">{{ 'leads.loadFailedDesc' | translate }}</span>
+            <button mat-stroked-button color="primary" (click)="loadLeads()">{{ 'common.tryAgain' | translate }}</button>
           </div>
 
           <!-- Empty State -->
           <div *ngIf="!isLoading && !hasError && dataSource.data.length === 0" class="d-flex flex-column justify-content-center align-items-center p-24">
             <i-tabler name="inbox" class="icon-48 text-muted m-b-8"></i-tabler>
-            <h6 class="mat-subtitle-1 m-b-4">No leads found</h6>
-            <span class="f-s-14 text-muted">Get started by adding a new lead.</span>
+            <h6 class="mat-subtitle-1 m-b-4">{{ 'leads.noLeadsFound' | translate }}</h6>
+            <span class="f-s-14 text-muted">{{ 'leads.getStarted' | translate }}</span>
           </div>
 
           <div *ngIf="!isLoading && !hasError && dataSource.data.length > 0 && viewMode === 'table'" class="table-responsive view-container">
             <table mat-table [dataSource]="dataSource" class="w-100">
-              
+
               <!-- Lead Column -->
               <ng-container matColumnDef="lead">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Lead</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'leads.colLead' | translate }}</th>
                 <td mat-cell *matCellDef="let element" (click)="viewDetails(element)" class="cursor-pointer">
                   <div class="d-flex align-items-center">
                     <img [src]="element.avatar" class="rounded-circle m-r-12 object-cover avatar-animated" width="40" height="40" />
@@ -119,10 +120,10 @@ export interface Lead {
 
               <!-- Contact Info Column -->
               <ng-container matColumnDef="contactInfo">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Contact Info</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'leads.colContactInfo' | translate }}</th>
                 <td mat-cell *matCellDef="let element">
-                  <span class="d-flex align-items-center f-w-500 text-dark f-s-13 m-b-4"><i-tabler name="mail" class="icon-14 m-r-4 text-muted"></i-tabler>{{ element.email || 'N/A' }}</span>
-                  <span class="d-flex align-items-center text-muted f-s-12"><i-tabler name="phone" class="icon-14 m-r-4"></i-tabler>{{ element.phone || 'N/A' }}</span>
+                  <span class="d-flex align-items-center f-w-500 text-dark f-s-13 m-b-4"><i-tabler name="mail" class="icon-14 m-r-4 text-muted"></i-tabler>{{ element.email || ('leads.notAvailable' | translate) }}</span>
+                  <span class="d-flex align-items-center text-muted f-s-12"><i-tabler name="phone" class="icon-14 m-r-4"></i-tabler>{{ element.phone || ('leads.notAvailable' | translate) }}</span>
                 </td>
               </ng-container>
 
@@ -131,7 +132,7 @@ export interface Lead {
 
               <!-- Status Column -->
               <ng-container matColumnDef="status">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Status</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'taskAccountability.taskTable.colStatus' | translate }}</th>
                 <td mat-cell *matCellDef="let element" (click)="$event.stopPropagation()">
                   <span class="status-badge cursor-pointer d-inline-flex align-items-center" [ngClass]="getStatusClass(element.status)" [matMenuTriggerFor]="element.isUpdatingStatus ? loadingMenu : statusMenu">
                     {{ getStatusDisplayName(element.status) }}
@@ -151,10 +152,10 @@ export interface Lead {
 
               <!-- Source Column -->
               <ng-container matColumnDef="source">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Source</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'leads.colSource' | translate }}</th>
                 <td mat-cell *matCellDef="let element" (click)="$event.stopPropagation()">
                   <span class="source-badge cursor-pointer d-inline-flex align-items-center" [matMenuTriggerFor]="element.isUpdatingSource ? loadingMenu : sourceMenu">
-                    {{ element.source || 'Not Set' }}
+                    {{ element.source || ('leads.notSet' | translate) }}
                     <i-tabler *ngIf="!element.isUpdatingSource" name="chevron-down" class="icon-14 m-l-4"></i-tabler>
                     <i-tabler *ngIf="element.isUpdatingSource" name="loader" class="icon-14 m-l-4 spinning"></i-tabler>
                   </span>
@@ -168,7 +169,7 @@ export interface Lead {
 
               <!-- Priority Column -->
               <ng-container matColumnDef="priority">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Priority</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'taskAccountability.taskTable.colPriority' | translate }}</th>
                 <td mat-cell *matCellDef="let element">
                   <span *ngIf="element.priority" class="priority-badge" [ngClass]="element.priority.toLowerCase()">
                     {{ element.priorityDisplayName || getPriorityLabel(element.priority) }}
@@ -179,7 +180,7 @@ export interface Lead {
 
               <!-- Sub Category Column -->
               <ng-container matColumnDef="subCategory">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Sub Category</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'leads.colSubCategory' | translate }}</th>
                 <td mat-cell *matCellDef="let element" class="text-dark f-s-13">
                   {{ element.prioritySubCategoryDisplayName || getSubCategoryLabel(element.prioritySubCategory) || '—' }}
                 </td>
@@ -187,7 +188,7 @@ export interface Lead {
 
               <!-- Assigned To Column -->
               <ng-container matColumnDef="assignedTo">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Assigned To</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'taskAccountability.assignments.assignedTo' | translate }}</th>
                 <td mat-cell *matCellDef="let element">
                   <div class="d-flex align-items-center">
                     <img [src]="element.assignedAvatar" class="rounded-circle m-r-8 object-cover" width="28" height="28" />
@@ -198,7 +199,7 @@ export interface Lead {
 
               <!-- Added By Column -->
               <ng-container matColumnDef="addedBy">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Added By</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'leads.colAddedBy' | translate }}</th>
                 <td mat-cell *matCellDef="let element">
                   <span class="f-w-500 text-dark d-block f-s-13">{{ element.addedBy }}</span>
                   <span class="text-muted f-s-11 d-block">{{ element.addedByRole }}</span>
@@ -207,16 +208,16 @@ export interface Lead {
 
               <!-- Country/University Column -->
               <ng-container matColumnDef="countryUniversity">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Country / University</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'leads.colCountryUniversity' | translate }}</th>
                 <td mat-cell *matCellDef="let element">
-                  <span class="d-flex align-items-center f-w-500 text-dark f-s-13 m-b-4"><i-tabler name="map-pin" class="icon-14 m-r-4 text-muted"></i-tabler>{{ element.country || 'N/A' }}</span>
-                  <span class="d-flex align-items-center text-muted f-s-12"><i-tabler name="building" class="icon-14 m-r-4"></i-tabler>{{ element.university || 'N/A' }}</span>
+                  <span class="d-flex align-items-center f-w-500 text-dark f-s-13 m-b-4"><i-tabler name="map-pin" class="icon-14 m-r-4 text-muted"></i-tabler>{{ element.country || ('leads.notAvailable' | translate) }}</span>
+                  <span class="d-flex align-items-center text-muted f-s-12"><i-tabler name="building" class="icon-14 m-r-4"></i-tabler>{{ element.university || ('leads.notAvailable' | translate) }}</span>
                 </td>
               </ng-container>
 
               <!-- Lead Date Column -->
               <ng-container matColumnDef="leadDate">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Lead Date</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'leads.colLeadDate' | translate }}</th>
                 <td mat-cell *matCellDef="let element" class="text-muted f-s-13">
                   {{ element.leadDate }}
                 </td>
@@ -224,7 +225,7 @@ export interface Lead {
 
               <!-- Actions Column -->
               <ng-container matColumnDef="actions">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14 text-center">Actions</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14 text-center">{{ 'common.actions' | translate }}</th>
                 <td mat-cell *matCellDef="let element" class="text-center">
                   <button mat-icon-button [matMenuTriggerFor]="menu" class="text-muted" (click)="$event.stopPropagation()">
                     <i-tabler name="dots" class="icon-18"></i-tabler>
@@ -232,16 +233,16 @@ export interface Lead {
                   <mat-menu #menu="matMenu" class="cardWithShadow">
                     <button mat-menu-item (click)="viewDetails(element)">
                       <i-tabler name="eye" class="icon-16 m-r-8"></i-tabler>
-                      <span>View details</span>
+                      <span>{{ 'leads.viewDetails' | translate }}</span>
                     </button>
                     <button mat-menu-item (click)="editLead(element)">
                       <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
-                      <span>Edit lead</span>
+                      <span>{{ 'leads.editLead' | translate }}</span>
                     </button>
                     <mat-divider></mat-divider>
                     <button mat-menu-item class="text-danger" (click)="deleteLead(element)">
                       <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
-                      <span>Delete</span>
+                      <span>{{ 'common.delete' | translate }}</span>
                     </button>
                   </mat-menu>
                 </td>
@@ -269,28 +270,28 @@ export interface Lead {
                     <mat-menu #cardMenu="matMenu" class="cardWithShadow">
                       <button mat-menu-item (click)="viewDetails(element)">
                         <i-tabler name="eye" class="icon-16 m-r-8"></i-tabler>
-                        <span>View details</span>
+                        <span>{{ 'leads.viewDetails' | translate }}</span>
                       </button>
                       <button mat-menu-item (click)="editLead(element)">
                         <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
-                        <span>Edit lead</span>
+                        <span>{{ 'leads.editLead' | translate }}</span>
                       </button>
                       <mat-divider></mat-divider>
                       <button mat-menu-item class="text-danger" (click)="deleteLead(element)">
                         <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
-                        <span>Delete</span>
+                        <span>{{ 'common.delete' | translate }}</span>
                       </button>
                     </mat-menu>
                   </div>
                 </div>
-                
+
                 <div class="d-flex align-items-center justify-content-between m-b-12">
-                  <span class="f-s-13 text-muted d-flex align-items-center"><i-tabler name="mail" class="icon-16 m-r-4"></i-tabler> {{ element.email || 'N/A' }}</span>
+                  <span class="f-s-13 text-muted d-flex align-items-center"><i-tabler name="mail" class="icon-16 m-r-4"></i-tabler> {{ element.email || ('leads.notAvailable' | translate) }}</span>
                 </div>
                 <div class="d-flex align-items-center justify-content-between m-b-16">
-                  <span class="f-s-13 text-muted d-flex align-items-center"><i-tabler name="phone" class="icon-16 m-r-4"></i-tabler> {{ element.phone || 'N/A' }}</span>
+                  <span class="f-s-13 text-muted d-flex align-items-center"><i-tabler name="phone" class="icon-16 m-r-4"></i-tabler> {{ element.phone || ('leads.notAvailable' | translate) }}</span>
                 </div>
-                
+
                 <div class="d-flex align-items-center justify-content-between m-b-16">
                   <div class="d-flex align-items-center">
                     <img [src]="element.assignedAvatar" class="rounded-circle m-r-8 object-cover" width="24" height="24" />
@@ -310,15 +311,15 @@ export interface Lead {
                     </button>
                   </mat-menu>
                 </div>
-                
+
                 <mat-divider class="m-b-12"></mat-divider>
                 <div class="d-flex align-items-center justify-content-between text-muted f-s-12 m-b-8">
-                  <span class="d-flex align-items-center"><i-tabler name="map-pin" class="icon-14 m-r-4"></i-tabler> {{ element.country || 'N/A' }}</span>
-                  <span class="d-flex align-items-center"><i-tabler name="calendar" class="icon-14 m-r-4"></i-tabler> {{ element.leadDate || 'N/A' }}</span>
+                  <span class="d-flex align-items-center"><i-tabler name="map-pin" class="icon-14 m-r-4"></i-tabler> {{ element.country || ('leads.notAvailable' | translate) }}</span>
+                  <span class="d-flex align-items-center"><i-tabler name="calendar" class="icon-14 m-r-4"></i-tabler> {{ element.leadDate || ('leads.notAvailable' | translate) }}</span>
                 </div>
                 <div class="d-flex align-items-center justify-content-between text-muted f-s-12">
-                  <span class="d-flex align-items-center"><i-tabler name="building" class="icon-14 m-r-4"></i-tabler> {{ element.university || 'N/A' }}</span>
-                  <span class="d-flex align-items-center"><i-tabler name="world" class="icon-14 m-r-4"></i-tabler> Source: {{ element.source || '—' }}</span>
+                  <span class="d-flex align-items-center"><i-tabler name="building" class="icon-14 m-r-4"></i-tabler> {{ element.university || ('leads.notAvailable' | translate) }}</span>
+                  <span class="d-flex align-items-center"><i-tabler name="world" class="icon-14 m-r-4"></i-tabler> {{ 'leads.colSource' | translate }}: {{ element.source || '—' }}</span>
                 </div>
               </mat-card-content>
             </mat-card>
@@ -327,7 +328,7 @@ export interface Lead {
           <mat-paginator [pageSizeOptions]="[5, 10, 15]" [pageSize]="10" showFirstLastButtons class="p-y-12"></mat-paginator>
         </mat-card-content>
       </mat-card>
-      
+
       <!-- Mobile FAB -->
       <button mat-fab color="primary" class="mobile-fab" (click)="addLead()">
         <i-tabler name="plus" class="icon-24"></i-tabler>
@@ -821,7 +822,8 @@ export class LeadsComponent implements OnInit, AfterViewInit {
     private leadService: LeadService,
     private dialog: MatDialog,
     private route: ActivatedRoute,
-    private masterDataService: MasterDataService
+    private masterDataService: MasterDataService,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -878,7 +880,7 @@ export class LeadsComponent implements OnInit, AfterViewInit {
   }
 
   getStatusDisplayName(status: string): string {
-    if (!status) return 'N/A';
+    if (!status) return this.translate.instant('leads.notAvailable');
     const cleanStatus = status.trim().toUpperCase();
     const match = this.availableStatuses.find(s => s.enum === cleanStatus);
     if (match) return match.displayName;
@@ -1013,7 +1015,7 @@ export class LeadsComponent implements OnInit, AfterViewInit {
               'Lead Created',
               'Done'
             ).subscribe(() => {
-              this.notificationService.showSuccessToast('Lead has been created.', 'Success');
+              this.notificationService.showSuccessToast(this.translate.instant('leads.toast.leadCreated'), this.translate.instant('common.success'));
               this.loadLeads(); // Refresh list
             });
           },
@@ -1056,7 +1058,7 @@ export class LeadsComponent implements OnInit, AfterViewInit {
           if (result) {
             this.leadService.updateLead(lead.id!, result).subscribe({
               next: () => {
-                this.notificationService.showSuccessToast(`Lead updates saved for ${lead.name}.`, 'Changes Saved');
+                this.notificationService.showSuccessToast(this.translate.instant('leads.toast.updatesSaved', { name: lead.name }), this.translate.instant('leads.toast.changesSaved'));
                 this.loadLeads(); // Refresh the list
               },
               error: (err) => {
@@ -1123,7 +1125,7 @@ export class LeadsComponent implements OnInit, AfterViewInit {
     this.leadService.updateLeadSource(lead.id, source).subscribe({
       next: () => {
         lead.isUpdatingSource = false;
-        this.notificationService.showSuccessToast(`Source updated to "${source}".`, 'Success');
+        this.notificationService.showSuccessToast(this.translate.instant('leads.toast.sourceUpdated', { source }), this.translate.instant('common.success'));
         this.loadLeads();
       },
       error: (err) => {
@@ -1141,7 +1143,7 @@ export class LeadsComponent implements OnInit, AfterViewInit {
     this.leadService.updateLeadStatus(lead.id, status, reason).subscribe({
       next: () => {
         lead.isUpdatingStatus = false;
-        this.notificationService.showSuccessToast(`Status updated to ${status}.`, 'Success');
+        this.notificationService.showSuccessToast(this.translate.instant('leads.toast.statusUpdated', { status }), this.translate.instant('common.success'));
         this.loadLeads();
       },
       error: (err) => {
@@ -1156,19 +1158,19 @@ export class LeadsComponent implements OnInit, AfterViewInit {
   deleteLead(lead: Lead): void {
     if (!lead.id) return;
     this.notificationService.showErrorPopup(
-      `Are you sure you want to permanently delete the lead: ${lead.name}?`,
-      'Confirm Lead Deletion',
-      'Delete'
+      this.translate.instant('leads.confirmDeleteMessage', { name: lead.name }),
+      this.translate.instant('leads.confirmDeleteTitle'),
+      this.translate.instant('common.delete')
     ).subscribe(() => {
       this.leadService.deleteLead(lead.id!).subscribe({
         next: () => {
-          this.notificationService.showSuccessToast(`Lead ${lead.name} deleted successfully.`, 'Deleted');
+          this.notificationService.showSuccessToast(this.translate.instant('leads.toast.leadDeleted', { name: lead.name }), this.translate.instant('leads.toast.deleted'));
           this.loadLeads();
         },
         error: (err) => {
           console.error('Failed to delete lead:', err);
-          const errorMessage = err.error?.message || err.message || 'Failed to delete the lead.';
-          this.notificationService.showErrorPopup(errorMessage, 'Deletion Failed', 'Close').subscribe();
+          const errorMessage = err.error?.message || err.message || this.translate.instant('leads.toast.deleteFailed');
+          this.notificationService.showErrorPopup(errorMessage, this.translate.instant('leads.toast.deletionFailedTitle'), this.translate.instant('common.close')).subscribe();
         }
       });
     });

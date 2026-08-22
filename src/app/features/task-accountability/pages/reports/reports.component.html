@@ -1,30 +1,30 @@
 <div class="reports-container">
   <!-- Top Header -->
   <div class="reports-header m-b-24">
-    <h2 class="section-title">Accountability Reports</h2>
-    <p class="section-subtitle">Monitor operational completion rates, target KPIs, and pending approvals.</p>
+    <h2 class="section-title">{{ 'taskAccountability.reports.title' | translate }}</h2>
+    <p class="section-subtitle">{{ 'taskAccountability.reports.subtitle' | translate }}</p>
   </div>
 
   <!-- Filters Card -->
   <div class="filters-card m-b-24">
     <div class="filter-row">
       <div class="form-group flex-1">
-        <label>Report Scope</label>
+        <label>{{ 'taskAccountability.reports.reportScope' | translate }}</label>
         <div class="scope-toggle-group">
           <button type="button" class="scope-btn" [class.active]="filterType === 'branch'" (click)="filterType = 'branch'; onFilterTypeChange()">
-            Branch
+            {{ 'taskAccountability.templates.branch' | translate }}
           </button>
           <button type="button" class="scope-btn" [class.active]="filterType === 'role'" (click)="filterType = 'role'; onFilterTypeChange()">
-            Role
+            {{ 'taskAccountability.assignments.role' | translate }}
           </button>
           <button type="button" class="scope-btn" [class.active]="filterType === 'employee'" (click)="filterType = 'employee'; onFilterTypeChange()">
-            Employee
+            {{ 'taskAccountability.assignments.employee' | translate }}
           </button>
         </div>
       </div>
 
       <div class="form-group flex-1">
-        <label>Selected Target</label>
+        <label>{{ 'taskAccountability.reports.selectedTarget' | translate }}</label>
         <select [(ngModel)]="selectedTarget" (change)="onTargetChange()" class="form-select">
           <ng-container *ngIf="filterType === 'branch'">
             <option *ngFor="let b of branchesList" [value]="b">{{ b }}</option>
@@ -51,12 +51,12 @@
         </svg>
         <div class="chart-label">
           <span class="value">{{ dailyRate }}%</span>
-          <span class="label">Daily</span>
+          <span class="label">{{ 'taskAccountability.reports.daily' | translate }}</span>
         </div>
       </div>
       <div class="metric-info">
-        <h3>Daily Completion</h3>
-        <p>Operational targets completed today for {{ selectedTarget }}.</p>
+        <h3>{{ 'taskAccountability.reports.dailyCompletion' | translate }}</h3>
+        <p>{{ 'taskAccountability.reports.dailyCompletionDesc' | translate:{ target: selectedTarget } }}</p>
       </div>
     </div>
 
@@ -69,12 +69,12 @@
         </svg>
         <div class="chart-label">
           <span class="value">{{ weeklyRate }}%</span>
-          <span class="label">Weekly</span>
+          <span class="label">{{ 'taskAccountability.reports.weekly' | translate }}</span>
         </div>
       </div>
       <div class="metric-info">
-        <h3>Weekly Completion</h3>
-        <p>Average weekly accountability status indicators.</p>
+        <h3>{{ 'taskAccountability.reports.weeklyCompletion' | translate }}</h3>
+        <p>{{ 'taskAccountability.reports.weeklyCompletionDesc' | translate }}</p>
       </div>
     </div>
 
@@ -87,30 +87,30 @@
         </svg>
         <div class="chart-label">
           <span class="value">{{ monthlyRate }}%</span>
-          <span class="label">Monthly</span>
+          <span class="label">{{ 'taskAccountability.reports.monthly' | translate }}</span>
         </div>
       </div>
       <div class="metric-info">
-        <h3>Monthly Completion</h3>
-        <p>Overall target compliance rate for the current month.</p>
+        <h3>{{ 'taskAccountability.reports.monthlyCompletion' | translate }}</h3>
+        <p>{{ 'taskAccountability.reports.monthlyCompletionDesc' | translate }}</p>
       </div>
     </div>
   </div>
 
   <!-- Pending Reviews List -->
   <div class="pending-card">
-    <h3 class="card-title m-b-16">Pending Approvals & Reviews</h3>
-    
+    <h3 class="card-title m-b-16">{{ 'taskAccountability.reports.pendingApprovalsReviews' | translate }}</h3>
+
     <div class="table-container">
       <table class="reports-table">
         <thead>
           <tr>
-            <th>Employee</th>
-            <th>Role</th>
-            <th>Submitted Item</th>
-            <th>Status Stage</th>
-            <th>Submitted At</th>
-            <th class="text-right">Actions</th>
+            <th>{{ 'taskAccountability.assignments.employee' | translate }}</th>
+            <th>{{ 'taskAccountability.assignments.role' | translate }}</th>
+            <th>{{ 'taskAccountability.reports.submittedItem' | translate }}</th>
+            <th>{{ 'taskAccountability.reports.statusStage' | translate }}</th>
+            <th>{{ 'taskAccountability.reports.submittedAt' | translate }}</th>
+            <th class="text-right">{{ 'common.actions' | translate }}</th>
           </tr>
         </thead>
         <tbody>
@@ -133,7 +133,7 @@
             <td class="text-muted">{{ item.submittedAt }}</td>
             <td class="text-right">
               <button mat-button class="review-action-btn" (click)="reviewItem(item)">
-                Review Now
+                {{ 'taskAccountability.reports.reviewNow' | translate }}
                 <i-tabler name="chevron-right" class="icon-14 m-l-4"></i-tabler>
               </button>
             </td>
@@ -141,7 +141,7 @@
           <tr *ngIf="pendingReviews.length === 0">
             <td colspan="6" class="empty-state">
               <i-tabler name="circle-check" class="icon-32 text-success m-b-8"></i-tabler>
-              <p>All clear! There are no pending reviews for the selected scope.</p>
+              <p>{{ 'taskAccountability.reports.allClear' | translate }}</p>
             </td>
           </tr>
         </tbody>

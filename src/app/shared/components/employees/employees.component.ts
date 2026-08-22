@@ -14,6 +14,7 @@ import { EmployeeService, Employee, Page } from '../../../core/services/employee
 import { EmployeeDetailsDialogComponent } from './employee-details-dialog/employee-details-dialog.component';
 import { AddEmployeeDialogComponent } from './add-employee-dialog/add-employee-dialog.component';
 import { AuthService } from '../../../core/services/auth.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-employees',
@@ -22,36 +23,36 @@ import { AuthService } from '../../../core/services/auth.service';
       <mat-card class="cardWithShadow">
         <mat-card-header class="d-flex align-items-center justify-content-between p-x-24 p-y-16">
           <mat-card-title>
-            <h5 class="mat-headline-6 f-w-600 m-b-0">Employees Directory</h5>
+            <h5 class="mat-headline-6 f-w-600 m-b-0">{{ 'employees.title' | translate }}</h5>
           </mat-card-title>
           <div class="header-actions d-flex align-items-center gap-12">
             <div class="search-box flex-1-auto">
               <i-tabler name="search" class="icon-16 search-icon"></i-tabler>
-              <input (keyup)="applyFilter($event)" placeholder="Search employees..." class="search-input" />
+              <input (keyup)="applyFilter($event)" [placeholder]="'employees.searchPlaceholder' | translate" class="search-input" />
             </div>
             <div class="view-mode-toggle d-flex align-items-center">
-              <button (click)="viewMode = 'table'" class="toggle-btn" [class.active]="viewMode === 'table'" title="List view">
+              <button (click)="viewMode = 'table'" class="toggle-btn" [class.active]="viewMode === 'table'" [title]="'leads.listView' | translate">
                 <i-tabler name="list" class="icon-18"></i-tabler>
               </button>
-              <button (click)="viewMode = 'card'" class="toggle-btn" [class.active]="viewMode === 'card'" title="Card view">
+              <button (click)="viewMode = 'card'" class="toggle-btn" [class.active]="viewMode === 'card'" [title]="'leads.cardView' | translate">
                 <i-tabler name="layout-grid" class="icon-18"></i-tabler>
               </button>
             </div>
             <button mat-flat-button color="primary" class="d-flex align-items-center add-btn desktop-add-btn" (click)="addEmployee()">
               <i-tabler name="plus" class="icon-18 m-r-4"></i-tabler>
-              <span class="add-btn-text">Add Employee</span>
+              <span class="add-btn-text">{{ 'employees.addEmployee' | translate }}</span>
             </button>
           </div>
         </mat-card-header>
-        
+
         <mat-card-content class="p-0">
           <!-- Table View -->
           <div *ngIf="viewMode === 'table'" class="table-responsive view-container">
             <table mat-table [dataSource]="dataSource" class="w-100">
-              
+
               <!-- Employee Column -->
               <ng-container matColumnDef="employee">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Employee</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'employees.colEmployee' | translate }}</th>
                 <td mat-cell *matCellDef="let element" (click)="viewProfile(element)" class="cursor-pointer">
                   <div class="d-flex align-items-center">
                     <img [src]="getAvatar(element)" class="rounded-circle m-r-12 object-cover avatar-animated" width="40" height="40" />
@@ -65,7 +66,7 @@ import { AuthService } from '../../../core/services/auth.service';
 
               <!-- Role Column -->
               <ng-container matColumnDef="role">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Role</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'employees.colRole' | translate }}</th>
                 <td mat-cell *matCellDef="let element" class="f-w-500 text-dark f-s-13">
                   {{ getRoleDisplayName(element) }}
                 </td>
@@ -73,33 +74,33 @@ import { AuthService } from '../../../core/services/auth.service';
 
               <!-- Branch Column -->
               <ng-container matColumnDef="branch">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Branch</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'taskAccountability.templates.branch' | translate }}</th>
                 <td mat-cell *matCellDef="let element" class="text-muted f-s-13">
-                  {{ element.branch?.name || element.branch || 'Branch ' + element.branchId }}
+                  {{ element.branch?.name || element.branch || ('employees.branchN' | translate:{ id: element.branchId }) }}
                 </td>
               </ng-container>
 
               <!-- Status Column -->
               <ng-container matColumnDef="status">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Status</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'taskAccountability.taskTable.colStatus' | translate }}</th>
                 <td mat-cell *matCellDef="let element">
                   <span class="status-badge" [ngClass]="(element.status || 'ACTIVE').toLowerCase()">
-                    {{ element.status || 'ACTIVE' | titlecase }}
+                    {{ ((element.status || 'ACTIVE').toUpperCase() === 'ACTIVE' ? 'common.active' : 'common.inactive') | translate }}
                   </span>
                 </td>
               </ng-container>
 
               <!-- Phone Column -->
               <ng-container matColumnDef="phone">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Phone</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'employees.colPhone' | translate }}</th>
                 <td mat-cell *matCellDef="let element" class="text-muted f-s-13">
-                  {{ element.phone || 'N/A' }}
+                  {{ element.phone || ('leads.notAvailable' | translate) }}
                 </td>
               </ng-container>
 
               <!-- Actions Column -->
               <ng-container matColumnDef="actions">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14 text-center">Actions</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14 text-center">{{ 'common.actions' | translate }}</th>
                 <td mat-cell *matCellDef="let element" class="text-center">
                   <button mat-icon-button [matMenuTriggerFor]="menu" class="text-muted" (click)="$event.stopPropagation()">
                     <i-tabler name="dots" class="icon-18"></i-tabler>
@@ -107,24 +108,24 @@ import { AuthService } from '../../../core/services/auth.service';
                   <mat-menu #menu="matMenu" class="cardWithShadow">
                     <button mat-menu-item (click)="viewProfile(element)">
                       <i-tabler name="eye" class="icon-16 m-r-8"></i-tabler>
-                      <span>View details</span>
+                      <span>{{ 'leads.viewDetails' | translate }}</span>
                     </button>
                     <button mat-menu-item (click)="editDetails(element)">
                       <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
-                      <span>Edit details</span>
+                      <span>{{ 'employees.editDetails' | translate }}</span>
                     </button>
                     <button mat-menu-item *ngIf="(element.status || 'ACTIVE').toUpperCase() === 'INACTIVE'" (click)="toggleStatus(element)">
                       <i-tabler name="user-check" class="icon-16 m-r-8 text-success"></i-tabler>
-                      <span>Activate</span>
+                      <span>{{ 'common.activate' | translate }}</span>
                     </button>
                     <button mat-menu-item *ngIf="(element.status || 'ACTIVE').toUpperCase() === 'ACTIVE'" (click)="toggleStatus(element)">
                       <i-tabler name="user-x" class="icon-16 m-r-8 text-warning"></i-tabler>
-                      <span>Deactivate</span>
+                      <span>{{ 'common.deactivate' | translate }}</span>
                     </button>
                     <mat-divider></mat-divider>
                     <button mat-menu-item class="text-danger" (click)="deleteEmployee(element)">
                       <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
-                      <span>Delete</span>
+                      <span>{{ 'common.delete' | translate }}</span>
                     </button>
                   </mat-menu>
                 </td>
@@ -152,40 +153,40 @@ import { AuthService } from '../../../core/services/auth.service';
                     <mat-menu #cardMenu="matMenu" class="cardWithShadow">
                       <button mat-menu-item (click)="viewProfile(element)">
                         <i-tabler name="eye" class="icon-16 m-r-8"></i-tabler>
-                        <span>View details</span>
+                        <span>{{ 'leads.viewDetails' | translate }}</span>
                       </button>
                       <button mat-menu-item (click)="editDetails(element)">
                         <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
-                        <span>Edit details</span>
+                        <span>{{ 'employees.editDetails' | translate }}</span>
                       </button>
                       <button mat-menu-item *ngIf="(element.status || 'ACTIVE').toUpperCase() === 'INACTIVE'" (click)="toggleStatus(element)">
                         <i-tabler name="user-check" class="icon-16 m-r-8 text-success"></i-tabler>
-                        <span>Activate</span>
+                        <span>{{ 'common.activate' | translate }}</span>
                       </button>
                       <button mat-menu-item *ngIf="(element.status || 'ACTIVE').toUpperCase() === 'ACTIVE'" (click)="toggleStatus(element)">
                         <i-tabler name="user-x" class="icon-16 m-r-8 text-warning"></i-tabler>
-                        <span>Deactivate</span>
+                        <span>{{ 'common.deactivate' | translate }}</span>
                       </button>
                       <mat-divider></mat-divider>
                       <button mat-menu-item class="text-danger" (click)="deleteEmployee(element)">
                         <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
-                        <span>Delete</span>
+                        <span>{{ 'common.delete' | translate }}</span>
                       </button>
                     </mat-menu>
                   </div>
                 </div>
-                
+
                 <div class="d-flex align-items-center justify-content-between m-b-12">
                   <span class="f-s-13 text-muted d-flex align-items-center"><i-tabler name="mail" class="icon-16 m-r-4"></i-tabler> {{ element.email }}</span>
                 </div>
-                
+
                 <div class="d-flex align-items-center justify-content-between m-b-16">
                   <div class="d-flex align-items-center">
                     <i-tabler name="phone" class="icon-16 m-r-4 text-muted"></i-tabler>
-                    <span class="f-s-13 text-muted">{{ element.phone || 'N/A' }}</span>
+                    <span class="f-s-13 text-muted">{{ element.phone || ('leads.notAvailable' | translate) }}</span>
                   </div>
                   <span class="status-badge" [ngClass]="(element.status || 'ACTIVE').toLowerCase()">
-                    {{ element.status || 'ACTIVE' | titlecase }}
+                    {{ ((element.status || 'ACTIVE').toUpperCase() === 'ACTIVE' ? 'common.active' : 'common.inactive') | translate }}
                   </span>
                 </div>
               </mat-card-content>
@@ -196,7 +197,7 @@ import { AuthService } from '../../../core/services/auth.service';
                          [pageSize]="pageSize"
                          [pageSizeOptions]="[5, 10, 20]"
                          (page)="pageChanged($event)"
-                         showFirstLastButtons 
+                         showFirstLastButtons
                          class="p-y-12">
           </mat-paginator>
         </mat-card-content>
@@ -204,7 +205,7 @@ import { AuthService } from '../../../core/services/auth.service';
     </div>
 
     <!-- Mobile FAB -->
-    <button mat-fab color="primary" class="employee-mobile-fab" (click)="addEmployee()" aria-label="Add Employee">
+    <button mat-fab color="primary" class="employee-mobile-fab" (click)="addEmployee()" [attr.aria-label]="'employees.addEmployee' | translate">
       <i-tabler name="plus" class="icon-24"></i-tabler>
     </button>
   `,
@@ -503,13 +504,14 @@ export class EmployeesComponent implements OnInit, AfterViewInit {
     private notificationService: NotificationService,
     private employeeService: EmployeeService,
     private dialog: MatDialog,
-    private authService: AuthService
+    private authService: AuthService,
+    private translate: TranslateService
   ) {}
 
   getRoleDisplayName(element: any): string {
     if (!element) return '';
     const roleObj = element.role;
-    const rawRole = roleObj?.displayName || roleObj?.name || roleObj || ('Role ' + element.roleId);
+    const rawRole = roleObj?.displayName || roleObj?.name || roleObj || this.translate.instant('employees.roleN', { id: element.roleId });
     return this.authService.formatRoleName(rawRole);
   }
 
@@ -546,7 +548,7 @@ export class EmployeesComponent implements OnInit, AfterViewInit {
       },
       error: (err) => {
         console.error('Error fetching employees:', err);
-        this.notificationService.showErrorToast('Failed to load employees.', 'Error');
+        this.notificationService.showErrorToast(this.translate.instant('employees.toast.loadFailed'), this.translate.instant('employees.toast.errorTitle'));
       }
     });
   }
@@ -612,14 +614,20 @@ export class EmployeesComponent implements OnInit, AfterViewInit {
     
     const currentStatus = (employee.status || 'ACTIVE').toUpperCase();
     const newStatus = currentStatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-    const actionText = newStatus === 'ACTIVE' ? 'activate' : 'deactivate';
+    const isActivating = newStatus === 'ACTIVE';
 
     this.employeeService.updateEmployeeStatus(employee.id, newStatus).subscribe({
       next: () => {
-        this.notificationService.showSuccessToast(`Employee ${actionText}d successfully.`, 'Status Updated');
+        this.notificationService.showSuccessToast(
+          this.translate.instant(isActivating ? 'employees.toast.activated' : 'employees.toast.deactivated'),
+          this.translate.instant('employees.toast.statusUpdated')
+        );
         this.loadEmployees();
       },
-      error: () => this.notificationService.showErrorToast(`Failed to ${actionText} employee.`, 'Error')
+      error: () => this.notificationService.showErrorToast(
+        this.translate.instant(isActivating ? 'employees.toast.activateFailed' : 'employees.toast.deactivateFailed'),
+        this.translate.instant('employees.toast.errorTitle')
+      )
     });
   }
 
@@ -627,17 +635,23 @@ export class EmployeesComponent implements OnInit, AfterViewInit {
     if (!employee.id) return;
 
     this.notificationService.showErrorPopup(
-      `Are you sure you want to completely remove ${employee.firstName}?`,
-      'Confirm Deletion',
-      'Delete'
+      this.translate.instant('employees.confirmDeleteMessage', { name: employee.firstName }),
+      this.translate.instant('employees.confirmDeleteTitle'),
+      this.translate.instant('common.delete')
     ).subscribe((confirmed) => {
       if (confirmed) {
         this.employeeService.deleteEmployee(employee.id!).subscribe({
           next: () => {
-            this.notificationService.showSuccessToast(`${employee.firstName} deleted.`, 'Deleted');
+            this.notificationService.showSuccessToast(
+              this.translate.instant('employees.toast.employeeDeleted', { name: employee.firstName }),
+              this.translate.instant('leads.toast.deleted')
+            );
             this.loadEmployees();
           },
-          error: () => this.notificationService.showErrorToast('Failed to delete employee.', 'Error')
+          error: () => this.notificationService.showErrorToast(
+            this.translate.instant('employees.toast.deleteFailed'),
+            this.translate.instant('employees.toast.errorTitle')
+          )
         });
       }
     });

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ThemeService } from '../../../core/services/theme.service';
-import { TranslateService } from '@ngx-translate/core';
+import { LanguageService } from '../../../core/services/language.service';
 
 @Component({
   selector: 'app-settings',
@@ -10,15 +10,15 @@ import { TranslateService } from '@ngx-translate/core';
       <mat-card class="cardWithShadow">
         <mat-card-header>
           <mat-card-title>
-            <h5 class="mat-headline-6 f-w-600 m-b-0">Appearance Settings</h5>
+            <h5 class="mat-headline-6 f-w-600 m-b-0">{{ 'settings.appearanceTitle' | translate }}</h5>
           </mat-card-title>
         </mat-card-header>
         <mat-card-content class="p-t-20">
-          <p class="text-muted m-b-20">Customize how Atlas Mentor looks on your device.</p>
-          
+          <p class="text-muted m-b-20">{{ 'settings.appearanceDesc' | translate }}</p>
+
           <div class="theme-options-grid">
-            <div 
-              class="theme-card-option" 
+            <div
+              class="theme-card-option"
               [class.active]="!isDarkMode"
               (click)="setTheme(false)"
             >
@@ -31,12 +31,12 @@ import { TranslateService } from '@ngx-translate/core';
               </div>
               <div class="option-label">
                 <i-tabler name="sun" class="icon-16 m-r-4"></i-tabler>
-                <span>Light Theme</span>
+                <span>{{ 'settings.lightTheme' | translate }}</span>
               </div>
             </div>
 
-            <div 
-              class="theme-card-option" 
+            <div
+              class="theme-card-option"
               [class.active]="isDarkMode"
               (click)="setTheme(true)"
             >
@@ -49,7 +49,7 @@ import { TranslateService } from '@ngx-translate/core';
               </div>
               <div class="option-label">
                 <i-tabler name="moon" class="icon-16 m-r-4"></i-tabler>
-                <span>Dark Theme</span>
+                <span>{{ 'settings.darkTheme' | translate }}</span>
               </div>
             </div>
           </div>
@@ -60,11 +60,11 @@ import { TranslateService } from '@ngx-translate/core';
       <mat-card class="cardWithShadow m-t-20">
         <mat-card-header>
           <mat-card-title>
-            <h5 class="mat-headline-6 f-w-600 m-b-0">Language Settings</h5>
+            <h5 class="mat-headline-6 f-w-600 m-b-0">{{ 'settings.languageTitle' | translate }}</h5>
           </mat-card-title>
         </mat-card-header>
         <mat-card-content class="p-t-20">
-          <p class="text-muted m-b-20">Select your preferred language for the Atlas Mentor platform.</p>
+          <p class="text-muted m-b-20">{{ 'settings.languageDesc' | translate }}</p>
           
           <div class="language-options-grid">
             <div 
@@ -102,6 +102,24 @@ import { TranslateService } from '@ngx-translate/core';
                     <rect width="5" height="1" fill="#000"/>
                     <rect y="1" width="5" height="1" fill="#D00"/>
                     <rect y="2" width="5" height="1" fill="#FFCE00"/>
+                  </svg>
+                  <!-- Russian -->
+                  <svg *ngSwitchCase="'ru'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20" class="flag-svg">
+                    <rect width="30" height="20" fill="#fff"/>
+                    <rect y="6.67" width="30" height="6.67" fill="#0039A6"/>
+                    <rect y="13.33" width="30" height="6.67" fill="#D52B1E"/>
+                  </svg>
+                  <!-- Georgian -->
+                  <svg *ngSwitchCase="'ka'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20" class="flag-svg">
+                    <rect width="30" height="20" fill="#fff"/>
+                    <rect x="12.5" width="5" height="20" fill="#FF0000"/>
+                    <rect y="7.5" width="30" height="5" fill="#FF0000"/>
+                    <g fill="#FF0000">
+                      <rect x="2" y="1" width="4" height="4" transform="rotate(45 4 3)"/>
+                      <rect x="24" y="1" width="4" height="4" transform="rotate(45 26 3)"/>
+                      <rect x="2" y="15" width="4" height="4" transform="rotate(45 4 17)"/>
+                      <rect x="24" y="15" width="4" height="4" transform="rotate(45 26 17)"/>
+                    </g>
                   </svg>
                 </ng-container>
               </div>
@@ -306,24 +324,20 @@ import { TranslateService } from '@ngx-translate/core';
   `]
 })
 export class SettingsComponent implements OnInit {
-  currentLang = 'en';
-
-  languages = [
-    { code: 'en', name: 'English' },
-    { code: 'uz', name: "O'zbek" },
-    { code: 'fr', name: 'Français' },
-    { code: 'de', name: 'Deutsch' },
-  ];
-
   constructor(
     private themeService: ThemeService,
-    private translate: TranslateService
-  ) {
-    const saved = localStorage.getItem('educrm-lang') || 'en';
-    this.currentLang = saved;
-  }
+    private languageService: LanguageService
+  ) {}
 
   ngOnInit(): void {}
+
+  get languages() {
+    return this.languageService.languages;
+  }
+
+  get currentLang(): string {
+    return this.languageService.currentLang;
+  }
 
   get isDarkMode(): boolean {
     return this.themeService.isDarkMode;
@@ -336,8 +350,6 @@ export class SettingsComponent implements OnInit {
   }
 
   changeLanguage(code: string): void {
-    this.currentLang = code;
-    this.translate.use(code);
-    localStorage.setItem('educrm-lang', code);
+    this.languageService.changeLanguage(code);
   }
 }

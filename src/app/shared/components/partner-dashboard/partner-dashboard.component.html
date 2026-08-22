@@ -5,12 +5,12 @@
     <!-- Greeting Section -->
     <div class="d-flex align-items-center mb-4 animate-card">
       <div>
-        <h2 class="fs-2 fw-bolder text-dark mb-1">{{ greeting }}, {{ userName }}! 👋</h2>
+        <h2 class="fs-2 fw-bolder text-dark mb-1">{{ greeting }} 👋</h2>
       </div>
     </div>
 
     <!-- SECTION 01: Top KPI Cards -->
-    <div class="section-label animate-section">SECTION 01 — KPI CARDS</div>
+    <div class="section-label animate-section">{{ 'partnerDashboard.section1' | translate }}</div>
     <div class="metrics-grid mb-4">
       <div class="op-card card-sm m-0 animate-card" *ngFor="let card of summaryCards; let i = index"
         [style.animation-delay]="(i * 55) + 'ms'">
@@ -25,14 +25,14 @@
     </div>
 
     <!-- SECTION 02: CHARTS -->
-    <div class="section-label animate-section">SECTION 02 — EARNINGS & PAYOUTS</div>
+    <div class="section-label animate-section">{{ 'partnerDashboard.section2' | translate }}</div>
     <div class="row g-4 mb-5">
       <div class="col-lg-8">
         <div class="op-card h-100 p-4 animate-card" style="animation-delay:80ms">
           <div class="d-flex justify-content-between mb-4">
             <div>
-              <div class="card-label text-primary">COMMISSION TREND</div>
-              <div class="fs-5 fw-bold text-dark" style="font-weight: 900 !important;">Earnings Overview</div>
+              <div class="card-label text-primary">{{ 'partnerDashboard.commissionTrend' | translate }}</div>
+              <div class="fs-5 fw-bold text-dark" style="font-weight: 900 !important;">{{ 'partnerDashboard.earningsOverview' | translate }}</div>
             </div>
           </div>
           <div style="height: 280px;" class="mt-4 pt-2">
@@ -42,8 +42,8 @@
       </div>
       <div class="col-lg-4">
         <div class="op-card h-100 p-4 animate-card" style="animation-delay:120ms">
-          <div class="card-label text-primary">DISTRIBUTION</div>
-          <div class="fs-5 fw-bold text-dark mb-4" style="font-weight: 900 !important;">Payout Status</div>
+          <div class="card-label text-primary">{{ 'partnerDashboard.distribution' | translate }}</div>
+          <div class="fs-5 fw-bold text-dark mb-4" style="font-weight: 900 !important;">{{ 'partnerDashboard.payoutStatus' | translate }}</div>
           <div style="height: 180px; position: relative;">
             <div echarts [options]="payoutStatusOptions" style="height: 100%;"></div>
           </div>
@@ -63,26 +63,26 @@
     </div>
 
     <!-- SECTION 03: STUDENTS & QUICK STATS -->
-    <div class="section-label animate-section">SECTION 03 — STUDENTS & ACTIVITY</div>
+    <div class="section-label animate-section">{{ 'partnerDashboard.section3' | translate }}</div>
     <div class="row g-4 mb-5">
       <div class="col-lg-8">
         <div class="op-card p-4 h-100 animate-card" style="animation-delay:80ms">
           <div class="d-flex justify-content-between mb-4">
             <div>
-              <div class="card-label text-primary">ENROLMENTS</div>
-              <div class="fs-5 fw-bold text-dark" style="font-weight: 900 !important;">Recent Students</div>
+              <div class="card-label text-primary">{{ 'partnerDashboard.enrolments' | translate }}</div>
+              <div class="fs-5 fw-bold text-dark" style="font-weight: 900 !important;">{{ 'partnerDashboard.recentStudents' | translate }}</div>
             </div>
-            <a href="javascript:void(0)" class="link-all-details">All Details <i-tabler name="chevron-right"
+            <a href="javascript:void(0)" class="link-all-details">{{ 'partnerDashboard.allDetails' | translate }} <i-tabler name="chevron-right"
                 class="icon-14"></i-tabler></a>
           </div>
           <table class="op-table">
             <thead>
               <tr>
-                <th>Student</th>
-                <th>Enrolled</th>
-                <th>Status</th>
-                <th>Amount</th>
-                <th class="text-end">Progress</th>
+                <th>{{ 'partnerDashboard.student' | translate }}</th>
+                <th>{{ 'partnerDashboard.enrolled' | translate }}</th>
+                <th>{{ 'taskAccountability.taskTable.colStatus' | translate }}</th>
+                <th>{{ 'partnerDashboard.amount' | translate }}</th>
+                <th class="text-end">{{ 'partnerDashboard.progress' | translate }}</th>
               </tr>
             </thead>
             <tbody>
@@ -109,9 +109,9 @@
       </div>
       <div class="col-lg-4">
         <div class="op-card p-4 h-100 dark-card animate-card" style="animation-delay:140ms">
-          <div class="card-label" style="color:#5b7fa6;">QUICK</div>
-          <div class="fs-5 fw-bold text-white mb-4" style="font-weight: 900 !important;">Partner Stats</div>
-          
+          <div class="card-label" style="color:#5b7fa6;">{{ 'partnerDashboard.quick' | translate }}</div>
+          <div class="fs-5 fw-bold text-white mb-4" style="font-weight: 900 !important;">{{ 'partnerDashboard.partnerStats' | translate }}</div>
+
           <div class="quick-card" *ngFor="let stat of quickStats">
             <div class="icon-box {{ stat.color }}">
               <i-tabler [name]="stat.icon" class="icon-16"></i-tabler>
@@ -126,13 +126,13 @@
     <!-- GLOBAL TIME FILTER (FLOATING) -->
     <div class="dashboard-time-filter animate-card" style="animation-delay:200ms">
       <select (change)="onPeriodChange($event)" [value]="currentPeriod">
-        <option value="7d">7 Days</option>
-        <option value="15d">15 Days</option>
-        <option value="30d">30 Days</option>
-        <option value="60d">60 Days</option>
-        <option value="90d">90 Days</option>
-        <option value="1y">1 Year</option>
-        <option value="5y">5 Years</option>
+        <option value="7d">{{ 'partnerDashboard.days7' | translate }}</option>
+        <option value="15d">{{ 'partnerDashboard.days15' | translate }}</option>
+        <option value="30d">{{ 'partnerDashboard.days30' | translate }}</option>
+        <option value="60d">{{ 'partnerDashboard.days60' | translate }}</option>
+        <option value="90d">{{ 'partnerDashboard.days90' | translate }}</option>
+        <option value="1y">{{ 'partnerDashboard.year1' | translate }}</option>
+        <option value="5y">{{ 'partnerDashboard.years5' | translate }}</option>
       </select>
       <i-tabler name="chevron-down" class="icon-chevron"></i-tabler>
     </div>

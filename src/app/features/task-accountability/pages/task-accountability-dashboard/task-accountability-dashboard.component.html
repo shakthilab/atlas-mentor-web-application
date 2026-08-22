@@ -2,7 +2,7 @@
   <!-- Center panel (Scrollable content area) -->
   <div class="center-panel">
     <div class="center-scrollable-content">
-      
+
       <!-- ========================================================================= -->
       <!-- A. NON-APPROVAL USER SCREEN (Counsellors, Web Dev, Video Editors, etc.)  -->
       <!-- ========================================================================= -->
@@ -15,14 +15,14 @@
           </div>
 
           <div class="header-right-action" *ngIf="canShowSubmitDayButton">
-            <button 
-              class="btn-submit-day-dark" 
-              [disabled]="!isAllTasksCompleted" 
+            <button
+              class="btn-submit-day-dark"
+              [disabled]="!isAllTasksCompleted"
               (click)="submitDay()"
-              [title]="isAllTasksCompleted ? 'Submit day for approval' : 'All tasks of the day must be marked as DONE to submit'"
+              [title]="(isAllTasksCompleted ? 'taskAccountability.dashboard.submitDayTooltip' : 'taskAccountability.dashboard.submitDayDisabledTooltip') | translate"
             >
               <i-tabler name="send" class="icon-16"></i-tabler>
-              <span>Submit day</span>
+              <span>{{ 'taskAccountability.dashboard.submitDay' | translate }}</span>
             </button>
           </div>
         </div>
@@ -31,7 +31,7 @@
         <div class="select-day-weekly-card">
           <div class="card-header-bar">
             <div class="header-titles">
-              <span class="section-label">SELECT DAY</span>
+              <span class="section-label">{{ 'taskAccountability.dashboard.selectDay' | translate }}</span>
               <h2 class="date-range-text">{{ selectedWeekRangeLabel }}</h2>
             </div>
 
@@ -66,17 +66,17 @@
                   </div>
 
                   <div class="popover-weekdays-grid">
-                    <span>Su</span>
-                    <span>Mo</span>
-                    <span>Tu</span>
-                    <span>We</span>
-                    <span>Th</span>
-                    <span>Fr</span>
-                    <span>Sa</span>
+                    <span>{{ 'common.weekdaysMin.sun' | translate }}</span>
+                    <span>{{ 'common.weekdaysMin.mon' | translate }}</span>
+                    <span>{{ 'common.weekdaysMin.tue' | translate }}</span>
+                    <span>{{ 'common.weekdaysMin.wed' | translate }}</span>
+                    <span>{{ 'common.weekdaysMin.thu' | translate }}</span>
+                    <span>{{ 'common.weekdaysMin.fri' | translate }}</span>
+                    <span>{{ 'common.weekdaysMin.sat' | translate }}</span>
                   </div>
 
                   <div class="popover-days-grid">
-                    <button 
+                    <button
                       *ngFor="let cell of calendarGridDays"
                       class="calendar-day-cell"
                       [class.other-month]="!cell.isCurrentMonth"
@@ -94,7 +94,7 @@
 
           <!-- 7-Day Cards Strip -->
           <div class="weekly-cards-grid">
-            <button 
+            <button
               *ngFor="let card of weekDaysList"
               class="weekly-day-card"
               [class.active]="card.isActive"
@@ -115,7 +115,7 @@
         <div class="kpi-cards-grid">
           <div class="kpi-card">
             <div class="kpi-top">
-              <span class="kpi-title">TASKS PLANNED</span>
+              <span class="kpi-title">{{ 'taskAccountability.dashboard.tasksPlanned' | translate }}</span>
               <i-tabler name="adjustments-horizontal" class="kpi-icon"></i-tabler>
             </div>
             <div class="kpi-value">{{ tasksPlannedCount }}</div>
@@ -123,7 +123,7 @@
 
           <div class="kpi-card">
             <div class="kpi-top">
-              <span class="kpi-title">COMPLETED</span>
+              <span class="kpi-title">{{ 'taskAccountability.dashboard.completed' | translate }}</span>
               <i-tabler name="circle-check" class="kpi-icon"></i-tabler>
             </div>
             <div class="kpi-value">{{ tasksCompletedCount }}</div>
@@ -131,7 +131,7 @@
 
           <div class="kpi-card">
             <div class="kpi-top">
-              <span class="kpi-title">OVERDUE</span>
+              <span class="kpi-title">{{ 'taskAccountability.dashboard.overdue' | translate }}</span>
               <i-tabler name="clock" class="kpi-icon"></i-tabler>
             </div>
             <div class="kpi-value">{{ tasksOverdueCount }}</div>
@@ -139,7 +139,7 @@
 
           <div class="kpi-card">
             <div class="kpi-top">
-              <span class="kpi-title">COMPLETION</span>
+              <span class="kpi-title">{{ 'taskAccountability.dashboard.completion' | translate }}</span>
               <i-tabler name="circle-check" class="kpi-icon"></i-tabler>
             </div>
             <div class="kpi-value">{{ completionPercentage }}%</div>
@@ -166,11 +166,11 @@
           <div class="greeting-hero-card">
             <div class="greeting-content">
               <div class="greeting-badge">
-                <i-tabler name="chart-bar" class="badge-icon"></i-tabler> Task Accountability Workspace
+                <i-tabler name="chart-bar" class="badge-icon"></i-tabler> {{ 'taskAccountability.dashboard.workspaceBadge' | translate }}
               </div>
-              <h1 class="greeting-heading">Good {{ getTimeOfDay() }}, Admin! 👋</h1>
+              <h1 class="greeting-heading">{{ 'taskAccountability.dashboard.greeting' | translate:{ timeOfDay: getTimeOfDay() } }} 👋</h1>
               <p class="greeting-subtext">
-                Welcome to the Task Accountability Portal. Select an employee from the tree on the left to track daily targets, monitor KPI achievements, and manage review approvals.
+                {{ 'taskAccountability.dashboard.greetingSubtext' | translate }}
               </p>
             </div>
             <div class="greeting-illustration">
@@ -186,8 +186,8 @@
                 <i-tabler name="sitemap" class="feature-icon"></i-tabler>
               </div>
               <div class="feature-text">
-                <h3>Employee Hierarchy</h3>
-                <p>Explore branches, operational roles, and team members from the left accordion menu.</p>
+                <h3>{{ 'taskAccountability.dashboard.featureHierarchyTitle' | translate }}</h3>
+                <p>{{ 'taskAccountability.dashboard.featureHierarchyDesc' | translate }}</p>
               </div>
             </div>
 
@@ -196,8 +196,8 @@
                 <i-tabler name="list-check" class="feature-icon"></i-tabler>
               </div>
               <div class="feature-text">
-                <h3>Daily Task Tracking</h3>
-                <p>Review numeric KPIs, checklist completion rates, and submission comments in real-time.</p>
+                <h3>{{ 'taskAccountability.dashboard.featureTrackingTitle' | translate }}</h3>
+                <p>{{ 'taskAccountability.dashboard.featureTrackingDesc' | translate }}</p>
               </div>
             </div>
 
@@ -206,8 +206,8 @@
                 <i-tabler name="circle-check" class="feature-icon"></i-tabler>
               </div>
               <div class="feature-text">
-                <h3>Manager Review & Workflow</h3>
-                <p>Approve, reject, or return daily work submissions through structured approval stages.</p>
+                <h3>{{ 'taskAccountability.dashboard.featureReviewTitle' | translate }}</h3>
+                <p>{{ 'taskAccountability.dashboard.featureReviewDesc' | translate }}</p>
               </div>
             </div>
           </div>
@@ -219,7 +219,7 @@
           <div class="dashboard-header">
             <div class="header-left">
               <div class="breadcrumbs">
-                <span class="parent-link">Accountability</span>
+                <span class="parent-link">{{ 'taskAccountability.weekly.accountability' | translate }}</span>
                 <span class="slash">/</span>
                 <span class="parent-link">{{ branch?.name }}</span>
                 <span class="slash">/</span>
@@ -227,7 +227,7 @@
                 <span class="slash">/</span>
                 <span class="active-link">{{ month?.name }} {{ year?.yearNumber }}</span>
               </div>
-              
+
               <div class="day-title-row">
                 <h1>{{ day.dateLabel || day.name }}</h1>
               </div>
@@ -248,30 +248,30 @@
                 <button
                   class="btn-approve-action"
                   [disabled]="!day.canCurrentUserAct && !canCatchUpStrayTasks"
-                  [title]="!day.canCurrentUserAct && canCatchUpStrayTasks ? (strayDoneTasks.length + ' task(s) finished after this day was fully approved - verify them individually') : null"
+                  [title]="(!day.canCurrentUserAct && canCatchUpStrayTasks) ? ('taskAccountability.dashboard.verifyStrayTooltip' | translate:{ count: strayDoneTasks.length }) : null"
                   (click)="day.canCurrentUserAct ? approveDayAction() : approveDayAction(strayDoneTaskIds)"
                 >
-                  {{ (!day.canCurrentUserAct && canCatchUpStrayTasks) ? ('Verify ' + strayDoneTasks.length + ' Task' + (strayDoneTasks.length === 1 ? '' : 's')) : 'Approve' }}
+                  {{ (!day.canCurrentUserAct && canCatchUpStrayTasks) ? ('taskAccountability.dashboard.verifyStrayCount' | translate:{ count: strayDoneTasks.length }) : ('taskAccountability.taskDetails.approve' | translate) }}
                 </button>
 
-                <button 
-                  class="btn-sendback-action" 
-                  [disabled]="!day.canCurrentUserAct" 
+                <button
+                  class="btn-sendback-action"
+                  [disabled]="!day.canCurrentUserAct"
                   (click)="sendBackDayAction()"
                 >
-                  Send Back
+                  {{ 'taskAccountability.taskDetails.sendBack' | translate }}
                 </button>
 
                 <span class="muted-waiting-tag" *ngIf="!day.canCurrentUserAct && day.nextActionRole">
-                  Waiting on {{ formatRole(day.nextActionRole) }}
+                  {{ 'taskAccountability.dashboard.waitingOn' | translate:{ role: formatRole(day.nextActionRole) } }}
                 </span>
 
                 <span
                   class="muted-waiting-tag optional-review-tag"
                   *ngIf="isCurrentUserBranchPartner && day.canCurrentUserAct"
-                  title="Your review here is optional - the Manager will review this day regardless of whether you act."
+                  [title]="'taskAccountability.dashboard.optionalReviewTooltip' | translate"
                 >
-                  Optional review — Manager will review regardless
+                  {{ 'taskAccountability.dashboard.optionalReviewTag' | translate }}
                 </span>
               </div>
             </div>

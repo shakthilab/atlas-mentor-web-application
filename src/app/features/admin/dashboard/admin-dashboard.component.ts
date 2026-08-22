@@ -3,6 +3,7 @@ import { EChartsOption } from 'echarts';
 import * as echarts from 'echarts';
 import { DashboardService } from '../../../core/services/dashboard.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Directive({
   selector: '[appAnimatedNumber]'
@@ -61,7 +62,8 @@ export class AdminDashboardComponent implements OnInit {
 
   constructor(
     private dashboardService: DashboardService,
-    private authService: AuthService
+    private authService: AuthService,
+    private translate: TranslateService
   ) { }
 
   ngOnInit(): void {
@@ -71,15 +73,18 @@ export class AdminDashboardComponent implements OnInit {
 
   private setGreeting(): void {
     const user = this.authService.currentUserValue;
+    let userName = this.translate.instant('common.user');
     if (user) {
-      this.userName = user.name || 'User';
+      userName = user.name || userName;
       const role = (user.role || '').toUpperCase().replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
       this.isCounsellor = (role === 'JUNIOR COUNSELLOR' || role === 'SENIOR COUNSELLOR');
     }
+    this.userName = userName;
     const hour = new Date().getHours();
-    if (hour < 12) this.greeting = 'Good morning';
-    else if (hour < 17) this.greeting = 'Good afternoon';
-    else this.greeting = 'Good evening';
+    const timeOfDay = hour < 12 ? this.translate.instant('common.timeOfDay.morning')
+      : hour < 17 ? this.translate.instant('common.timeOfDay.afternoon')
+      : this.translate.instant('common.timeOfDay.evening');
+    this.greeting = this.translate.instant('common.greetingWithName', { timeOfDay, name: userName });
   }
 
   onPeriodChange(event: Event): void {

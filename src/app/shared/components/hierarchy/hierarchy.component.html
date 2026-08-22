@@ -3,15 +3,15 @@
   <!-- Page Header -->
   <div class="h-page-header m-b-24">
     <div>
-      <h1 class="h-page-title">Hierarchy Management</h1>
-      <p class="h-page-subtitle m-0">Visualize organization tree structures and assign reporting roles.</p>
+      <h1 class="h-page-title">{{ 'hierarchy.title' | translate }}</h1>
+      <p class="h-page-subtitle m-0">{{ 'hierarchy.subtitle' | translate }}</p>
     </div>
     <div class="h-location-wrapper">
-      <label class="h-field-label">Location</label>
+      <label class="h-field-label">{{ 'hierarchy.location' | translate }}</label>
       <mat-form-field appearance="outline" class="h-location-select" subscriptSizing="dynamic">
         <mat-select [(ngModel)]="selectedLocation">
           <mat-option *ngFor="let loc of locationsList; trackBy: trackByString" [value]="loc">
-            {{ loc === 'All Locations' ? 'Select your city' : loc }}
+            {{ loc === 'All Locations' ? ('hierarchy.selectYourCity' | translate) : loc }}
           </mat-option>
         </mat-select>
       </mat-form-field>
@@ -26,7 +26,7 @@
         <i-tabler name="users" class="icon-22"></i-tabler>
       </div>
       <div class="h-stat-body">
-        <span class="h-stat-label">TOTAL TEAMS</span>
+        <span class="h-stat-label">{{ 'hierarchy.totalTeams' | translate }}</span>
         <div class="h-stat-value">{{ totalTeams }}</div>
       </div>
     </div>
@@ -36,7 +36,7 @@
         <i-tabler name="users-group" class="icon-22"></i-tabler>
       </div>
       <div class="h-stat-body">
-        <span class="h-stat-label">TOTAL MEMBERS</span>
+        <span class="h-stat-label">{{ 'hierarchy.totalMembers' | translate }}</span>
         <div class="h-stat-value">{{ totalMembers }}</div>
       </div>
     </div>
@@ -46,7 +46,7 @@
         <i-tabler name="map-pin" class="icon-22"></i-tabler>
       </div>
       <div class="h-stat-body">
-        <span class="h-stat-label">LOCATIONS</span>
+        <span class="h-stat-label">{{ 'hierarchy.locations' | translate }}</span>
         <div class="h-stat-value">{{ locations }}</div>
       </div>
     </div>
@@ -66,16 +66,16 @@
               <i-tabler name="hierarchy-3" class="icon-16"></i-tabler>
             </div>
             <div>
-              <h2 class="h-card-title m-0">Organization Tree</h2>
-              <p class="h-subtitle m-0">{{ totalTeams }} teams active &bull; {{ selectedLocation }}</p>
+              <h2 class="h-card-title m-0">{{ 'hierarchy.organizationTree' | translate }}</h2>
+              <p class="h-subtitle m-0">{{ 'hierarchy.teamsActive' | translate:{ count: totalTeams } }} &bull; {{ selectedLocation }}</p>
             </div>
           </div>
           <div class="d-flex align-items-center gap-8">
             <button mat-stroked-button class="h-tree-btn" (click)="expandAll()">
-              Expand All
+              {{ 'taskAccountability.employeeTree.expandAll' | translate }}
             </button>
             <button mat-stroked-button class="h-tree-btn" (click)="collapseAll()">
-              Collapse All
+              {{ 'taskAccountability.employeeTree.collapseAll' | translate }}
             </button>
           </div>
         </div>
@@ -106,7 +106,7 @@
                   </span>
                   <span *ngIf="node.reportsCount > 0" class="d-flex align-items-center gap-4 f-w-600">
                     <i-tabler name="subtask" class="icon-13"></i-tabler>
-                    {{ node.reportsCount }} report(s)
+                    {{ 'hierarchy.reportsCount' | translate:{ count: node.reportsCount } }}
                   </span>
                 </div>
               </div>
@@ -114,13 +114,13 @@
               <div class="d-flex align-items-center gap-4">
                 <button *ngIf="node.role.toUpperCase().includes('MANAGER') || node.role.toUpperCase().includes('SENIOR COUNSELLOR')"
                         mat-icon-button color="primary"
-                        matTooltip="Add Direct Report"
+                        [matTooltip]="'hierarchy.addDirectReport' | translate"
                         (click)="$event.stopPropagation(); addTeamMember(node)">
                   <i-tabler name="user-plus" class="icon-18"></i-tabler>
                 </button>
                 <button *ngIf="level > 0"
                         mat-icon-button class="h-unassign-btn"
-                        matTooltip="Unassign from hierarchy"
+                        [matTooltip]="'hierarchy.unassignTooltip' | translate"
                         (click)="$event.stopPropagation(); unassignNode(node)">
                   <i-tabler name="user-minus" class="icon-18"></i-tabler>
                 </button>
@@ -148,8 +148,8 @@
                 <div class="h-empty-icon-wrap bg-light-primary">
                   <i-tabler name="hierarchy" class="icon-32 text-primary"></i-tabler>
                 </div>
-                <h3 class="h-card-title m-0 m-b-8">No hierarchy nodes match this location</h3>
-                <p class="f-s-12 h-muted m-0">Try clearing your location filter or assigning members to managers in this location.</p>
+                <h3 class="h-card-title m-0 m-b-8">{{ 'hierarchy.noNodesMatch' | translate }}</h3>
+                <p class="f-s-12 h-muted m-0">{{ 'hierarchy.tryClearingFilter' | translate }}</p>
               </div>
             </ng-template>
           </div>
@@ -169,17 +169,17 @@
                 <i-tabler name="user-check" class="icon-16"></i-tabler>
               </div>
               <div>
-                <h3 class="h-card-title m-0">Quick Assignment</h3>
-                <p class="h-subtitle m-0">Assign employees to a reporting manager.</p>
+                <h3 class="h-card-title m-0">{{ 'hierarchy.quickAssignment' | translate }}</h3>
+                <p class="h-subtitle m-0">{{ 'hierarchy.assignEmployeesDesc' | translate }}</p>
               </div>
             </div>
           </div>
 
           <!-- Manager -->
           <div class="m-b-16">
-            <label class="h-field-label">Select Manager *</label>
+            <label class="h-field-label">{{ 'hierarchy.selectManagerRequired' | translate }}</label>
             <mat-form-field appearance="outline" class="w-100" subscriptSizing="dynamic">
-              <mat-select formControlName="managerId" placeholder="Select a manager...">
+              <mat-select formControlName="managerId" [placeholder]="'hierarchy.selectManagerPlaceholder' | translate">
                 <mat-option *ngFor="let mgr of getEligibleManagers(); trackBy: trackByManagerId" [value]="mgr.id">
                   {{ mgr.name }} ({{ mgr.role }})
                 </mat-option>
@@ -190,9 +190,9 @@
           <!-- Employees -->
           <div *ngIf="assignmentForm.get('managerId')?.value">
             <div class="d-flex align-items-center justify-content-between m-b-8">
-              <label class="h-field-label">Select Employees</label>
+              <label class="h-field-label">{{ 'hierarchy.selectEmployees' | translate }}</label>
               <span class="h-count-badge bg-light-primary text-primary">
-                {{ (assignmentForm.get('employeeIds')?.value || []).length }} Selected
+                {{ 'hierarchy.selectedCount' | translate:{ count: (assignmentForm.get('employeeIds')?.value || []).length } }}
               </span>
             </div>
 
@@ -202,12 +202,12 @@
                      id="search-employee-input"
                      [(ngModel)]="searchTerm"
                      [ngModelOptions]="{standalone: true}"
-                     placeholder="Search employees..." />
+                     [placeholder]="'employees.searchPlaceholder' | translate" />
             </mat-form-field>
 
             <div class="h-emp-checklist">
               <div *ngIf="getAssignableEmployees().length === 0" class="h-checklist-empty">
-                No matching assignable employees found.
+                {{ 'hierarchy.noMatchingEmployees' | translate }}
               </div>
               <div *ngFor="let emp of getAssignableEmployees(); trackBy: trackByEmpId"
                    class="h-emp-item"
@@ -236,18 +236,18 @@
             <div class="h-empty-icon-sm bg-light-primary">
               <i-tabler name="user-check" class="icon-24 text-primary"></i-tabler>
             </div>
-            <p class="f-s-13 h-muted m-0">Select a reporting manager above to start assigning employees.</p>
+            <p class="f-s-13 h-muted m-0">{{ 'hierarchy.selectManagerToStart' | translate }}</p>
           </div>
 
           <!-- Actions -->
           <div class="d-flex gap-8 m-t-20 h-form-actions">
             <button type="button" mat-stroked-button (click)="cancelAssignment()">
-              Cancel
+              {{ 'common.cancel' | translate }}
             </button>
             <button type="submit" mat-flat-button color="primary"
                     [disabled]="!assignmentForm.valid || (assignmentForm.get('employeeIds')?.value || []).length === 0">
               <i-tabler name="check" class="icon-16 m-r-4"></i-tabler>
-              Assign Selected
+              {{ 'hierarchy.assignSelected' | translate }}
             </button>
           </div>
 

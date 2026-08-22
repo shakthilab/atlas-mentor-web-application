@@ -7,6 +7,7 @@ import { ResourceService, ResourceData } from '../../../core/services/resource.s
 import { AddResourceDialogComponent } from './add-resource-dialog/add-resource-dialog.component';
 import { ResourceDetailsDialogComponent } from './resource-details-dialog/resource-details-dialog.component';
 import { AuthService } from '../../../core/services/auth.service';
+import { TranslateService } from '@ngx-translate/core';
 
 export interface Resource {
   id: number;
@@ -26,66 +27,66 @@ export interface Resource {
       <mat-card class="cardWithShadow">
         <mat-card-header class="d-flex align-items-center justify-content-between p-x-24 p-y-16">
           <mat-card-title>
-            <h5 class="mat-headline-6 f-w-600 m-b-0">Resources Directory</h5>
+            <h5 class="mat-headline-6 f-w-600 m-b-0">{{ 'resources.title' | translate }}</h5>
           </mat-card-title>
           <div class="header-actions d-flex align-items-center gap-12">
             <div class="search-box flex-1-auto">
               <i-tabler name="search" class="icon-16 search-icon"></i-tabler>
-              <input (keyup)="applyFilter($event)" placeholder="Search resources..." class="search-input" />
+              <input (keyup)="applyFilter($event)" [placeholder]="'resources.searchPlaceholder' | translate" class="search-input" />
             </div>
             <div class="view-mode-toggle d-flex align-items-center">
-              <button (click)="viewMode = 'table'" class="toggle-btn" [class.active]="viewMode === 'table'" title="List view">
+              <button (click)="viewMode = 'table'" class="toggle-btn" [class.active]="viewMode === 'table'" [title]="'leads.listView' | translate">
                 <i-tabler name="list" class="icon-18"></i-tabler>
               </button>
-              <button (click)="viewMode = 'card'" class="toggle-btn" [class.active]="viewMode === 'card'" title="Card view">
+              <button (click)="viewMode = 'card'" class="toggle-btn" [class.active]="viewMode === 'card'" [title]="'leads.cardView' | translate">
                 <i-tabler name="layout-grid" class="icon-18"></i-tabler>
               </button>
             </div>
             <button *ngIf="!isCounsellor" mat-flat-button color="primary" class="d-flex align-items-center add-btn desktop-add-btn" (click)="addResource()">
               <i-tabler name="plus" class="icon-18 m-r-4"></i-tabler>
-              <span class="add-btn-text">Add Resource</span>
+              <span class="add-btn-text">{{ 'resources.addResource' | translate }}</span>
             </button>
           </div>
         </mat-card-header>
-        
+
         <mat-card-content class="p-0">
           <!-- Loading State -->
           <div *ngIf="isLoading" class="d-flex justify-content-center align-items-center p-24">
             <i-tabler name="loader" class="icon-24 spinning text-primary m-r-8"></i-tabler>
-            <span class="f-s-14 text-muted">Loading resources...</span>
+            <span class="f-s-14 text-muted">{{ 'resources.loading' | translate }}</span>
           </div>
 
           <!-- Error State -->
           <div *ngIf="!isLoading && hasError" class="d-flex flex-column justify-content-center align-items-center p-24">
             <i-tabler name="alert-circle" class="icon-48 text-danger m-b-8"></i-tabler>
-            <h6 class="mat-subtitle-1 m-b-4">Failed to load resources</h6>
-            <span class="f-s-14 text-muted m-b-16">There was an error communicating with the server.</span>
-            <button mat-stroked-button color="primary" (click)="loadResources()">Try Again</button>
+            <h6 class="mat-subtitle-1 m-b-4">{{ 'resources.loadFailedTitle' | translate }}</h6>
+            <span class="f-s-14 text-muted m-b-16">{{ 'leads.loadFailedDesc' | translate }}</span>
+            <button mat-stroked-button color="primary" (click)="loadResources()">{{ 'common.tryAgain' | translate }}</button>
           </div>
 
           <!-- Empty State -->
           <div *ngIf="!isLoading && !hasError && dataSource.data.length === 0" class="d-flex flex-column justify-content-center align-items-center p-24">
             <i-tabler name="inbox" class="icon-48 text-muted m-b-8"></i-tabler>
-            <h6 class="mat-subtitle-1 m-b-4">No resources found</h6>
-            <span class="f-s-14 text-muted">No uploaded resources found.</span>
+            <h6 class="mat-subtitle-1 m-b-4">{{ 'resources.noResourcesFound' | translate }}</h6>
+            <span class="f-s-14 text-muted">{{ 'resources.noUploadedResources' | translate }}</span>
           </div>
 
           <div *ngIf="!isLoading && !hasError && dataSource.data.length > 0 && viewMode === 'table'" class="table-responsive view-container">
             <table mat-table [dataSource]="dataSource" class="w-100">
-              
+
               <ng-container matColumnDef="resourceDetail">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Resource Detail</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'resources.colResourceDetail' | translate }}</th>
                 <td mat-cell *matCellDef="let element">
                   <div class="d-flex align-items-center">
-                    <div class="m-r-12 rounded d-flex align-items-center justify-content-center" 
+                    <div class="m-r-12 rounded d-flex align-items-center justify-content-center"
                          [ngClass]="getIconClass(element.type)"
                          style="width: 40px; height: 40px; flex-shrink: 0;">
                       <i-tabler [name]="getFileIcon(element.type)" class="icon-20"></i-tabler>
                     </div>
                     <div>
                       <span class="f-w-600 d-block text-dark f-s-14">{{ element.resourceDetail }}</span>
-                      <span class="f-s-12 text-muted text-truncate d-block" style="max-width: 200px;" [title]="element.originalData?.description || 'No description'">
-                        {{ element.originalData?.description || 'No description' }}
+                      <span class="f-s-12 text-muted text-truncate d-block" style="max-width: 200px;" [title]="element.originalData?.description || ('resources.noDescription' | translate)">
+                        {{ element.originalData?.description || ('resources.noDescription' | translate) }}
                       </span>
                     </div>
                   </div>
@@ -93,35 +94,35 @@ export interface Resource {
               </ng-container>
 
               <ng-container matColumnDef="type">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Type</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'adminDashboard.type' | translate }}</th>
                 <td mat-cell *matCellDef="let element">
                   <span class="d-block f-w-500 text-dark f-s-13">{{ element.type }}</span>
                 </td>
               </ng-container>
 
               <ng-container matColumnDef="ownership">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Owner Type</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'resources.colOwnerType' | translate }}</th>
                 <td mat-cell *matCellDef="let element">
                   <span class="d-block f-w-500 text-dark f-s-13">{{ element.ownership }}</span>
                 </td>
               </ng-container>
 
               <ng-container matColumnDef="storage">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Storage</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'resources.colStorage' | translate }}</th>
                 <td mat-cell *matCellDef="let element">
                   <span class="d-block f-w-500 text-dark f-s-13">{{ element.storage }}</span>
                 </td>
               </ng-container>
 
               <ng-container matColumnDef="created">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Created</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'resources.colCreated' | translate }}</th>
                 <td mat-cell *matCellDef="let element" class="text-muted f-s-13">
                   {{ element.created }}
                 </td>
               </ng-container>
 
               <ng-container matColumnDef="status">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Status</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'taskAccountability.taskTable.colStatus' | translate }}</th>
                 <td mat-cell *matCellDef="let element">
                   <span class="status-badge" [ngClass]="element.status">
                     {{ element.status | titlecase }}
@@ -130,7 +131,7 @@ export interface Resource {
               </ng-container>
 
               <ng-container matColumnDef="actions">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14 text-center">Actions</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14 text-center">{{ 'common.actions' | translate }}</th>
                 <td mat-cell *matCellDef="let element" class="text-center">
                   <button mat-icon-button [matMenuTriggerFor]="menu" class="text-muted" (click)="$event.stopPropagation()">
                     <i-tabler name="dots" class="icon-18"></i-tabler>
@@ -138,16 +139,16 @@ export interface Resource {
                   <mat-menu #menu="matMenu" class="cardWithShadow">
                     <button mat-menu-item (click)="viewDetails(element)">
                       <i-tabler name="eye" class="icon-16 m-r-8"></i-tabler>
-                      <span>View details</span>
+                      <span>{{ 'leads.viewDetails' | translate }}</span>
                     </button>
                     <button mat-menu-item (click)="editResource(element)">
                       <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
-                      <span>Edit resource</span>
+                      <span>{{ 'resources.editResource' | translate }}</span>
                     </button>
                     <mat-divider></mat-divider>
                     <button mat-menu-item class="text-danger" (click)="deleteResource(element)">
                       <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
-                      <span>Delete</span>
+                      <span>{{ 'common.delete' | translate }}</span>
                     </button>
                   </mat-menu>
                 </td>
@@ -163,7 +164,7 @@ export interface Resource {
             <mat-card *ngFor="let element of dataSource.data" class="resource-card cardWithShadow cursor-pointer" (click)="viewDetails(element)">
               <mat-card-content class="p-16">
                 <div class="d-flex align-items-center m-b-16">
-                  <div class="m-r-12 rounded d-flex align-items-center justify-content-center" 
+                  <div class="m-r-12 rounded d-flex align-items-center justify-content-center"
                        [ngClass]="getIconClass(element.type)"
                        style="width: 48px; height: 48px; flex-shrink: 0;">
                     <i-tabler [name]="getFileIcon(element.type)" class="icon-24"></i-tabler>
@@ -179,30 +180,30 @@ export interface Resource {
                     <mat-menu #cardMenu="matMenu" class="cardWithShadow">
                       <button mat-menu-item (click)="viewDetails(element)">
                         <i-tabler name="eye" class="icon-16 m-r-8"></i-tabler>
-                        <span>View details</span>
+                        <span>{{ 'leads.viewDetails' | translate }}</span>
                       </button>
                       <button mat-menu-item (click)="editResource(element)">
                         <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
-                        <span>Edit resource</span>
+                        <span>{{ 'resources.editResource' | translate }}</span>
                       </button>
                       <mat-divider></mat-divider>
                       <button mat-menu-item class="text-danger" (click)="deleteResource(element)">
                         <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
-                        <span>Delete</span>
+                        <span>{{ 'common.delete' | translate }}</span>
                       </button>
                     </mat-menu>
                   </div>
                 </div>
-                
+
                 <div class="d-flex align-items-center justify-content-between m-b-12">
                   <span class="f-s-13 text-muted d-flex align-items-center"><i-tabler name="file" class="icon-16 m-r-4"></i-tabler> {{ element.type }}</span>
                   <span class="f-s-13 text-muted d-flex align-items-center"><i-tabler name="cloud" class="icon-16 m-r-4"></i-tabler> {{ element.storage }}</span>
                 </div>
-                
+
                 <div class="d-flex align-items-center justify-content-between m-b-16">
                   <span class="f-s-13 text-muted d-flex align-items-center"><i-tabler name="users" class="icon-16 m-r-4"></i-tabler> {{ element.ownership }}</span>
                 </div>
-                
+
                 <mat-divider class="m-b-12"></mat-divider>
                 <div class="d-flex align-items-center justify-content-between text-muted f-s-12">
                   <span class="d-flex align-items-center"><i-tabler name="calendar" class="icon-14 m-r-4"></i-tabler> {{ element.created }}</span>
@@ -215,7 +216,7 @@ export interface Resource {
                          [pageSize]="pageSize"
                          [pageSizeOptions]="[5, 10, 20]"
                          (page)="pageChanged($event)"
-                         showFirstLastButtons 
+                         showFirstLastButtons
                          class="p-y-12">
           </mat-paginator>
         </mat-card-content>
@@ -223,7 +224,7 @@ export interface Resource {
     </div>
 
     <!-- Mobile FAB -->
-    <button *ngIf="!isCounsellor" mat-fab color="primary" class="resource-mobile-fab" (click)="addResource()" aria-label="Add Resource">
+    <button *ngIf="!isCounsellor" mat-fab color="primary" class="resource-mobile-fab" (click)="addResource()" [attr.aria-label]="'resources.addResource' | translate">
       <i-tabler name="plus" class="icon-24"></i-tabler>
     </button>
   `,
@@ -327,7 +328,8 @@ export class ResourcesComponent implements OnInit, AfterViewInit {
     private notificationService: NotificationService,
     private resourceService: ResourceService,
     private dialog: MatDialog,
-    private authService: AuthService
+    private authService: AuthService,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -369,7 +371,7 @@ export class ResourcesComponent implements OnInit, AfterViewInit {
         console.error('Error fetching resources:', err);
         this.isLoading = false;
         this.hasError = true;
-        this.notificationService.showErrorToast('Failed to load resources.', 'Error');
+        this.notificationService.showErrorToast(this.translate.instant('resources.toast.loadFailed'), this.translate.instant('employees.toast.errorTitle'));
       }
     });
   }
@@ -377,7 +379,7 @@ export class ResourcesComponent implements OnInit, AfterViewInit {
   mapToResource(data: any): Resource {
     return {
       id: data.id,
-      resourceDetail: data.fileName || data.description || 'Unknown Resource',
+      resourceDetail: data.fileName || data.description || this.translate.instant('resources.unknownResource'),
       type: data.resourceType || 'UNKNOWN',
       ownership: data.ownerType || 'Unknown',
       storage: data.storageType || 'UNKNOWN',
@@ -468,19 +470,19 @@ export class ResourcesComponent implements OnInit, AfterViewInit {
 
   deleteResource(resource: Resource): void {
     this.notificationService.showErrorPopup(
-      `Are you sure you want to completely remove "${resource.resourceDetail}"?`,
-      'Confirm Deletion',
-      'Delete'
+      this.translate.instant('resources.confirmDeleteMessage', { name: resource.resourceDetail }),
+      this.translate.instant('employees.confirmDeleteTitle'),
+      this.translate.instant('common.delete')
     ).subscribe((confirmed) => {
       if (confirmed) {
         this.resourceService.deleteResource(resource.id).subscribe({
           next: () => {
-            this.notificationService.showSuccessToast('Resource deleted successfully', 'Success');
+            this.notificationService.showSuccessToast(this.translate.instant('resources.toast.deleted'), this.translate.instant('common.success'));
             this.loadResources();
           },
           error: (err) => {
             console.error('Error deleting resource:', err);
-            this.notificationService.showErrorToast('Failed to delete resource', 'Error');
+            this.notificationService.showErrorToast(this.translate.instant('resources.toast.deleteFailed'), this.translate.instant('employees.toast.errorTitle'));
           }
         });
       }

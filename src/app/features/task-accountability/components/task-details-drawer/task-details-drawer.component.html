@@ -20,27 +20,27 @@
           <!-- Read-only priority for non-reviewer roles -->
           <span class="badge priority-badge" *ngIf="!isReviewerRole" [ngClass]="getPriorityColorClass(displayTask.priority)">
             <i-tabler name="flag" class="badge-icon"></i-tabler>
-            {{ displayTask.priority }}
+            {{ getPriorityLabel(displayTask.priority) }}
           </span>
 
           <!-- Interactive priority dropdown for reviewer roles -->
           <button class="badge priority-badge priority-badge-btn" *ngIf="isReviewerRole" [ngClass]="getPriorityColorClass(displayTask.priority)" [matMenuTriggerFor]="drawerPriorityMenu">
             <i-tabler name="flag" class="badge-icon"></i-tabler>
-            {{ displayTask.priority }}
+            {{ getPriorityLabel(displayTask.priority) }}
             <i-tabler name="chevron-down" class="icon-12 ml-1"></i-tabler>
           </button>
           <mat-menu #drawerPriorityMenu="matMenu" class="status-options-menu">
             <button mat-menu-item (click)="changePriority(displayTask, 'URGENT', $event)">
-              <span class="priority-badge" [ngClass]="getPriorityColorClass('URGENT')"><i-tabler name="flag" class="priority-icon"></i-tabler> Urgent</span>
+              <span class="priority-badge" [ngClass]="getPriorityColorClass('URGENT')"><i-tabler name="flag" class="priority-icon"></i-tabler> {{ 'common.priority.urgent' | translate }}</span>
             </button>
             <button mat-menu-item (click)="changePriority(displayTask, 'HIGH', $event)">
-              <span class="priority-badge" [ngClass]="getPriorityColorClass('HIGH')"><i-tabler name="flag" class="priority-icon"></i-tabler> High</span>
+              <span class="priority-badge" [ngClass]="getPriorityColorClass('HIGH')"><i-tabler name="flag" class="priority-icon"></i-tabler> {{ 'common.priority.high' | translate }}</span>
             </button>
             <button mat-menu-item (click)="changePriority(displayTask, 'MEDIUM', $event)">
-              <span class="priority-badge" [ngClass]="getPriorityColorClass('MEDIUM')"><i-tabler name="flag" class="priority-icon"></i-tabler> Medium</span>
+              <span class="priority-badge" [ngClass]="getPriorityColorClass('MEDIUM')"><i-tabler name="flag" class="priority-icon"></i-tabler> {{ 'common.priority.medium' | translate }}</span>
             </button>
             <button mat-menu-item (click)="changePriority(displayTask, 'LOW', $event)">
-              <span class="priority-badge" [ngClass]="getPriorityColorClass('LOW')"><i-tabler name="flag" class="priority-icon"></i-tabler> Low</span>
+              <span class="priority-badge" [ngClass]="getPriorityColorClass('LOW')"><i-tabler name="flag" class="priority-icon"></i-tabler> {{ 'common.priority.low' | translate }}</span>
             </button>
           </mat-menu>
           
@@ -63,10 +63,10 @@
           </button>
 
           <span class="resubmitted-pill-tag ml-1" *ngIf="displayTask.reflectState === 'RESUBMITTED'">
-            Awaiting re-review
+            {{ 'taskAccountability.taskTable.awaitingReReview' | translate }}
           </span>
 
-          <span class="badge carried-over-badge" *ngIf="displayTask.carriedOver" title="Carried over - not one of today's own tasks">
+          <span class="badge carried-over-badge" *ngIf="displayTask.carriedOver" [title]="'taskAccountability.taskTable.carriedOverTooltip' | translate">
             <i-tabler name="history" class="carried-badge-icon"></i-tabler>
             {{ getCarriedOverBadgeLabel(displayTask) }}
           </span>
@@ -75,16 +75,16 @@
             <ng-container *ngIf="isReflectTask(displayTask) && canResubmitTask; else normalDrawerStatusMenu">
               <button mat-menu-item (click)="resubmitTask(displayTask)">
                 <i-tabler name="send" class="icon-14 text-primary mr-2"></i-tabler>
-                <span><strong>Resubmit for review</strong></span>
+                <span><strong>{{ 'taskAccountability.taskTable.resubmitForReview' | translate }}</strong></span>
               </button>
             </ng-container>
             <ng-template #normalDrawerStatusMenu>
-              <button 
-                mat-menu-item 
-                *ngFor="let st of statusesList" 
+              <button
+                mat-menu-item
+                *ngFor="let st of statusesList"
                 (click)="changeTaskStatus(displayTask, st.value, $event)"
               >
-                <span class="status-badge" [ngClass]="getStatusColorClass(st.value)">{{ st.label }}</span>
+                <span class="status-badge" [ngClass]="getStatusColorClass(st.value)">{{ formatStatusLabel(st.value) }}</span>
               </button>
             </ng-template>
           </mat-menu>
@@ -101,35 +101,35 @@
       <div class="reflect-rework-banner" *ngIf="isReflectTask(displayTask)">
         <div class="banner-header">
           <i-tabler name="alert-circle" class="banner-icon"></i-tabler>
-          <span>Returned for Rework by <strong>{{ displayTask.reflectFlaggedByName || 'Reviewer' }}</strong></span>
+          <span>{{ 'taskAccountability.taskDetails.returnedForReworkBy' | translate }} <strong>{{ displayTask.reflectFlaggedByName || ('taskAccountability.taskTable.reviewer' | translate) }}</strong></span>
         </div>
         <div class="banner-reason-text" *ngIf="displayTask.reflectComment || displayTask.comment">
           {{ displayTask.reflectComment || displayTask.comment }}
         </div>
         <button class="btn-resubmit-now" *ngIf="canResubmitTask" (click)="resubmitTask(displayTask)">
           <i-tabler name="send" class="btn-icon"></i-tabler>
-          Resubmit for Review
+          {{ 'taskAccountability.taskDetails.resubmitForReview' | translate }}
         </button>
       </div>
 
       <!-- Description -->
       <div class="section-container description-section">
-        <h3>DESCRIPTION</h3>
+        <h3>{{ 'taskAccountability.taskDetails.description' | translate }}</h3>
         <p class="description-text">{{ displayTask.description }}</p>
       </div>
 
       <!-- 403 Access Forbidden State -->
       <div class="access-forbidden-state" *ngIf="accessForbidden">
         <i-tabler name="shield-lock" class="forbidden-icon"></i-tabler>
-        <h3>Access Restricted</h3>
-        <p>{{ accessForbiddenMessage || "You don't have access to view this task." }}</p>
+        <h3>{{ 'taskAccountability.taskDetails.accessRestricted' | translate }}</h3>
+        <p>{{ accessForbiddenMessage || ('taskAccountability.taskDetails.noAccessMessage' | translate) }}</p>
       </div>
 
       <!-- Meta Info Fields -->
       <div class="meta-fields-list" *ngIf="!accessForbidden">
         <div class="meta-row">
           <span class="meta-label">
-            <i-tabler name="user" class="meta-icon"></i-tabler> ASSIGNED TO
+            <i-tabler name="user" class="meta-icon"></i-tabler> {{ 'taskAccountability.taskDetails.assignedTo' | translate }}
           </span>
           <span class="meta-value font-semibold">
             <span class="avatar-circle green">{{ (displayTask.assignedTo || 'US').substring(0,2).toUpperCase() }}</span>
@@ -138,7 +138,7 @@
         </div>
         <div class="meta-row">
           <span class="meta-label">
-            <i-tabler name="user-check" class="meta-icon"></i-tabler> ASSIGNED BY
+            <i-tabler name="user-check" class="meta-icon"></i-tabler> {{ 'taskAccountability.taskDetails.assignedBy' | translate }}
           </span>
           <span class="meta-value font-semibold">
             <span class="avatar-circle rose">{{ (displayTask.assignedBy || 'MG').substring(0,2).toUpperCase() }}</span>
@@ -147,14 +147,14 @@
         </div>
         <div class="meta-row">
           <span class="meta-label">
-            <i-tabler name="clock" class="meta-icon"></i-tabler> DUE TIME
+            <i-tabler name="clock" class="meta-icon"></i-tabler> {{ 'taskAccountability.taskDetails.dueTime' | translate }}
           </span>
           <span class="meta-value">{{ (displayTask.dueTime && displayTask.dueTime !== '6:00 PM') ? displayTask.dueTime : '11:59 PM' }}</span>
         </div>
         <!-- Schedule Date Row -->
         <div class="meta-row" *ngIf="displayTask.dueDate">
           <span class="meta-label">
-            <i-tabler name="calendar" class="meta-icon icon-blue"></i-tabler> SCHEDULE
+            <i-tabler name="calendar" class="meta-icon icon-blue"></i-tabler> {{ 'taskAccountability.taskDetails.schedule' | translate }}
           </span>
           <span class="meta-value font-semibold">
             {{ getScheduleShortDate(displayTask) }}
@@ -164,7 +164,7 @@
         <!-- Due Date Row -->
         <div class="meta-row" *ngIf="displayTask.dueDate">
           <span class="meta-label">
-            <i-tabler name="calendar-event" class="meta-icon" [ngClass]="isTaskOverdue(displayTask) ? 'icon-red' : 'icon-orange'"></i-tabler> DUE
+            <i-tabler name="calendar-event" class="meta-icon" [ngClass]="isTaskOverdue(displayTask) ? 'icon-red' : 'icon-orange'"></i-tabler> {{ 'taskAccountability.taskDetails.due' | translate }}
           </span>
           <span class="meta-value font-semibold" [class.text-red]="isTaskOverdue(displayTask)">
             {{ getScheduleShortDate(displayTask) }}
@@ -178,7 +178,7 @@
         <div class="meta-row" *ngIf="displayTask.dueDate">
           <ng-container *ngIf="displayTask.completedAt; else pendingCompletedRow">
             <span class="meta-label">
-              <i-tabler name="calendar-check" class="meta-icon icon-green"></i-tabler> COMPLETED
+              <i-tabler name="calendar-check" class="meta-icon icon-green"></i-tabler> {{ 'taskAccountability.taskDetails.completedLabel' | translate }}
             </span>
             <span class="meta-value font-semibold text-green">
               {{ formatShortDate(displayTask.completedAt) }}
@@ -186,10 +186,10 @@
           </ng-container>
           <ng-template #pendingCompletedRow>
             <span class="meta-label">
-              <i-tabler name="calendar-minus" class="meta-icon icon-gray"></i-tabler> COMPLETED
+              <i-tabler name="calendar-minus" class="meta-icon icon-gray"></i-tabler> {{ 'taskAccountability.taskDetails.completedLabel' | translate }}
             </span>
             <span class="meta-value font-semibold text-gray">
-              Pending
+              {{ 'taskAccountability.taskDetails.pending' | translate }}
             </span>
           </ng-template>
         </div>
@@ -198,13 +198,13 @@
       <!-- Tab Selector Header -->
       <div class="drawer-tabs-container">
         <button class="drawer-tab-btn" [class.active]="activeTab === 'comments'" (click)="activeTab = 'comments'">
-          Comments
+          {{ 'taskAccountability.taskDetails.comments' | translate }}
           <span class="tab-count-badge" *ngIf="displayTask.comments && displayTask.comments.length > 0">
             {{ displayTask.comments.length }}
           </span>
         </button>
         <button class="drawer-tab-btn" [class.active]="activeTab === 'activity'" (click)="activeTab = 'activity'">
-          Activity
+          {{ 'taskAccountability.taskDetails.activity' | translate }}
         </button>
       </div>
 
@@ -243,7 +243,7 @@
           </div>
 
           <div class="empty-comments-note" *ngIf="!displayTask.comments || displayTask.comments.length === 0">
-            No comments yet. Start the conversation!
+            {{ 'taskAccountability.taskDetails.noComments' | translate }}
           </div>
         </div>
 
@@ -283,14 +283,14 @@
       <!-- Rounded comment input bar (WhatsApp style) -->
       <div class="comment-input-bar-wrapper" *ngIf="activeTab === 'comments'">
         <div class="add-comment-input-bar">
-          <button class="attachment-btn" (click)="fileInput.click()" title="Add attachment">
+          <button class="attachment-btn" (click)="fileInput.click()" [title]="'taskAccountability.taskDetails.addAttachment' | translate">
             <i-tabler name="paperclip" class="attachment-icon"></i-tabler>
           </button>
           <input type="file" #fileInput style="display: none" (change)="onFileSelected($event)" />
 
-          <input 
-            type="text" 
-            placeholder="Write a comment..." 
+          <input
+            type="text"
+            [placeholder]="'taskAccountability.taskDetails.writeComment' | translate"
             [(ngModel)]="newCommentText"
             (keyup.enter)="submitComment()"
             class="comment-bar-input"
@@ -313,16 +313,16 @@
           <button
             class="btn-approve"
             [disabled]="!canCurrentUserAct && !canCatchUpThisTask"
-            [title]="!canCurrentUserAct && canCatchUpThisTask ? 'This day is already fully approved - verify this task individually' : null"
+            [title]="(!canCurrentUserAct && canCatchUpThisTask) ? ('taskAccountability.taskDetails.dayAlreadyApprovedTooltip' | translate) : null"
             (click)="approveTask()"
-          >{{ (!canCurrentUserAct && canCatchUpThisTask) ? 'Verify' : 'Approve' }}</button>
-          <button class="btn-reject" [disabled]="!canCurrentUserAct" (click)="rejectTask()">Send back</button>
+          >{{ ((!canCurrentUserAct && canCatchUpThisTask) ? 'taskAccountability.taskDetails.verify' : 'taskAccountability.taskDetails.approve') | translate }}</button>
+          <button class="btn-reject" [disabled]="!canCurrentUserAct" (click)="rejectTask()">{{ 'taskAccountability.taskDetails.sendBack' | translate }}</button>
         </div>
       </div>
 
       <div class="footer-section carried-over-note" *ngIf="canShowReviewActions && isCarriedOverTask">
         <i-tabler name="info-circle" class="note-icon"></i-tabler>
-        <span>Carried over from an earlier day - reviewed as part of that day's own submission.</span>
+        <span>{{ 'taskAccountability.taskDetails.carriedOverNote' | translate }}</span>
       </div>
     </div>
   </div>

@@ -8,6 +8,7 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { MatDialog } from '@angular/material/dialog';
 import { SendBackReasonDialogComponent } from '../../components/send-back-reason-dialog/send-back-reason-dialog.component';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { TranslateService } from '@ngx-translate/core';
 
 export interface WeeklyStripDay {
   dayName: string;
@@ -69,7 +70,8 @@ export class TaskAccountabilityDashboardComponent implements OnInit, OnDestroy {
     private service: TaskAccountabilityService,
     private authService: AuthService,
     private dialog: MatDialog,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private translate: TranslateService
   ) {}
 
   @HostListener('document:click', ['$event'])
@@ -115,11 +117,9 @@ export class TaskAccountabilityDashboardComponent implements OnInit, OnDestroy {
   }
 
   buildCalendarGrid(): void {
-    const monthNames = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-    this.pickerMonthLabel = `${monthNames[this.pickerMonth]} ${this.pickerYear}`;
+    const monthLabelDate = new Date(this.pickerYear, this.pickerMonth, 1);
+    const monthName = monthLabelDate.toLocaleDateString(this.translate.currentLang || 'en', { month: 'long' });
+    this.pickerMonthLabel = `${monthName} ${this.pickerYear}`;
 
     const firstDay = new Date(this.pickerYear, this.pickerMonth, 1);
     const startDayOfWeek = firstDay.getDay(); // 0 is Sun
@@ -307,12 +307,12 @@ export class TaskAccountabilityDashboardComponent implements OnInit, OnDestroy {
     const d = new Date(targetYear, targetMonth, targetDayNum);
 
     // Format Top Heading Title (e.g. "Monday, August 10" or "Tuesday, August 11")
-    const weekdayName = d.toLocaleDateString('en-US', { weekday: 'long' });
-    const monthName = d.toLocaleDateString('en-US', { month: 'long' });
+    const weekdayName = d.toLocaleDateString(this.translate.currentLang || 'en', { weekday: 'long' });
+    const monthName = d.toLocaleDateString(this.translate.currentLang || 'en', { month: 'long' });
     this.selectedDateFormattedTitle = `${weekdayName}, ${monthName} ${d.getDate()}`;
 
     // Format Date Picker Button Label (e.g. "10 Aug 2026" or "11 Aug 2026")
-    const monthShort = d.toLocaleDateString('en-US', { month: 'short' });
+    const monthShort = d.toLocaleDateString(this.translate.currentLang || 'en', { month: 'short' });
     this.selectedDateButtonLabel = `${d.getDate()} ${monthShort} ${d.getFullYear()}`;
 
     // Calculate Week Range (Monday to Sunday)
@@ -325,11 +325,12 @@ export class TaskAccountabilityDashboardComponent implements OnInit, OnDestroy {
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
 
-    const formatShortMonth = (date: Date) => date.toLocaleDateString('en-US', { month: 'short' });
+    const formatShortMonth = (date: Date) => date.toLocaleDateString(this.translate.currentLang || 'en', { month: 'short' });
     this.selectedWeekRangeLabel = `${monday.getDate()} ${formatShortMonth(monday)} – ${sunday.getDate()} ${formatShortMonth(sunday)} ${sunday.getFullYear()}`;
 
     // Build 7-Day Strip
-    const daysShort = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+    const daysShortKeys = ['common.weekdaysShort.mon', 'common.weekdaysShort.tue', 'common.weekdaysShort.wed', 'common.weekdaysShort.thu', 'common.weekdaysShort.fri', 'common.weekdaysShort.sat', 'common.weekdaysShort.sun'];
+    const daysShort = daysShortKeys.map(k => this.translate.instant(k).toUpperCase());
     this.weekDaysList = [];
 
     for (let i = 0; i < 7; i++) {
@@ -345,28 +346,28 @@ export class TaskAccountabilityDashboardComponent implements OnInit, OnDestroy {
 
       // Find matching day in myDaysList if available
       const matchInApi = this.myDaysList.find(item => item.date === isoStr);
-      let countText = 'No plan';
+      let countText = this.translate.instant('taskAccountability.dashboard.noPlan');
       let hasDot = false;
 
       if (matchInApi) {
         const total = matchInApi.totalTasks ?? matchInApi.taskCount ?? (matchInApi.tasks ? matchInApi.tasks.length : 0);
         const done = matchInApi.completedTasks ?? matchInApi.doneCount ?? (matchInApi.tasks ? matchInApi.tasks.filter((t: any) => ['DONE', 'COMPLETED', 'VERIFIED'].includes(t.status?.toUpperCase())).length : 0);
         if (total > 0) {
-          countText = `${done}/${total} tasks`;
+          countText = this.translate.instant('taskAccountability.dashboard.doneOfTotalTasks', { done, total });
           hasDot = done > 0;
         } else {
-          countText = 'No plan';
+          countText = this.translate.instant('taskAccountability.dashboard.noPlan');
           hasDot = false;
         }
       } else {
         if (cur.getDate() === 10) {
-          countText = '1/3 tasks';
+          countText = this.translate.instant('taskAccountability.dashboard.doneOfTotalTasks', { done: 1, total: 3 });
           hasDot = true;
         } else if (cur.getDate() === 11) {
-          countText = '1/4 tasks';
+          countText = this.translate.instant('taskAccountability.dashboard.doneOfTotalTasks', { done: 1, total: 4 });
           hasDot = true;
         } else {
-          countText = 'No plan';
+          countText = this.translate.instant('taskAccountability.dashboard.noPlan');
           hasDot = false;
         }
       }
@@ -484,7 +485,7 @@ export class TaskAccountabilityDashboardComponent implements OnInit, OnDestroy {
       if (d.date) {
         const dt = new Date(d.date + 'T00:00:00');
         if (!isNaN(dt.getTime())) {
-          exactDateLabel = dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          exactDateLabel = dt.toLocaleDateString(this.translate.currentLang || 'en', { month: 'short', day: 'numeric' });
         }
       }
       if (!exactDateLabel) {
@@ -917,9 +918,9 @@ export class TaskAccountabilityDashboardComponent implements OnInit, OnDestroy {
 
   getTimeOfDay(): string {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Morning';
-    if (hour < 17) return 'Afternoon';
-    return 'Evening';
+    if (hour < 12) return this.translate.instant('common.timeOfDay.morning');
+    if (hour < 17) return this.translate.instant('common.timeOfDay.afternoon');
+    return this.translate.instant('common.timeOfDay.evening');
   }
 
   getLocalDateString(d: Date = new Date()): string {

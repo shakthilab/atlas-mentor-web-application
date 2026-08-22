@@ -9,6 +9,7 @@ import { MasterDataService } from '../../../core/services/master-data.service';
 import { environment } from '../../../../environments/environment';
 import { CompanyDetailDialogComponent } from './company-detail-dialog/company-detail-dialog.component';
 import { AddCompanyDialogComponent } from './add-company-dialog/add-company-dialog.component';
+import { TranslateService } from '@ngx-translate/core';
 
 export interface Company {
   id: number;
@@ -43,24 +44,24 @@ export interface BranchOption {
       <mat-card class="cardWithShadow">
         <mat-card-header class="d-flex align-items-center justify-content-between p-x-24 p-y-16">
           <mat-card-title>
-            <h5 class="mat-headline-6 f-w-600 m-b-0">Companies Directory</h5>
+            <h5 class="mat-headline-6 f-w-600 m-b-0">{{ 'companies.title' | translate }}</h5>
           </mat-card-title>
           <div class="header-actions d-flex align-items-center gap-12">
             <div class="search-box">
               <i-tabler name="search" class="icon-16 search-icon"></i-tabler>
-              <input (keyup)="applyFilter($event)" placeholder="Search companies..." class="search-input" />
+              <input (keyup)="applyFilter($event)" [placeholder]="'companies.searchPlaceholder' | translate" class="search-input" />
             </div>
             <!-- Branch Filter inline -->
             <div class="branch-filter-inline">
               <button class="filter-trigger-btn d-flex align-items-center" [class.filter-active]="selectedBranchId !== null" [matMenuTriggerFor]="branchFilterMenu">
                 <i-tabler name="filter" class="icon-16 m-r-6"></i-tabler>
-                <span class="f-s-13">{{ selectedBranchId !== null ? getSelectedBranchName() : 'Branch' }}</span>
+                <span class="f-s-13">{{ selectedBranchId !== null ? getSelectedBranchName() : ('taskAccountability.templates.branch' | translate) }}</span>
                 <i-tabler name="chevron-down" class="icon-14 m-l-4"></i-tabler>
               </button>
               <mat-menu #branchFilterMenu="matMenu" class="branch-filter-menu cardWithShadow">
                 <button mat-menu-item (click)="setBranchFilter(null)" [class.menu-item-active]="selectedBranchId === null">
                   <i-tabler name="list" class="icon-16 m-r-8"></i-tabler>
-                  All Branches
+                  {{ 'companies.allBranches' | translate }}
                 </button>
                 <mat-divider></mat-divider>
                 <button mat-menu-item *ngFor="let branch of branches" (click)="setBranchFilter(branch.id)" [class.menu-item-active]="selectedBranchId === branch.id">
@@ -70,7 +71,7 @@ export interface BranchOption {
               </mat-menu>
             </div>
             <!-- Clear filter badge -->
-            <button *ngIf="selectedBranchId !== null" mat-icon-button class="clear-filter-icon-btn" matTooltip="Clear branch filter" (click)="clearFilter()">
+            <button *ngIf="selectedBranchId !== null" mat-icon-button class="clear-filter-icon-btn" [matTooltip]="'companies.clearBranchFilter' | translate" (click)="clearFilter()">
               <i-tabler name="x" class="icon-16"></i-tabler>
             </button>
             <div class="view-mode-toggle d-flex align-items-center">
@@ -83,7 +84,7 @@ export interface BranchOption {
             </div>
             <button mat-flat-button color="primary" class="d-flex align-items-center desktop-add-btn" (click)="addCompany()">
               <i-tabler name="plus" class="icon-18 m-r-4"></i-tabler>
-              Add Company
+              {{ 'companies.addCompany' | translate }}
             </button>
           </div>
         </mat-card-header>
@@ -93,13 +94,13 @@ export interface BranchOption {
           <div class="branch-filter-inline">
             <button class="filter-trigger-btn d-flex align-items-center" [class.filter-active]="selectedBranchId !== null" [matMenuTriggerFor]="mobileFilterMenu">
               <i-tabler name="filter" class="icon-16 m-r-6"></i-tabler>
-              <span class="f-s-13">{{ selectedBranchId !== null ? getSelectedBranchName() : 'Branch' }}</span>
+              <span class="f-s-13">{{ selectedBranchId !== null ? getSelectedBranchName() : ('taskAccountability.templates.branch' | translate) }}</span>
               <i-tabler name="chevron-down" class="icon-14 m-l-4"></i-tabler>
             </button>
             <mat-menu #mobileFilterMenu="matMenu" class="branch-filter-menu cardWithShadow">
               <button mat-menu-item (click)="setBranchFilter(null)" [class.menu-item-active]="selectedBranchId === null">
                 <i-tabler name="list" class="icon-16 m-r-8"></i-tabler>
-                All Branches
+                {{ 'companies.allBranches' | translate }}
               </button>
               <mat-divider></mat-divider>
               <button mat-menu-item *ngFor="let branch of branches" (click)="setBranchFilter(branch.id)" [class.menu-item-active]="selectedBranchId === branch.id">
@@ -108,7 +109,7 @@ export interface BranchOption {
               </button>
             </mat-menu>
           </div>
-          <button *ngIf="selectedBranchId !== null" mat-icon-button class="clear-filter-icon-btn" matTooltip="Clear filter" (click)="clearFilter()">
+          <button *ngIf="selectedBranchId !== null" mat-icon-button class="clear-filter-icon-btn" [matTooltip]="'companies.clearFilter' | translate" (click)="clearFilter()">
             <i-tabler name="x" class="icon-16"></i-tabler>
           </button>
           <span *ngIf="selectedBranchId !== null" class="mobile-filter-chip f-s-12">
@@ -128,7 +129,7 @@ export interface BranchOption {
               <table mat-table [dataSource]="dataSource" class="w-100">
 
                 <ng-container matColumnDef="companyName">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Company Name</th>
+                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'companies.colCompanyName' | translate }}</th>
                   <td mat-cell *matCellDef="let element">
                     <div class="d-flex align-items-center">
                       <div class="company-avatar m-r-12 d-flex align-items-center justify-content-center">
@@ -140,21 +141,21 @@ export interface BranchOption {
                 </ng-container>
 
                 <ng-container matColumnDef="industry">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Industry</th>
+                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'companies.colIndustry' | translate }}</th>
                   <td mat-cell *matCellDef="let element">
                     <span class="d-block f-w-500 text-dark f-s-13">{{ element.industry || '—' }}</span>
                   </td>
                 </ng-container>
 
                 <ng-container matColumnDef="location">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Location</th>
+                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'companies.colLocation' | translate }}</th>
                   <td mat-cell *matCellDef="let element">
                     <span class="d-block f-w-500 text-dark f-s-13 line-clamp-2-mobile">{{ element.location || '—' }}</span>
                   </td>
                 </ng-container>
 
                 <ng-container matColumnDef="website">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Website</th>
+                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'companies.colWebsite' | translate }}</th>
                   <td mat-cell *matCellDef="let element">
                     <a *ngIf="element.website" [href]="'https://' + element.website" target="_blank" class="text-primary f-s-13" (click)="$event.stopPropagation()">{{ element.website }}</a>
                     <span *ngIf="!element.website" class="text-muted f-s-13">—</span>
@@ -162,7 +163,7 @@ export interface BranchOption {
                 </ng-container>
 
                 <ng-container matColumnDef="branch">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Branch</th>
+                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'taskAccountability.templates.branch' | translate }}</th>
                   <td mat-cell *matCellDef="let element">
                     <span class="branch-badge f-s-12" *ngIf="element.branchName">{{ element.branchName }}</span>
                     <span class="text-muted f-s-13" *ngIf="!element.branchName">—</span>
@@ -170,16 +171,16 @@ export interface BranchOption {
                 </ng-container>
 
                 <ng-container matColumnDef="status">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Status</th>
+                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'taskAccountability.taskTable.colStatus' | translate }}</th>
                   <td mat-cell *matCellDef="let element">
                     <span class="status-badge" [ngClass]="element.status.toLowerCase()">
-                      {{ element.status | titlecase }}
+                      {{ ((element.status || 'ACTIVE').toUpperCase() === 'ACTIVE' ? 'common.active' : 'common.inactive') | translate }}
                     </span>
                   </td>
                 </ng-container>
 
                 <ng-container matColumnDef="actions">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14 text-center">Actions</th>
+                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14 text-center">{{ 'common.actions' | translate }}</th>
                   <td mat-cell *matCellDef="let element" class="text-center">
                     <button mat-icon-button [matMenuTriggerFor]="menu" class="text-muted" (click)="$event.stopPropagation()">
                       <i-tabler name="dots" class="icon-18"></i-tabler>
@@ -187,25 +188,25 @@ export interface BranchOption {
                     <mat-menu #menu="matMenu" class="cardWithShadow">
                       <button mat-menu-item (click)="viewDetails(element)">
                         <i-tabler name="eye" class="icon-16 m-r-8"></i-tabler>
-                        <span>View details</span>
+                        <span>{{ 'leads.viewDetails' | translate }}</span>
                       </button>
                       <button mat-menu-item (click)="editCompany(element)">
                         <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
-                        <span>Edit company</span>
+                        <span>{{ 'companies.editCompany' | translate }}</span>
                       </button>
                       <mat-divider></mat-divider>
                       <button mat-menu-item *ngIf="(element.status || 'ACTIVE').toUpperCase() === 'ACTIVE'" class="text-danger" (click)="toggleStatus(element); $event.stopPropagation()">
                         <i-tabler name="ban" class="icon-16 m-r-8 text-danger"></i-tabler>
-                        <span>Deactivate</span>
+                        <span>{{ 'common.deactivate' | translate }}</span>
                       </button>
                       <button mat-menu-item *ngIf="(element.status || 'ACTIVE').toUpperCase() !== 'ACTIVE'" (click)="toggleStatus(element); $event.stopPropagation()">
                         <i-tabler name="check" class="icon-16 m-r-8 text-success"></i-tabler>
-                        <span>Activate</span>
+                        <span>{{ 'common.activate' | translate }}</span>
                       </button>
                       <mat-divider></mat-divider>
                       <button mat-menu-item class="text-danger" (click)="deleteCompany(element); $event.stopPropagation()">
                         <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
-                        <span>Delete</span>
+                        <span>{{ 'common.delete' | translate }}</span>
                       </button>
                     </mat-menu>
                   </td>
@@ -218,8 +219,8 @@ export interface BranchOption {
               <!-- Empty state -->
               <div *ngIf="companies.length === 0" class="empty-state d-flex flex-column align-items-center justify-content-center p-y-48">
                 <i-tabler name="building-off" class="icon-48 text-muted m-b-12"></i-tabler>
-                <h6 class="mat-subtitle-1 text-muted m-b-4">No companies found</h6>
-                <p class="f-s-13 text-muted">{{ selectedBranchId !== null ? 'No companies match the selected branch filter.' : 'Get started by adding your first company.' }}</p>
+                <h6 class="mat-subtitle-1 text-muted m-b-4">{{ 'companies.noCompaniesFound' | translate }}</h6>
+                <p class="f-s-13 text-muted">{{ (selectedBranchId !== null ? 'companies.noMatchBranchFilter' : 'companies.getStarted') | translate }}</p>
               </div>
             </div>
 
@@ -233,7 +234,7 @@ export interface BranchOption {
                     </div>
                     <div>
                       <h6 class="mat-subtitle-1 f-w-600 m-b-0">{{ element.companyName }}</h6>
-                      <span class="status-badge mt-1 d-inline-block" [ngClass]="element.status.toLowerCase()">{{ element.status | titlecase }}</span>
+                      <span class="status-badge mt-1 d-inline-block" [ngClass]="element.status.toLowerCase()">{{ ((element.status || 'ACTIVE').toUpperCase() === 'ACTIVE' ? 'common.active' : 'common.inactive') | translate }}</span>
                     </div>
                     <div class="m-l-auto">
                       <button mat-icon-button [matMenuTriggerFor]="cardMenu" class="text-muted" (click)="$event.stopPropagation()">
@@ -242,25 +243,25 @@ export interface BranchOption {
                       <mat-menu #cardMenu="matMenu" class="cardWithShadow">
                         <button mat-menu-item (click)="viewDetails(element)">
                           <i-tabler name="eye" class="icon-16 m-r-8"></i-tabler>
-                          <span>View details</span>
+                          <span>{{ 'leads.viewDetails' | translate }}</span>
                         </button>
                         <button mat-menu-item (click)="editCompany(element)">
                           <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
-                          <span>Edit company</span>
+                          <span>{{ 'companies.editCompany' | translate }}</span>
                         </button>
                         <mat-divider></mat-divider>
                         <button mat-menu-item *ngIf="(element.status || 'ACTIVE').toUpperCase() === 'ACTIVE'" class="text-danger" (click)="toggleStatus(element); $event.stopPropagation()">
                           <i-tabler name="ban" class="icon-16 m-r-8 text-danger"></i-tabler>
-                          <span>Deactivate</span>
+                          <span>{{ 'common.deactivate' | translate }}</span>
                         </button>
                         <button mat-menu-item *ngIf="(element.status || 'ACTIVE').toUpperCase() !== 'ACTIVE'" (click)="toggleStatus(element); $event.stopPropagation()">
                           <i-tabler name="check" class="icon-16 m-r-8 text-success"></i-tabler>
-                          <span>Activate</span>
+                          <span>{{ 'common.activate' | translate }}</span>
                         </button>
                         <mat-divider></mat-divider>
                         <button mat-menu-item class="text-danger" (click)="deleteCompany(element); $event.stopPropagation()">
                           <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
-                          <span>Delete</span>
+                          <span>{{ 'common.delete' | translate }}</span>
                         </button>
                       </mat-menu>
                     </div>
@@ -289,7 +290,7 @@ export interface BranchOption {
                     <a *ngIf="element.website" [href]="'https://' + element.website" target="_blank" class="text-primary f-s-13 d-flex align-items-center" (click)="$event.stopPropagation()">
                       <i-tabler name="world" class="icon-14 m-r-4"></i-tabler> {{ element.website }}
                     </a>
-                    <span *ngIf="!element.website" class="text-muted f-s-13">No website listed</span>
+                    <span *ngIf="!element.website" class="text-muted f-s-13">{{ 'companies.noWebsiteListed' | translate }}</span>
                   </div>
                 </mat-card-content>
               </mat-card>
@@ -297,8 +298,8 @@ export interface BranchOption {
               <!-- Empty state for card view -->
               <div *ngIf="companies.length === 0" class="empty-state d-flex flex-column align-items-center justify-content-center p-y-48" style="grid-column: 1/-1">
                 <i-tabler name="building-off" class="icon-48 text-muted m-b-12"></i-tabler>
-                <h6 class="mat-subtitle-1 text-muted m-b-4">No companies found</h6>
-                <p class="f-s-13 text-muted">{{ selectedBranchId !== null ? 'No companies match the selected branch filter.' : 'Get started by adding your first company.' }}</p>
+                <h6 class="mat-subtitle-1 text-muted m-b-4">{{ 'companies.noCompaniesFound' | translate }}</h6>
+                <p class="f-s-13 text-muted">{{ (selectedBranchId !== null ? 'companies.noMatchBranchFilter' : 'companies.getStarted') | translate }}</p>
               </div>
             </div>
           </ng-container>
@@ -316,7 +317,7 @@ export interface BranchOption {
     </div>
 
     <!-- Mobile FAB -->
-    <button mat-fab color="primary" class="company-mobile-fab" (click)="addCompany()" aria-label="Add Company">
+    <button mat-fab color="primary" class="company-mobile-fab" (click)="addCompany()" [attr.aria-label]="'companies.addCompany' | translate">
       <i-tabler name="plus" class="icon-24"></i-tabler>
     </button>
   `,
@@ -470,7 +471,8 @@ export class CompaniesComponent implements OnInit, AfterViewInit {
     private masterDataService: MasterDataService,
     private authService: AuthService,
     private notificationService: NotificationService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -510,7 +512,7 @@ export class CompaniesComponent implements OnInit, AfterViewInit {
       },
       error: (err) => {
         console.error('Failed to load companies', err);
-        this.notificationService.showErrorToast('Failed to load companies. Please try again.', 'Error');
+        this.notificationService.showErrorToast(this.translate.instant('companies.toast.loadFailed'), this.translate.instant('employees.toast.errorTitle'));
         this.isLoading = false;
       },
     });
@@ -553,7 +555,7 @@ export class CompaniesComponent implements OnInit, AfterViewInit {
 
   getSelectedBranchName(): string {
     const branch = this.branches.find(b => b.id === this.selectedBranchId);
-    return branch ? branch.name : 'Branch';
+    return branch ? branch.name : this.translate.instant('taskAccountability.templates.branch');
   }
 
   onBranchFilterChange(): void {
@@ -621,12 +623,18 @@ export class CompaniesComponent implements OnInit, AfterViewInit {
 
     this.companyService.toggleCompanyStatus(company.id).subscribe({
       next: () => {
-        this.notificationService.showSuccessToast(`Company ${actionText}d successfully.`, 'Status Updated');
+        this.notificationService.showSuccessToast(
+          this.translate.instant(currentStatus === 'ACTIVE' ? 'employees.toast.deactivated' : 'employees.toast.activated'),
+          this.translate.instant('employees.toast.statusUpdated')
+        );
         this.loadCompanies();
       },
       error: (err) => {
         console.error('Failed to update status', err);
-        this.notificationService.showErrorToast(`Failed to ${actionText} company.`, 'Error');
+        this.notificationService.showErrorToast(
+          this.translate.instant(currentStatus === 'ACTIVE' ? 'employees.toast.deactivateFailed' : 'employees.toast.activateFailed'),
+          this.translate.instant('employees.toast.errorTitle')
+        );
       }
     });
   }
@@ -635,19 +643,19 @@ export class CompaniesComponent implements OnInit, AfterViewInit {
     if (!company.id) return;
 
     this.notificationService.showErrorPopup(
-      `Are you sure you want to delete the company "${company.companyName}"? This action cannot be undone.`,
-      'Delete Company',
-      'Delete'
+      this.translate.instant('companies.confirmDeleteMessage', { name: company.companyName }),
+      this.translate.instant('companies.confirmDeleteTitle'),
+      this.translate.instant('common.delete')
     ).subscribe(confirmed => {
       if (confirmed) {
         this.companyService.deleteCompany(company.id!).subscribe({
           next: () => {
-            this.notificationService.showSuccessToast('Company deleted successfully.', 'Deleted');
+            this.notificationService.showSuccessToast(this.translate.instant('companies.toast.deleted'), this.translate.instant('leads.toast.deleted'));
             this.loadCompanies();
           },
           error: (err) => {
             console.error('Failed to delete company', err);
-            this.notificationService.showErrorToast('Failed to delete company.', 'Error');
+            this.notificationService.showErrorToast(this.translate.instant('companies.toast.deleteFailed'), this.translate.instant('employees.toast.errorTitle'));
           }
         });
       }

@@ -11,6 +11,7 @@ import { LeadService } from '../../../core/services/lead.service';
 import { StudentDetailsDialogComponent } from './student-details-dialog/student-details-dialog.component';
 import { AddLeadDialogComponent } from '../leads/add-lead-dialog/add-lead-dialog.component';
 import { getPriorityTierLabel, getPrioritySubCategoryLabel } from '../../constants/lead-classification.constants';
+import { TranslateService } from '@ngx-translate/core';
 
 export interface Student {
   id: number;
@@ -43,12 +44,12 @@ export interface Student {
       <mat-card class="cardWithShadow">
         <mat-card-header class="d-flex align-items-center justify-content-between p-x-24 p-y-16">
           <mat-card-title>
-            <h5 class="mat-headline-6 f-w-600 m-b-0">Students Directory</h5>
+            <h5 class="mat-headline-6 f-w-600 m-b-0">{{ 'students.title' | translate }}</h5>
           </mat-card-title>
           <div class="header-actions d-flex align-items-center gap-12">
             <div class="search-box">
               <i-tabler name="search" class="icon-16 search-icon"></i-tabler>
-              <input (keyup)="applyFilter($event)" placeholder="Search students..." class="search-input" />
+              <input (keyup)="applyFilter($event)" [placeholder]="'students.searchPlaceholder' | translate" class="search-input" />
             </div>
             <div class="view-mode-toggle d-flex align-items-center">
               <button (click)="viewMode = 'table'" class="toggle-btn" [class.active]="viewMode === 'table'">
@@ -60,39 +61,39 @@ export interface Student {
             </div>
             <button mat-flat-button color="primary" class="add-btn d-flex align-items-center" (click)="addStudent()">
               <i-tabler name="plus" class="icon-18 m-r-4"></i-tabler>
-              Add Student
+              {{ 'students.addStudent' | translate }}
             </button>
           </div>
         </mat-card-header>
-        
+
         <mat-card-content class="p-0">
           <!-- Loading State -->
           <div *ngIf="isLoading" class="d-flex justify-content-center align-items-center p-24">
             <i-tabler name="loader" class="icon-24 spinning text-primary m-r-8"></i-tabler>
-            <span class="f-s-14 text-muted">Loading students...</span>
+            <span class="f-s-14 text-muted">{{ 'students.loading' | translate }}</span>
           </div>
 
           <!-- Error State -->
           <div *ngIf="!isLoading && hasError" class="d-flex flex-column justify-content-center align-items-center p-24">
             <i-tabler name="alert-circle" class="icon-48 text-danger m-b-8"></i-tabler>
-            <h6 class="mat-subtitle-1 m-b-4">Failed to load students</h6>
-            <span class="f-s-14 text-muted m-b-16">There was an error communicating with the server.</span>
-            <button mat-stroked-button color="primary" (click)="loadStudents(0, 10)">Try Again</button>
+            <h6 class="mat-subtitle-1 m-b-4">{{ 'students.loadFailedTitle' | translate }}</h6>
+            <span class="f-s-14 text-muted m-b-16">{{ 'leads.loadFailedDesc' | translate }}</span>
+            <button mat-stroked-button color="primary" (click)="loadStudents(0, 10)">{{ 'common.tryAgain' | translate }}</button>
           </div>
 
           <!-- Empty State -->
           <div *ngIf="!isLoading && !hasError && dataSource.data.length === 0" class="d-flex flex-column justify-content-center align-items-center p-24">
             <i-tabler name="inbox" class="icon-48 text-muted m-b-8"></i-tabler>
-            <h6 class="mat-subtitle-1 m-b-4">No students found</h6>
-            <span class="f-s-14 text-muted">No registered students found.</span>
+            <h6 class="mat-subtitle-1 m-b-4">{{ 'students.noStudentsFound' | translate }}</h6>
+            <span class="f-s-14 text-muted">{{ 'students.noRegisteredStudents' | translate }}</span>
           </div>
 
           <div *ngIf="!isLoading && !hasError && dataSource.data.length > 0 && viewMode === 'table'" class="table-responsive view-container">
             <table mat-table [dataSource]="dataSource" class="w-100">
-              
+
               <!-- Student Column -->
               <ng-container matColumnDef="student">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Student</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'partnerDashboard.student' | translate }}</th>
                 <td mat-cell *matCellDef="let element" (click)="viewProfile(element)" class="cursor-pointer">
                   <div class="d-flex align-items-center">
                      <img [src]="element.avatar" class="rounded-circle m-r-12 object-cover" width="40" height="40" />
@@ -106,7 +107,7 @@ export interface Student {
 
               <!-- Contact Info Column -->
               <ng-container matColumnDef="contactInfo">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Contact Info</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'leads.colContactInfo' | translate }}</th>
                 <td mat-cell *matCellDef="let element">
                   <span class="d-block f-w-500 text-dark f-s-13">{{ element.email }}</span>
                   <span class="text-muted f-s-12 d-block">{{ element.phone }}</span>
@@ -115,17 +116,17 @@ export interface Student {
 
               <!-- Status Column -->
               <ng-container matColumnDef="status">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Status</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'taskAccountability.taskTable.colStatus' | translate }}</th>
                 <td mat-cell *matCellDef="let element">
                   <span class="status-badge" [ngClass]="element.status">
-                    {{ element.status === 'enrolled' ? 'Enrolled' : element.status === 'pending' ? 'Pending' : 'Completed' }}
+                    {{ (element.status === 'enrolled' ? 'students.enrolled' : element.status === 'pending' ? 'taskAccountability.pendingReview.pending' : 'students.completed') | translate }}
                   </span>
                 </td>
               </ng-container>
 
               <!-- Source Column -->
               <ng-container matColumnDef="source">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Source</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'leads.colSource' | translate }}</th>
                 <td mat-cell *matCellDef="let element">
                   <span class="f-w-600 text-dark f-s-13">{{ element.source || '—' }}</span>
                 </td>
@@ -133,7 +134,7 @@ export interface Student {
 
               <!-- Priority Column -->
               <ng-container matColumnDef="priority">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Priority</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'taskAccountability.taskTable.colPriority' | translate }}</th>
                 <td mat-cell *matCellDef="let element">
                   <span *ngIf="element.priority" class="priority-badge" [ngClass]="element.priority.toLowerCase()">
                     {{ element.priorityDisplayName || getPriorityLabel(element.priority) }}
@@ -144,7 +145,7 @@ export interface Student {
 
               <!-- Sub Category Column -->
               <ng-container matColumnDef="subCategory">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Sub Category</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'leads.colSubCategory' | translate }}</th>
                 <td mat-cell *matCellDef="let element" class="text-dark f-s-13">
                   {{ element.prioritySubCategoryDisplayName || getSubCategoryLabel(element.prioritySubCategory) || '—' }}
                 </td>
@@ -152,17 +153,17 @@ export interface Student {
 
               <!-- Active Status Column -->
               <ng-container matColumnDef="activeStatus">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Active</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'common.active' | translate }}</th>
                 <td mat-cell *matCellDef="let element">
                   <span class="status-badge" [ngClass]="element.isActive ? 'active' : 'inactive'">
-                    {{ element.isActive ? 'Active' : 'Inactive' }}
+                    {{ (element.isActive ? 'common.active' : 'common.inactive') | translate }}
                   </span>
                 </td>
               </ng-container>
 
               <!-- Counsellor Column -->
               <ng-container matColumnDef="counsellor">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Counsellor</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'students.colCounsellor' | translate }}</th>
                 <td mat-cell *matCellDef="let element">
                   <div class="d-flex align-items-center">
                     <img [src]="element.counsellorAvatar" class="rounded-circle m-r-8 object-cover" width="28" height="28" />
@@ -173,7 +174,7 @@ export interface Student {
 
               <!-- Added By Column -->
               <ng-container matColumnDef="addedBy">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Added By</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'leads.colAddedBy' | translate }}</th>
                 <td mat-cell *matCellDef="let element">
                   <span class="f-w-500 text-dark d-block f-s-13">{{ element.addedBy }}</span>
                   <span class="text-muted f-s-11 d-block">{{ element.addedByRole }}</span>
@@ -182,7 +183,7 @@ export interface Student {
 
               <!-- Country/University Column -->
               <ng-container matColumnDef="countryUniversity">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Country / University</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'leads.colCountryUniversity' | translate }}</th>
                 <td mat-cell *matCellDef="let element">
                   <span class="f-w-500 text-dark d-block f-s-13">{{ element.country }}</span>
                   <span class="text-muted f-s-12 d-block">{{ element.university }}</span>
@@ -191,7 +192,7 @@ export interface Student {
 
               <!-- Joined Date Column -->
               <ng-container matColumnDef="joinedDate">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Joined Date</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'students.colJoinedDate' | translate }}</th>
                 <td mat-cell *matCellDef="let element" class="text-muted f-s-13">
                   {{ element.joinedDate }}
                 </td>
@@ -199,7 +200,7 @@ export interface Student {
 
               <!-- Actions Column -->
               <ng-container matColumnDef="actions">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14 text-center">Actions</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14 text-center">{{ 'common.actions' | translate }}</th>
                 <td mat-cell *matCellDef="let element" class="text-center" (click)="$event.stopPropagation()">
                   <button mat-icon-button [matMenuTriggerFor]="menu" class="text-muted">
                     <i-tabler name="dots" class="icon-18"></i-tabler>
@@ -207,25 +208,25 @@ export interface Student {
                   <mat-menu #menu="matMenu" class="cardWithShadow">
                     <button mat-menu-item (click)="viewProfile(element)">
                       <i-tabler name="eye" class="icon-16 m-r-8"></i-tabler>
-                      <span>View profile</span>
+                      <span>{{ 'students.viewProfile' | translate }}</span>
                     </button>
                     <button mat-menu-item (click)="editDetails(element)">
                       <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
-                      <span>Edit details</span>
+                      <span>{{ 'employees.editDetails' | translate }}</span>
                     </button>
                     <mat-divider></mat-divider>
                     <button mat-menu-item *ngIf="!element.isActive" (click)="toggleStatus(element)">
                       <i-tabler name="user-check" class="icon-16 m-r-8 text-success"></i-tabler>
-                      <span>Activate</span>
+                      <span>{{ 'common.activate' | translate }}</span>
                     </button>
                     <button mat-menu-item *ngIf="element.isActive" (click)="toggleStatus(element)">
                       <i-tabler name="user-x" class="icon-16 m-r-8 text-warning"></i-tabler>
-                      <span>Deactivate</span>
+                      <span>{{ 'common.deactivate' | translate }}</span>
                     </button>
                     <mat-divider></mat-divider>
                     <button mat-menu-item class="text-danger" (click)="removeStudent(element)">
                       <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
-                      <span>Remove</span>
+                      <span>{{ 'students.remove' | translate }}</span>
                     </button>
                   </mat-menu>
                 </td>
@@ -253,37 +254,37 @@ export interface Student {
                     <mat-menu #cardMenu="matMenu" class="cardWithShadow">
                       <button mat-menu-item (click)="viewProfile(element)">
                         <i-tabler name="eye" class="icon-16 m-r-8"></i-tabler>
-                        <span>View profile</span>
+                        <span>{{ 'students.viewProfile' | translate }}</span>
                       </button>
                       <button mat-menu-item (click)="editDetails(element)">
                         <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
-                        <span>Edit details</span>
+                        <span>{{ 'employees.editDetails' | translate }}</span>
                       </button>
                       <mat-divider></mat-divider>
                       <button mat-menu-item *ngIf="!element.isActive" (click)="toggleStatus(element)">
                         <i-tabler name="user-check" class="icon-16 m-r-8 text-success"></i-tabler>
-                        <span>Activate</span>
+                        <span>{{ 'common.activate' | translate }}</span>
                       </button>
                       <button mat-menu-item *ngIf="element.isActive" (click)="toggleStatus(element)">
                         <i-tabler name="user-x" class="icon-16 m-r-8 text-warning"></i-tabler>
-                        <span>Deactivate</span>
+                        <span>{{ 'common.deactivate' | translate }}</span>
                       </button>
                       <mat-divider></mat-divider>
                       <button mat-menu-item class="text-danger" (click)="removeStudent(element)">
                         <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
-                        <span>Remove</span>
+                        <span>{{ 'students.remove' | translate }}</span>
                       </button>
                     </mat-menu>
                   </div>
                 </div>
-                
+
                 <div class="d-flex align-items-center justify-content-between m-b-12">
                   <span class="f-s-13 text-muted d-flex align-items-center"><i-tabler name="mail" class="icon-16 m-r-4"></i-tabler> {{ element.email }}</span>
                 </div>
                 <div class="d-flex align-items-center justify-content-between m-b-16">
                   <span class="f-s-13 text-muted d-flex align-items-center"><i-tabler name="phone" class="icon-16 m-r-4"></i-tabler> {{ element.phone }}</span>
                 </div>
-                
+
                 <div class="d-flex align-items-center justify-content-between m-b-16">
                   <div class="d-flex align-items-center">
                     <img [src]="element.counsellorAvatar" class="rounded-circle m-r-8 object-cover" width="24" height="24" />
@@ -291,21 +292,21 @@ export interface Student {
                   </div>
                   <div class="d-flex gap-12">
                     <span class="status-badge" [ngClass]="element.isActive ? 'active' : 'inactive'">
-                      {{ element.isActive ? 'Active' : 'Inactive' }}
+                      {{ (element.isActive ? 'common.active' : 'common.inactive') | translate }}
                     </span>
                     <span class="status-badge" [ngClass]="element.status">
-                      {{ element.status === 'enrolled' ? 'Enrolled' : element.status === 'pending' ? 'Pending' : 'Completed' }}
+                      {{ (element.status === 'enrolled' ? 'students.enrolled' : element.status === 'pending' ? 'taskAccountability.pendingReview.pending' : 'students.completed') | translate }}
                     </span>
                   </div>
                 </div>
-                
+
                 <mat-divider class="m-b-12"></mat-divider>
                 <div class="d-flex align-items-center justify-content-between text-muted f-s-12 m-b-8">
                   <span class="d-flex align-items-center"><i-tabler name="map-pin" class="icon-14 m-r-4"></i-tabler> {{ element.country }}</span>
                   <span class="d-flex align-items-center"><i-tabler name="calendar" class="icon-14 m-r-4"></i-tabler> {{ element.joinedDate }}</span>
                 </div>
                 <div class="d-flex align-items-center text-muted f-s-12">
-                  <span class="d-flex align-items-center"><i-tabler name="world" class="icon-14 m-r-4"></i-tabler> Source: {{ element.source || '—' }}</span>
+                  <span class="d-flex align-items-center"><i-tabler name="world" class="icon-14 m-r-4"></i-tabler> {{ 'leads.colSource' | translate }}: {{ element.source || '—' }}</span>
                 </div>
               </mat-card-content>
             </mat-card>
@@ -314,7 +315,7 @@ export interface Student {
           <mat-paginator [pageSizeOptions]="[5, 10, 15]" [pageSize]="10" [length]="totalElements" showFirstLastButtons class="p-y-12"></mat-paginator>
         </mat-card-content>
       </mat-card>
-      
+
       <!-- Mobile FAB -->
       <button mat-fab color="primary" class="mobile-fab" (click)="addStudent()">
         <i-tabler name="plus" class="icon-24"></i-tabler>
@@ -648,7 +649,8 @@ export class StudentsComponent implements OnInit, AfterViewInit, OnDestroy {
     private leadService: LeadService,
     private dialog: MatDialog,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -679,7 +681,7 @@ export class StudentsComponent implements OnInit, AfterViewInit, OnDestroy {
       error: () => {
         this.isLoading = false;
         this.hasError = true;
-        this.notificationService.showErrorToast('Failed to load students.', 'Error');
+        this.notificationService.showErrorToast(this.translate.instant('students.toast.loadFailed'), this.translate.instant('employees.toast.errorTitle'));
       }
     });
   }
@@ -722,13 +724,13 @@ export class StudentsComponent implements OnInit, AfterViewInit, OnDestroy {
           if (result) {
             this.leadService.updateLead(student.id!, result).subscribe({
               next: () => {
-                this.notificationService.showSuccessToast(`Profile updates saved for ${student.name}.`, 'Changes Saved');
+                this.notificationService.showSuccessToast(this.translate.instant('leads.toast.updatesSaved', { name: student.name }), this.translate.instant('leads.toast.changesSaved'));
                 this.loadStudents(this.paginator?.pageIndex || 0, this.paginator?.pageSize || 10);
               },
               error: (err) => {
                 console.error('Failed to update student profile:', err);
-                const errorMessage = err.error?.message || err.message || 'Failed to save student profile updates.';
-                this.notificationService.showErrorPopup(errorMessage, 'Update Failed', 'Close').subscribe();
+                const errorMessage = err.error?.message || err.message || this.translate.instant('students.toast.saveUpdatesFailed');
+                this.notificationService.showErrorPopup(errorMessage, this.translate.instant('students.toast.updateFailedTitle'), this.translate.instant('common.close')).subscribe();
               }
             });
           }
@@ -736,7 +738,7 @@ export class StudentsComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       error: (err) => {
         console.error('Failed to load student details:', err);
-        this.notificationService.showErrorPopup('Failed to load student details.', 'Error', 'Close').subscribe();
+        this.notificationService.showErrorPopup(this.translate.instant('students.toast.loadDetailsFailed'), this.translate.instant('employees.toast.errorTitle'), this.translate.instant('common.close')).subscribe();
       }
     });
   }
@@ -744,19 +746,19 @@ export class StudentsComponent implements OnInit, AfterViewInit, OnDestroy {
   removeStudent(student: Student): void {
     if (!student.id) return;
     this.notificationService.showErrorPopup(
-      `Are you sure you want to deactivate and remove student ${student.name} from the directory?`,
-      'Confirm Deletion',
-      'Delete'
+      this.translate.instant('students.confirmRemoveMessage', { name: student.name }),
+      this.translate.instant('employees.confirmDeleteTitle'),
+      this.translate.instant('common.delete')
     ).subscribe(() => {
       this.leadService.deleteLead(student.id).subscribe({
         next: () => {
-          this.notificationService.showSuccessToast(`${student.name} has been removed.`, 'Deleted');
+          this.notificationService.showSuccessToast(this.translate.instant('students.toast.removed', { name: student.name }), this.translate.instant('leads.toast.deleted'));
           this.loadStudents(this.paginator?.pageIndex || 0, this.paginator?.pageSize || 10);
         },
         error: (err) => {
           console.error('Failed to remove student:', err);
-          const errorMessage = err.error?.message || err.message || 'Failed to remove the student.';
-          this.notificationService.showErrorPopup(errorMessage, 'Deletion Failed', 'Close').subscribe();
+          const errorMessage = err.error?.message || err.message || this.translate.instant('students.toast.removeFailed');
+          this.notificationService.showErrorPopup(errorMessage, this.translate.instant('students.toast.deletionFailedTitle'), this.translate.instant('common.close')).subscribe();
         }
       });
     });
@@ -778,13 +780,16 @@ export class StudentsComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.studentService.updateActiveStatus(student.id, newStatus).subscribe({
       next: () => {
-        this.notificationService.showSuccessToast(`Student ${actionText}d successfully.`, 'Status Updated');
+        this.notificationService.showSuccessToast(
+          this.translate.instant(newStatus === 'ACTIVE' ? 'employees.toast.activated' : 'employees.toast.deactivated'),
+          this.translate.instant('employees.toast.statusUpdated')
+        );
         this.loadStudents(this.paginator?.pageIndex || 0, this.paginator?.pageSize || 10);
       },
       error: (err) => {
         console.error(`Failed to ${actionText} student:`, err);
-        const errorMessage = err.error?.message || err.message || `Failed to ${actionText} student.`;
-        this.notificationService.showErrorToast(errorMessage, 'Update Failed');
+        const errorMessage = err.error?.message || err.message || this.translate.instant(newStatus === 'ACTIVE' ? 'employees.toast.activateFailed' : 'employees.toast.deactivateFailed');
+        this.notificationService.showErrorToast(errorMessage, this.translate.instant('students.toast.updateFailedTitle'));
       }
     });
   }

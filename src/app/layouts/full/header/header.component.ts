@@ -7,12 +7,12 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { TranslateService } from '@ngx-translate/core';
 import { Router, NavigationEnd, ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { ThemeService } from '../../../core/services/theme.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { LanguageService } from '../../../core/services/language.service';
 import { navItems } from '../sidebar/sidebar-data';
 
 @Component({
@@ -29,20 +29,18 @@ export class HeaderComponent implements OnDestroy {
 
   showFiller = false;
   isIconSpinning = false;
-  currentLang = 'en';
   currentUser: any = null;
   screenTitleKey = '';
   screenTitleFallback = '';
   private routerSubscription: Subscription = Subscription.EMPTY;
 
-  languages = [
-    { code: 'en', name: 'English' },
-    { code: 'uz', name: "O'zbek" },
-    { code: 'ru', name: 'Русский' },
-    { code: 'ka', name: 'ქართული' },
-    { code: 'fr', name: 'Français' },
-    { code: 'de', name: 'Deutsch' },
-  ];
+  get languages() {
+    return this.languageService.languages;
+  }
+
+  get currentLang(): string {
+    return this.languageService.currentLang;
+  }
 
   get displayRoleName(): string {
     if (!this.currentUser) return '';
@@ -52,15 +50,11 @@ export class HeaderComponent implements OnDestroy {
   constructor(
     public dialog: MatDialog,
     public themeService: ThemeService,
-    private translate: TranslateService,
+    private languageService: LanguageService,
     public authService: AuthService,
     private router: Router,
     private activatedRoute: ActivatedRoute,
   ) {
-    const saved = localStorage.getItem('educrm-lang') || 'en';
-    this.currentLang = saved;
-    this.translate.use(saved);
-
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
     });
@@ -124,9 +118,7 @@ export class HeaderComponent implements OnDestroy {
   }
 
   changeLanguage(code: string): void {
-    this.currentLang = code;
-    this.translate.use(code);
-    localStorage.setItem('educrm-lang', code);
+    this.languageService.changeLanguage(code);
   }
 
   logout(): void {

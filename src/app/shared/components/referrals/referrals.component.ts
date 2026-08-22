@@ -7,6 +7,7 @@ import { ReferralService } from '../../../core/services/referral.service';
 import { MasterDataService } from '../../../core/services/master-data.service';
 import { AddReferralDialogComponent } from './add-referral-dialog/add-referral-dialog.component';
 import { ReferralDetailDialogComponent } from './referral-detail-dialog/referral-detail-dialog.component';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-referrals',
@@ -15,33 +16,33 @@ import { ReferralDetailDialogComponent } from './referral-detail-dialog/referral
       <mat-card class="cardWithShadow">
         <mat-card-header class="d-flex align-items-center justify-content-between p-x-24 p-y-16">
           <mat-card-title>
-            <h5 class="mat-headline-6 f-w-600 m-b-0">Referrals Directory</h5>
+            <h5 class="mat-headline-6 f-w-600 m-b-0">{{ 'referrals.title' | translate }}</h5>
           </mat-card-title>
-          
+
           <div class="header-actions d-flex align-items-center gap-12">
             <div class="search-box">
               <i-tabler name="search" class="icon-16 search-icon"></i-tabler>
-              <input (keyup)="applySearchFilter($event)" placeholder="Search referrals..." class="search-input" />
+              <input (keyup)="applySearchFilter($event)" [placeholder]="'referrals.searchPlaceholder' | translate" class="search-input" />
             </div>
 
             <!-- Inline Filters (Desktop) -->
             <div class="branch-filter-inline desktop-only">
               <button class="filter-trigger-btn d-flex align-items-center" [class.filter-active]="selectedBranchId !== null" [matMenuTriggerFor]="branchFilterMenu">
                 <i-tabler name="filter" class="icon-16 m-r-6"></i-tabler>
-                <span class="f-s-13">{{ selectedBranchId !== null ? getSelectedBranchName() : 'Branch' }}</span>
-                <i-tabler name="chevron-down" class="icon-14 m-l-4"></i-tabler>
-              </button>
-            </div>
-            
-            <div class="type-filter-inline desktop-only">
-              <button class="filter-trigger-btn d-flex align-items-center" [class.filter-active]="selectedType !== null" [matMenuTriggerFor]="typeFilterMenu">
-                <i-tabler name="filter" class="icon-16 m-r-6"></i-tabler>
-                <span class="f-s-13">{{ selectedType !== null ? formatType(selectedType) : 'Type' }}</span>
+                <span class="f-s-13">{{ selectedBranchId !== null ? getSelectedBranchName() : ('taskAccountability.templates.branch' | translate) }}</span>
                 <i-tabler name="chevron-down" class="icon-14 m-l-4"></i-tabler>
               </button>
             </div>
 
-            <button *ngIf="selectedBranchId !== null || selectedType !== null" mat-icon-button class="clear-filter-icon-btn desktop-only" matTooltip="Clear filters" (click)="clearFilters()">
+            <div class="type-filter-inline desktop-only">
+              <button class="filter-trigger-btn d-flex align-items-center" [class.filter-active]="selectedType !== null" [matMenuTriggerFor]="typeFilterMenu">
+                <i-tabler name="filter" class="icon-16 m-r-6"></i-tabler>
+                <span class="f-s-13">{{ selectedType !== null ? formatType(selectedType) : ('adminDashboard.type' | translate) }}</span>
+                <i-tabler name="chevron-down" class="icon-14 m-l-4"></i-tabler>
+              </button>
+            </div>
+
+            <button *ngIf="selectedBranchId !== null || selectedType !== null" mat-icon-button class="clear-filter-icon-btn desktop-only" [matTooltip]="'referrals.clearFilters' | translate" (click)="clearFilters()">
               <i-tabler name="x" class="icon-16"></i-tabler>
             </button>
 
@@ -53,10 +54,10 @@ import { ReferralDetailDialogComponent } from './referral-detail-dialog/referral
                 <i-tabler name="layout-grid" class="icon-18"></i-tabler>
               </button>
             </div>
-            
+
             <button mat-flat-button color="primary" class="d-flex align-items-center desktop-add-btn" (click)="addReferral()">
               <i-tabler name="plus" class="icon-18 m-r-4"></i-tabler>
-              Add Referral
+              {{ 'referrals.addReferral' | translate }}
             </button>
           </div>
         </mat-card-header>
@@ -65,13 +66,13 @@ import { ReferralDetailDialogComponent } from './referral-detail-dialog/referral
         <div class="mobile-filter-strip d-flex align-items-center gap-12 p-x-16 p-y-10 mobile-only w-100 overflow-auto">
           <button class="filter-trigger-btn d-flex align-items-center flex-shrink-0" [class.filter-active]="selectedBranchId !== null" [matMenuTriggerFor]="branchFilterMenu">
             <i-tabler name="filter" class="icon-16 m-r-6"></i-tabler>
-            <span class="f-s-13">{{ selectedBranchId !== null ? getSelectedBranchName() : 'Branch' }}</span>
+            <span class="f-s-13">{{ selectedBranchId !== null ? getSelectedBranchName() : ('taskAccountability.templates.branch' | translate) }}</span>
             <i-tabler name="chevron-down" class="icon-14 m-l-4"></i-tabler>
           </button>
-          
+
           <button class="filter-trigger-btn d-flex align-items-center flex-shrink-0" [class.filter-active]="selectedType !== null" [matMenuTriggerFor]="typeFilterMenu">
             <i-tabler name="filter" class="icon-16 m-r-6"></i-tabler>
-            <span class="f-s-13">{{ selectedType !== null ? formatType(selectedType) : 'Type' }}</span>
+            <span class="f-s-13">{{ selectedType !== null ? formatType(selectedType) : ('adminDashboard.type' | translate) }}</span>
             <i-tabler name="chevron-down" class="icon-14 m-l-4"></i-tabler>
           </button>
 
@@ -82,17 +83,17 @@ import { ReferralDetailDialogComponent } from './referral-detail-dialog/referral
 
         <!-- Menus -->
         <mat-menu #branchFilterMenu="matMenu" class="branch-filter-menu cardWithShadow">
-          <button mat-menu-item (click)="setBranchFilter(null)" [class.menu-item-active]="selectedBranchId === null">All Branches</button>
+          <button mat-menu-item (click)="setBranchFilter(null)" [class.menu-item-active]="selectedBranchId === null">{{ 'companies.allBranches' | translate }}</button>
           <mat-divider></mat-divider>
           <button mat-menu-item *ngFor="let branch of branches" (click)="setBranchFilter(branch.id)" [class.menu-item-active]="selectedBranchId === branch.id">{{ branch.name }}</button>
         </mat-menu>
-        
+
         <mat-menu #typeFilterMenu="matMenu" class="branch-filter-menu cardWithShadow">
-          <button mat-menu-item (click)="setTypeFilter(null)" [class.menu-item-active]="selectedType === null">All Types</button>
+          <button mat-menu-item (click)="setTypeFilter(null)" [class.menu-item-active]="selectedType === null">{{ 'referrals.allTypes' | translate }}</button>
           <mat-divider></mat-divider>
           <button mat-menu-item *ngFor="let type of referralTypes" (click)="setTypeFilter(type)" [class.menu-item-active]="selectedType === type">{{ formatType(type) }}</button>
         </mat-menu>
-        
+
         <mat-card-content class="p-0">
           <div *ngIf="isLoading" class="d-flex align-items-center justify-content-center p-y-40">
             <mat-spinner diameter="40"></mat-spinner>
@@ -102,9 +103,9 @@ import { ReferralDetailDialogComponent } from './referral-detail-dialog/referral
             <!-- Table View -->
             <div *ngIf="viewMode === 'table'" class="table-responsive view-container">
               <table mat-table [dataSource]="dataSource" class="w-100">
-                
+
                 <ng-container matColumnDef="referralName">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Referral Name</th>
+                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'referrals.colReferralName' | translate }}</th>
                   <td mat-cell *matCellDef="let element">
                     <div class="d-flex align-items-center">
                       <img [src]="getAvatar(element)" class="rounded-circle m-r-12 object-cover avatar-animated" width="40" height="40" />
@@ -114,44 +115,44 @@ import { ReferralDetailDialogComponent } from './referral-detail-dialog/referral
                 </ng-container>
 
                 <ng-container matColumnDef="type">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Type</th>
+                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'adminDashboard.type' | translate }}</th>
                   <td mat-cell *matCellDef="let element">
                     <span class="d-block f-w-500 text-dark f-s-13">{{ formatType(element.referralType) }}</span>
                   </td>
                 </ng-container>
 
                 <ng-container matColumnDef="branch">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Branch</th>
+                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'taskAccountability.templates.branch' | translate }}</th>
                   <td mat-cell *matCellDef="let element">
                     <span class="d-block f-w-500 text-dark f-s-13">{{ element.branchName || '—' }}</span>
                   </td>
                 </ng-container>
 
                 <ng-container matColumnDef="status">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Status</th>
+                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'taskAccountability.taskTable.colStatus' | translate }}</th>
                   <td mat-cell *matCellDef="let element">
                     <span class="status-badge" [ngClass]="(element.status || '').toLowerCase()">
-                      {{ element.status | titlecase }}
+                      {{ ((element.status || '').toUpperCase() === 'ACTIVE' ? 'common.active' : 'common.inactive') | translate }}
                     </span>
                   </td>
                 </ng-container>
 
                 <ng-container matColumnDef="leads">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Leads</th>
+                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'nav.leads' | translate }}</th>
                   <td mat-cell *matCellDef="let element">
                     <span class="d-block f-w-500 text-dark f-s-13">{{ element.userCounts?.leadsCount || 0 }}</span>
                   </td>
                 </ng-container>
 
                 <ng-container matColumnDef="registered">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Registered</th>
+                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'referrals.colRegistered' | translate }}</th>
                   <td mat-cell *matCellDef="let element">
                     <span class="d-block f-w-500 text-dark f-s-13">{{ element.userCounts?.registeredCount || 0 }}</span>
                   </td>
                 </ng-container>
 
                 <ng-container matColumnDef="actions">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14 text-center">Actions</th>
+                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14 text-center">{{ 'common.actions' | translate }}</th>
                   <td mat-cell *matCellDef="let element" class="text-center">
                     <button mat-icon-button [matMenuTriggerFor]="menu" class="text-muted" (click)="$event.stopPropagation()">
                       <i-tabler name="dots" class="icon-18"></i-tabler>
@@ -159,25 +160,25 @@ import { ReferralDetailDialogComponent } from './referral-detail-dialog/referral
                     <mat-menu #menu="matMenu" class="cardWithShadow">
                       <button mat-menu-item (click)="viewDetails(element)">
                         <i-tabler name="eye" class="icon-16 m-r-8"></i-tabler>
-                        <span>View details</span>
+                        <span>{{ 'leads.viewDetails' | translate }}</span>
                       </button>
                       <button mat-menu-item (click)="editReferral(element)">
                         <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
-                        <span>Edit referral</span>
+                        <span>{{ 'referrals.editReferral' | translate }}</span>
                       </button>
                       <mat-divider></mat-divider>
                       <button mat-menu-item *ngIf="(element.status || 'ACTIVE').toUpperCase() === 'ACTIVE'" class="text-danger" (click)="toggleStatus(element)">
                         <i-tabler name="ban" class="icon-16 m-r-8 text-danger"></i-tabler>
-                        <span>Deactivate</span>
+                        <span>{{ 'common.deactivate' | translate }}</span>
                       </button>
                       <button mat-menu-item *ngIf="(element.status || 'ACTIVE').toUpperCase() !== 'ACTIVE'" (click)="toggleStatus(element)">
                         <i-tabler name="check" class="icon-16 m-r-8 text-success"></i-tabler>
-                        <span>Activate</span>
+                        <span>{{ 'common.activate' | translate }}</span>
                       </button>
                       <mat-divider></mat-divider>
                       <button mat-menu-item class="text-danger" (click)="deleteReferral(element)">
                         <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
-                        <span>Delete</span>
+                        <span>{{ 'common.delete' | translate }}</span>
                       </button>
                     </mat-menu>
                   </td>
@@ -190,8 +191,8 @@ import { ReferralDetailDialogComponent } from './referral-detail-dialog/referral
               <!-- Empty state -->
               <div *ngIf="referrals.length === 0" class="empty-state d-flex flex-column align-items-center justify-content-center p-y-48">
                 <i-tabler name="user-off" class="icon-48 text-muted m-b-12"></i-tabler>
-                <h6 class="mat-subtitle-1 text-muted m-b-4">No referrals found</h6>
-                <p class="f-s-13 text-muted">Try adjusting your filters or add a new referral.</p>
+                <h6 class="mat-subtitle-1 text-muted m-b-4">{{ 'referrals.noReferralsFound' | translate }}</h6>
+                <p class="f-s-13 text-muted">{{ 'referrals.adjustFilters' | translate }}</p>
               </div>
             </div>
 
@@ -203,7 +204,7 @@ import { ReferralDetailDialogComponent } from './referral-detail-dialog/referral
                     <img [src]="getAvatar(element)" class="rounded-circle m-r-12 object-cover avatar-animated" width="48" height="48" />
                     <div>
                       <h6 class="mat-subtitle-1 f-w-600 m-b-0">{{ element.referralName }}</h6>
-                      <span class="status-badge mt-1 d-inline-block" [ngClass]="(element.status || '').toLowerCase()">{{ element.status | titlecase }}</span>
+                      <span class="status-badge mt-1 d-inline-block" [ngClass]="(element.status || '').toLowerCase()">{{ ((element.status || '').toUpperCase() === 'ACTIVE' ? 'common.active' : 'common.inactive') | translate }}</span>
                     </div>
                     <div class="m-l-auto">
                       <button mat-icon-button [matMenuTriggerFor]="cardMenu" class="text-muted" (click)="$event.stopPropagation()">
@@ -212,46 +213,46 @@ import { ReferralDetailDialogComponent } from './referral-detail-dialog/referral
                       <mat-menu #cardMenu="matMenu" class="cardWithShadow">
                         <button mat-menu-item (click)="viewDetails(element)">
                           <i-tabler name="eye" class="icon-16 m-r-8"></i-tabler>
-                          <span>View details</span>
+                          <span>{{ 'leads.viewDetails' | translate }}</span>
                         </button>
                         <button mat-menu-item (click)="editReferral(element)">
                           <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
-                          <span>Edit referral</span>
+                          <span>{{ 'referrals.editReferral' | translate }}</span>
                         </button>
                         <mat-divider></mat-divider>
                         <button mat-menu-item *ngIf="(element.status || 'ACTIVE').toUpperCase() === 'ACTIVE'" class="text-danger" (click)="toggleStatus(element)">
                           <i-tabler name="ban" class="icon-16 m-r-8 text-danger"></i-tabler>
-                          <span>Deactivate</span>
+                          <span>{{ 'common.deactivate' | translate }}</span>
                         </button>
                         <button mat-menu-item *ngIf="(element.status || 'ACTIVE').toUpperCase() !== 'ACTIVE'" (click)="toggleStatus(element)">
                           <i-tabler name="check" class="icon-16 m-r-8 text-success"></i-tabler>
-                          <span>Activate</span>
+                          <span>{{ 'common.activate' | translate }}</span>
                         </button>
                         <mat-divider></mat-divider>
                         <button mat-menu-item class="text-danger" (click)="deleteReferral(element)">
                           <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
-                          <span>Delete</span>
+                          <span>{{ 'common.delete' | translate }}</span>
                         </button>
                       </mat-menu>
                     </div>
                   </div>
-                  
+
                   <div class="d-flex align-items-center justify-content-between m-b-12">
                     <span class="f-s-13 text-muted d-flex align-items-center"><i-tabler name="badge" class="icon-16 m-r-4"></i-tabler> {{ formatType(element.referralType) }}</span>
                     <span class="f-s-13 text-muted d-flex align-items-center"><i-tabler name="building" class="icon-16 m-r-4"></i-tabler> {{ element.branchName || '—' }}</span>
                   </div>
-                  
+
                   <div class="d-flex align-items-center justify-content-between m-b-16">
-                    <span class="f-s-13 text-muted">Leads: <span class="text-dark f-w-500">{{ element.userCounts?.leadsCount || 0 }}</span></span>
-                    <span class="f-s-13 text-muted">Registered: <span class="text-dark f-w-500">{{ element.userCounts?.registeredCount || 0 }}</span></span>
+                    <span class="f-s-13 text-muted">{{ 'nav.leads' | translate }}: <span class="text-dark f-w-500">{{ element.userCounts?.leadsCount || 0 }}</span></span>
+                    <span class="f-s-13 text-muted">{{ 'referrals.colRegistered' | translate }}: <span class="text-dark f-w-500">{{ element.userCounts?.registeredCount || 0 }}</span></span>
                   </div>
                 </mat-card-content>
               </mat-card>
 
               <div *ngIf="referrals.length === 0" class="empty-state d-flex flex-column align-items-center justify-content-center p-y-48" style="grid-column: 1/-1">
                 <i-tabler name="user-off" class="icon-48 text-muted m-b-12"></i-tabler>
-                <h6 class="mat-subtitle-1 text-muted m-b-4">No referrals found</h6>
-                <p class="f-s-13 text-muted">Try adjusting your filters or add a new referral.</p>
+                <h6 class="mat-subtitle-1 text-muted m-b-4">{{ 'referrals.noReferralsFound' | translate }}</h6>
+                <p class="f-s-13 text-muted">{{ 'referrals.adjustFilters' | translate }}</p>
               </div>
             </div>
           </ng-container>
@@ -261,7 +262,7 @@ import { ReferralDetailDialogComponent } from './referral-detail-dialog/referral
             [pageSizeOptions]="[5, 10, 15, 25]"
             [pageSize]="pageSize"
             (page)="onPageChange($event)"
-            showFirstLastButtons 
+            showFirstLastButtons
             class="p-y-12">
           </mat-paginator>
         </mat-card-content>
@@ -269,7 +270,7 @@ import { ReferralDetailDialogComponent } from './referral-detail-dialog/referral
     </div>
 
     <!-- Mobile FAB -->
-    <button mat-fab color="primary" class="referral-mobile-fab" (click)="addReferral()" aria-label="Add Referral">
+    <button mat-fab color="primary" class="referral-mobile-fab" (click)="addReferral()" [attr.aria-label]="'referrals.addReferral' | translate">
       <i-tabler name="plus" class="icon-24"></i-tabler>
     </button>
   `,
@@ -351,7 +352,8 @@ export class ReferralsComponent implements OnInit, AfterViewInit {
     private notificationService: NotificationService,
     private referralService: ReferralService,
     private masterDataService: MasterDataService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -389,7 +391,7 @@ export class ReferralsComponent implements OnInit, AfterViewInit {
       },
       error: (err) => {
         console.error('Failed to load referrals', err);
-        this.notificationService.showErrorToast('Failed to load referrals.', 'Error');
+        this.notificationService.showErrorToast(this.translate.instant('referrals.toast.loadFailed'), this.translate.instant('employees.toast.errorTitle'));
         this.isLoading = false;
       }
     });
@@ -437,7 +439,7 @@ export class ReferralsComponent implements OnInit, AfterViewInit {
 
   getSelectedBranchName(): string {
     const branch = this.branches.find(b => b.id === this.selectedBranchId);
-    return branch ? branch.name : 'Branch';
+    return branch ? branch.name : this.translate.instant('taskAccountability.templates.branch');
   }
 
   applySearchFilter(event: Event): void {
@@ -488,12 +490,18 @@ export class ReferralsComponent implements OnInit, AfterViewInit {
 
     this.referralService.toggleStatus(referral.id, newStatus).subscribe({
       next: () => {
-        this.notificationService.showSuccessToast(`Referral ${actionText}d successfully.`, 'Status Updated');
+        this.notificationService.showSuccessToast(
+          this.translate.instant(newStatus === 'ACTIVE' ? 'employees.toast.activated' : 'employees.toast.deactivated'),
+          this.translate.instant('employees.toast.statusUpdated')
+        );
         this.loadReferrals();
       },
       error: (err) => {
         console.error('Failed to update status', err);
-        this.notificationService.showErrorToast(`Failed to ${actionText} referral.`, 'Error');
+        this.notificationService.showErrorToast(
+          this.translate.instant(newStatus === 'ACTIVE' ? 'employees.toast.activateFailed' : 'employees.toast.deactivateFailed'),
+          this.translate.instant('employees.toast.errorTitle')
+        );
       }
     });
   }
@@ -501,19 +509,19 @@ export class ReferralsComponent implements OnInit, AfterViewInit {
   deleteReferral(referral: any): void {
     if (!referral.id) return;
     this.notificationService.showErrorPopup(
-      `Are you sure you want to delete "${referral.referralName}"?`,
-      'Delete Referral',
-      'Delete'
+      this.translate.instant('referrals.confirmDeleteMessage', { name: referral.referralName }),
+      this.translate.instant('referrals.confirmDeleteTitle'),
+      this.translate.instant('common.delete')
     ).subscribe(confirmed => {
       if (confirmed) {
         this.referralService.deleteReferral(referral.id).subscribe({
           next: () => {
-            this.notificationService.showSuccessToast('Referral deleted successfully.', 'Deleted');
+            this.notificationService.showSuccessToast(this.translate.instant('referrals.toast.deleted'), this.translate.instant('leads.toast.deleted'));
             this.loadReferrals();
           },
           error: (err) => {
             console.error('Failed to delete referral', err);
-            this.notificationService.showErrorToast('Failed to delete referral.', 'Error');
+            this.notificationService.showErrorToast(this.translate.instant('referrals.toast.deleteFailed'), this.translate.instant('employees.toast.errorTitle'));
           }
         });
       }

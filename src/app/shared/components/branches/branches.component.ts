@@ -8,6 +8,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { environment } from '../../../../environments/environment';
 import { BranchDetailsDialogComponent } from './branch-details-dialog/branch-details-dialog.component';
 import { AddBranchDialogComponent } from './add-branch-dialog/add-branch-dialog.component';
+import { TranslateService } from '@ngx-translate/core';
 
 export interface BranchManager {
   id: number;
@@ -37,12 +38,12 @@ export interface Branch {
       <mat-card class="cardWithShadow">
         <mat-card-header class="d-flex align-items-center justify-content-between p-x-24 p-y-16">
           <mat-card-title>
-            <h5 class="mat-headline-6 f-w-600 m-b-0">Branches Directory</h5>
+            <h5 class="mat-headline-6 f-w-600 m-b-0">{{ 'branches.title' | translate }}</h5>
           </mat-card-title>
           <div class="header-actions d-flex align-items-center gap-12">
             <div class="search-box">
               <i-tabler name="search" class="icon-16 search-icon"></i-tabler>
-              <input (keyup)="applyFilter($event)" placeholder="Search branches..." class="search-input" />
+              <input (keyup)="applyFilter($event)" [placeholder]="'branches.searchPlaceholder' | translate" class="search-input" />
             </div>
             <div class="view-mode-toggle d-flex align-items-center">
               <button (click)="viewMode = 'table'" class="toggle-btn" [class.active]="viewMode === 'table'">
@@ -54,7 +55,7 @@ export interface Branch {
             </div>
             <button mat-flat-button color="primary" class="d-flex align-items-center desktop-add-btn" (click)="addBranch()">
               <i-tabler name="plus" class="icon-18 m-r-4"></i-tabler>
-              Add Branch
+              {{ 'branches.addBranch' | translate }}
             </button>
           </div>
         </mat-card-header>
@@ -72,7 +73,7 @@ export interface Branch {
               <table mat-table [dataSource]="dataSource" class="w-100">
 
                 <ng-container matColumnDef="name">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Branch Name</th>
+                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'branches.colBranchName' | translate }}</th>
                   <td mat-cell *matCellDef="let element">
                     <div class="d-flex align-items-center">
                       <div class="bg-light-primary rounded d-flex align-items-center justify-content-center m-r-12" style="width: 40px; height: 40px;">
@@ -84,19 +85,19 @@ export interface Branch {
                 </ng-container>
 
                 <ng-container matColumnDef="location">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Location</th>
+                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'companies.colLocation' | translate }}</th>
                   <td mat-cell *matCellDef="let element">
                     <span class="location-cell f-w-500 text-dark f-s-13">{{ element.location }}</span>
                   </td>
                 </ng-container>
 
                 <ng-container matColumnDef="manager">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Manager</th>
+                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'branches.colManager' | translate }}</th>
                   <td mat-cell *matCellDef="let element">
                     <div class="d-flex align-items-center">
                       <img [src]="getManagerAvatar(element.manager?.id)" class="rounded-circle m-r-8 object-cover avatar-img" width="36" height="36" />
                       <div>
-                        <span class="f-w-500 text-dark f-s-13 d-block">{{ element.manager?.name || 'N/A' }}</span>
+                        <span class="f-w-500 text-dark f-s-13 d-block">{{ element.manager?.name || ('leads.notAvailable' | translate) }}</span>
                         <span class="f-s-12 text-muted" *ngIf="element.manager?.email">{{ element.manager?.email }}</span>
                       </div>
                     </div>
@@ -104,30 +105,30 @@ export interface Branch {
                 </ng-container>
 
                 <ng-container matColumnDef="employees">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Staff</th>
+                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'branches.colStaff' | translate }}</th>
                   <td mat-cell *matCellDef="let element">
                     <span class="d-block f-w-500 text-dark f-s-13">{{ element.userCounts?.totalStaffs }}</span>
                   </td>
                 </ng-container>
 
                 <ng-container matColumnDef="students">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Students</th>
+                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'adminDashboard.studentsCol' | translate }}</th>
                   <td mat-cell *matCellDef="let element">
                     <span class="d-block f-w-500 text-dark f-s-13">{{ element.userCounts?.totalStudents }}</span>
                   </td>
                 </ng-container>
 
                 <ng-container matColumnDef="status">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Status</th>
+                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'taskAccountability.taskTable.colStatus' | translate }}</th>
                   <td mat-cell *matCellDef="let element">
                     <span class="status-badge" [ngClass]="(element.status || '').toLowerCase()">
-                      {{ element.status | titlecase }}
+                      {{ ((element.status || '').toUpperCase() === 'ACTIVE' ? 'common.active' : 'common.inactive') | translate }}
                     </span>
                   </td>
                 </ng-container>
 
                 <ng-container matColumnDef="actions">
-                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14 text-center">Actions</th>
+                  <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14 text-center">{{ 'common.actions' | translate }}</th>
                   <td mat-cell *matCellDef="let element" class="text-center">
                     <button mat-icon-button [matMenuTriggerFor]="menu" class="text-muted" (click)="$event.stopPropagation()">
                       <i-tabler name="dots" class="icon-18"></i-tabler>
@@ -135,24 +136,24 @@ export interface Branch {
                     <mat-menu #menu="matMenu" class="cardWithShadow">
                       <button mat-menu-item (click)="viewDetails(element)">
                         <i-tabler name="eye" class="icon-16 m-r-8"></i-tabler>
-                        <span>View details</span>
+                        <span>{{ 'leads.viewDetails' | translate }}</span>
                       </button>
                       <button mat-menu-item (click)="editBranch(element)">
                         <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
-                        <span>Edit branch</span>
+                        <span>{{ 'branches.editBranch' | translate }}</span>
                       </button>
                       <button mat-menu-item *ngIf="element.status?.toUpperCase() === 'INACTIVE'" (click)="toggleStatus(element)">
                         <i-tabler name="check" class="icon-16 m-r-8 text-success"></i-tabler>
-                        <span>Activate</span>
+                        <span>{{ 'common.activate' | translate }}</span>
                       </button>
                       <button mat-menu-item *ngIf="element.status?.toUpperCase() === 'ACTIVE'" (click)="toggleStatus(element)">
                         <i-tabler name="ban" class="icon-16 m-r-8 text-warning"></i-tabler>
-                        <span>Deactivate</span>
+                        <span>{{ 'common.deactivate' | translate }}</span>
                       </button>
                       <mat-divider></mat-divider>
                       <button mat-menu-item class="text-danger" (click)="deleteBranch(element)">
                         <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
-                        <span>Delete</span>
+                        <span>{{ 'common.delete' | translate }}</span>
                       </button>
                     </mat-menu>
                   </td>
@@ -173,7 +174,7 @@ export interface Branch {
                     </div>
                     <div>
                       <h6 class="mat-subtitle-1 f-w-600 m-b-0">{{ element.name }}</h6>
-                      <span class="status-badge mt-1 d-inline-block" [ngClass]="(element.status || '').toLowerCase()">{{ element.status | titlecase }}</span>
+                      <span class="status-badge mt-1 d-inline-block" [ngClass]="(element.status || '').toLowerCase()">{{ ((element.status || '').toUpperCase() === 'ACTIVE' ? 'common.active' : 'common.inactive') | translate }}</span>
                     </div>
                     <div class="m-l-auto">
                       <button mat-icon-button [matMenuTriggerFor]="cardMenu" class="text-muted" (click)="$event.stopPropagation()">
@@ -182,24 +183,24 @@ export interface Branch {
                       <mat-menu #cardMenu="matMenu" class="cardWithShadow">
                         <button mat-menu-item (click)="viewDetails(element)">
                           <i-tabler name="eye" class="icon-16 m-r-8"></i-tabler>
-                          <span>View details</span>
+                          <span>{{ 'leads.viewDetails' | translate }}</span>
                         </button>
                         <button mat-menu-item (click)="editBranch(element)">
                           <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
-                          <span>Edit branch</span>
+                          <span>{{ 'branches.editBranch' | translate }}</span>
                         </button>
                         <button mat-menu-item *ngIf="element.status?.toUpperCase() === 'INACTIVE'" (click)="toggleStatus(element)">
                           <i-tabler name="check" class="icon-16 m-r-8 text-success"></i-tabler>
-                          <span>Activate</span>
+                          <span>{{ 'common.activate' | translate }}</span>
                         </button>
                         <button mat-menu-item *ngIf="element.status?.toUpperCase() === 'ACTIVE'" (click)="toggleStatus(element)">
                           <i-tabler name="ban" class="icon-16 m-r-8 text-warning"></i-tabler>
-                          <span>Deactivate</span>
+                          <span>{{ 'common.deactivate' | translate }}</span>
                         </button>
                         <mat-divider></mat-divider>
                         <button mat-menu-item class="text-danger" (click)="deleteBranch(element)">
                           <i-tabler name="trash" class="icon-16 m-r-8 text-danger"></i-tabler>
-                          <span>Delete</span>
+                          <span>{{ 'common.delete' | translate }}</span>
                         </button>
                       </mat-menu>
                     </div>
@@ -215,8 +216,8 @@ export interface Branch {
                     <img [src]="getManagerAvatar(element.manager?.id)" class="rounded-circle m-r-8 object-cover avatar-img" width="32" height="32" />
                     <div>
                       <span class="f-s-13 text-dark f-w-500 d-block">
-                        {{ element.manager?.name || 'N/A' }}
-                        <span class="badge-role" *ngIf="element.manager?.name">Manager</span>
+                        {{ element.manager?.name || ('leads.notAvailable' | translate) }}
+                        <span class="badge-role" *ngIf="element.manager?.name">{{ 'branches.managerBadge' | translate }}</span>
                       </span>
                       <span class="f-s-12 text-muted" *ngIf="element.manager?.email">{{ element.manager?.email }}</span>
                     </div>
@@ -224,8 +225,8 @@ export interface Branch {
 
                   <mat-divider class="m-b-12"></mat-divider>
                   <div class="d-flex align-items-center justify-content-between text-muted f-s-12">
-                    <span class="d-flex align-items-center"><i-tabler name="users" class="icon-14 m-r-4"></i-tabler> {{ element.userCounts?.totalStaffs }} Staff</span>
-                    <span class="d-flex align-items-center"><i-tabler name="school" class="icon-14 m-r-4"></i-tabler> {{ element.userCounts?.totalStudents }} Students</span>
+                    <span class="d-flex align-items-center"><i-tabler name="users" class="icon-14 m-r-4"></i-tabler> {{ 'branches.staffCount' | translate:{ count: element.userCounts?.totalStaffs } }}</span>
+                    <span class="d-flex align-items-center"><i-tabler name="school" class="icon-14 m-r-4"></i-tabler> {{ 'branches.studentsCount' | translate:{ count: element.userCounts?.totalStudents } }}</span>
                   </div>
                 </mat-card-content>
               </mat-card>
@@ -245,7 +246,7 @@ export interface Branch {
     </div>
 
     <!-- Mobile FAB -->
-    <button mat-fab color="primary" class="branch-mobile-fab" (click)="addBranch()" aria-label="Add Branch">
+    <button mat-fab color="primary" class="branch-mobile-fab" (click)="addBranch()" [attr.aria-label]="'branches.addBranch' | translate">
       <i-tabler name="plus" class="icon-24"></i-tabler>
     </button>
   `,
@@ -340,7 +341,8 @@ export class BranchesComponent implements OnInit {
     private http: HttpClient,
     private authService: AuthService,
     private notificationService: NotificationService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -375,7 +377,7 @@ export class BranchesComponent implements OnInit {
       },
       error: (err) => {
         console.error('Failed to load branches', err);
-        this.notificationService.showErrorToast('Failed to load branches. Please try again.', 'Error');
+        this.notificationService.showErrorToast(this.translate.instant('branches.toast.loadFailed'), this.translate.instant('employees.toast.errorTitle'));
         this.isLoading = false;
         this.branches = [];
         this.dataSource.data = [];
@@ -437,20 +439,23 @@ export class BranchesComponent implements OnInit {
     ).subscribe({
       next: () => {
         this.notificationService.showSuccessToast(
-          `Branch "${branch.name}" ${actionText}d successfully.`,
-          'Status Updated'
+          this.translate.instant(newStatus === 'ACTIVE' ? 'branches.toast.activated' : 'branches.toast.deactivated', { name: branch.name }),
+          this.translate.instant('employees.toast.statusUpdated')
         );
         this.loadBranches();
       },
-      error: () => this.notificationService.showErrorToast(`Failed to ${actionText} branch.`, 'Error')
+      error: () => this.notificationService.showErrorToast(
+        this.translate.instant(newStatus === 'ACTIVE' ? 'employees.toast.activateFailed' : 'employees.toast.deactivateFailed'),
+        this.translate.instant('employees.toast.errorTitle')
+      )
     });
   }
 
   deleteBranch(branch: Branch): void {
     this.notificationService.showErrorPopup(
-      `Are you sure you want to permanently delete the branch "${branch.name}"? This action cannot be undone.`,
-      'Delete Branch',
-      'Delete'
+      this.translate.instant('branches.confirmDeleteMessage', { name: branch.name }),
+      this.translate.instant('branches.confirmDeleteTitle'),
+      this.translate.instant('common.delete')
     ).subscribe((confirmed) => {
       if (!confirmed) return;
 
@@ -459,10 +464,10 @@ export class BranchesComponent implements OnInit {
         { headers: this.getHeaders() }
       ).subscribe({
         next: () => {
-          this.notificationService.showSuccessToast(`Branch "${branch.name}" deleted successfully.`, 'Deleted');
+          this.notificationService.showSuccessToast(this.translate.instant('branches.toast.deleted', { name: branch.name }), this.translate.instant('leads.toast.deleted'));
           this.loadBranches();
         },
-        error: () => this.notificationService.showErrorToast(`Failed to delete branch "${branch.name}".`, 'Error')
+        error: () => this.notificationService.showErrorToast(this.translate.instant('branches.toast.deleteFailed', { name: branch.name }), this.translate.instant('employees.toast.errorTitle'))
       });
     });
   }

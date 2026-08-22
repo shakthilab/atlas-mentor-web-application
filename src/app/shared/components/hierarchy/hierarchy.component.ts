@@ -5,6 +5,7 @@ import { NotificationService } from '../../../core/services/notification.service
 import { HierarchyService, CounsellorNode } from '../../../core/services/hierarchy.service';
 import { MatDialog } from '@angular/material/dialog';
 import { HierarchyAssignDialogComponent } from './hierarchy-assign-dialog/hierarchy-assign-dialog.component';
+import { TranslateService } from '@ngx-translate/core';
 
 export interface HierarchyNode {
   id: string;
@@ -49,10 +50,11 @@ export class HierarchyComponent implements OnInit {
   isLoading = true;
 
   constructor(
-    private fb: FormBuilder, 
+    private fb: FormBuilder,
     private notificationService: NotificationService,
     private hierarchyService: HierarchyService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private translate: TranslateService
   ) {
     this.assignmentForm = this.fb.group({
       managerId: ['', Validators.required],
@@ -94,7 +96,7 @@ export class HierarchyComponent implements OnInit {
               }));
             },
             error: (err) => {
-              this.notificationService.showErrorToast('Failed to load unassigned employees for selected manager.');
+              this.notificationService.showErrorToast(this.translate.instant('hierarchy.toast.loadUnassignedFailed'));
               console.error(err);
             }
           });
@@ -190,7 +192,7 @@ export class HierarchyComponent implements OnInit {
         this.isLoading = false;
       },
       error: (err) => {
-        this.notificationService.showErrorToast('Failed to load hierarchy data');
+        this.notificationService.showErrorToast(this.translate.instant('hierarchy.toast.loadFailed'));
         console.error(err);
         this.isLoading = false;
       }
@@ -406,7 +408,7 @@ export class HierarchyComponent implements OnInit {
 
     const managerNode = this.findNodeById(this.organizationTree, managerId);
     if (!managerNode) {
-      this.notificationService.showErrorToast('Selected manager not found.');
+      this.notificationService.showErrorToast(this.translate.instant('hierarchy.toast.managerNotFound'));
       return;
     }
 
@@ -414,7 +416,7 @@ export class HierarchyComponent implements OnInit {
     const numericManagerId = numericManagerIdMatch ? parseInt(numericManagerIdMatch[0], 10) : null;
     
     if (!numericManagerId) {
-      this.notificationService.showErrorToast('Invalid manager ID.');
+      this.notificationService.showErrorToast(this.translate.instant('hierarchy.toast.invalidManagerId'));
       return;
     }
 
@@ -469,12 +471,12 @@ export class HierarchyComponent implements OnInit {
         this.assignmentForm.get('employeeIds')?.setValue([]);
         
         this.notificationService.showSuccessToast(
-          `Successfully assigned ${assignedCount} employee(s) to ${managerNode.name}.`,
-          'Assignment Saved'
+          this.translate.instant('hierarchy.toast.assignedSuccess', { count: assignedCount, name: managerNode.name }),
+          this.translate.instant('hierarchy.toast.assignmentSaved')
         );
       },
       error: (err) => {
-        this.notificationService.showErrorToast('Failed to assign employees. Please try again.');
+        this.notificationService.showErrorToast(this.translate.instant('hierarchy.toast.assignFailed'));
         console.error(err);
       }
     });
@@ -488,15 +490,15 @@ export class HierarchyComponent implements OnInit {
   unassignNode(node: HierarchyNode): void {
     const numericIdMatch = node.id.match(/\d+$/);
     if (!numericIdMatch) {
-      this.notificationService.showErrorToast('Invalid employee ID.');
+      this.notificationService.showErrorToast(this.translate.instant('hierarchy.toast.invalidEmployeeId'));
       return;
     }
     const numericId = parseInt(numericIdMatch[0], 10);
 
     this.notificationService.showErrorPopup(
-      `Are you sure you want to unassign ${node.name} from the hierarchy?`,
-      'Confirm Unassign',
-      'Unassign'
+      this.translate.instant('hierarchy.confirmUnassignMessage', { name: node.name }),
+      this.translate.instant('hierarchy.confirmUnassignTitle'),
+      this.translate.instant('hierarchy.unassign')
     ).subscribe((confirmed) => {
       if (confirmed) {
         let request$;
@@ -527,14 +529,14 @@ export class HierarchyComponent implements OnInit {
               }
               this.calculateStats();
               this.notificationService.showSuccessToast(
-                `${node.name} has been unassigned from the hierarchy.`,
-                'Unassigned'
+                this.translate.instant('hierarchy.toast.unassignedSuccess', { name: node.name }),
+                this.translate.instant('hierarchy.unassigned')
               );
             }
           },
           error: (err) => {
             console.error(err);
-            this.notificationService.showErrorToast('Failed to unassign employee.');
+            this.notificationService.showErrorToast(this.translate.instant('hierarchy.toast.unassignFailed'));
           }
         });
       }
@@ -544,13 +546,13 @@ export class HierarchyComponent implements OnInit {
   // Shortcut link under card
   addTeamMember(manager: HierarchyNode): void {
     if (!manager.branchId) {
-      this.notificationService.showErrorToast('Cannot assign employees: Manager branch information is missing.');
+      this.notificationService.showErrorToast(this.translate.instant('hierarchy.toast.missingBranchInfo'));
       return;
     }
 
     const numericIdMatch = manager.id.match(/\d+$/);
     if (!numericIdMatch) {
-      this.notificationService.showErrorToast('Invalid manager ID.');
+      this.notificationService.showErrorToast(this.translate.instant('hierarchy.toast.invalidManagerId'));
       return;
     }
 
