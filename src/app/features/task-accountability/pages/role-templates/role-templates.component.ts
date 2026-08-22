@@ -738,7 +738,42 @@ export class RoleTemplatesComponent implements OnInit {
   }
 
   isPastDay(idx: number): boolean {
-    return false;
+    if (!this.editingTemplate || !this.editingTemplate.months || this.editingTemplate.months.length === 0) {
+      return false;
+    }
+    const monthStr = this.editingTemplate.months[0].name;
+    if (!monthStr) return false;
+
+    const parts = monthStr.trim().split(' ');
+    if (parts.length < 2) return false;
+
+    const monthName = parts[0];
+    const year = parseInt(parts[1], 10);
+
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const monthIndex = monthNames.indexOf(monthName);
+    if (monthIndex === -1 || isNaN(year)) return false;
+
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth();
+    const currentDay = today.getDate();
+
+    const dayNumber = idx + 1;
+
+    if (year < currentYear) {
+      return true;
+    } else if (year > currentYear) {
+      return false;
+    } else {
+      if (monthIndex < currentMonth) {
+        return true;
+      } else if (monthIndex > currentMonth) {
+        return false;
+      } else {
+        return dayNumber < currentDay;
+      }
+    }
   }
 
   toggleMultiSelectMode(): void {
