@@ -124,4 +124,13 @@ export class StudentService {
       .get<ApiResponse<PaymentPageData>>(`${environment.apiUrl}/students/with-payment-by-referral-company`, { headers, params })
       .pipe(map((res) => res.data));
   }
+
+  updateStudentPriority(id: number, payload: { priority?: string; prioritySubCategory?: string }): Observable<any> {
+    const token = this.authService.getToken();
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+    return this.http.put<any>(`${environment.apiUrl}/students/${id}/priority`, payload, { headers });
+  }
 }

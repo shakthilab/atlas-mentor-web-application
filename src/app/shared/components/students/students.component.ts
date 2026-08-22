@@ -10,7 +10,7 @@ import { StudentService, RegisteredStudentDto } from '../../../core/services/stu
 import { LeadService } from '../../../core/services/lead.service';
 import { StudentDetailsDialogComponent } from './student-details-dialog/student-details-dialog.component';
 import { AddLeadDialogComponent } from '../leads/add-lead-dialog/add-lead-dialog.component';
-import { getPriorityTierLabel, getPrioritySubCategoryLabel } from '../../constants/lead-classification.constants';
+import { getPriorityTierLabel, getPrioritySubCategoryLabel, LEAD_PRIORITY_TIERS, getSubCategoriesForTier } from '../../constants/lead-classification.constants';
 import { TranslateService } from '@ngx-translate/core';
 
 export interface Student {
@@ -35,6 +35,8 @@ export interface Student {
   priorityDisplayName?: string;
   prioritySubCategory?: string;
   prioritySubCategoryDisplayName?: string;
+  isUpdatingPriority?: boolean;
+  isUpdatingSubCategory?: boolean;
 }
 
 @Component({
@@ -132,22 +134,49 @@ export interface Student {
                 </td>
               </ng-container>
 
+              <!-- Shared dummy empty menu (avoids null panelId crash) -->
+              <mat-menu #loadingMenu="matMenu"></mat-menu>
+
               <!-- Priority Column -->
               <ng-container matColumnDef="priority">
                 <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'taskAccountability.taskTable.colPriority' | translate }}</th>
-                <td mat-cell *matCellDef="let element">
-                  <span *ngIf="element.priority" class="priority-badge" [ngClass]="element.priority.toLowerCase()">
-                    {{ element.priorityDisplayName || getPriorityLabel(element.priority) }}
+                <td mat-cell *matCellDef="let element" (click)="$event.stopPropagation()">
+                  <span class="priority-badge cursor-pointer d-inline-flex align-items-center"
+                        [ngClass]="element.priority ? element.priority.toLowerCase() : 'none'"
+                        [matMenuTriggerFor]="element.isUpdatingPriority ? loadingMenu : priorityMenu">
+                    {{ element.priority ? (element.priorityDisplayName || getPriorityLabel(element.priority)) : 'Not Set' }}
+                    <i-tabler *ngIf="!element.isUpdatingPriority" name="chevron-down" class="icon-14 m-l-4"></i-tabler>
+                    <i-tabler *ngIf="element.isUpdatingPriority" name="loader" class="icon-14 m-l-4 spinning"></i-tabler>
                   </span>
-                  <span *ngIf="!element.priority" class="text-muted f-s-13">—</span>
+                  <mat-menu #priorityMenu="matMenu" class="priority-menu-panel" xPosition="before">
+                    <button mat-menu-item *ngFor="let t of priorityTiers" (click)="changePriority(element, t.value)" class="priority-menu-btn">
+                      <div class="d-flex align-items-center gap-8">
+                        <span class="priority-menu-dot" [ngClass]="t.value.toLowerCase()"></span>
+                        <span class="f-w-500">{{ t.label }}</span>
+                      </div>
+                    </button>
+                  </mat-menu>
                 </td>
               </ng-container>
 
               <!-- Sub Category Column -->
               <ng-container matColumnDef="subCategory">
                 <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'leads.colSubCategory' | translate }}</th>
-                <td mat-cell *matCellDef="let element" class="text-dark f-s-13">
-                  {{ element.prioritySubCategoryDisplayName || getSubCategoryLabel(element.prioritySubCategory) || '—' }}
+                <td mat-cell *matCellDef="let element" (click)="$event.stopPropagation()">
+                  <span class="subcategory-badge cursor-pointer d-inline-flex align-items-center"
+                        [matMenuTriggerFor]="element.isUpdatingSubCategory ? loadingMenu : subCatMenu">
+                    {{ element.prioritySubCategory ? (element.prioritySubCategoryDisplayName || getSubCategoryLabel(element.prioritySubCategory)) : 'Not Set' }}
+                    <i-tabler *ngIf="!element.isUpdatingSubCategory" name="chevron-down" class="icon-14 m-l-4"></i-tabler>
+                    <i-tabler *ngIf="element.isUpdatingSubCategory" name="loader" class="icon-14 m-l-4 spinning"></i-tabler>
+                  </span>
+                  <mat-menu #subCatMenu="matMenu" class="subcategory-menu-panel" xPosition="before">
+                    <ng-container *ngIf="getSubCategoriesForPriority(element.priority) as subs">
+                      <button mat-menu-item *ngFor="let sc of subs" (click)="changeSubCategory(element, sc.value)" class="subcategory-menu-btn">
+                        <span class="f-w-500">{{ sc.label }}</span>
+                      </button>
+                      <div *ngIf="subs.length === 0" class="p-x-16 p-y-8 text-muted f-s-12">Set priority first</div>
+                    </ng-container>
+                  </mat-menu>
                 </td>
               </ng-container>
 
@@ -488,6 +517,7 @@ export interface Student {
       font-size: 12px;
       font-weight: 700;
       border-radius: 6px;
+      transition: all 0.2s ease;
 
       &.p1 {
         background-color: rgba(250, 137, 107, 0.12);
@@ -500,6 +530,73 @@ export interface Student {
       &.p3 {
         background-color: rgba(45, 46, 50, 0.1);
         color: #2D2E32;
+      }
+      &.none {
+        background-color: rgba(148, 163, 184, 0.1);
+        color: #94a3b8;
+      }
+      &:hover { opacity: 0.85; }
+    }
+
+    .subcategory-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: 6px;
+      background-color: rgba(99, 102, 241, 0.08);
+      color: #6366f1;
+      border: 1px solid rgba(99, 102, 241, 0.15);
+      transition: all 0.2s ease;
+      &:hover { opacity: 0.85; }
+    }
+
+    ::ng-deep .priority-menu-panel {
+      min-width: 170px !important;
+      border-radius: 12px !important;
+      border: 1px solid #e2e8f0 !important;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.06), 0 8px 10px -6px rgba(0,0,0,0.06) !important;
+      background-color: #ffffff !important;
+      padding: 6px 0 !important;
+      overflow: hidden !important;
+
+      .priority-menu-btn {
+        height: 40px !important;
+        line-height: 40px !important;
+        padding: 0 16px !important;
+        transition: all 0.15s ease !important;
+        &:hover { background-color: #f8fafc !important; }
+      }
+    }
+
+    .priority-menu-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      &.p1 { background-color: #fa896b; }
+      &.p2 { background-color: #ffae1f; }
+      &.p3 { background-color: #94a3b8; }
+    }
+
+    ::ng-deep .subcategory-menu-panel {
+      min-width: 200px !important;
+      max-width: 300px !important;
+      border-radius: 12px !important;
+      border: 1px solid #e2e8f0 !important;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.06), 0 8px 10px -6px rgba(0,0,0,0.06) !important;
+      background-color: #ffffff !important;
+      padding: 6px 0 !important;
+      overflow: hidden !important;
+
+      .subcategory-menu-btn {
+        height: 38px !important;
+        line-height: 38px !important;
+        padding: 0 16px !important;
+        font-size: 13px !important;
+        transition: all 0.15s ease !important;
+        white-space: normal !important;
+        &:hover { background-color: #f8fafc !important; }
       }
     }
 
@@ -612,6 +709,41 @@ export interface Student {
           background-color: rgba(255, 255, 255, 0.1);
           color: #ffffff;
         }
+        &.none {
+          background-color: rgba(148, 163, 184, 0.15);
+          color: #94a3b8;
+        }
+      }
+
+      .subcategory-badge {
+        background-color: rgba(99, 102, 241, 0.15);
+        color: #a5b4fc;
+        border-color: rgba(99, 102, 241, 0.25);
+      }
+
+      ::ng-deep .priority-menu-panel {
+        background-color: var(--dark-sidebarbg, #1e293b) !important;
+        border-color: var(--dark-formborderColor, #334155) !important;
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3), 0 8px 10px -6px rgba(0,0,0,0.3) !important;
+        .priority-menu-btn {
+          &:hover {
+            background-color: var(--dark-hoverbgcolor, #334155) !important;
+          }
+          span { color: #f8fafc; }
+        }
+      }
+
+      ::ng-deep .subcategory-menu-panel {
+        background-color: var(--dark-sidebarbg, #1e293b) !important;
+        border-color: var(--dark-formborderColor, #334155) !important;
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3), 0 8px 10px -6px rgba(0,0,0,0.3) !important;
+        .subcategory-menu-btn {
+          &:hover {
+            background-color: var(--dark-hoverbgcolor, #334155) !important;
+          }
+          span { color: #f8fafc; }
+        }
+        .text-muted { color: #94a3b8 !important; }
       }
     }
   `]
@@ -638,6 +770,7 @@ export class StudentsComponent implements OnInit, AfterViewInit, OnDestroy {
   ];
 
   dataSource = new MatTableDataSource<Student>([]);
+  priorityTiers = LEAD_PRIORITY_TIERS;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
@@ -770,6 +903,48 @@ export class StudentsComponent implements OnInit, AfterViewInit, OnDestroy {
 
   getSubCategoryLabel(subCategory: string): string {
     return getPrioritySubCategoryLabel(subCategory);
+  }
+
+  getSubCategoriesForPriority(priority: string | undefined): { value: string; label: string }[] {
+    return getSubCategoriesForTier(priority);
+  }
+
+  changePriority(student: Student, newPriority: string): void {
+    if (student.priority === newPriority) return;
+    if (!student.id) return;
+    student.isUpdatingPriority = true;
+    this.studentService.updateStudentPriority(student.id, { priority: newPriority }).subscribe({
+      next: () => {
+        student.isUpdatingPriority = false;
+        this.notificationService.showSuccessToast(`Priority updated to ${getPriorityTierLabel(newPriority)}.`, 'Success');
+        this.loadStudents(this.paginator?.pageIndex || 0, this.paginator?.pageSize || 10);
+      },
+      error: (err) => {
+        student.isUpdatingPriority = false;
+        console.error('Failed to update priority:', err);
+        const errorMessage = err.error?.message || err.message || 'Failed to update priority.';
+        this.notificationService.showErrorPopup(errorMessage, 'Update Failed', 'Close').subscribe();
+      }
+    });
+  }
+
+  changeSubCategory(student: Student, newSubCategory: string): void {
+    if (student.prioritySubCategory === newSubCategory) return;
+    if (!student.id) return;
+    student.isUpdatingSubCategory = true;
+    this.studentService.updateStudentPriority(student.id, { prioritySubCategory: newSubCategory }).subscribe({
+      next: () => {
+        student.isUpdatingSubCategory = false;
+        this.notificationService.showSuccessToast(`Sub-category updated to ${getPrioritySubCategoryLabel(newSubCategory)}.`, 'Success');
+        this.loadStudents(this.paginator?.pageIndex || 0, this.paginator?.pageSize || 10);
+      },
+      error: (err) => {
+        student.isUpdatingSubCategory = false;
+        console.error('Failed to update sub-category:', err);
+        const errorMessage = err.error?.message || err.message || 'Failed to update sub-category.';
+        this.notificationService.showErrorPopup(errorMessage, 'Update Failed', 'Close').subscribe();
+      }
+    });
   }
 
   toggleStatus(student: Student): void {
