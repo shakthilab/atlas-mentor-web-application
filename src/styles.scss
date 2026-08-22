@@ -115,40 +115,50 @@ app-task-accountability-shell {
   }
 
   &.priority-urgent,
-  &.urgent,
-  &.priority-high,
-  &.high {
-    color: var(--danger) !important;
-    background-color: var(--danger-bg) !important;
-    border: 1px solid var(--danger) !important;
+  &.urgent {
+    color: #dc2626 !important;
+    background-color: #fef2f2 !important;
+    border: 1px solid #fca5a5 !important;
 
     .priority-icon,
     .badge-icon {
-      color: var(--danger) !important;
+      color: #dc2626 !important;
+    }
+  }
+
+  &.priority-high,
+  &.high {
+    color: #ea580c !important;
+    background-color: #fff7ed !important;
+    border: 1px solid #fdba74 !important;
+
+    .priority-icon,
+    .badge-icon {
+      color: #ea580c !important;
     }
   }
 
   &.priority-medium,
   &.medium {
-    color: var(--warning) !important;
-    background-color: var(--warning-bg) !important;
-    border: 1px solid var(--warning) !important;
+    color: #2563eb !important;
+    background-color: #eff6ff !important;
+    border: 1px solid #93c5fd !important;
 
     .priority-icon,
     .badge-icon {
-      color: var(--warning) !important;
+      color: #2563eb !important;
     }
   }
 
   &.priority-low,
   &.low {
-    color: var(--text-600) !important;
-    background-color: var(--border-soft) !important;
-    border: 1px solid var(--border) !important;
+    color: #059669 !important;
+    background-color: #f0fdf4 !important;
+    border: 1px solid #6ee7b7 !important;
 
     .priority-icon,
     .badge-icon {
-      color: var(--text-600) !important;
+      color: #059669 !important;
     }
   }
 }
@@ -186,43 +196,58 @@ app-task-accountability-shell {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
   }
 
-  &.status-verified,
-  &.status-completed,
-  &.status-approved {
-    color: var(--success);
-    background-color: var(--success-bg);
-    border-color: var(--success);
+  &.status-verified {
+    color: #15803d;
+    background-color: #dcfce7;
+    border-color: #86efac;
+  }
+
+  &.status-completed {
+    color: #16a34a;
+    background-color: #f0fdf4;
+    border-color: #bbf7d0;
   }
 
   &.status-review {
-    color: var(--blue-600);
-    background-color: var(--blue-100);
-    border-color: var(--blue-600);
+    color: #7c3aed;
+    background-color: #f5f3ff;
+    border-color: #ddd6fe;
+  }
+
+  &.status-approved {
+    color: #0891b2;
+    background-color: #ecfeff;
+    border-color: #a5f3fc;
   }
 
   &.status-closed {
-    color: var(--text-600);
-    background-color: var(--border-soft);
-    border-color: var(--border);
+    color: #475569;
+    background-color: #f1f5f9;
+    border-color: #cbd5e1;
   }
 
-  &.status-feedback,
-  &.status-overdue {
-    color: var(--danger);
-    background-color: var(--danger-bg);
-    border-color: var(--danger);
+  &.status-feedback {
+    color: #c2410c;
+    background-color: #fff7ed;
+    border-color: #ffedd5;
   }
 
   &.status-in-progress {
-    color: var(--warning);
-    background-color: var(--warning-bg);
-    border-color: var(--warning);
+    color: #0284c7;
+    background-color: #f0f9ff;
+    border-color: #bae6fd;
   }
 
   &.status-todo {
-    color: var(--text-600);
-    background-color: var(--border-soft);
-    border-color: var(--border);
+    color: #475569;
+    background-color: #f8fafc;
+    border-color: #e2e8f0;
+  }
+
+  &.status-overdue {
+    color: #dc2626;
+    background-color: #fef2f2;
+    border-color: #fca5a5;
   }
 }
 
@@ -234,27 +259,28 @@ app-task-accountability-shell {
   display: inline-block;
   flex-shrink: 0;
 
-  &.urgent,
+  &.urgent {
+    background-color: #dc2626 !important;
+    box-shadow: 0 0 6px rgba(220, 38, 38, 0.4);
+  }
+
   &.high {
-    background-color: var(--danger) !important;
-    box-shadow: 0 0 6px rgba(193, 67, 43, 0.4);
+    background-color: #ea580c !important;
+    box-shadow: 0 0 6px rgba(234, 88, 12, 0.4);
   }
 
   &.medium {
-    background-color: var(--warning) !important;
-    box-shadow: 0 0 6px rgba(185, 121, 30, 0.4);
+    background-color: #2563eb !important;
+    box-shadow: 0 0 6px rgba(37, 99, 235, 0.4);
   }
 
   &.low {
-    background-color: var(--text-400) !important;
-    box-shadow: none;
+    background-color: #059669 !important;
+    box-shadow: 0 0 6px rgba(5, 150, 105, 0.4);
   }
 }
 
-/* Status Badges — single source of truth for the app-wide status/priority
-   pill vocabulary; mirrors <app-status-pill>'s success/warning/danger/neutral
-   variants so hand-rolled badges elsewhere (dialogs, legacy lists) read as
-   the same design system without every page reimplementing its own colors. */
+/* Status Badges */
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -268,50 +294,65 @@ app-task-accountability-shell {
   transition: all 0.2s ease;
 
   &.status-verified,
-  &.verified,
+  &.verified {
+    color: #15803d !important;
+    background-color: #dcfce7 !important;
+    border: 1px solid #86efac !important;
+  }
+
   &.status-completed,
   &.completed,
-  &.done,
-  &.status-approved,
-  &.approved {
-    color: var(--success) !important;
-    background-color: var(--success-bg) !important;
-    border: 1px solid var(--success) !important;
+  &.done {
+    color: #16a34a !important;
+    background-color: #f0fdf4 !important;
+    border: 1px solid #bbf7d0 !important;
   }
 
   &.status-review,
   &.manager-review,
   &.review {
-    color: var(--blue-600) !important;
-    background-color: var(--blue-100) !important;
-    border: 1px solid var(--blue-600) !important;
+    color: #7c3aed !important;
+    background-color: #f5f3ff !important;
+    border: 1px solid #ddd6fe !important;
+  }
+
+  &.status-approved,
+  &.approved {
+    color: #0891b2 !important;
+    background-color: #ecfeff !important;
+    border: 1px solid #a5f3fc !important;
   }
 
   &.status-feedback,
   &.rejected,
   &.returned,
   &.action-needed {
-    color: var(--danger) !important;
-    background-color: var(--danger-bg) !important;
-    border: 1px solid var(--danger) !important;
+    color: #e11d48 !important;
+    background-color: #fff1f2 !important;
+    border: 1px solid #fecdd3 !important;
   }
 
   &.status-in-progress,
   &.in-progress {
-    color: var(--warning) !important;
-    background-color: var(--warning-bg) !important;
-    border: 1px solid var(--warning) !important;
+    color: #2563eb !important;
+    background-color: #eff6ff !important;
+    border: 1px solid #bfdbfe !important;
   }
 
   &.status-todo,
-  &.todo,
+  &.todo {
+    color: #d97706 !important;
+    background-color: #fef3c7 !important;
+    border: 1px solid #fde68a !important;
+  }
+
   &.status-closed,
   &.status-employee,
   &.closed,
   &.draft {
-    color: var(--text-600) !important;
-    background-color: var(--border-soft) !important;
-    border: 1px solid var(--border) !important;
+    color: #475569 !important;
+    background-color: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
   }
 }
 

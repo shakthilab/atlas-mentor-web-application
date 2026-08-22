@@ -45,12 +45,6 @@ button[mat-icon-button],
   align-items: center !important;
   justify-content: center !important;
   border-radius: var(--radius-sm) !important;
-  color: $text-600;
-  transition: background-color .15s ease;
-
-  &:hover {
-    background-color: var(--bg) !important;
-  }
 
   i-tabler {
     display: flex !important;
@@ -192,7 +186,7 @@ button[mat-icon-button],
     right: 8px;
     width: 6px;
     height: 6px;
-    background-color: var(--danger);
+    background-color: #fa896b;
     border-radius: 50%;
     border: 1px solid #ffffff;
 

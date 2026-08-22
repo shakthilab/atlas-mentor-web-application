@@ -58,12 +58,18 @@ $light-error: #FCEAE6;
 $light-success: #E7F7EF;
 
 // ─── Teal / gold / blue accent tokens (redesign) ───────────────────────────
-$teal-700: #164F4C;
-$teal-600: #1F6F6B;
-$teal-500: #2C8D86;
+// Values below intentionally repointed back to the pre-redesign palette
+// (see CLAUDE.md / revert of f81c25f) — only consumed by admin-dashboard,
+// header, sidebar and page-shell, so this doesn't affect the data-table/
+// kpi-card/status-pill/approval-stepper components already built on these
+// tokens (they hardcode their own hex copies rather than reference these
+// Sass variables).
+$teal-700: #0b5ed7;
+$teal-600: #0d6efd;
+$teal-500: #4d9bff;
 $teal-100: #E4F1EF;
-$gold-600: #A87C25;
-$gold-500: #C99A3C;
+$gold-600: #fd7e14;
+$gold-500: #ffc107;
 $gold-100: #FBF1DD;
 $blue-700: #1E3E72;
 $blue-600: #2C5AA0;
@@ -71,18 +77,18 @@ $blue-500: #3E72C7;
 $blue-100: #E7EEFA;
 
 // ink scale (sidebar / dark surfaces / headings)
-$ink-900: #14213D;
+$ink-900: #1a1d23;
 $ink-700: #243B5C;
 $ink-500: #56607A;
 
 // neutral surfaces / text / borders (redesign)
-$surface-bg: #F6F7F9;
+$surface-bg: #ffffff;
 $surface-card: #FFFFFF;
-$surface-border: #E7EAEF;
+$surface-border: #eaecf0;
 $surface-border-soft: #F0F2F5;
 $text-900: #14213D;
 $text-600: #56607A;
-$text-400: #9399AC;
+$text-400: #8a94a6;
 
 // layout
 $boxedWidth: 1200px;

@@ -3,18 +3,12 @@ app-sidebar {
   height: 100%;
 }
 
-// The sidebar is a permanently-dark surface (ink-900) regardless of the
-// app's own light/dark content-area toggle — a signature element of the
-// redesign, not tied to ThemeService. Overrides the generic
-// `.mat-drawer { background-color: $sidebarbg }` rule in overrides/_drawer.scss.
 .sidebarNav {
   width: $sidenav-desktop !important;
   flex-shrink: 0;
   transition: swift-ease-out(width);
   position: absolute;
   overflow-x: hidden;
-  background-color: $ink-900 !important;
-  border-right: none;
 }
 
 .sidebar-header {
@@ -30,20 +24,19 @@ app-sidebar {
     }
 
     .brand-logo-icon-box {
-      background: linear-gradient(155deg, $teal-500, $teal-700);
-      border-radius: 10px;
-      width: 36px;
-      height: 36px;
+      background-color: $primary;
+      border-radius: 8px;
+      width: 40px;
+      height: 40px;
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, .25);
 
       .brand-logo-icon {
         color: #ffffff;
-        width: 19px;
-        height: 19px;
+        width: 22px;
+        height: 22px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -59,14 +52,20 @@ app-sidebar {
       .brand-title {
         font-size: 14px;
         font-weight: 700;
-        color: #ffffff;
+        color: $primary;
+        .dark-theme & {
+          color: #ffffff;
+        }
       }
 
       .brand-subtitle {
         font-size: 9px;
         font-weight: 600;
-        color: #93A3AA;
+        color: #64748b;
         letter-spacing: 0.8px;
+        .dark-theme & {
+          color: #94a3b8;
+        }
       }
     }
   }
@@ -90,8 +89,12 @@ app-sidebar {
 
     .footer-divider {
       height: 1px;
-      background-color: rgba(255, 255, 255, .08);
+      background-color: #e2e8f0;
       margin: 12px 24px 8px 24px;
+
+      .dark-theme & {
+        background-color: #242428;
+      }
     }
   }
 }
@@ -102,7 +105,7 @@ app-sidebar {
     display: flex !important;
     align-items: center;
     justify-content: center;
-    color: #ffffff;
+    color: $textPrimary;
   }
 }
 
@@ -116,7 +119,7 @@ app-sidebar {
       font-size: 0.75rem;
       font-weight: 700;
       margin-top: 24px;
-      color: #69828A;
+      color: #64748b;
       letter-spacing: 0.5px;
     }
 
@@ -124,36 +127,12 @@ app-sidebar {
       border-radius: 8px;
       height: 45px;
       padding: 8px 12px !important;
-      margin-bottom: 1px;
-      transition: background-color 0.12s ease;
-      color: #C4D0D2;
-      position: relative;
-      // Angular Material's MDC list item drives its label color from its own
-      // --mdc-list-list-item-label-text-color custom property (defaulting to
-      // a dark theme-primary text), which otherwise wins over the inherited
-      // `color` above and renders invisible dark-on-dark text until a state
-      // (hover/active) explicitly overrides `.mdc-list-item__primary-text`.
-      --mdc-list-list-item-label-text-color: #C4D0D2;
-
-      .mdc-list-item__primary-text {
-        color: #C4D0D2 !important;
-      }
-
-      .mdc-list-item__start,
-      .routeIcon {
-        color: #C4D0D2 !important;
-      }
+      margin-bottom: 4px;
+      transition: all 0.2s ease;
 
       &:hover:not(.activeMenu) {
-        background-color: rgba(255, 255, 255, .05) !important;
-        color: #ffffff !important;
-        --mdc-list-list-item-label-text-color: #ffffff;
-
-        .mdc-list-item__primary-text,
-        .mdc-list-item__start,
-        .routeIcon {
-          color: #ffffff !important;
-        }
+        background-color: #f8fafc !important;
+        color: $primary !important;
       }
 
       &.twoline {
@@ -166,20 +145,9 @@ app-sidebar {
       }
 
       &.activeMenu {
-        background-color: rgba($teal-500, .22) !important;
+        background-color: $primary !important;
         color: #ffffff !important;
-        box-shadow: none;
-
-        &::before {
-          content: '';
-          position: absolute;
-          left: -14px;
-          top: 8px;
-          bottom: 8px;
-          width: 3px;
-          background: $teal-500;
-          border-radius: 0 3px 3px 0;
-        }
+        box-shadow: 0 2px 8px rgba(var(--brand-primary-rgb), 0.25);
 
         .mdc-list-item__primary-text {
           color: #ffffff !important;
@@ -199,8 +167,7 @@ app-sidebar {
         width: 20px;
         height: 20px;
         fill: transparent !important;
-        color: #C4D0D2;
-        opacity: .85;
+        color: $textPrimary;
         display: flex;
       }
 
@@ -208,8 +175,6 @@ app-sidebar {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        font-size: 13.5px;
-        font-weight: 500;
       }
     }
   }
@@ -343,21 +308,21 @@ app-sidebar {
   .sidebar-search-container {
     display: flex;
     align-items: center;
-    background-color: rgba(255, 255, 255, .06);
+    background-color: $hoverBgColor;
     border-radius: 8px;
     padding: 0 12px;
     height: 38px;
-    border: 1px solid rgba(255, 255, 255, .08);
+    border: 1px solid $borderColor;
     transition: all 0.2s ease-in-out;
 
     &:focus-within {
-      border-color: $teal-500;
-      background-color: rgba(255, 255, 255, .09);
-      box-shadow: 0 0 0 3px rgba($teal-500, 0.15);
+      border-color: $primary;
+      background-color: white;
+      box-shadow: 0 0 0 3px rgba($primary, 0.1);
     }
 
     .search-icon {
-      color: #7C8B93;
+      color: $gray-100;
       margin-right: 8px;
       display: flex;
       align-items: center;
@@ -369,10 +334,10 @@ app-sidebar {
       outline: none;
       width: 100%;
       font-size: 13px;
-      color: #ffffff;
+      color: $textPrimary;
 
       &::placeholder {
-        color: #7C8B93;
+        color: $gray-100;
         opacity: 0.8;
       }
     }
