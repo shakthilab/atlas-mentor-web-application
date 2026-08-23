@@ -310,6 +310,7 @@
       "duplicateThisDay": "Duplicate this day...",
       "duplicateDayTasks": "Duplicate {{day}} Tasks",
       "selectTargetDays": "Select target days to copy {{count}} task(s) into",
+      "targetMonth": "Target Month",
       "selectAllValidDays": "Select All Valid Days",
       "deselectAll": "Deselect All",
       "daysSelected": "{{count}} day(s) selected",

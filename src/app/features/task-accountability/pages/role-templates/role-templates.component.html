@@ -58,7 +58,7 @@
                 <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
                 <span>{{ 'taskAccountability.templates.editTemplate' | translate }}</span>
               </button>
-              <button mat-menu-item (click)="duplicateTemplate(temp)">
+              <button mat-menu-item (click)="duplicateTemplate(temp)" [disabled]="duplicatingTemplateIds.has(temp.id)">
                 <i-tabler name="copy" class="icon-16 m-r-8"></i-tabler>
                 <span>{{ 'common.duplicate' | translate }}</span>
               </button>
@@ -450,6 +450,17 @@
             </button>
           </div>
 
+          <div class="target-month-row" *ngIf="!isTemplateUnsaved()">
+            <label class="target-month-label">{{ 'taskAccountability.templates.targetMonth' | translate }}</label>
+            <div class="month-select-wrapper">
+              <i-tabler name="calendar" class="icon-16 month-icon"></i-tabler>
+              <select [(ngModel)]="duplicateTargetMonthName" class="month-header-select">
+                <option *ngFor="let m of monthsList" [value]="m">{{ m }}</option>
+              </select>
+              <i-tabler name="chevron-down" class="icon-14 month-chevron"></i-tabler>
+            </div>
+          </div>
+
           <div class="dialog-toolbar">
             <button type="button" class="link-btn" (click)="selectAllValidTargetDays()">{{ 'taskAccountability.templates.selectAllValidDays' | translate }}</button>
             <span class="dot-separator">&bull;</span>
@@ -461,18 +472,18 @@
 
           <div class="dialog-body">
             <div class="target-days-grid">
-              <div class="target-day-item" *ngFor="let otherDay of getDaysList(); let otherIdx = index"
-                [class.disabled]="otherIdx === selectedDayIndex || isPastDay(otherIdx)"
-                [class.selected]="selectedTargetDaysForDuplication.has(otherIdx)"
-                (click)="toggleTargetDaySelection(otherIdx)">
+              <div class="target-day-item" *ngFor="let otherDay of getDuplicateTargetDaysList()"
+                [class.disabled]="isDuplicateTargetSelf(otherDay) || isDuplicateTargetPast(otherDay)"
+                [class.selected]="selectedTargetDaysForDuplication.has(duplicateTargetKey(otherDay))"
+                (click)="toggleTargetDaySelection(otherDay)">
                 <div class="item-checkbox">
-                  <i-tabler [name]="selectedTargetDaysForDuplication.has(otherIdx) ? 'checkbox' : 'square'"
+                  <i-tabler [name]="selectedTargetDaysForDuplication.has(duplicateTargetKey(otherDay)) ? 'checkbox' : 'square'"
                     class="icon-16"></i-tabler>
                 </div>
                 <div class="item-label">
                   <span class="day-name">{{ otherDay.name }}</span>
-                  <span class="status-tag current" *ngIf="otherIdx === selectedDayIndex">{{ 'taskAccountability.templates.currentDay' | translate }}</span>
-                  <span class="status-tag past" *ngIf="isPastDay(otherIdx)">{{ 'taskAccountability.templates.pastDayDisabled' | translate }}</span>
+                  <span class="status-tag current" *ngIf="isDuplicateTargetSelf(otherDay)">{{ 'taskAccountability.templates.currentDay' | translate }}</span>
+                  <span class="status-tag past" *ngIf="isDuplicateTargetPast(otherDay)">{{ 'taskAccountability.templates.pastDayDisabled' | translate }}</span>
                 </div>
               </div>
             </div>
@@ -481,7 +492,7 @@
           <div class="dialog-footer">
             <button mat-button class="cancel-btn" (click)="closeDuplicateDayModal()">{{ 'common.cancel' | translate }}</button>
             <button mat-flat-button color="primary" class="confirm-btn"
-              [disabled]="selectedTargetDaysForDuplication.size === 0" (click)="confirmDuplicateDayToSelected()">
+              [disabled]="selectedTargetDaysForDuplication.size === 0 || isDuplicatingDayBatch" (click)="confirmDuplicateDayToSelected()">
               {{ 'taskAccountability.templates.duplicateToNDays' | translate:{ count: selectedTargetDaysForDuplication.size } }}
             </button>
           </div>

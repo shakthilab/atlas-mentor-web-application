@@ -168,6 +168,11 @@ export interface TemplateDay {
   id: string;
   name: string; // e.g. "Day 1" or "Weekly Accountability"
   isWeekly?: boolean;
+  dayNumber?: number;
+  // Both null/undefined = recurring day, applies to this dayNumber every month.
+  // Both set = scoped to that one calendar month only.
+  month?: number | null;
+  year?: number | null;
   tasks: TemplateTask[];
   questions?: TemplateQuestion[];
 }
@@ -215,6 +220,10 @@ export interface RoleTemplate {
   createdBy?: number | string;
   updatedBy?: number | string;
   months?: TemplateMonth[];
+  // Full flat list of days as returned by the backend (kept as-is, including multiple rows
+  // sharing a dayNumber with different month/year), so the currently selected month's day
+  // list can be resolved locally whenever the month dropdown changes, without refetching.
+  rawDays?: any[];
 }
 
 export interface TemplateAssignment {

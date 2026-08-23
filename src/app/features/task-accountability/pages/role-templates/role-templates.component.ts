@@ -33,7 +33,11 @@ export class RoleTemplatesComponent implements OnInit {
   }
   toastMessage = '';
   showDuplicateDayModal = false;
-  selectedTargetDaysForDuplication = new Set<number>();
+  // Keyed by "month-year-dayNumber" rather than a same-month array index, so a selection can
+  // span the currently-viewed month and any other month reachable via duplicateTargetMonthName.
+  selectedTargetDaysForDuplication = new Set<string>();
+  duplicateTargetMonthName = '';
+  isDuplicatingDayBatch = false;
   monthsList: string[] = (() => {
     const names = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const list: string[] = [];
@@ -186,7 +190,8 @@ export class RoleTemplatesComponent implements OnInit {
           days: []
         }
       ],
-      tasks: []
+      tasks: [],
+      rawDays: []
     };
 
     this.adjustDaysForMonth(currentMonthName);
@@ -227,6 +232,10 @@ export class RoleTemplatesComponent implements OnInit {
           ]
         }
       ];
+    }
+
+    if (!clone.rawDays) {
+      clone.rawDays = [];
     }
 
     this.editingTemplate = clone;
@@ -310,26 +319,76 @@ export class RoleTemplatesComponent implements OnInit {
 
   adjustDaysForMonth(monthNameWithYear: string): void {
     if (!this.editingTemplate || !this.editingTemplate.months || this.editingTemplate.months.length === 0) return;
+    this.editingTemplate.months[0].name = monthNameWithYear;
+    this.editingTemplate.months[0].days = this.resolveDaysForMonth(this.editingTemplate.rawDays || [], monthNameWithYear);
+  }
+
+  /**
+   * Builds the day list for one calendar month from the template's raw backend days
+   * (which can include several rows sharing a dayNumber - one recurring, others scoped to
+   * a specific month). For each day 1..N of the target month: an exact (dayNumber, month,
+   * year) match wins; otherwise the recurring (month/year both null) row is used as the
+   * baseline; otherwise it's a brand-new, not-yet-saved day. This is what keeps e.g.
+   * August's Day 22 and September's Day 22 independent once either has been edited.
+   *
+   * @param forceScoped When true, every returned day is stamped with the viewed month/year
+   *   regardless of whether its tasks actually came from a scoped or a recurring row. Used
+   *   for the "duplicate to" target-day picker: duplicating into a day always creates
+   *   month-specific content for that target, even if it currently only shows the shared
+   *   recurring baseline - it must never silently extend the recurring row itself.
+   */
+  private resolveDaysForMonth(rawDays: any[], monthNameWithYear: string, forceScoped: boolean = false): TemplateDay[] {
     const parts = monthNameWithYear.split(' ');
     const monthName = parts[0];
     const year = parts[1] ? parseInt(parts[1], 10) : new Date().getFullYear();
+    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const monthNumber = months.indexOf(monthName) + 1; // 1-12
+    const daysInMonth = this.getDaysInMonth(monthName, year);
 
-    const targetDaysCount = this.getDaysInMonth(monthName, year);
-    const days = this.editingTemplate.months[0].days;
-    const currentDaysCount = days.length;
+    const days: TemplateDay[] = [];
+    for (let dayNumber = 1; dayNumber <= daysInMonth; dayNumber++) {
+      const scoped = rawDays.find(d => d.dayNumber === dayNumber && d.month === monthNumber && d.year === year);
+      const recurring = rawDays.find(d => d.dayNumber === dayNumber && (d.month === null || d.month === undefined) && (d.year === null || d.year === undefined));
+      const source = scoped || recurring;
 
-    if (currentDaysCount < targetDaysCount) {
-      const diff = targetDaysCount - currentDaysCount;
-      for (let i = 0; i < diff; i++) {
-        const startNum = currentDaysCount + 1 + i;
-        days.push({
-          id: `td-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-          name: `Day ${startNum}`,
-          isWeekly: false,
-          tasks: []
-        });
-      }
+      const tasks: TemplateTask[] = (source?.tasks || []).map((t: any) => ({
+        id: t.id.toString(),
+        name: t.title,
+        description: t.description || '',
+        type: 'CHECKLIST',
+        priority: t.priority ? t.priority : 'MEDIUM',
+        required: true,
+        active: true
+      }));
+
+      days.push({
+        id: source ? `td-${source.id}` : `td-new-${monthNumber}-${year}-${dayNumber}`,
+        name: source?.isWeeklyCheckpoint ? 'Weekly Accountability' : `Day ${dayNumber}`,
+        isWeekly: source?.isWeeklyCheckpoint || false,
+        dayNumber,
+        // A brand-new (never-saved) day defaults to being scoped to the month currently
+        // being viewed, so anything added to it saves as month-specific, not recurring.
+        month: forceScoped ? monthNumber : (scoped ? scoped.month : (recurring ? null : monthNumber)),
+        year: forceScoped ? year : (scoped ? scoped.year : (recurring ? null : year)),
+        tasks
+      });
     }
+    return days;
+  }
+
+  /**
+   * Re-fetches the template after a task/day mutation and rebuilds the currently-viewed
+   * month's day list from the fresh `rawDays`, instead of blindly overwriting
+   * `editingTemplate.months` with whatever single month the server response defaulted to.
+   */
+  private refreshEditingTemplateDaysFromServer(templateId: string | number): void {
+    this.service.getRoleTemplateByIdApi(templateId).subscribe(updatedTemplate => {
+      if (updatedTemplate && this.editingTemplate) {
+        const currentMonthName = this.editingTemplate.months?.[0]?.name || this.monthsList[0];
+        this.editingTemplate.rawDays = updatedTemplate.rawDays || [];
+        this.adjustDaysForMonth(currentMonthName);
+      }
+    });
   }
 
   populateDemoTasksForSeniorCounsellor(template: RoleTemplate | null): void {
@@ -467,15 +526,7 @@ export class RoleTemplatesComponent implements OnInit {
         next: () => {
           this.showToast(this.t('taskAccountability.templates.toast.taskDeleted'));
           // Call GET API to update UI with latest server state
-          this.service.getRoleTemplateByIdApi(templateId).subscribe(updatedTemplate => {
-            if (updatedTemplate && this.editingTemplate) {
-              const currentMonthName = this.editingTemplate.months?.[0]?.name || this.monthsList[0];
-              this.editingTemplate.months = updatedTemplate.months;
-              if (this.editingTemplate.months?.[0]) {
-                this.editingTemplate.months[0].name = currentMonthName;
-              }
-            }
-          });
+          this.refreshEditingTemplateDaysFromServer(templateId);
           this.service.getRoleTemplatesApi().subscribe();
         },
         error: (err) => {
@@ -754,26 +805,21 @@ export class RoleTemplatesComponent implements OnInit {
     const monthIndex = monthNames.indexOf(monthName);
     if (monthIndex === -1 || isNaN(year)) return false;
 
+    return this.isPastDateForMonthYear(idx + 1, monthIndex + 1, year);
+  }
+
+  /** month is 1-12. Generalized so any (day, month, year) can be checked against today - not just a day within the template's single currently-open month. */
+  private isPastDateForMonthYear(dayNumber: number, month: number, year: number): boolean {
     const today = new Date();
     const currentYear = today.getFullYear();
-    const currentMonth = today.getMonth();
+    const currentMonth = today.getMonth() + 1;
     const currentDay = today.getDate();
 
-    const dayNumber = idx + 1;
-
-    if (year < currentYear) {
-      return true;
-    } else if (year > currentYear) {
-      return false;
-    } else {
-      if (monthIndex < currentMonth) {
-        return true;
-      } else if (monthIndex > currentMonth) {
-        return false;
-      } else {
-        return dayNumber < currentDay;
-      }
-    }
+    if (year < currentYear) return true;
+    if (year > currentYear) return false;
+    if (month < currentMonth) return true;
+    if (month > currentMonth) return false;
+    return dayNumber < currentDay;
   }
 
   toggleMultiSelectMode(): void {
@@ -875,19 +921,11 @@ export class RoleTemplatesComponent implements OnInit {
     const taskPayload = { title, description, priority };
 
     const executeAddTaskApi = (tempId: string | number) => {
-      this.service.addTaskApi(tempId, dayNumber, taskPayload).subscribe({
+      this.service.addTaskApi(tempId, dayNumber, taskPayload, day.month, day.year).subscribe({
         next: () => {
           this.showToast(this.t('taskAccountability.templates.toast.taskAdded'));
           // Call GET API to update UI with latest server data
-          this.service.getRoleTemplateByIdApi(tempId).subscribe(updatedTemplate => {
-            if (updatedTemplate && this.editingTemplate) {
-              const currentMonthName = this.editingTemplate.months?.[0]?.name || this.monthsList[0];
-              this.editingTemplate.months = updatedTemplate.months;
-              if (this.editingTemplate.months?.[0]) {
-                this.editingTemplate.months[0].name = currentMonthName;
-              }
-            }
-          });
+          this.refreshEditingTemplateDaysFromServer(tempId);
           this.service.getRoleTemplatesApi().subscribe();
         },
         error: (err) => {
@@ -1017,6 +1055,10 @@ export class RoleTemplatesComponent implements OnInit {
       return;
     }
     this.selectedTargetDaysForDuplication.clear();
+    this.isDuplicatingDayBatch = false;
+    // Default the target-month picker to whichever month is currently open, so same-month
+    // duplication (the common case) needs no extra step.
+    this.duplicateTargetMonthName = this.selectedMonthName;
     this.showDuplicateDayModal = true;
   }
 
@@ -1025,20 +1067,46 @@ export class RoleTemplatesComponent implements OnInit {
     this.selectedTargetDaysForDuplication.clear();
   }
 
-  toggleTargetDaySelection(idx: number): void {
-    if (idx === this.selectedDayIndex || this.isPastDay(idx)) return;
-    if (this.selectedTargetDaysForDuplication.has(idx)) {
-      this.selectedTargetDaysForDuplication.delete(idx);
+  /**
+   * Target days for the currently-browsed month in the duplicate dialog's picker. Unlike
+   * the main calendar's getDaysList(), every day here is forced month-scoped (see
+   * resolveDaysForMonth's forceScoped) since duplicating always writes month-specific
+   * content for whichever day is picked.
+   */
+  getDuplicateTargetDaysList(): TemplateDay[] {
+    if (!this.editingTemplate) return [];
+    return this.resolveDaysForMonth(this.editingTemplate.rawDays || [], this.duplicateTargetMonthName, true);
+  }
+
+  duplicateTargetKey(day: TemplateDay): string {
+    return `${day.month}-${day.year}-${day.dayNumber}`;
+  }
+
+  isDuplicateTargetSelf(day: TemplateDay): boolean {
+    return this.duplicateTargetMonthName === this.selectedMonthName && day.dayNumber === this.selectedDayIndex + 1;
+  }
+
+  isDuplicateTargetPast(day: TemplateDay): boolean {
+    if (day.dayNumber == null || day.month == null || day.year == null) return false;
+    return this.isPastDateForMonthYear(day.dayNumber, day.month, day.year);
+  }
+
+  toggleTargetDaySelection(day: TemplateDay): void {
+    if (this.isDuplicateTargetSelf(day) || this.isDuplicateTargetPast(day)) return;
+    const key = this.duplicateTargetKey(day);
+    if (this.selectedTargetDaysForDuplication.has(key)) {
+      this.selectedTargetDaysForDuplication.delete(key);
     } else {
-      this.selectedTargetDaysForDuplication.add(idx);
+      this.selectedTargetDaysForDuplication.add(key);
     }
   }
 
+  // Selects every valid day in the currently-browsed target month only; switch months and
+  // call again to add more - selections across months accumulate until the dialog closes.
   selectAllValidTargetDays(): void {
-    const days = this.getDaysList();
-    days.forEach((_, idx) => {
-      if (idx !== this.selectedDayIndex && !this.isPastDay(idx)) {
-        this.selectedTargetDaysForDuplication.add(idx);
+    this.getDuplicateTargetDaysList().forEach(day => {
+      if (!this.isDuplicateTargetSelf(day) && !this.isDuplicateTargetPast(day)) {
+        this.selectedTargetDaysForDuplication.add(this.duplicateTargetKey(day));
       }
     });
   }
@@ -1048,6 +1116,12 @@ export class RoleTemplatesComponent implements OnInit {
   }
 
   confirmDuplicateDayToSelected(): void {
+    // Guards the same class of Safari double-click-dispatch risk as duplicatingTemplateIds
+    // above: closing the dialog below removes this button from the DOM, but that happens
+    // after this synchronous handler returns, so a same-tick second dispatch needs its own
+    // explicit check here rather than relying on the *ngIf alone.
+    if (this.isDuplicatingDayBatch) return;
+
     const sourceDay = this.getSelectedDay();
     if (!sourceDay || sourceDay.tasks.length === 0) {
       this.showToast(this.t('taskAccountability.templates.toast.noTasksToDuplicateDay'));
@@ -1060,44 +1134,50 @@ export class RoleTemplatesComponent implements OnInit {
       return;
     }
 
-    const days = this.getDaysList();
+    this.isDuplicatingDayBatch = true;
+
     const templateId = this.editingTemplate?.id;
     const isSaved = templateId && templateId !== '' && !templateId.startsWith('temp-');
+    const currentMonthDays = this.getDaysList();
+    // Compared by which month name is browsed, not by the day objects' own month/year -
+    // those can be null on a currentMonthDays entry still backed by a recurring row, even
+    // though it's genuinely "the currently open month" for duplication purposes.
+    const targetMonthIsOpenMonth = this.duplicateTargetMonthName === this.selectedMonthName;
 
-    const targetIndices = Array.from(this.selectedTargetDaysForDuplication);
+    const targets = Array.from(this.selectedTargetDaysForDuplication).map(key => {
+      const [monthStr, yearStr, dayStr] = key.split('-');
+      return { month: parseInt(monthStr, 10), year: parseInt(yearStr, 10), dayNumber: parseInt(dayStr, 10) };
+    });
+
     let countCopied = 0;
 
-    targetIndices.forEach(targetIdx => {
-      if (targetIdx >= 0 && targetIdx < days.length && !this.isPastDay(targetIdx)) {
-        const targetDay = days[targetIdx];
+    targets.forEach(target => {
+      countCopied++;
+
+      // Instant local feedback for a target that lands in the month currently open in the
+      // main editor; other months only update once refreshEditingTemplateDaysFromServer
+      // refetches below (or, for an unsaved draft, never - see the isSaved branch).
+      const isInOpenMonth = targetMonthIsOpenMonth && target.dayNumber >= 1 && target.dayNumber <= currentMonthDays.length;
+      if (isInOpenMonth) {
+        const targetDay = currentMonthDays[target.dayNumber - 1];
         sourceDay.tasks.forEach(t => {
           const clonedTask: TemplateTask = JSON.parse(JSON.stringify(t));
           clonedTask.id = `t-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
           targetDay.tasks.push(clonedTask);
         });
-        countCopied++;
+      }
 
-        if (isSaved) {
-          const dayNumber = targetIdx + 1;
-          sourceDay.tasks.forEach(t => {
-            const payload = { title: t.name, description: t.description || '', priority: t.priority || 'MEDIUM' };
-            this.service.addTaskApi(templateId, dayNumber, payload).subscribe();
-          });
-        }
+      if (isSaved) {
+        sourceDay.tasks.forEach(t => {
+          const payload = { title: t.name, description: t.description || '', priority: t.priority || 'MEDIUM' };
+          this.service.addTaskApi(templateId, target.dayNumber, payload, target.month, target.year).subscribe();
+        });
       }
     });
 
     if (isSaved) {
       setTimeout(() => {
-        this.service.getRoleTemplateByIdApi(templateId).subscribe(updatedTemplate => {
-          if (updatedTemplate && this.editingTemplate) {
-            const currentMonthName = this.editingTemplate.months?.[0]?.name || this.monthsList[0];
-            this.editingTemplate.months = updatedTemplate.months;
-            if (this.editingTemplate.months?.[0]) {
-              this.editingTemplate.months[0].name = currentMonthName;
-            }
-          }
-        });
+        this.refreshEditingTemplateDaysFromServer(templateId);
         this.service.getRoleTemplatesApi().subscribe();
       }, 300);
     }
@@ -1154,18 +1234,10 @@ export class RoleTemplatesComponent implements OnInit {
       priority: task.priority || 'MEDIUM'
     };
 
-    this.service.addTaskApi(templateId, dayNumber, taskPayload).subscribe({
+    this.service.addTaskApi(templateId, dayNumber, taskPayload, day.month, day.year).subscribe({
       next: () => {
         this.showToast(this.t('taskAccountability.templates.toast.taskDuplicated'));
-        this.service.getRoleTemplateByIdApi(templateId).subscribe(updatedTemplate => {
-          if (updatedTemplate && this.editingTemplate) {
-            const currentMonthName = this.editingTemplate.months?.[0]?.name || this.monthsList[0];
-            this.editingTemplate.months = updatedTemplate.months;
-            if (this.editingTemplate.months?.[0]) {
-              this.editingTemplate.months[0].name = currentMonthName;
-            }
-          }
-        });
+        this.refreshEditingTemplateDaysFromServer(templateId);
         this.service.getRoleTemplatesApi().subscribe();
       },
       error: (err) => {
@@ -1337,6 +1409,12 @@ export class RoleTemplatesComponent implements OnInit {
 
   getTemplateTasksCount(template: RoleTemplate): number {
     if (!template) return 0;
+    // rawDays (when present) is the whole template's flat day list across every month, so
+    // this counts every task the template has anywhere - not just whichever single month
+    // `template.months[0]` happens to currently represent.
+    if (template.rawDays && template.rawDays.length > 0) {
+      return template.rawDays.reduce((acc: number, d: any) => acc + (d.tasks ? d.tasks.length : 0), 0);
+    }
     if (template.months && template.months.length > 0) {
       return template.months.reduce((acc, m) => {
         return acc + (m.days ? m.days.reduce((dAcc, d) => dAcc + (d.tasks ? d.tasks.length : 0), 0) : 0);
@@ -1366,6 +1444,8 @@ export class RoleTemplatesComponent implements OnInit {
       days: (template.months?.[0]?.days || []).map((d, index) => ({
         dayNumber: index + 1,
         isWeeklyCheckpoint: d.isWeekly || false,
+        month: d.month ?? null,
+        year: d.year ?? null,
         tasks: (d.tasks || []).map((t, tIndex) => ({
           title: t.name,
           description: t.description || '',
@@ -1451,6 +1531,8 @@ export class RoleTemplatesComponent implements OnInit {
       days: (this.editingTemplate.months?.[0]?.days || []).map((d, index) => ({
         dayNumber: index + 1,
         isWeeklyCheckpoint: d.isWeekly || false,
+        month: d.month ?? null,
+        year: d.year ?? null,
         tasks: (d.tasks || []).map((t, tIndex) => ({
           title: t.name,
           description: t.description || '',
@@ -1483,15 +1565,27 @@ export class RoleTemplatesComponent implements OnInit {
     }
   }
 
+  // Guards against a second /duplicate request firing while the first is still in flight -
+  // seen on Safari, where a click on a button containing nested icon/text elements can
+  // dispatch two click events for one tap. The backend's own name-uniqueness constraint
+  // would reject a genuine second duplicate attempt outright, so this isn't about masking a
+  // real backend bug; it's that a same-tick double dispatch can otherwise reach the network
+  // layer twice before Angular's change detection even has a chance to reflect state back.
+  duplicatingTemplateIds = new Set<string>();
+
   duplicateTemplate(template: RoleTemplate): void {
     if (!template) return;
     if (template.id && !template.id.startsWith('temp-')) {
+      if (this.duplicatingTemplateIds.has(template.id)) return;
+      this.duplicatingTemplateIds.add(template.id);
       this.service.duplicateRoleTemplateApi(template.id).subscribe({
         next: () => {
+          this.duplicatingTemplateIds.delete(template.id);
           this.showToast(this.t('taskAccountability.templates.toast.templateDuplicated', { name: template.name }));
           this.service.getRoleTemplatesApi().subscribe();
         },
         error: (err) => {
+          this.duplicatingTemplateIds.delete(template.id);
           console.error('Failed to duplicate template via API:', err);
           this.showToast(this.t('taskAccountability.templates.toast.templateDuplicateFailed'));
         }

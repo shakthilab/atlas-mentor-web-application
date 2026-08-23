@@ -310,6 +310,7 @@
       "duplicateThisDay": "ამ დღის დუბლირება...",
       "duplicateDayTasks": "„{{day}}“-ის დავალებების დუბლირება",
       "selectTargetDays": "აირჩიეთ სამიზნე დღეები {{count}} დავალების კოპირებისთვის",
+      "targetMonth": "სამიზნე თვე",
       "selectAllValidDays": "ყველა შესაფერისი დღის არჩევა",
       "deselectAll": "არჩევის მოხსნა",
       "daysSelected": "არჩეულია {{count}} დღე",

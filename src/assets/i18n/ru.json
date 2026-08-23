@@ -310,6 +310,7 @@
       "duplicateThisDay": "Дублировать этот день...",
       "duplicateDayTasks": "Дублировать задачи дня «{{day}}»",
       "selectTargetDays": "Выберите дни назначения для копирования задач ({{count}})",
+      "targetMonth": "Целевой месяц",
       "selectAllValidDays": "Выбрать все доступные дни",
       "deselectAll": "Снять выбор",
       "daysSelected": "Выбрано дней: {{count}}",

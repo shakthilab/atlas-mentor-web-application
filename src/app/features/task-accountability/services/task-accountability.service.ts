@@ -610,6 +610,11 @@ export class TaskAccountabilityService {
     const isSeniorCounsellor = (res.roleName === 'SENIOR_COUNSELLOR' || res.roleDisplayName === 'Senior Counsellor' || res.role === 'Senior Counsellor' || (res.name && res.name.includes('Senior Counsellor')));
     const isAllBranches = (!res.branchId && !res.branchName) || res.branchName === 'All Branches' || res.branch === 'All Branches';
 
+    const rawDays = res.days || [];
+    const now = new Date();
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const defaultMonthName = `${monthNames[now.getMonth()]} ${now.getFullYear()}`;
+
     return {
       id: res.id.toString(),
       name: res.name,
@@ -624,12 +629,22 @@ export class TaskAccountabilityService {
       active: res.status === 'ACTIVE' || res.active === true,
       createdAt: res.createdAt ? res.createdAt.split('T')[0] : new Date().toISOString().split('T')[0],
       updatedAt: res.updatedAt ? res.updatedAt.split('T')[0] : new Date().toISOString().split('T')[0],
+      // Placeholder for the currently-viewed month - role-templates.component rebuilds this
+      // from `rawDays` for whichever month is actually selected (see resolveDaysForMonth).
+      // A raw 1:1 pass-through is kept here only so a template that's never had its edit
+      // modal opened (e.g. list-card view) still has something to iterate.
       months: [
         {
           id: `tm-${res.id}-1`,
-          name: 'August 2026',
-          days: (res.days || []).map((d: any) => {
-            let existingTasks = (d.tasks || []).map((t: any) => ({
+          name: defaultMonthName,
+          days: rawDays.map((d: any) => ({
+            id: `td-${d.id}`,
+            name: d.isWeeklyCheckpoint ? 'Weekly Accountability' : `Day ${d.dayNumber}`,
+            isWeekly: d.isWeeklyCheckpoint || false,
+            dayNumber: d.dayNumber,
+            month: d.month ?? null,
+            year: d.year ?? null,
+            tasks: (d.tasks || []).map((t: any) => ({
               id: t.id.toString(),
               name: t.title,
               description: t.description || '',
@@ -637,22 +652,20 @@ export class TaskAccountabilityService {
               priority: t.priority ? t.priority : 'MEDIUM',
               required: true,
               active: true
-            }));
-
-            return {
-              id: `td-${d.id}`,
-              name: d.isWeeklyCheckpoint ? 'Weekly Accountability' : `Day ${d.dayNumber}`,
-              isWeekly: d.isWeeklyCheckpoint || false,
-              tasks: existingTasks
-            };
-          })
+            }))
+          }))
         }
       ],
-      tasks: []
+      tasks: [],
+      rawDays
     };
   }
-  public addTaskApi(templateId: string | number, dayNumber: number, task: { title: string; description: string; priority: string }): Observable<any> {
-    return this.http.post<any>(`${environment.apiUrl}/role-templates/${templateId}/days/${dayNumber}/tasks`, task);
+  public addTaskApi(templateId: string | number, dayNumber: number, task: { title: string; description: string; priority: string }, month?: number | null, year?: number | null): Observable<any> {
+    let url = `${environment.apiUrl}/role-templates/${templateId}/days/${dayNumber}/tasks`;
+    if (month != null && year != null) {
+      url += `?month=${month}&year=${year}`;
+    }
+    return this.http.post<any>(url, task);
   }
 
   public updateTaskApi(templateId: string | number, dayNumber: number, taskId: string | number, task: { title: string; description: string; priority: string }): Observable<any> {
