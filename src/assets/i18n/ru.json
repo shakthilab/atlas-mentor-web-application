@@ -339,7 +339,8 @@
       "comment": "Комментировать",
       "activityTimeline": "Лента активности",
       "draft": "Черновик",
-      "confirmDeleteTemplate": "Вы уверены, что хотите удалить этот шаблон?",
+      "confirmDeleteTemplate": "Вы уверены, что хотите удалить «{{name}}»? Это действие нельзя отменить.",
+      "deleteTemplateTitle": "Удалить шаблон?",
       "addDescriptionPlaceholder": "Добавить описание...",
       "toast": {
         "publishedToWorkspace": "Успешно: шаблон роли опубликован в рабочем пространстве сотрудника!",

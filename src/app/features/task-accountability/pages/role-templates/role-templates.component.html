@@ -67,7 +67,7 @@
                 <span>{{ (temp.active ? 'common.deactivate' : 'common.activate') | translate }}</span>
               </button>
               <mat-divider></mat-divider>
-              <button mat-menu-item class="text-danger" (click)="deleteTemplate(temp.id)">
+              <button mat-menu-item class="text-danger" (click)="requestDeleteTemplate(temp)">
                 <i-tabler name="trash" class="icon-16 m-r-8"></i-tabler>
                 <span>{{ 'common.delete' | translate }}</span>
               </button>
@@ -125,6 +125,30 @@
           [disabled]="!selectedEmployeeId">
           <i-tabler name="send" class="icon-16 m-r-8"></i-tabler>
           {{ 'taskAccountability.templates.publishNow' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Template confirm modal - in-app control, not the browser's native confirm() -->
+  <div class="modal-overlay" *ngIf="showDeleteConfirmModal && templateToDelete" (click)="cancelDeleteTemplate()">
+    <div class="confirm-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ 'taskAccountability.templates.deleteTemplateTitle' | translate }}</h3>
+        <button mat-icon-button (click)="cancelDeleteTemplate()">
+          <i-tabler name="x" class="icon-18"></i-tabler>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="confirm-desc">
+          {{ 'taskAccountability.templates.confirmDeleteTemplate' | translate:{ name: templateToDelete.name } }}
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button mat-button class="cancel-btn" (click)="cancelDeleteTemplate()">{{ 'common.cancel' | translate }}</button>
+        <button mat-flat-button class="delete-confirm-btn" (click)="confirmDeleteTemplate()">
+          <i-tabler name="trash" class="icon-16 m-r-8"></i-tabler>
+          {{ 'common.delete' | translate }}
         </button>
       </div>
     </div>
@@ -214,7 +238,7 @@
                   {{ 'taskAccountability.templates.duplicateCount' | translate:{ count: selectedDaysForDuplication.size } }}
                 </button>
                 <mat-menu #duplicateToMenu="matMenu" xPosition="before">
-                  <button mat-menu-item *ngFor="let targetDay of getDaysList()"
+                  <button mat-menu-item *ngFor="let targetDay of getDuplicateToTargetDaysList()"
                     (click)="duplicateSelectedDaysTo(targetDay)">
                     {{ 'taskAccountability.templates.duplicateTasksTo' | translate:{ day: targetDay.name } }}
                   </button>

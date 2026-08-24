@@ -339,7 +339,8 @@
       "comment": "კომენტარის დამატება",
       "activityTimeline": "აქტივობის ისტორია",
       "draft": "მონახაზი",
-      "confirmDeleteTemplate": "დარწმუნებული ხართ, რომ გსურთ ამ შაბლონის წაშლა?",
+      "confirmDeleteTemplate": "დარწმუნებული ხართ, რომ გსურთ „{{name}}“-ის წაშლა? ამის გაუქმება შეუძლებელია.",
+      "deleteTemplateTitle": "წავშალოთ შაბლონი?",
       "addDescriptionPlaceholder": "აღწერის დამატება...",
       "toast": {
         "publishedToWorkspace": "წარმატება: როლის შაბლონი გამოქვეყნდა თანამშრომლის სამუშაო სივრცეში!",

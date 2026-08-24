@@ -14,8 +14,10 @@ export class RoleTemplatesComponent implements OnInit {
   templates$: Observable<RoleTemplate[]>;
   showModal = false;
   showPublishModal = false;
+  showDeleteConfirmModal = false;
   editingTemplate: RoleTemplate | null = null;
   publishingTemplate: RoleTemplate | null = null;
+  templateToDelete: RoleTemplate | null = null;
 
   // Redesigned template days state
   selectedDayIndex = 0;
@@ -1166,20 +1168,37 @@ export class RoleTemplatesComponent implements OnInit {
           targetDay.tasks.push(clonedTask);
         });
       }
-
-      if (isSaved) {
-        sourceDay.tasks.forEach(t => {
-          const payload = { title: t.name, description: t.description || '', priority: t.priority || 'MEDIUM' };
-          this.service.addTaskApi(templateId, target.dayNumber, payload, target.month, target.year).subscribe();
-        });
-      }
     });
 
     if (isSaved) {
-      setTimeout(() => {
-        this.refreshEditingTemplateDaysFromServer(templateId);
-        this.service.getRoleTemplatesApi().subscribe();
-      }, 300);
+      // One atomic bulk call instead of one addTaskApi per task per target day: the first
+      // target supplies the URL's own day, every other target rides along in `targetDays`, so
+      // either all tasks land on all days or none do - no more a day ending up with only some
+      // of the source day's tasks because one call in a per-task loop failed.
+      const taskPayloads = sourceDay.tasks.map(t => ({
+        title: t.name,
+        description: t.description || '',
+        priority: t.priority || 'MEDIUM'
+      }));
+      const [primaryTarget, ...restTargets] = targets;
+
+      this.service.addTasksBulkApi(
+        templateId,
+        primaryTarget.dayNumber,
+        taskPayloads,
+        primaryTarget.month,
+        primaryTarget.year,
+        restTargets
+      ).subscribe({
+        next: () => {
+          this.refreshEditingTemplateDaysFromServer(templateId);
+          this.service.getRoleTemplatesApi().subscribe();
+        },
+        error: (err) => {
+          console.error('Failed to bulk-duplicate tasks to selected days:', err);
+          this.refreshEditingTemplateDaysFromServer(templateId);
+        }
+      });
     }
 
     this.showToast(this.t('taskAccountability.templates.toast.tasksDuplicatedToDays', { count: countCopied }));
@@ -1316,12 +1335,30 @@ export class RoleTemplatesComponent implements OnInit {
     }, 3000);
   }
 
+  /**
+   * Target list for the "Duplicate to..." menu (bulk multi-select flow) - excludes every day
+   * currently selected as a source. Without this, picking a selected day as its own target
+   * made duplicateSelectedDaysTo() below push a clone of sourceDay.tasks onto that same array
+   * while iterating it: forEach caches the array length once at the start, so it still visits
+   * exactly the original N entries and appends N clones - an N-task day silently became 2N
+   * tasks (e.g. 10 -> 20) with no error and no distinguishable duplicate-vs-original marker.
+   */
+  getDuplicateToTargetDaysList(): TemplateDay[] {
+    const days = this.getDaysList();
+    return days.filter((_, idx) => !this.selectedDaysForDuplication.has(idx));
+  }
+
   duplicateSelectedDaysTo(targetDay: TemplateDay): void {
     if (!this.editingTemplate || !this.editingTemplate.months || this.editingTemplate.months.length === 0) return;
     const days = this.editingTemplate.months[0].days;
     this.selectedDaysForDuplication.forEach(idx => {
       if (idx >= 0 && idx < days.length) {
         const sourceDay = days[idx];
+        // Defensive guard: the menu above already excludes selected days from the target
+        // list, but never trust a UI filter alone to prevent a day being duplicated onto
+        // itself - self-duplication silently doubles every task on that day (see comment
+        // on getDuplicateToTargetDaysList()).
+        if (sourceDay === targetDay) return;
         sourceDay.tasks.forEach(t => {
           const clonedTask = JSON.parse(JSON.stringify(t));
           clonedTask.id = `t-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
@@ -1430,6 +1467,21 @@ export class RoleTemplatesComponent implements OnInit {
     return this.getTemplateTasksCount(template) >= 1;
   }
 
+  // Backend day ids loaded via mapResponseToTemplate are `td-<numericId>`; a day that only
+  // exists client-side (new day, cloned day, etc. - never round-tripped from the server) is
+  // `td-<timestamp>-<random>`. Both start with `td-`, so the extra `-<random>` suffix is what
+  // tells them apart - only a bare numeric remainder is a real backend id.
+  private parseServerDayId(id: string): number | undefined {
+    const match = /^td-(\d+)$/.exec(id);
+    return match ? Number(match[1]) : undefined;
+  }
+
+  // Backend task ids loaded via mapResponseToTemplate are the bare numeric id as a string; a
+  // task that only exists client-side is `t-<timestamp>-<random>`.
+  private parseServerTaskId(id: string): number | undefined {
+    return /^\d+$/.test(id) ? Number(id) : undefined;
+  }
+
   publishRoleTemplate(template: RoleTemplate): void {
     if (!this.canPublish(template)) return;
 
@@ -1441,18 +1493,30 @@ export class RoleTemplatesComponent implements OnInit {
       description: template.name,
       roleId: selectedRole ? selectedRole.id : null,
       branchId: selectedBranch ? selectedBranch.id : null,
-      days: (template.months?.[0]?.days || []).map((d, index) => ({
-        dayNumber: index + 1,
-        isWeeklyCheckpoint: d.isWeekly || false,
-        month: d.month ?? null,
-        year: d.year ?? null,
-        tasks: (d.tasks || []).map((t, tIndex) => ({
-          title: t.name,
-          description: t.description || '',
-          priority: t.priority ? t.priority.toUpperCase() : 'MEDIUM',
-          displayOrder: tIndex
-        }))
-      }))
+      days: (template.months?.[0]?.days || []).map((d, index) => {
+        const dayId = this.parseServerDayId(d.id);
+        return {
+          ...(dayId !== undefined ? { id: dayId } : {}),
+          dayNumber: index + 1,
+          isWeeklyCheckpoint: d.isWeekly || false,
+          month: d.month ?? null,
+          year: d.year ?? null,
+          // Preserving each task's real id (when it has one) tells the backend this is the
+          // same task being re-saved, not a new one - without it, syncDay() deletes every
+          // existing task on the day and recreates them all fresh, which fails outright once
+          // any of those tasks has already been instantiated into a real employee task (FK).
+          tasks: (d.tasks || []).map((t, tIndex) => {
+            const taskId = this.parseServerTaskId(t.id);
+            return {
+              ...(taskId !== undefined ? { id: taskId } : {}),
+              title: t.name,
+              description: t.description || '',
+              priority: t.priority ? t.priority.toUpperCase() : 'MEDIUM',
+              displayOrder: tIndex
+            };
+          })
+        };
+      })
     };
 
     if (template.id && !template.id.startsWith('temp-')) {
@@ -1528,18 +1592,27 @@ export class RoleTemplatesComponent implements OnInit {
       description: this.editingTemplate.name,
       roleId: selectedRole ? selectedRole.id : null,
       branchId: selectedBranch ? selectedBranch.id : null,
-      days: (this.editingTemplate.months?.[0]?.days || []).map((d, index) => ({
-        dayNumber: index + 1,
-        isWeeklyCheckpoint: d.isWeekly || false,
-        month: d.month ?? null,
-        year: d.year ?? null,
-        tasks: (d.tasks || []).map((t, tIndex) => ({
-          title: t.name,
-          description: t.description || '',
-          priority: t.priority ? t.priority.toUpperCase() : 'MEDIUM',
-          displayOrder: tIndex
-        }))
-      }))
+      days: (this.editingTemplate.months?.[0]?.days || []).map((d, index) => {
+        const dayId = this.parseServerDayId(d.id);
+        return {
+          ...(dayId !== undefined ? { id: dayId } : {}),
+          dayNumber: index + 1,
+          isWeeklyCheckpoint: d.isWeekly || false,
+          month: d.month ?? null,
+          year: d.year ?? null,
+          // See publishRoleTemplate() for why preserving each task's real id matters here.
+          tasks: (d.tasks || []).map((t, tIndex) => {
+            const taskId = this.parseServerTaskId(t.id);
+            return {
+              ...(taskId !== undefined ? { id: taskId } : {}),
+              title: t.name,
+              description: t.description || '',
+              priority: t.priority ? t.priority.toUpperCase() : 'MEDIUM',
+              displayOrder: tIndex
+            };
+          })
+        };
+      })
     };
 
     if (this.editingTemplate.id && !this.editingTemplate.id.startsWith('temp-')) {
@@ -1596,20 +1669,40 @@ export class RoleTemplatesComponent implements OnInit {
     }
   }
 
-  deleteTemplate(id: string): void {
-    if (confirm(this.t('taskAccountability.templates.confirmDeleteTemplate'))) {
-      if (id.startsWith('temp-')) {
-        this.service.deleteTemplate(id);
-      } else {
-        this.service.deleteRoleTemplateApi(id).subscribe({
-          next: () => {
-            this.showToast(this.t('taskAccountability.templates.toast.templateDeleted'));
-            // Re-fetch templates list via GET API to update UI
-            this.service.getRoleTemplatesApi().subscribe();
-          },
-          error: () => this.showToast(this.t('taskAccountability.templates.toast.templateDeleteFailed'))
-        });
-      }
+  // Opens the in-app delete-confirm modal below instead of the browser's native confirm() -
+  // that dialog blocks all page script until answered, which freezes anything driving the
+  // page programmatically (an embedded view, a future E2E suite) and looks nothing like the
+  // rest of this feature's confirmations.
+  requestDeleteTemplate(template: RoleTemplate): void {
+    this.templateToDelete = template;
+    this.showDeleteConfirmModal = true;
+  }
+
+  cancelDeleteTemplate(): void {
+    this.showDeleteConfirmModal = false;
+    this.templateToDelete = null;
+  }
+
+  confirmDeleteTemplate(): void {
+    if (!this.templateToDelete) return;
+    const id = this.templateToDelete.id;
+    this.showDeleteConfirmModal = false;
+    this.templateToDelete = null;
+    this.deleteTemplate(id);
+  }
+
+  private deleteTemplate(id: string): void {
+    if (id.startsWith('temp-')) {
+      this.service.deleteTemplate(id);
+    } else {
+      this.service.deleteRoleTemplateApi(id).subscribe({
+        next: () => {
+          this.showToast(this.t('taskAccountability.templates.toast.templateDeleted'));
+          // Re-fetch templates list via GET API to update UI
+          this.service.getRoleTemplatesApi().subscribe();
+        },
+        error: () => this.showToast(this.t('taskAccountability.templates.toast.templateDeleteFailed'))
+      });
     }
   }
 

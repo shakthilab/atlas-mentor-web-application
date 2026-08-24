@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable, Subject, of } from 'rxjs';
 import { catchError, tap, map, shareReplay } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
@@ -666,6 +666,37 @@ export class TaskAccountabilityService {
       url += `?month=${month}&year=${year}`;
     }
     return this.http.post<any>(url, task);
+  }
+
+  // Bulk counterpart to addTaskApi: clones `tasks` onto the (dayNumber, month, year) day plus
+  // every entry in `targetDays`, all in one atomic backend call - use this instead of looping
+  // addTaskApi per task/per day, which can leave a day partially populated if one call in the
+  // loop fails.
+  //
+  // Cloning is additive server-side, so a network retry or resubmit of this exact call would
+  // otherwise duplicate every task again. The Idempotency-Key header (a fresh id per call,
+  // computed once so a retry of this same request - e.g. RxJS retry(), or a proxy resending
+  // an ambiguous request - carries the same value) lets the backend recognize the repeat and
+  // return the original result instead of cloning a second time. A genuine second call - the
+  // user duplicating again - always gets its own id, so it's never blocked.
+  public addTasksBulkApi(
+    templateId: string | number,
+    dayNumber: number,
+    tasks: { title: string; description: string; priority: string }[],
+    month?: number | null,
+    year?: number | null,
+    targetDays?: { dayNumber: number; month?: number | null; year?: number | null }[]
+  ): Observable<any> {
+    let url = `${environment.apiUrl}/role-templates/${templateId}/days/${dayNumber}/tasks`;
+    if (month != null && year != null) {
+      url += `?month=${month}&year=${year}`;
+    }
+    const body: any = { tasks };
+    if (targetDays && targetDays.length > 0) {
+      body.targetDays = targetDays;
+    }
+    const headers = new HttpHeaders({ 'Idempotency-Key': crypto.randomUUID() });
+    return this.http.post<any>(url, body, { headers });
   }
 
   public updateTaskApi(templateId: string | number, dayNumber: number, taskId: string | number, task: { title: string; description: string; priority: string }): Observable<any> {

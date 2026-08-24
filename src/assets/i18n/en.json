@@ -339,7 +339,8 @@
       "comment": "Comment",
       "activityTimeline": "Activity Timeline",
       "draft": "Draft",
-      "confirmDeleteTemplate": "Are you sure you want to delete this template?",
+      "confirmDeleteTemplate": "Are you sure you want to delete \"{{name}}\"? This can't be undone.",
+      "deleteTemplateTitle": "Delete template?",
       "toast": {
         "publishedToWorkspace": "Success: Role template has been published to employee workspace!",
         "taskDeleted": "Task deleted successfully",

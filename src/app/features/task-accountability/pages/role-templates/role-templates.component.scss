@@ -263,6 +263,36 @@
   }
 }
 
+// Delete-template confirm dialog - same shell as .publish-card, narrower since there's no
+// form to hold, just a message and two actions.
+.confirm-card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+
+  .confirm-desc {
+    font-size: 13.5px;
+    color: #475569;
+    line-height: 1.5;
+    margin: 0;
+  }
+}
+
+.delete-confirm-btn {
+  background-color: #dc2626 !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  padding: 8px 18px !important;
+
+  &:hover {
+    background-color: #b91c1c !important;
+  }
+}
+
 .modal-card {
   background-color: #ffffff;
   border-radius: 16px;
