@@ -369,9 +369,17 @@
 
                   <button class="task-action-btn copy-btn"
                     [matTooltip]="'taskAccountability.templates.duplicateTaskTooltip' | translate"
-                    matTooltipPosition="above" (click)="duplicateTaskToSameDay(task, day)">
+                    matTooltipPosition="above" [matMenuTriggerFor]="taskDuplicateMenu">
                     <i-tabler name="copy" class="icon-14"></i-tabler>
                   </button>
+                  <mat-menu #taskDuplicateMenu="matMenu" xPosition="before">
+                    <button mat-menu-item (click)="duplicateTaskToSameDay(task, day)">
+                      {{ 'taskAccountability.templates.duplicateToSameDay' | translate }}
+                    </button>
+                    <button mat-menu-item (click)="openDuplicateTaskModal(task)">
+                      {{ 'taskAccountability.templates.duplicateToOtherDays' | translate }}
+                    </button>
+                  </mat-menu>
 
                   <button class="task-action-btn delete-btn" (click)="removeTaskFromSelectedDay(tIdx)"
                     [title]="'taskAccountability.templates.deleteTask' | translate">
@@ -465,9 +473,13 @@
       <div class="duplicate-dialog-overlay" *ngIf="showDuplicateDayModal" (click)="closeDuplicateDayModal()">
         <div class="duplicate-dialog-card" (click)="$event.stopPropagation()">
           <div class="dialog-header">
-            <div class="header-titles">
+            <div class="header-titles" *ngIf="!duplicateTaskContext">
               <h3>{{ 'taskAccountability.templates.duplicateDayTasks' | translate:{ day: getSelectedDay()?.name } }}</h3>
               <p class="subtitle">{{ 'taskAccountability.templates.selectTargetDays' | translate:{ count: getSelectedDay()?.tasks?.length || 0 } }}</p>
+            </div>
+            <div class="header-titles" *ngIf="duplicateTaskContext">
+              <h3>{{ 'taskAccountability.templates.duplicateTaskTitle' | translate:{ task: duplicateTaskContext.name } }}</h3>
+              <p class="subtitle">{{ 'taskAccountability.templates.selectTargetDaysForTask' | translate }}</p>
             </div>
             <button mat-icon-button (click)="closeDuplicateDayModal()" class="close-btn">
               <i-tabler name="x" class="icon-18"></i-tabler>
@@ -516,7 +528,7 @@
           <div class="dialog-footer">
             <button mat-button class="cancel-btn" (click)="closeDuplicateDayModal()">{{ 'common.cancel' | translate }}</button>
             <button mat-flat-button color="primary" class="confirm-btn"
-              [disabled]="selectedTargetDaysForDuplication.size === 0 || isDuplicatingDayBatch" (click)="confirmDuplicateDayToSelected()">
+              [disabled]="selectedTargetDaysForDuplication.size === 0 || isDuplicatingDayBatch || isDuplicatingTaskBatch" (click)="confirmDuplicateSelection()">
               {{ 'taskAccountability.templates.duplicateToNDays' | translate:{ count: selectedTargetDaysForDuplication.size } }}
             </button>
           </div>

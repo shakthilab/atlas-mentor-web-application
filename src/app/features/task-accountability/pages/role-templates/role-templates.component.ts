@@ -40,6 +40,10 @@ export class RoleTemplatesComponent implements OnInit {
   selectedTargetDaysForDuplication = new Set<string>();
   duplicateTargetMonthName = '';
   isDuplicatingDayBatch = false;
+  // Non-null while the target-day picker modal (shared with the whole-day duplicate flow) is
+  // being used to duplicate one specific task instead of an entire day's task list.
+  duplicateTaskContext: TemplateTask | null = null;
+  isDuplicatingTaskBatch = false;
   monthsList: string[] = (() => {
     const names = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const list: string[] = [];
@@ -1067,6 +1071,22 @@ export class RoleTemplatesComponent implements OnInit {
   closeDuplicateDayModal(): void {
     this.showDuplicateDayModal = false;
     this.selectedTargetDaysForDuplication.clear();
+    this.duplicateTaskContext = null;
+  }
+
+  /**
+   * Opens the same target-day picker modal as openDuplicateDayModal(), but scoped to a single
+   * task rather than the whole day - getDuplicateTargetDaysList()/toggleTargetDaySelection()/
+   * etc. are all reused as-is since they only care about the target month/day, not what's
+   * being copied onto it.
+   */
+  openDuplicateTaskModal(task: TemplateTask): void {
+    if (this.isPastDay(this.selectedDayIndex)) return;
+    this.duplicateTaskContext = task;
+    this.selectedTargetDaysForDuplication.clear();
+    this.isDuplicatingTaskBatch = false;
+    this.duplicateTargetMonthName = this.selectedMonthName;
+    this.showDuplicateDayModal = true;
   }
 
   /**
@@ -1202,6 +1222,90 @@ export class RoleTemplatesComponent implements OnInit {
     }
 
     this.showToast(this.t('taskAccountability.templates.toast.tasksDuplicatedToDays', { count: countCopied }));
+    this.closeDuplicateDayModal();
+  }
+
+  // Bound to the target-day picker's confirm button, which is shared between the whole-day
+  // duplicate flow and the single-task duplicate flow - dispatch to whichever one is active.
+  confirmDuplicateSelection(): void {
+    if (this.duplicateTaskContext) {
+      this.confirmDuplicateTaskToSelected();
+    } else {
+      this.confirmDuplicateDayToSelected();
+    }
+  }
+
+  confirmDuplicateTaskToSelected(): void {
+    if (this.isDuplicatingTaskBatch) return;
+
+    const task = this.duplicateTaskContext;
+    const sourceDay = this.getSelectedDay();
+    if (!task || !sourceDay) {
+      this.closeDuplicateDayModal();
+      return;
+    }
+
+    if (this.selectedTargetDaysForDuplication.size === 0) {
+      this.showToast(this.t('taskAccountability.templates.toast.selectTargetDay'));
+      return;
+    }
+
+    this.isDuplicatingTaskBatch = true;
+
+    const templateId = this.editingTemplate?.id;
+    const isSaved = templateId && templateId !== '' && !templateId.startsWith('temp-');
+    const currentMonthDays = this.getDaysList();
+    const targetMonthIsOpenMonth = this.duplicateTargetMonthName === this.selectedMonthName;
+
+    const targets = Array.from(this.selectedTargetDaysForDuplication).map(key => {
+      const [monthStr, yearStr, dayStr] = key.split('-');
+      return { month: parseInt(monthStr, 10), year: parseInt(yearStr, 10), dayNumber: parseInt(dayStr, 10) };
+    });
+
+    targets.forEach(target => {
+      // Same instant local feedback as confirmDuplicateDayToSelected(): only the currently
+      // open month's view can be updated in place, other months pick up the change once
+      // refreshEditingTemplateDaysFromServer refetches below.
+      const isInOpenMonth = targetMonthIsOpenMonth && target.dayNumber >= 1 && target.dayNumber <= currentMonthDays.length;
+      if (isInOpenMonth) {
+        const targetDay = currentMonthDays[target.dayNumber - 1];
+        const clonedTask: TemplateTask = JSON.parse(JSON.stringify(task));
+        clonedTask.id = `t-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+        targetDay.tasks.push(clonedTask);
+      }
+    });
+
+    if (isSaved) {
+      // Same bulk endpoint the whole-day flow uses, just with a single-task payload: the
+      // first selected target supplies the URL's own day, the rest ride along in
+      // `targetDays`, so the task lands on every selected day in one atomic call.
+      const taskPayload = [{
+        title: task.name,
+        description: task.description || '',
+        priority: task.priority || 'MEDIUM'
+      }];
+      const [primaryTarget, ...restTargets] = targets;
+
+      this.service.addTasksBulkApi(
+        templateId,
+        primaryTarget.dayNumber,
+        taskPayload,
+        primaryTarget.month,
+        primaryTarget.year,
+        restTargets
+      ).subscribe({
+        next: () => {
+          this.refreshEditingTemplateDaysFromServer(templateId);
+          this.service.getRoleTemplatesApi().subscribe();
+        },
+        error: (err) => {
+          console.error('Failed to duplicate task to selected days:', err);
+          this.refreshEditingTemplateDaysFromServer(templateId);
+        }
+      });
+    }
+
+    this.showToast(this.t('taskAccountability.templates.toast.taskDuplicatedToDays', { count: targets.length }));
     this.closeDuplicateDayModal();
   }
 
