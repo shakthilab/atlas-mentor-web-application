@@ -139,7 +139,7 @@ import { DocumentViewDialogComponent } from '../document-view-dialog/document-vi
               </div>
 
               <div class="detail-item" *ngIf="fullLead.priority">
-                <span class="detail-label">Priority</span>
+                <span class="detail-label">Lead Classification</span>
                 <span class="detail-value d-flex align-items-center">
                   <span class="priority-badge" [ngClass]="fullLead.priority.toLowerCase()">{{ fullLead.priorityDisplayName || fullLead.priority }}</span>
                 </span>

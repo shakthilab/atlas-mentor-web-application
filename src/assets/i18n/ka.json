@@ -87,6 +87,7 @@
     "languageDesc": "აირჩიეთ სასურველი ენა Atlas Mentor პლატფორმისთვის."
   },
   "common": {
+    "save": "შენახვა",
     "cancel": "გაუქმება",
     "delete": "წაშლა",
     "deleteCount": "წაშლა ({{count}})",
@@ -309,6 +310,7 @@
       "duplicateThisDay": "ამ დღის დუბლირება...",
       "duplicateDayTasks": "„{{day}}“-ის დავალებების დუბლირება",
       "selectTargetDays": "აირჩიეთ სამიზნე დღეები {{count}} დავალების კოპირებისთვის",
+      "targetMonth": "სამიზნე თვე",
       "selectAllValidDays": "ყველა შესაფერისი დღის არჩევა",
       "deselectAll": "არჩევის მოხსნა",
       "daysSelected": "არჩეულია {{count}} დღე",
@@ -337,7 +339,8 @@
       "comment": "კომენტარის დამატება",
       "activityTimeline": "აქტივობის ისტორია",
       "draft": "მონახაზი",
-      "confirmDeleteTemplate": "დარწმუნებული ხართ, რომ გსურთ ამ შაბლონის წაშლა?",
+      "confirmDeleteTemplate": "დარწმუნებული ხართ, რომ გსურთ „{{name}}“-ის წაშლა? ამის გაუქმება შეუძლებელია.",
+      "deleteTemplateTitle": "წავშალოთ შაბლონი?",
       "addDescriptionPlaceholder": "აღწერის დამატება...",
       "toast": {
         "publishedToWorkspace": "წარმატება: როლის შაბლონი გამოქვეყნდა თანამშრომლის სამუშაო სივრცეში!",
@@ -510,6 +513,7 @@
     "getStarted": "დაიწყეთ ახალი ლიდის დამატებით.",
     "colLead": "ლიდი",
     "colContactInfo": "საკონტაქტო ინფორმაცია",
+    "colPriority": "ლიდის კლასიფიკაცია",
     "colSource": "წყარო",
     "colSubCategory": "ქვეკატეგორია",
     "colAddedBy": "დაამატა",
@@ -747,6 +751,7 @@
     "noRegisteredStudents": "რეგისტრირებული სტუდენტები ვერ მოიძებნა.",
     "colCounsellor": "კონსულტანტი",
     "colJoinedDate": "შემოსვლის თარიღი",
+    "colPriority": "ლიდის კლასიფიკაცია",
     "enrolled": "ჩარიცხულია",
     "completed": "დასრულებული",
     "remove": "წაშლა",

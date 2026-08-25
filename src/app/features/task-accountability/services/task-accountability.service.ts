@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable, Subject, of } from 'rxjs';
 import { catchError, tap, map, shareReplay } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
@@ -27,80 +27,11 @@ export class TaskAccountabilityService {
   }
 
   // Templates Configuration State
-  private templatesSubject = new BehaviorSubject<RoleTemplate[]>((() => {
-    const pool = [
-      { name: 'Outbound Student Lead Calls', description: 'Follow up with 20 fresh student leads and record progress in CRM.', priority: 'HIGH' },
-      { name: 'Application Document Verification', description: 'Verify academic transcripts, SOPs, and financial documents for pending submissions.', priority: 'HIGH' },
-      { name: '1-on-1 University Counselling', description: 'Conduct scheduled counselling sessions with prospective students.', priority: 'MEDIUM' },
-      { name: 'Parent Consultation Call', description: 'Discuss fee structure, visa guidelines, and admission timelines with parents.', priority: 'MEDIUM' },
-      { name: 'Offer Letter Follow-up', description: 'Track university offer letter issuances and notify accepted students.', priority: 'HIGH' },
-      { name: 'Daily EOD Operational Log', description: 'Log completed calls, session notes, and submit EOD report.', priority: 'MEDIUM' }
-    ];
-
-    const days = [];
-    for (let dayNum = 1; dayNum <= 31; dayNum++) {
-      const tasks = [];
-      if (dayNum >= 10) {
-        const taskCount = 3 + ((dayNum * 7) % 3); // 3, 4, or 5 tasks
-        for (let i = 0; i < taskCount; i++) {
-          const item = pool[(dayNum + i * 2) % pool.length];
-          tasks.push({
-            id: `temp-1-${dayNum}-${i + 1}`,
-            name: item.name,
-            description: item.description,
-            type: 'CHECKLIST' as const,
-            priority: item.priority as any,
-            required: true,
-            active: true
-          });
-        }
-      }
-      days.push({
-        id: `td-temp-1-${dayNum}`,
-        name: `Day ${dayNum}`,
-        isWeekly: false,
-        tasks
-      });
-    }
-
-    return [
-      {
-        id: 'temp-1',
-        name: 'Senior Counsellor Template',
-        role: 'Senior Counsellor',
-        roleName: 'SENIOR_COUNSELLOR',
-        roleDisplayName: 'Senior Counsellor',
-        branch: 'All Branches',
-        branchId: null,
-        branchName: null,
-        status: 'ACTIVE',
-        active: true,
-        createdAt: '2026-08-06',
-        months: [
-          {
-            id: 'tm-temp-1-1',
-            name: 'August 2026',
-            days
-          }
-        ],
-        tasks: []
-      }
-    ];
-  })());
+  private templatesSubject = new BehaviorSubject<RoleTemplate[]>([]);
   public templates$: Observable<RoleTemplate[]> = this.templatesSubject.asObservable();
 
   // Template Assignments State
-  private assignmentsSubject = new BehaviorSubject<TemplateAssignment[]>([
-    {
-      id: 'assign-1',
-      templateId: 'temp-1',
-      templateName: 'Senior Counsellor Template',
-      assignType: 'role',
-      targetName: 'Senior Counsellors',
-      effectiveDate: '2026-04-01',
-      active: true
-    }
-  ]);
+  private assignmentsSubject = new BehaviorSubject<TemplateAssignment[]>([]);
   public assignments$: Observable<TemplateAssignment[]> = this.assignmentsSubject.asObservable();
 
   // Active Selections
@@ -672,38 +603,17 @@ export class TaskAccountabilityService {
   }
 
   private getDemoTasksForDay(dayNumber: number): Array<any> {
-    const pool = [
-      { name: 'Outbound Student Lead Calls', description: 'Follow up with 20 fresh student leads and record progress in CRM.', priority: 'HIGH' },
-      { name: 'Application Document Verification', description: 'Verify academic transcripts, SOPs, and financial documents for pending submissions.', priority: 'HIGH' },
-      { name: '1-on-1 University Counselling', description: 'Conduct scheduled counselling sessions with prospective students.', priority: 'MEDIUM' },
-      { name: 'Parent Consultation Call', description: 'Discuss fee structure, visa guidelines, and admission timelines with parents.', priority: 'MEDIUM' },
-      { name: 'Offer Letter Follow-up', description: 'Track university offer letter issuances and notify accepted students.', priority: 'HIGH' },
-      { name: 'Daily EOD Operational Log', description: 'Log completed calls, session notes, and submit EOD report.', priority: 'MEDIUM' }
-    ];
-
-    const taskCount = 3 + ((dayNumber * 7) % 3); // 3, 4, or 5 tasks
-    const tasks: Array<any> = [];
-
-    for (let i = 0; i < taskCount; i++) {
-      const poolIndex = (dayNumber + i * 2) % pool.length;
-      const item = pool[poolIndex];
-      tasks.push({
-        id: `demo-${dayNumber}-${i + 1}`,
-        name: item.name,
-        description: item.description,
-        type: 'CHECKLIST',
-        priority: item.priority,
-        required: true,
-        active: true
-      });
-    }
-
-    return tasks;
+    return [];
   }
 
   private mapResponseToTemplate(res: any): RoleTemplate {
     const isSeniorCounsellor = (res.roleName === 'SENIOR_COUNSELLOR' || res.roleDisplayName === 'Senior Counsellor' || res.role === 'Senior Counsellor' || (res.name && res.name.includes('Senior Counsellor')));
     const isAllBranches = (!res.branchId && !res.branchName) || res.branchName === 'All Branches' || res.branch === 'All Branches';
+
+    const rawDays = res.days || [];
+    const now = new Date();
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const defaultMonthName = `${monthNames[now.getMonth()]} ${now.getFullYear()}`;
 
     return {
       id: res.id.toString(),
@@ -719,12 +629,22 @@ export class TaskAccountabilityService {
       active: res.status === 'ACTIVE' || res.active === true,
       createdAt: res.createdAt ? res.createdAt.split('T')[0] : new Date().toISOString().split('T')[0],
       updatedAt: res.updatedAt ? res.updatedAt.split('T')[0] : new Date().toISOString().split('T')[0],
+      // Placeholder for the currently-viewed month - role-templates.component rebuilds this
+      // from `rawDays` for whichever month is actually selected (see resolveDaysForMonth).
+      // A raw 1:1 pass-through is kept here only so a template that's never had its edit
+      // modal opened (e.g. list-card view) still has something to iterate.
       months: [
         {
           id: `tm-${res.id}-1`,
-          name: 'August 2026',
-          days: (res.days || []).map((d: any) => {
-            let existingTasks = (d.tasks || []).map((t: any) => ({
+          name: defaultMonthName,
+          days: rawDays.map((d: any) => ({
+            id: `td-${d.id}`,
+            name: d.isWeeklyCheckpoint ? 'Weekly Accountability' : `Day ${d.dayNumber}`,
+            isWeekly: d.isWeeklyCheckpoint || false,
+            dayNumber: d.dayNumber,
+            month: d.month ?? null,
+            year: d.year ?? null,
+            tasks: (d.tasks || []).map((t: any) => ({
               id: t.id.toString(),
               name: t.title,
               description: t.description || '',
@@ -732,26 +652,51 @@ export class TaskAccountabilityService {
               priority: t.priority ? t.priority : 'MEDIUM',
               required: true,
               active: true
-            }));
-
-            if (isSeniorCounsellor && isAllBranches && d.dayNumber >= 10 && d.dayNumber <= 31 && existingTasks.length < 3) {
-              existingTasks = this.getDemoTasksForDay(d.dayNumber);
-            }
-
-            return {
-              id: `td-${d.id}`,
-              name: d.isWeeklyCheckpoint ? 'Weekly Accountability' : `Day ${d.dayNumber}`,
-              isWeekly: d.isWeeklyCheckpoint || false,
-              tasks: existingTasks
-            };
-          })
+            }))
+          }))
         }
       ],
-      tasks: []
+      tasks: [],
+      rawDays
     };
   }
-  public addTaskApi(templateId: string | number, dayNumber: number, task: { title: string; description: string; priority: string }): Observable<any> {
-    return this.http.post<any>(`${environment.apiUrl}/role-templates/${templateId}/days/${dayNumber}/tasks`, task);
+  public addTaskApi(templateId: string | number, dayNumber: number, task: { title: string; description: string; priority: string }, month?: number | null, year?: number | null): Observable<any> {
+    let url = `${environment.apiUrl}/role-templates/${templateId}/days/${dayNumber}/tasks`;
+    if (month != null && year != null) {
+      url += `?month=${month}&year=${year}`;
+    }
+    return this.http.post<any>(url, task);
+  }
+
+  // Bulk counterpart to addTaskApi: clones `tasks` onto the (dayNumber, month, year) day plus
+  // every entry in `targetDays`, all in one atomic backend call - use this instead of looping
+  // addTaskApi per task/per day, which can leave a day partially populated if one call in the
+  // loop fails.
+  //
+  // Cloning is additive server-side, so a network retry or resubmit of this exact call would
+  // otherwise duplicate every task again. The Idempotency-Key header (a fresh id per call,
+  // computed once so a retry of this same request - e.g. RxJS retry(), or a proxy resending
+  // an ambiguous request - carries the same value) lets the backend recognize the repeat and
+  // return the original result instead of cloning a second time. A genuine second call - the
+  // user duplicating again - always gets its own id, so it's never blocked.
+  public addTasksBulkApi(
+    templateId: string | number,
+    dayNumber: number,
+    tasks: { title: string; description: string; priority: string }[],
+    month?: number | null,
+    year?: number | null,
+    targetDays?: { dayNumber: number; month?: number | null; year?: number | null }[]
+  ): Observable<any> {
+    let url = `${environment.apiUrl}/role-templates/${templateId}/days/${dayNumber}/tasks`;
+    if (month != null && year != null) {
+      url += `?month=${month}&year=${year}`;
+    }
+    const body: any = { tasks };
+    if (targetDays && targetDays.length > 0) {
+      body.targetDays = targetDays;
+    }
+    const headers = new HttpHeaders({ 'Idempotency-Key': crypto.randomUUID() });
+    return this.http.post<any>(url, body, { headers });
   }
 
   public updateTaskApi(templateId: string | number, dayNumber: number, taskId: string | number, task: { title: string; description: string; priority: string }): Observable<any> {

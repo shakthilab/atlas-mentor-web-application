@@ -491,3 +491,16 @@ body.body-loading-lock {
     color: #ffffff;
   }
 }
+
+/* Ensure full-screen modal overlays sit on top of Angular Material mat-sidenav */
+body:has(.modal-overlay) {
+  mat-sidenav,
+  .sidebarNav {
+    z-index: 1 !important;
+  }
+
+  .contentWrapper,
+  mat-sidenav-content {
+    z-index: 99999 !important;
+  }
+}

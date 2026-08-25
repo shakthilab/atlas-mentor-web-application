@@ -114,4 +114,8 @@ export class LeadService {
   getStudentStatuses(): Observable<any> {
     return this.http.get<any>(`${environment.apiUrl}/students/statuses`);
   }
+
+  updateStudentPriority(id: number, payload: { priority?: string; prioritySubCategory?: string }): Observable<any> {
+    return this.http.put<any>(`${environment.apiUrl}/students/${id}/priority`, payload);
+  }
 }

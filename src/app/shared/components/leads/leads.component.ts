@@ -13,7 +13,7 @@ import { TableColumn, TableFilterOption } from '../data-table/data-table.models'
 import { createSearchPredicate, encodeSearch } from '../data-table/table-filter.util';
 import { MasterDataService } from '../../../core/services/master-data.service';
 import { SourceDialogComponent } from './source-dialog/source-dialog.component';
-import { getPriorityTierLabel, getPrioritySubCategoryLabel } from '../../../shared/constants/lead-classification.constants';
+import { getPriorityTierLabel, getPrioritySubCategoryLabel, LEAD_PRIORITY_TIERS, getSubCategoriesForTier } from '../../../shared/constants/lead-classification.constants';
 import { TranslateService } from '@ngx-translate/core';
 
 export interface Lead {
@@ -46,6 +46,8 @@ export interface Lead {
   priorityDisplayName?: string;
   prioritySubCategory?: string;
   prioritySubCategoryDisplayName?: string;
+  isUpdatingPriority?: boolean;
+  isUpdatingSubCategory?: boolean;
 }
 
 @Component({
@@ -174,10 +176,49 @@ export interface Lead {
               </ng-template>
 
               <ng-template appCellDef="priority" let-element="row">
-                <span *ngIf="element.priority" class="priority-badge" [ngClass]="element.priority.toLowerCase()">
-                  {{ element.priorityDisplayName || getPriorityLabel(element.priority) }}
+                <span (click)="$event.stopPropagation()">
+                  <span class="priority-badge cursor-pointer d-inline-flex align-items-center"
+                        [ngClass]="element.priority ? element.priority.toLowerCase() : 'none'"
+                        [matMenuTriggerFor]="element.isUpdatingPriority ? loadingMenu : priorityMenu">
+                    {{ element.priority ? (element.priorityDisplayName || getPriorityLabel(element.priority)) : ('leads.notSet' | translate) }}
+                    <i-tabler *ngIf="!element.isUpdatingPriority" name="chevron-down" class="icon-14 m-l-4"></i-tabler>
+                    <i-tabler *ngIf="element.isUpdatingPriority" name="loader" class="icon-14 m-l-4 spinning"></i-tabler>
+                  </span>
+                  <mat-menu #priorityMenu="matMenu" class="priority-menu-panel" xPosition="before">
+                    <ng-container *ngFor="let t of priorityTiers">
+                      <button mat-menu-item [matMenuTriggerFor]="tierSubMenu" class="priority-menu-btn">
+                        <div class="d-flex align-items-center gap-8">
+                          <span class="priority-menu-dot" [ngClass]="t.value.toLowerCase()"></span>
+                          <span class="f-w-500">{{ t.label }}</span>
+                        </div>
+                      </button>
+                      <mat-menu #tierSubMenu="matMenu" class="subcategory-menu-panel">
+                        <button mat-menu-item *ngFor="let sc of t.subCategories" (click)="changePriorityAndSubCategory(element, t.value, sc.value)">
+                          <span class="f-w-500">{{ sc.label }}</span>
+                        </button>
+                      </mat-menu>
+                    </ng-container>
+                  </mat-menu>
                 </span>
-                <span *ngIf="!element.priority" class="text-muted f-s-13">—</span>
+              </ng-template>
+
+              <ng-template appCellDef="subCategory" let-element="row">
+                <span (click)="$event.stopPropagation()">
+                  <span class="subcategory-badge cursor-pointer d-inline-flex align-items-center"
+                        [matMenuTriggerFor]="element.isUpdatingSubCategory ? loadingMenu : subCatMenu">
+                    {{ element.prioritySubCategory ? (element.prioritySubCategoryDisplayName || getSubCategoryLabel(element.prioritySubCategory)) : ('leads.notSet' | translate) }}
+                    <i-tabler *ngIf="!element.isUpdatingSubCategory" name="chevron-down" class="icon-14 m-l-4"></i-tabler>
+                    <i-tabler *ngIf="element.isUpdatingSubCategory" name="loader" class="icon-14 m-l-4 spinning"></i-tabler>
+                  </span>
+                  <mat-menu #subCatMenu="matMenu" class="subcategory-menu-panel" xPosition="before">
+                    <ng-container *ngIf="getSubCategoriesForPriority(element.priority) as subs">
+                      <button mat-menu-item *ngFor="let sc of subs" (click)="changeSubCategory(element, sc.value)" class="subcategory-menu-btn">
+                        <span class="f-w-500">{{ sc.label }}</span>
+                      </button>
+                      <div *ngIf="subs.length === 0" class="p-x-16 p-y-8 text-muted f-s-12">Set priority first</div>
+                    </ng-container>
+                  </mat-menu>
+                </span>
               </ng-template>
 
               <ng-template appCellDef="assignedTo" let-element="row">
@@ -459,6 +500,7 @@ export interface Lead {
       font-size: 12px;
       font-weight: 700;
       border-radius: 6px;
+      transition: all 0.2s ease;
 
       &.p1 {
         background-color: rgba(250, 137, 107, 0.12);
@@ -471,6 +513,73 @@ export interface Lead {
       &.p3 {
         background-color: rgba(45, 46, 50, 0.1);
         color: #2D2E32;
+      }
+      &.none {
+        background-color: rgba(148, 163, 184, 0.1);
+        color: #94a3b8;
+      }
+      &:hover { opacity: 0.85; }
+    }
+
+    .subcategory-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: 6px;
+      background-color: rgba(99, 102, 241, 0.08);
+      color: #6366f1;
+      border: 1px solid rgba(99, 102, 241, 0.15);
+      transition: all 0.2s ease;
+      &:hover { opacity: 0.85; }
+    }
+
+    ::ng-deep .priority-menu-panel {
+      min-width: 170px !important;
+      border-radius: 12px !important;
+      border: 1px solid #e2e8f0 !important;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.06), 0 8px 10px -6px rgba(0,0,0,0.06) !important;
+      background-color: #ffffff !important;
+      padding: 6px 0 !important;
+      overflow: hidden !important;
+
+      .priority-menu-btn {
+        height: 40px !important;
+        line-height: 40px !important;
+        padding: 0 16px !important;
+        transition: all 0.15s ease !important;
+        &:hover { background-color: #f8fafc !important; }
+      }
+    }
+
+    .priority-menu-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      &.p1 { background-color: #fa896b; }
+      &.p2 { background-color: #ffae1f; }
+      &.p3 { background-color: #94a3b8; }
+    }
+
+    ::ng-deep .subcategory-menu-panel {
+      min-width: 200px !important;
+      max-width: 300px !important;
+      border-radius: 12px !important;
+      border: 1px solid #e2e8f0 !important;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.06), 0 8px 10px -6px rgba(0,0,0,0.06) !important;
+      background-color: #ffffff !important;
+      padding: 6px 0 !important;
+      overflow: hidden !important;
+
+      .subcategory-menu-btn {
+        height: 38px !important;
+        line-height: 38px !important;
+        padding: 0 16px !important;
+        font-size: 13px !important;
+        transition: all 0.15s ease !important;
+        white-space: normal !important;
+        &:hover { background-color: #f8fafc !important; }
       }
     }
 
@@ -714,6 +823,41 @@ export interface Lead {
           background-color: rgba(255, 255, 255, 0.1);
           color: #ffffff;
         }
+        &.none {
+          background-color: rgba(148, 163, 184, 0.15);
+          color: #94a3b8;
+        }
+      }
+
+      .subcategory-badge {
+        background-color: rgba(99, 102, 241, 0.15);
+        color: #a5b4fc;
+        border-color: rgba(99, 102, 241, 0.25);
+      }
+
+      ::ng-deep .priority-menu-panel {
+        background-color: var(--dark-sidebarbg, #1e293b) !important;
+        border-color: var(--dark-formborderColor, #334155) !important;
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3), 0 8px 10px -6px rgba(0,0,0,0.3) !important;
+        .priority-menu-btn {
+          &:hover {
+            background-color: var(--dark-hoverbgcolor, #334155) !important;
+          }
+          span { color: #f8fafc; }
+        }
+      }
+
+      ::ng-deep .subcategory-menu-panel {
+        background-color: var(--dark-sidebarbg, #1e293b) !important;
+        border-color: var(--dark-formborderColor, #334155) !important;
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3), 0 8px 10px -6px rgba(0,0,0,0.3) !important;
+        .subcategory-menu-btn {
+          &:hover {
+            background-color: var(--dark-hoverbgcolor, #334155) !important;
+          }
+          span { color: #f8fafc; }
+        }
+        .text-muted { color: #94a3b8 !important; }
       }
 
       ::ng-deep .source-menu-panel {
@@ -739,6 +883,7 @@ export class LeadsComponent implements OnInit, AfterViewInit {
 
   availableStatuses: { id: number; enum: string; displayName: string }[] = [];
   availableSources: any[] = [];
+  priorityTiers = LEAD_PRIORITY_TIERS;
 
   tableColumns: TableColumn<Lead>[] = [
     { key: 'lead', header: 'Lead', type: 'custom', exportValueFn: r => `${r.name} (${r.role})`, filter: { type: 'text' } },
@@ -753,8 +898,8 @@ export class LeadsComponent implements OnInit, AfterViewInit {
       filter: { type: 'text' },
     },
     {
-      key: 'subCategory', header: 'Sub Category', type: 'text', maxWidth: '150px',
-      valueFn: r => r.prioritySubCategoryDisplayName || this.getSubCategoryLabel(r.prioritySubCategory || '') || '—',
+      key: 'subCategory', header: 'Sub Category', type: 'custom', maxWidth: '150px',
+      exportValueFn: r => r.prioritySubCategoryDisplayName || this.getSubCategoryLabel(r.prioritySubCategory || '') || '—',
       filter: { type: 'text' },
     },
     { key: 'assignedTo', header: 'Assigned To', type: 'custom', exportValueFn: r => r.assignedTo, filter: { type: 'text' } },
@@ -948,6 +1093,70 @@ export class LeadsComponent implements OnInit, AfterViewInit {
 
   getSubCategoryLabel(subCategory: string): string {
     return getPrioritySubCategoryLabel(subCategory);
+  }
+
+  getSubCategoriesForPriority(priority: string | undefined): { value: string; label: string }[] {
+    return getSubCategoriesForTier(priority);
+  }
+
+  changePriority(lead: Lead, newPriority: string): void {
+    if (lead.priority === newPriority) return;
+    if (!lead.id) return;
+    lead.isUpdatingPriority = true;
+    this.leadService.updateStudentPriority(lead.id, { priority: newPriority }).subscribe({
+      next: () => {
+        lead.isUpdatingPriority = false;
+        this.notificationService.showSuccessToast(`Priority updated to ${getPriorityTierLabel(newPriority)}.`, 'Success');
+        this.loadLeads();
+      },
+      error: (err) => {
+        lead.isUpdatingPriority = false;
+        console.error('Failed to update priority:', err);
+        const errorMessage = err.error?.message || err.message || 'Failed to update priority.';
+        this.notificationService.showErrorPopup(errorMessage, 'Update Failed', 'Close').subscribe();
+      }
+    });
+  }
+
+  changePriorityAndSubCategory(lead: Lead, newPriority: string, newSubCategory: string): void {
+    if (lead.priority === newPriority && lead.prioritySubCategory === newSubCategory) return;
+    if (!lead.id) return;
+    lead.isUpdatingPriority = true;
+    lead.isUpdatingSubCategory = true;
+    this.leadService.updateStudentPriority(lead.id, { priority: newPriority, prioritySubCategory: newSubCategory }).subscribe({
+      next: () => {
+        lead.isUpdatingPriority = false;
+        lead.isUpdatingSubCategory = false;
+        this.notificationService.showSuccessToast(`Priority updated to ${getPriorityTierLabel(newPriority)} and sub-category to ${getPrioritySubCategoryLabel(newSubCategory)}.`, 'Success');
+        this.loadLeads();
+      },
+      error: (err) => {
+        lead.isUpdatingPriority = false;
+        lead.isUpdatingSubCategory = false;
+        console.error('Failed to update priority and sub-category:', err);
+        const errorMessage = err.error?.message || err.message || 'Failed to update priority and sub-category.';
+        this.notificationService.showErrorPopup(errorMessage, 'Update Failed', 'Close').subscribe();
+      }
+    });
+  }
+
+  changeSubCategory(lead: Lead, newSubCategory: string): void {
+    if (lead.prioritySubCategory === newSubCategory) return;
+    if (!lead.id) return;
+    lead.isUpdatingSubCategory = true;
+    this.leadService.updateStudentPriority(lead.id, { prioritySubCategory: newSubCategory }).subscribe({
+      next: () => {
+        lead.isUpdatingSubCategory = false;
+        this.notificationService.showSuccessToast(`Sub-category updated to ${getPrioritySubCategoryLabel(newSubCategory)}.`, 'Success');
+        this.loadLeads();
+      },
+      error: (err) => {
+        lead.isUpdatingSubCategory = false;
+        console.error('Failed to update sub-category:', err);
+        const errorMessage = err.error?.message || err.message || 'Failed to update sub-category.';
+        this.notificationService.showErrorPopup(errorMessage, 'Update Failed', 'Close').subscribe();
+      }
+    });
   }
 
   applyFilter(event: Event): void {

@@ -48,14 +48,14 @@ import { AuthService } from '../../../../core/services/auth.service';
         <form [formGroup]="employeeForm" class="employee-form">
           <div class="row">
             <div class="col-sm-6 m-b-12">
-              <mat-label class="f-w-600 m-b-8 d-block text-dark">First Name</mat-label>
+              <mat-label class="f-w-600 m-b-8 d-block text-dark">First Name <span class="text-danger">*</span></mat-label>
               <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100 theme-input">
                 <input matInput formControlName="firstName" placeholder="e.g., John" />
                 <mat-error *ngIf="employeeForm.get('firstName')?.hasError('required')">First name is required</mat-error>
               </mat-form-field>
             </div>
             <div class="col-sm-6 m-b-12">
-              <mat-label class="f-w-600 m-b-8 d-block text-dark">Last Name</mat-label>
+              <mat-label class="f-w-600 m-b-8 d-block text-dark">Last Name <span class="text-danger">*</span></mat-label>
               <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100 theme-input">
                 <input matInput formControlName="lastName" placeholder="e.g., Smith" />
                 <mat-error *ngIf="employeeForm.get('lastName')?.hasError('required')">Last name is required</mat-error>
@@ -64,7 +64,7 @@ import { AuthService } from '../../../../core/services/auth.service';
           </div>
 
           <div class="m-b-12">
-            <mat-label class="f-w-600 m-b-8 d-block text-dark">Email Address</mat-label>
+            <mat-label class="f-w-600 m-b-8 d-block text-dark">Email Address <span class="text-danger">*</span></mat-label>
             <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100 theme-input">
               <input matInput formControlName="email" type="email" placeholder="john.smith@company.com" />
               <mat-error *ngIf="employeeForm.get('email')?.hasError('required')">Email is required</mat-error>
@@ -73,7 +73,7 @@ import { AuthService } from '../../../../core/services/auth.service';
           </div>
 
           <div class="m-b-12">
-            <mat-label class="f-w-600 m-b-8 d-block text-dark">Phone Number</mat-label>
+            <mat-label class="f-w-600 m-b-8 d-block text-dark">Phone Number <span class="text-danger">*</span></mat-label>
             <div class="phone-input-group">
               <mat-form-field appearance="outline" subscriptSizing="dynamic" class="mcc-select theme-input">
                 <mat-select formControlName="mobileCountryCodeId">
@@ -104,7 +104,7 @@ import { AuthService } from '../../../../core/services/auth.service';
 
           <div class="row">
             <div class="col-sm-6 m-b-12">
-              <mat-label class="f-w-600 m-b-8 d-block text-dark">Branch</mat-label>
+              <mat-label class="f-w-600 m-b-8 d-block text-dark">Branch <span class="text-danger">*</span></mat-label>
               <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100 theme-input">
                 <mat-select formControlName="branchId" placeholder="Select Branch">
                   <mat-option *ngFor="let branch of branches" [value]="branch.id">
@@ -115,7 +115,7 @@ import { AuthService } from '../../../../core/services/auth.service';
               </mat-form-field>
             </div>
             <div class="col-sm-6 m-b-12">
-              <mat-label class="f-w-600 m-b-8 d-block text-dark">Role</mat-label>
+              <mat-label class="f-w-600 m-b-8 d-block text-dark">Role <span class="text-danger">*</span></mat-label>
               <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100 theme-input">
                 <mat-select formControlName="roleId" placeholder="Select Role">
                   <mat-option *ngFor="let role of roles" [value]="role.id">

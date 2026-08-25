@@ -87,6 +87,7 @@
     "languageDesc": "Выберите предпочитаемый язык платформы Atlas Mentor."
   },
   "common": {
+    "save": "Сохранить",
     "cancel": "Отмена",
     "delete": "Удалить",
     "deleteCount": "Удалить ({{count}})",
@@ -309,6 +310,7 @@
       "duplicateThisDay": "Дублировать этот день...",
       "duplicateDayTasks": "Дублировать задачи дня «{{day}}»",
       "selectTargetDays": "Выберите дни назначения для копирования задач ({{count}})",
+      "targetMonth": "Целевой месяц",
       "selectAllValidDays": "Выбрать все доступные дни",
       "deselectAll": "Снять выбор",
       "daysSelected": "Выбрано дней: {{count}}",
@@ -337,7 +339,8 @@
       "comment": "Комментировать",
       "activityTimeline": "Лента активности",
       "draft": "Черновик",
-      "confirmDeleteTemplate": "Вы уверены, что хотите удалить этот шаблон?",
+      "confirmDeleteTemplate": "Вы уверены, что хотите удалить «{{name}}»? Это действие нельзя отменить.",
+      "deleteTemplateTitle": "Удалить шаблон?",
       "addDescriptionPlaceholder": "Добавить описание...",
       "toast": {
         "publishedToWorkspace": "Успешно: шаблон роли опубликован в рабочем пространстве сотрудника!",
@@ -510,6 +513,7 @@
     "getStarted": "Начните с добавления нового лида.",
     "colLead": "Лид",
     "colContactInfo": "Контактные данные",
+    "colPriority": "Классификация лида",
     "colSource": "Источник",
     "colSubCategory": "Подкатегория",
     "colAddedBy": "Добавил(а)",
@@ -747,6 +751,7 @@
     "noRegisteredStudents": "Зарегистрированные студенты не найдены.",
     "colCounsellor": "Консультант",
     "colJoinedDate": "Дата регистрации",
+    "colPriority": "Классификация лида",
     "enrolled": "Зачислен",
     "completed": "Завершено",
     "remove": "Удалить",

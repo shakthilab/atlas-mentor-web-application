@@ -87,6 +87,7 @@
     "languageDesc": "Select your preferred language for the Atlas Mentor platform."
   },
   "common": {
+    "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
     "deleteCount": "Delete ({{count}})",
@@ -309,6 +310,7 @@
       "duplicateThisDay": "Duplicate this day...",
       "duplicateDayTasks": "Duplicate {{day}} Tasks",
       "selectTargetDays": "Select target days to copy {{count}} task(s) into",
+      "targetMonth": "Target Month",
       "selectAllValidDays": "Select All Valid Days",
       "deselectAll": "Deselect All",
       "daysSelected": "{{count}} day(s) selected",
@@ -337,7 +339,8 @@
       "comment": "Comment",
       "activityTimeline": "Activity Timeline",
       "draft": "Draft",
-      "confirmDeleteTemplate": "Are you sure you want to delete this template?",
+      "confirmDeleteTemplate": "Are you sure you want to delete \"{{name}}\"? This can't be undone.",
+      "deleteTemplateTitle": "Delete template?",
       "toast": {
         "publishedToWorkspace": "Success: Role template has been published to employee workspace!",
         "taskDeleted": "Task deleted successfully",
@@ -510,6 +513,7 @@
     "getStarted": "Get started by adding a new lead.",
     "colLead": "Lead",
     "colContactInfo": "Contact Info",
+    "colPriority": "Lead Classification",
     "colSource": "Source",
     "colSubCategory": "Sub Category",
     "colAddedBy": "Added By",
@@ -747,6 +751,7 @@
     "noRegisteredStudents": "No registered students found.",
     "colCounsellor": "Counsellor",
     "colJoinedDate": "Joined Date",
+    "colPriority": "Lead Classification",
     "enrolled": "Enrolled",
     "completed": "Completed",
     "remove": "Remove",

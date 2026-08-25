@@ -244,7 +244,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 99999 !important;
 }
 
 .publish-card {
@@ -260,6 +260,36 @@
     color: #475569;
     line-height: 1.5;
     margin-bottom: 20px;
+  }
+}
+
+// Delete-template confirm dialog - same shell as .publish-card, narrower since there's no
+// form to hold, just a message and two actions.
+.confirm-card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+
+  .confirm-desc {
+    font-size: 13.5px;
+    color: #475569;
+    line-height: 1.5;
+    margin: 0;
+  }
+}
+
+.delete-confirm-btn {
+  background-color: #dc2626 !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  padding: 8px 18px !important;
+
+  &:hover {
+    background-color: #b91c1c !important;
   }
 }
 
@@ -2009,12 +2039,15 @@
     display: flex;
     flex-direction: column;
     height: 100%;
+    max-height: 100%;
+    overflow: hidden;
     animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     z-index: 20;
     box-shadow: -10px 0 30px rgba(15, 23, 42, 0.08);
     box-sizing: border-box;
 
     .sidebar-header {
+      flex-shrink: 0;
       padding: 20px 24px;
       border-bottom: 1px solid #f1f5f9;
       display: flex;
@@ -2044,9 +2077,10 @@
     }
 
     .sidebar-body {
-      padding: 24px;
+      padding: 24px 24px 80px 24px;
       overflow-y: auto;
-      flex-grow: 1;
+      flex: 1 1 0%;
+      min-height: 0;
       display: flex;
       flex-direction: column;
       gap: 20px;
@@ -2066,9 +2100,11 @@
         display: flex;
         flex-direction: column;
         gap: 12px;
+        flex-shrink: 0;
       }
 
       .sidebar-task-card {
+        flex-shrink: 0;
         background: #ffffff;
         border: 1px solid #cbd5e1;
         border-radius: 12px;
@@ -2076,7 +2112,7 @@
         display: flex;
         align-items: flex-start;
         gap: 12px;
-        cursor: pointer;
+        cursor: default;
         position: relative;
         box-shadow: 0 1px 3px rgba(0,0,0,0.02);
         transition: all 0.2s ease;
@@ -2117,12 +2153,19 @@
           &.urgent { background: #dc2626; box-shadow: 0 0 6px rgba(220, 38, 38, 0.4); }
         }
 
+        &.is-editing {
+          padding: 0;
+          border-color: #3b82f6;
+          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.12);
+        }
+
         .task-info {
           flex-grow: 1;
           display: flex;
           flex-direction: column;
           gap: 4px;
-          margin-right: 24px;
+          margin-right: 60px;
+          cursor: pointer;
 
           .task-title {
             font-size: 13.5px;
@@ -2181,15 +2224,103 @@
               color: #475569;
             }
 
+            &.edit-btn:hover {
+              color: #2563eb;
+              background: #eff6ff;
+            }
+
             &.delete-btn:hover {
               color: #ef4444;
               background: #fee2e2;
             }
           }
         }
+
+        .inline-edit-task-card {
+          width: 100%;
+          background: #ffffff;
+          border-radius: 12px;
+          overflow: hidden;
+
+          .form-body {
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+
+            .task-title-input {
+              width: 100%;
+              border: 1px solid #cbd5e1;
+              border-radius: 6px;
+              padding: 6px 10px;
+              font-size: 13.5px;
+              font-weight: 600;
+              color: #1e293b;
+              font-family: inherit;
+              box-sizing: border-box;
+
+              &:focus {
+                border-color: #3b82f6;
+                outline: none;
+              }
+            }
+
+            .task-desc-textarea {
+              width: 100%;
+              border: 1px solid #cbd5e1;
+              border-radius: 6px;
+              padding: 6px 10px;
+              font-size: 12px;
+              color: #475569;
+              font-family: inherit;
+              resize: vertical;
+              outline: none;
+              box-sizing: border-box;
+
+              &:focus {
+                border-color: #3b82f6;
+              }
+            }
+          }
+
+          .form-footer {
+            padding: 10px 16px;
+            background: #f8fafc;
+            border-top: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            .priority-select {
+              border: 1px solid #cbd5e1;
+              border-radius: 6px;
+              padding: 4px 8px;
+              font-size: 11.5px;
+              font-weight: 600;
+              color: #475569;
+              background: #ffffff;
+              outline: none;
+            }
+
+            .footer-actions {
+              display: flex;
+              gap: 8px;
+
+              .done-btn {
+                font-size: 12px;
+                color: #64748b;
+              }
+              .add-btn {
+                font-size: 12px;
+                border-radius: 6px;
+              }
+            }
+          }
+        }
       }
 
       .empty-sidebar-tasks {
+        flex-shrink: 0;
         background: #ffffff;
         border: 1px dashed #cbd5e1;
         border-radius: 12px;
@@ -2225,6 +2356,7 @@
 
       /* Inline Add Task Form */
       .add-task-form-card {
+        flex-shrink: 0;
         background: #ffffff;
         border: 1px solid #3b82f6;
         border-radius: 12px;
@@ -2336,6 +2468,7 @@
       }
 
       .add-task-bottom-trigger {
+        flex-shrink: 0;
         width: 100%;
         border: 1px dashed #cbd5e1;
         background: #ffffff;
@@ -2359,6 +2492,7 @@
     }
 
     .sidebar-footer {
+      flex-shrink: 0;
       padding: 16px 24px;
       border-top: 1px solid #f1f5f9;
       display: flex;
@@ -2393,7 +2527,7 @@
     padding: 12px 20px;
     border-radius: 8px;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    z-index: 2000;
+    z-index: 100001 !important;
     display: flex;
     align-items: center;
     font-size: 13px;
@@ -2465,7 +2599,7 @@
   bottom: 0;
   background: rgba(15, 23, 42, 0.45);
   backdrop-filter: blur(4px);
-  z-index: 9999;
+  z-index: 100000 !important;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2504,6 +2638,73 @@
       .close-btn {
         color: #94a3b8;
         &:hover { color: #0f172a; }
+      }
+    }
+
+    .target-month-row {
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid #f1f5f9;
+
+      .target-month-label {
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #64748b;
+        white-space: nowrap;
+      }
+
+      .month-select-wrapper {
+        display: inline-flex;
+        position: relative;
+        align-items: center;
+        background: #ffffff;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        height: 36px;
+        box-sizing: border-box;
+        transition: all 0.2s;
+        flex: 1;
+        max-width: 220px;
+
+        &:hover {
+          background-color: #f8fafc;
+          border-color: #cbd5e1;
+        }
+
+        &:focus-within {
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .month-icon {
+          position: absolute;
+          left: 10px;
+          color: #64748b;
+          pointer-events: none;
+        }
+
+        .month-chevron {
+          position: absolute;
+          right: 10px;
+          color: #64748b;
+          pointer-events: none;
+        }
+
+        .month-header-select {
+          height: 100%;
+          width: 100%;
+          border: none;
+          background: transparent;
+          padding: 0 28px 0 32px;
+          font-size: 13px;
+          font-weight: 500;
+          color: #1e293b;
+          outline: none;
+          cursor: pointer;
+          appearance: none;
+        }
       }
     }
 
@@ -2623,7 +2824,7 @@
   position: fixed;
   top: 24px;
   right: 24px;
-  z-index: 99999;
+  z-index: 100005 !important;
   animation: slideInToast 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 
   .toast-content {

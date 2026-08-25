@@ -58,7 +58,7 @@
                 <i-tabler name="edit" class="icon-16 m-r-8"></i-tabler>
                 <span>{{ 'taskAccountability.templates.editTemplate' | translate }}</span>
               </button>
-              <button mat-menu-item (click)="duplicateTemplate(temp)">
+              <button mat-menu-item (click)="duplicateTemplate(temp)" [disabled]="duplicatingTemplateIds.has(temp.id)">
                 <i-tabler name="copy" class="icon-16 m-r-8"></i-tabler>
                 <span>{{ 'common.duplicate' | translate }}</span>
               </button>
@@ -67,7 +67,7 @@
                 <span>{{ (temp.active ? 'common.deactivate' : 'common.activate') | translate }}</span>
               </button>
               <mat-divider></mat-divider>
-              <button mat-menu-item class="text-danger" (click)="deleteTemplate(temp.id)">
+              <button mat-menu-item class="text-danger" (click)="requestDeleteTemplate(temp)">
                 <i-tabler name="trash" class="icon-16 m-r-8"></i-tabler>
                 <span>{{ 'common.delete' | translate }}</span>
               </button>
@@ -125,6 +125,30 @@
           [disabled]="!selectedEmployeeId">
           <i-tabler name="send" class="icon-16 m-r-8"></i-tabler>
           {{ 'taskAccountability.templates.publishNow' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Template confirm modal - in-app control, not the browser's native confirm() -->
+  <div class="modal-overlay" *ngIf="showDeleteConfirmModal && templateToDelete" (click)="cancelDeleteTemplate()">
+    <div class="confirm-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ 'taskAccountability.templates.deleteTemplateTitle' | translate }}</h3>
+        <button mat-icon-button (click)="cancelDeleteTemplate()">
+          <i-tabler name="x" class="icon-18"></i-tabler>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="confirm-desc">
+          {{ 'taskAccountability.templates.confirmDeleteTemplate' | translate:{ name: templateToDelete.name } }}
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button mat-button class="cancel-btn" (click)="cancelDeleteTemplate()">{{ 'common.cancel' | translate }}</button>
+        <button mat-flat-button class="delete-confirm-btn" (click)="confirmDeleteTemplate()">
+          <i-tabler name="trash" class="icon-16 m-r-8"></i-tabler>
+          {{ 'common.delete' | translate }}
         </button>
       </div>
     </div>
@@ -216,7 +240,7 @@
                   {{ 'taskAccountability.templates.duplicateCount' | translate:{ count: selectedDaysForDuplication.size } }}
                 </button>
                 <mat-menu #duplicateToMenu="matMenu" xPosition="before">
-                  <button mat-menu-item *ngFor="let targetDay of getDaysList()"
+                  <button mat-menu-item *ngFor="let targetDay of getDuplicateToTargetDaysList()"
                     (click)="duplicateSelectedDaysTo(targetDay)">
                     {{ 'taskAccountability.templates.duplicateTasksTo' | translate:{ day: targetDay.name } }}
                   </button>
@@ -320,35 +344,64 @@
           <!-- Tasks list in sidebar -->
           <div class="sidebar-tasks-list" *ngIf="day.tasks && day.tasks.length > 0; else noTasksState">
             <div class="sidebar-task-card" *ngFor="let task of day.tasks; let tIdx = index"
-              (click)="openTaskDetails(task, day)">
-              <div class="task-drag-handle">
-                <i-tabler name="grip-vertical" class="icon-14 text-muted"></i-tabler>
-              </div>
-              <span class="priority-dot" [class]="task.priority?.toLowerCase() || 'medium'"></span>
+              [class.is-editing]="editingTaskId === (task.id || 'task-' + tIdx)">
 
-              <div class="task-info">
-                <div class="task-title">{{ task.name }}</div>
-                <div class="task-desc" *ngIf="task.description">{{ task.description }}</div>
-                <div class="task-meta">
-                  <span class="task-priority-badge" [class]="task.priority?.toLowerCase() || 'medium'">
-                    {{ task.priority }}
-                  </span>
+              <ng-container *ngIf="editingTaskId !== (task.id || 'task-' + tIdx); else editTaskForm">
+                <div class="task-drag-handle">
+                  <i-tabler name="grip-vertical" class="icon-14 text-muted"></i-tabler>
                 </div>
-              </div>
+                <span class="priority-dot" [class]="task.priority?.toLowerCase() || 'medium'"></span>
 
-              <div class="task-row-actions" *ngIf="!isPastDay(selectedDayIndex)" (click)="$event.stopPropagation()">
-                <button class="task-action-btn copy-btn" [disabled]="isTemplateUnsaved()"
-                  [class.disabled]="isTemplateUnsaved()"
-                  [matTooltip]="isTemplateUnsaved() ? ('taskAccountability.templates.saveFirstTooltip' | translate) : ('taskAccountability.templates.duplicateTaskTooltip' | translate)"
-                  matTooltipPosition="above" (click)="duplicateTaskToSameDay(task, day)">
-                  <i-tabler name="copy" class="icon-14"></i-tabler>
-                </button>
+                <div class="task-info" (click)="startEditingTask(task, tIdx)">
+                  <div class="task-title">{{ task.name }}</div>
+                  <div class="task-desc" *ngIf="task.description">{{ task.description }}</div>
+                  <div class="task-meta">
+                    <span class="task-priority-badge" [class]="task.priority?.toLowerCase() || 'medium'">
+                      {{ task.priority }}
+                    </span>
+                  </div>
+                </div>
 
-                <button class="task-action-btn delete-btn" (click)="removeTaskFromSelectedDay(tIdx)"
-                  [title]="'taskAccountability.templates.deleteTask' | translate">
-                  <i-tabler name="trash" class="icon-14"></i-tabler>
-                </button>
-              </div>
+                <div class="task-row-actions" *ngIf="!isPastDay(selectedDayIndex)" (click)="$event.stopPropagation()">
+                  <button class="task-action-btn edit-btn"
+                    [matTooltip]="'common.edit' | translate"
+                    matTooltipPosition="above" (click)="startEditingTask(task, tIdx)">
+                    <i-tabler name="pencil" class="icon-14"></i-tabler>
+                  </button>
+
+                  <button class="task-action-btn copy-btn"
+                    [matTooltip]="'taskAccountability.templates.duplicateTaskTooltip' | translate"
+                    matTooltipPosition="above" (click)="duplicateTaskToSameDay(task, day)">
+                    <i-tabler name="copy" class="icon-14"></i-tabler>
+                  </button>
+
+                  <button class="task-action-btn delete-btn" (click)="removeTaskFromSelectedDay(tIdx)"
+                    [title]="'taskAccountability.templates.deleteTask' | translate">
+                    <i-tabler name="trash" class="icon-14"></i-tabler>
+                  </button>
+                </div>
+              </ng-container>
+
+              <ng-template #editTaskForm>
+                <div class="inline-edit-task-card">
+                  <div class="form-body">
+                    <input type="text" [(ngModel)]="editingTaskTitle" [placeholder]="'taskAccountability.templates.taskTitle' | translate" class="task-title-input" (keyup.enter)="saveTaskEdit(task, day)" />
+                    <textarea [(ngModel)]="editingTaskDescription" [placeholder]="'taskAccountability.templates.descriptionOptional' | translate" class="task-desc-textarea" rows="2"></textarea>
+                  </div>
+                  <div class="form-footer">
+                    <select [(ngModel)]="editingTaskPriority" class="priority-select">
+                      <option value="LOW">{{ 'common.priority.low' | translate }}</option>
+                      <option value="MEDIUM">{{ 'common.priority.medium' | translate }}</option>
+                      <option value="HIGH">{{ 'common.priority.high' | translate }}</option>
+                    </select>
+                    <div class="footer-actions">
+                      <button mat-button class="done-btn" (click)="cancelTaskEdit()">{{ 'common.cancel' | translate }}</button>
+                      <button mat-flat-button color="primary" class="add-btn" (click)="saveTaskEdit(task, day)" [disabled]="!editingTaskTitle.trim()">{{ 'common.save' | translate }}</button>
+                    </div>
+                  </div>
+                </div>
+              </ng-template>
+
             </div>
           </div>
 
@@ -423,6 +476,17 @@
             </button>
           </div>
 
+          <div class="target-month-row" *ngIf="!isTemplateUnsaved()">
+            <label class="target-month-label">{{ 'taskAccountability.templates.targetMonth' | translate }}</label>
+            <div class="month-select-wrapper">
+              <i-tabler name="calendar" class="icon-16 month-icon"></i-tabler>
+              <select [(ngModel)]="duplicateTargetMonthName" class="month-header-select">
+                <option *ngFor="let m of monthsList" [value]="m">{{ m }}</option>
+              </select>
+              <i-tabler name="chevron-down" class="icon-14 month-chevron"></i-tabler>
+            </div>
+          </div>
+
           <div class="dialog-toolbar">
             <button type="button" class="link-btn" (click)="selectAllValidTargetDays()">{{ 'taskAccountability.templates.selectAllValidDays' | translate }}</button>
             <span class="dot-separator">&bull;</span>
@@ -434,18 +498,18 @@
 
           <div class="dialog-body">
             <div class="target-days-grid">
-              <div class="target-day-item" *ngFor="let otherDay of getDaysList(); let otherIdx = index"
-                [class.disabled]="otherIdx === selectedDayIndex || isPastDay(otherIdx)"
-                [class.selected]="selectedTargetDaysForDuplication.has(otherIdx)"
-                (click)="toggleTargetDaySelection(otherIdx)">
+              <div class="target-day-item" *ngFor="let otherDay of getDuplicateTargetDaysList()"
+                [class.disabled]="isDuplicateTargetSelf(otherDay) || isDuplicateTargetPast(otherDay)"
+                [class.selected]="selectedTargetDaysForDuplication.has(duplicateTargetKey(otherDay))"
+                (click)="toggleTargetDaySelection(otherDay)">
                 <div class="item-checkbox">
-                  <i-tabler [name]="selectedTargetDaysForDuplication.has(otherIdx) ? 'checkbox' : 'square'"
+                  <i-tabler [name]="selectedTargetDaysForDuplication.has(duplicateTargetKey(otherDay)) ? 'checkbox' : 'square'"
                     class="icon-16"></i-tabler>
                 </div>
                 <div class="item-label">
                   <span class="day-name">{{ otherDay.name }}</span>
-                  <span class="status-tag current" *ngIf="otherIdx === selectedDayIndex">{{ 'taskAccountability.templates.currentDay' | translate }}</span>
-                  <span class="status-tag past" *ngIf="isPastDay(otherIdx)">{{ 'taskAccountability.templates.pastDayDisabled' | translate }}</span>
+                  <span class="status-tag current" *ngIf="isDuplicateTargetSelf(otherDay)">{{ 'taskAccountability.templates.currentDay' | translate }}</span>
+                  <span class="status-tag past" *ngIf="isDuplicateTargetPast(otherDay)">{{ 'taskAccountability.templates.pastDayDisabled' | translate }}</span>
                 </div>
               </div>
             </div>
@@ -454,17 +518,11 @@
           <div class="dialog-footer">
             <button mat-button class="cancel-btn" (click)="closeDuplicateDayModal()">{{ 'common.cancel' | translate }}</button>
             <button mat-flat-button color="primary" class="confirm-btn"
-              [disabled]="selectedTargetDaysForDuplication.size === 0" (click)="confirmDuplicateDayToSelected()">
+              [disabled]="selectedTargetDaysForDuplication.size === 0 || isDuplicatingDayBatch" (click)="confirmDuplicateDayToSelected()">
               {{ 'taskAccountability.templates.duplicateToNDays' | translate:{ count: selectedTargetDaysForDuplication.size } }}
             </button>
           </div>
         </div>
-      </div>
-
-      <!-- Toast notification when copying task -->
-      <div class="toast-notification" *ngIf="toastMessage">
-        <i-tabler name="circle-check" class="icon-16 text-success m-r-8"></i-tabler>
-        <span>{{ toastMessage }}</span>
       </div>
     </div>
   </div>

@@ -341,3 +341,46 @@
     }
   }
 }
+
+:host-context(.dark-theme),
+body.dark-theme,
+.dark-theme {
+  .auth-wrapper {
+    background-color: #090d16 !important;
+    color: #f8fafc !important;
+  }
+
+  .auth-main-title {
+    color: #f8fafc !important;
+  }
+
+  .auth-subtitle {
+    color: #94a3b8 !important;
+  }
+
+  .minimal-stepper {
+    .step-name {
+      color: #ffffff !important;
+    }
+    .progress-bar-segment.active {
+      background-color: #3b82f6 !important;
+    }
+  }
+
+  .auth-form {
+    ::ng-deep {
+      .mat-mdc-text-field-wrapper {
+        background-color: #1e293b !important;
+        border-color: #334155 !important;
+      }
+      input.mat-mdc-input-element {
+        color: #f8fafc !important;
+      }
+    }
+  }
+
+  .auth-btn-submit {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+  }
+}
