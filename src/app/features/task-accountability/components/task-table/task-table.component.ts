@@ -231,7 +231,8 @@ export class TaskTableComponent implements OnInit, OnDestroy {
     this.dialog.open(TaskCommentPopupComponent, {
       data: { task },
       width: '480px',
-      maxWidth: '90vw'
+      maxWidth: '90vw',
+      panelClass: 'comment-popup-dialog-panel'
     });
   }
 
