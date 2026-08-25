@@ -626,16 +626,34 @@
 }
 
 /* Comment styling */
+.comment-text-link {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  background: transparent;
+  border: none;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+}
+
 .comment-text {
   font-size: 12.5px;
-  color: #475569;
+  color: #2563eb;
   line-height: 1.4;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: block;
 
-  &.no-comment {
-    color: #cbd5e1;
+  .comment-text-link:hover & {
+    text-decoration: underline;
+  }
+
+  &.add-comment-prompt {
+    color: #94a3b8;
+    font-style: italic;
+    text-decoration: none;
   }
 }
 

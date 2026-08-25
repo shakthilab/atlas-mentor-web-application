@@ -22,6 +22,7 @@ import { TaskDetailsDrawerComponent } from './components/task-details-drawer/tas
 import { TaskAccountabilityShellComponent } from './components/task-accountability-shell/task-accountability-shell.component';
 import { TaskCreateDrawerComponent } from './components/task-create-drawer/task-create-drawer.component';
 import { SendBackReasonDialogComponent } from './components/send-back-reason-dialog/send-back-reason-dialog.component';
+import { TaskCommentPopupComponent } from './components/task-comment-popup/task-comment-popup.component';
 
 @NgModule({
   declarations: [
@@ -37,6 +38,7 @@ import { SendBackReasonDialogComponent } from './components/send-back-reason-dia
     TaskAccountabilityShellComponent,
     TaskCreateDrawerComponent,
     SendBackReasonDialogComponent,
+    TaskCommentPopupComponent,
     WeeklyTemplatesComponent,
     WeeklyTemplateEditDialogComponent,
     WeeklyTemplateDuplicateDialogComponent,

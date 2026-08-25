@@ -754,6 +754,10 @@ export class TaskAccountabilityService {
     return this.http.post<any>(`${environment.apiUrl}/tasks/${taskId}/comments`, body);
   }
 
+  public updateTaskCommentApi(taskId: string | number, commentId: string | number, comment: string): Observable<any> {
+    return this.http.put<any>(`${environment.apiUrl}/tasks/${taskId}/comments/${commentId}`, { comment });
+  }
+
   public getTaskAttachmentsApi(taskId: string | number): Observable<any> {
     return this.http.get<any>(`${environment.apiUrl}/tasks/${taskId}/attachments`);
   }

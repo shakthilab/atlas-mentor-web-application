@@ -155,11 +155,14 @@
               </td>
 
               <!-- Comment -->
-              <td class="col-comment">
+              <td class="col-comment" (click)="$event.stopPropagation()">
                 <div class="comment-cell-container">
-                  <span class="comment-text" [class.no-comment]="!task.latestCommentPreview && (!task.comment || task.comment === '—')">
-                    {{ task.latestCommentPreview || task.comment || '—' }}
-                  </span>
+                  <button class="comment-text-link" (click)="openCommentPopup(task, $event)" type="button">
+                    <span class="comment-text" *ngIf="getCommentPreview(task) as preview; else noCommentTpl">{{ preview }}</span>
+                    <ng-template #noCommentTpl>
+                      <span class="comment-text add-comment-prompt">{{ 'taskAccountability.taskTable.addCommentLink' | translate }}</span>
+                    </ng-template>
+                  </button>
                   <div class="reflect-reason-note" *ngIf="task.status === 'REFLECT'">
                     <i-tabler name="alert-circle" class="icon-12 text-warn"></i-tabler>
                     {{ getFlaggedByText(task) }}
@@ -279,10 +282,13 @@
             </td>
 
             <!-- Comment -->
-            <td class="col-comment">
-              <span class="comment-text" [class.no-comment]="!task.latestCommentPreview && (!task.comment || task.comment === '—')">
-                {{ task.latestCommentPreview || task.comment || '—' }}
-              </span>
+            <td class="col-comment" (click)="$event.stopPropagation()">
+              <button class="comment-text-link" (click)="openCommentPopup(task, $event)" type="button">
+                <span class="comment-text" *ngIf="getCommentPreview(task) as preview; else noCommentTplFlat">{{ preview }}</span>
+                <ng-template #noCommentTplFlat>
+                  <span class="comment-text add-comment-prompt">{{ 'taskAccountability.taskTable.addCommentLink' | translate }}</span>
+                </ng-template>
+              </button>
             </td>
           </tr>
         </ng-template>
