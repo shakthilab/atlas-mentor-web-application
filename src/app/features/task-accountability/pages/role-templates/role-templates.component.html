@@ -331,9 +331,11 @@
               <span class="past-day-badge" *ngIf="isPastDay(selectedDayIndex)"> &bull; {{ 'taskAccountability.templates.pastDayReadOnly' | translate }}</span>
             </p>
           </div>
-          <button mat-icon-button (click)="closeSidebar()" class="close-btn">
-            <i-tabler name="x" class="icon-18"></i-tabler>
-          </button>
+          <div class="sidebar-header-actions">
+            <button mat-icon-button (click)="closeSidebar()" class="close-btn">
+              <i-tabler name="x" class="icon-18"></i-tabler>
+            </button>
+          </div>
         </div>
 
         <!-- Sidebar Body -->
@@ -342,11 +344,12 @@
           <!-- Tasks list in sidebar -->
           <div class="sidebar-tasks-list" *ngIf="day.tasks && day.tasks.length > 0; else noTasksState">
             <div class="sidebar-task-card" *ngFor="let task of day.tasks; let tIdx = index"
-              [class.is-editing]="editingTaskId === (task.id || 'task-' + tIdx)">
+              [class.is-editing]="editingTaskId === (task.id || 'task-' + tIdx)"
+              [class.is-selected]="isTaskSelected(tIdx)">
 
               <ng-container *ngIf="editingTaskId !== (task.id || 'task-' + tIdx); else editTaskForm">
-                <div class="task-drag-handle">
-                  <i-tabler name="grip-vertical" class="icon-14 text-muted"></i-tabler>
+                <div class="task-select-checkbox" *ngIf="!isPastDay(selectedDayIndex)" (click)="toggleTaskSelection(tIdx); $event.stopPropagation()">
+                  <i-tabler [name]="isTaskSelected(tIdx) ? 'checkbox' : 'square'" class="icon-16"></i-tabler>
                 </div>
                 <span class="priority-dot" [class]="task.priority?.toLowerCase() || 'medium'"></span>
 
@@ -366,20 +369,6 @@
                     matTooltipPosition="above" (click)="startEditingTask(task, tIdx)">
                     <i-tabler name="pencil" class="icon-14"></i-tabler>
                   </button>
-
-                  <button class="task-action-btn copy-btn"
-                    [matTooltip]="'taskAccountability.templates.duplicateTaskTooltip' | translate"
-                    matTooltipPosition="above" [matMenuTriggerFor]="taskDuplicateMenu">
-                    <i-tabler name="copy" class="icon-14"></i-tabler>
-                  </button>
-                  <mat-menu #taskDuplicateMenu="matMenu" xPosition="before">
-                    <button mat-menu-item (click)="duplicateTaskToSameDay(task, day)">
-                      {{ 'taskAccountability.templates.duplicateToSameDay' | translate }}
-                    </button>
-                    <button mat-menu-item (click)="openDuplicateTaskModal(task)">
-                      {{ 'taskAccountability.templates.duplicateToOtherDays' | translate }}
-                    </button>
-                  </mat-menu>
 
                   <button class="task-action-btn delete-btn" (click)="removeTaskFromSelectedDay(tIdx)"
                     [title]="'taskAccountability.templates.deleteTask' | translate">
@@ -462,9 +451,15 @@
 
         <!-- Sidebar Footer -->
         <div class="sidebar-footer">
-          <button mat-button class="duplicate-day-btn" (click)="openDuplicateDayModal()">
+          <button mat-button class="duplicate-day-btn" *ngIf="selectedTaskIndexesForDuplication.size === 0"
+            (click)="openDuplicateDayModal()">
             <i-tabler name="copy" class="icon-14 m-r-6"></i-tabler>
             {{ 'taskAccountability.templates.duplicateThisDay' | translate }}
+          </button>
+          <button mat-flat-button color="primary" class="duplicate-selected-tasks-btn"
+            *ngIf="selectedTaskIndexesForDuplication.size > 0" (click)="openDuplicateSelectedTasksModal()">
+            <i-tabler name="copy" class="icon-14 m-r-6"></i-tabler>
+            {{ 'taskAccountability.templates.duplicateSelectedTasksCount' | translate:{ count: selectedTaskIndexesForDuplication.size } }}
           </button>
         </div>
       </div>
@@ -473,13 +468,17 @@
       <div class="duplicate-dialog-overlay" *ngIf="showDuplicateDayModal" (click)="closeDuplicateDayModal()">
         <div class="duplicate-dialog-card" (click)="$event.stopPropagation()">
           <div class="dialog-header">
-            <div class="header-titles" *ngIf="!duplicateTaskContext">
+            <div class="header-titles" *ngIf="duplicateTasksContext.length === 0">
               <h3>{{ 'taskAccountability.templates.duplicateDayTasks' | translate:{ day: getSelectedDay()?.name } }}</h3>
               <p class="subtitle">{{ 'taskAccountability.templates.selectTargetDays' | translate:{ count: getSelectedDay()?.tasks?.length || 0 } }}</p>
             </div>
-            <div class="header-titles" *ngIf="duplicateTaskContext">
-              <h3>{{ 'taskAccountability.templates.duplicateTaskTitle' | translate:{ task: duplicateTaskContext.name } }}</h3>
+            <div class="header-titles" *ngIf="duplicateTasksContext.length === 1">
+              <h3>{{ 'taskAccountability.templates.duplicateTaskTitle' | translate:{ task: duplicateTasksContext[0].name } }}</h3>
               <p class="subtitle">{{ 'taskAccountability.templates.selectTargetDaysForTask' | translate }}</p>
+            </div>
+            <div class="header-titles" *ngIf="duplicateTasksContext.length > 1">
+              <h3>{{ 'taskAccountability.templates.duplicateTasksTitle' | translate:{ count: duplicateTasksContext.length } }}</h3>
+              <p class="subtitle">{{ 'taskAccountability.templates.selectTargetDaysForTasks' | translate:{ count: duplicateTasksContext.length } }}</p>
             </div>
             <button mat-icon-button (click)="closeDuplicateDayModal()" class="close-btn">
               <i-tabler name="x" class="icon-18"></i-tabler>

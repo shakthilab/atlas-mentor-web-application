@@ -40,10 +40,14 @@ export class RoleTemplatesComponent implements OnInit {
   selectedTargetDaysForDuplication = new Set<string>();
   duplicateTargetMonthName = '';
   isDuplicatingDayBatch = false;
-  // Non-null while the target-day picker modal (shared with the whole-day duplicate flow) is
-  // being used to duplicate one specific task instead of an entire day's task list.
-  duplicateTaskContext: TemplateTask | null = null;
+  // Non-empty while the target-day picker modal (shared with the whole-day duplicate flow) is
+  // being used to duplicate one or more specific tasks instead of an entire day's task list.
+  duplicateTasksContext: TemplateTask[] = [];
   isDuplicatingTaskBatch = false;
+  // Lets the user check off several tasks in the sidebar task list and duplicate all of them
+  // to other days/months in one go, instead of repeating the single-task flow per task.
+  // Checkboxes are always visible on each task row - no separate "select mode" toggle.
+  selectedTaskIndexesForDuplication = new Set<number>();
   monthsList: string[] = (() => {
     const names = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const list: string[] = [];
@@ -887,11 +891,25 @@ export class RoleTemplatesComponent implements OnInit {
       this.newTaskTitle = '';
       this.newTaskDescription = '';
       this.newTaskPriority = 'MEDIUM';
+      this.selectedTaskIndexesForDuplication.clear();
     }
   }
 
   closeSidebar(): void {
     this.isSidebarOpen = false;
+    this.selectedTaskIndexesForDuplication.clear();
+  }
+
+  isTaskSelected(tIdx: number): boolean {
+    return this.selectedTaskIndexesForDuplication.has(tIdx);
+  }
+
+  toggleTaskSelection(tIdx: number): void {
+    if (this.selectedTaskIndexesForDuplication.has(tIdx)) {
+      this.selectedTaskIndexesForDuplication.delete(tIdx);
+    } else {
+      this.selectedTaskIndexesForDuplication.add(tIdx);
+    }
   }
 
   toggleAddForm(show: boolean): void {
@@ -1071,22 +1089,35 @@ export class RoleTemplatesComponent implements OnInit {
   closeDuplicateDayModal(): void {
     this.showDuplicateDayModal = false;
     this.selectedTargetDaysForDuplication.clear();
-    this.duplicateTaskContext = null;
+    this.duplicateTasksContext = [];
   }
 
   /**
-   * Opens the same target-day picker modal as openDuplicateDayModal(), but scoped to a single
-   * task rather than the whole day - getDuplicateTargetDaysList()/toggleTargetDaySelection()/
-   * etc. are all reused as-is since they only care about the target month/day, not what's
-   * being copied onto it.
+   * Opens the same target-day picker modal as openDuplicateDayModal(), but scoped to one or
+   * more specific tasks rather than the whole day - getDuplicateTargetDaysList()/
+   * toggleTargetDaySelection()/etc. are all reused as-is since they only care about the
+   * target month/day, not what's being copied onto it.
    */
-  openDuplicateTaskModal(task: TemplateTask): void {
-    if (this.isPastDay(this.selectedDayIndex)) return;
-    this.duplicateTaskContext = task;
+  openDuplicateTasksModal(tasks: TemplateTask[]): void {
+    if (this.isPastDay(this.selectedDayIndex) || tasks.length === 0) return;
+    this.duplicateTasksContext = tasks;
     this.selectedTargetDaysForDuplication.clear();
     this.isDuplicatingTaskBatch = false;
     this.duplicateTargetMonthName = this.selectedMonthName;
     this.showDuplicateDayModal = true;
+  }
+
+  // Used by the "Duplicate N tasks" button once the user has checked off tasks in the
+  // sidebar list (one checked task is a valid case too - the modal just shows a singular title).
+  openDuplicateSelectedTasksModal(): void {
+    const day = this.getSelectedDay();
+    if (!day || this.selectedTaskIndexesForDuplication.size === 0) return;
+    const tasks = Array.from(this.selectedTaskIndexesForDuplication)
+      .sort((a, b) => a - b)
+      .map(idx => day.tasks[idx])
+      .filter((t): t is TemplateTask => !!t);
+    this.selectedTaskIndexesForDuplication.clear();
+    this.openDuplicateTasksModal(tasks);
   }
 
   /**
@@ -1226,9 +1257,9 @@ export class RoleTemplatesComponent implements OnInit {
   }
 
   // Bound to the target-day picker's confirm button, which is shared between the whole-day
-  // duplicate flow and the single-task duplicate flow - dispatch to whichever one is active.
+  // duplicate flow and the single/multi-task duplicate flow - dispatch to whichever one is active.
   confirmDuplicateSelection(): void {
-    if (this.duplicateTaskContext) {
+    if (this.duplicateTasksContext.length > 0) {
       this.confirmDuplicateTaskToSelected();
     } else {
       this.confirmDuplicateDayToSelected();
@@ -1238,9 +1269,9 @@ export class RoleTemplatesComponent implements OnInit {
   confirmDuplicateTaskToSelected(): void {
     if (this.isDuplicatingTaskBatch) return;
 
-    const task = this.duplicateTaskContext;
+    const tasks = this.duplicateTasksContext;
     const sourceDay = this.getSelectedDay();
-    if (!task || !sourceDay) {
+    if (!tasks.length || !sourceDay) {
       this.closeDuplicateDayModal();
       return;
     }
@@ -1269,27 +1300,29 @@ export class RoleTemplatesComponent implements OnInit {
       const isInOpenMonth = targetMonthIsOpenMonth && target.dayNumber >= 1 && target.dayNumber <= currentMonthDays.length;
       if (isInOpenMonth) {
         const targetDay = currentMonthDays[target.dayNumber - 1];
-        const clonedTask: TemplateTask = JSON.parse(JSON.stringify(task));
-        clonedTask.id = `t-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
-        targetDay.tasks.push(clonedTask);
+        tasks.forEach(task => {
+          const clonedTask: TemplateTask = JSON.parse(JSON.stringify(task));
+          clonedTask.id = `t-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+          targetDay.tasks.push(clonedTask);
+        });
       }
     });
 
     if (isSaved) {
-      // Same bulk endpoint the whole-day flow uses, just with a single-task payload: the
-      // first selected target supplies the URL's own day, the rest ride along in
-      // `targetDays`, so the task lands on every selected day in one atomic call.
-      const taskPayload = [{
-        title: task.name,
-        description: task.description || '',
-        priority: task.priority || 'MEDIUM'
-      }];
+      // Same bulk endpoint the whole-day flow uses: the first selected target supplies the
+      // URL's own day, the rest ride along in `targetDays`, so every selected task lands on
+      // every selected day in one atomic call.
+      const taskPayloads = tasks.map(t => ({
+        title: t.name,
+        description: t.description || '',
+        priority: t.priority || 'MEDIUM'
+      }));
       const [primaryTarget, ...restTargets] = targets;
 
       this.service.addTasksBulkApi(
         templateId,
         primaryTarget.dayNumber,
-        taskPayload,
+        taskPayloads,
         primaryTarget.month,
         primaryTarget.year,
         restTargets
@@ -1299,13 +1332,13 @@ export class RoleTemplatesComponent implements OnInit {
           this.service.getRoleTemplatesApi().subscribe();
         },
         error: (err) => {
-          console.error('Failed to duplicate task to selected days:', err);
+          console.error('Failed to duplicate tasks to selected days:', err);
           this.refreshEditingTemplateDaysFromServer(templateId);
         }
       });
     }
 
-    this.showToast(this.t('taskAccountability.templates.toast.taskDuplicatedToDays', { count: targets.length }));
+    this.showToast(this.t('taskAccountability.templates.toast.taskDuplicatedToDaysMulti', { taskCount: tasks.length, dayCount: targets.length }));
     this.closeDuplicateDayModal();
   }
 
@@ -1333,44 +1366,6 @@ export class RoleTemplatesComponent implements OnInit {
     clonedTask.id = `t-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
     targetDay.tasks.push(clonedTask);
     this.showToast(this.t('taskAccountability.templates.toast.taskCopiedTo', { day: targetDay.name }));
-  }
-
-  duplicateTaskToSameDay(task: TemplateTask, day: TemplateDay): void {
-    if (!task || !day) return;
-    if (this.isPastDay(this.selectedDayIndex)) {
-      return;
-    }
-
-    if (this.isTemplateUnsaved()) {
-      const clonedTask: TemplateTask = JSON.parse(JSON.stringify(task));
-      clonedTask.id = `t-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
-      day.tasks.push(clonedTask);
-      this.showToast(this.t('taskAccountability.templates.toast.taskDuplicated'));
-      return;
-    }
-
-    const templateId = this.editingTemplate!.id;
-    const dayNumber = this.selectedDayIndex + 1;
-    const taskPayload = {
-      title: task.name,
-      description: task.description || '',
-      priority: task.priority || 'MEDIUM'
-    };
-
-    this.service.addTaskApi(templateId, dayNumber, taskPayload, day.month, day.year).subscribe({
-      next: () => {
-        this.showToast(this.t('taskAccountability.templates.toast.taskDuplicated'));
-        this.refreshEditingTemplateDaysFromServer(templateId);
-        this.service.getRoleTemplatesApi().subscribe();
-      },
-      error: (err) => {
-        console.error('Failed to duplicate task via API, performing local duplicate:', err);
-        const clonedTask: TemplateTask = JSON.parse(JSON.stringify(task));
-        clonedTask.id = `t-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
-        day.tasks.push(clonedTask);
-        this.showToast(this.t('taskAccountability.templates.toast.taskDuplicated'));
-      }
-    });
   }
 
   openTaskDetails(task: TemplateTask, day: TemplateDay): void {
