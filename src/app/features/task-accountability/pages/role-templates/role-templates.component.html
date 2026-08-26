@@ -370,6 +370,12 @@
                     <i-tabler name="pencil" class="icon-14"></i-tabler>
                   </button>
 
+                  <button class="task-action-btn duplicate-btn"
+                    [matTooltip]="'common.duplicate' | translate"
+                    matTooltipPosition="above" (click)="duplicateTask(task, tIdx)">
+                    <i-tabler name="copy" class="icon-14"></i-tabler>
+                  </button>
+
                   <button class="task-action-btn delete-btn" (click)="removeTaskFromSelectedDay(tIdx)"
                     [title]="'taskAccountability.templates.deleteTask' | translate">
                     <i-tabler name="trash" class="icon-14"></i-tabler>
