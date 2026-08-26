@@ -1501,6 +1501,15 @@ export class RoleTemplatesComponent implements OnInit {
     }
   }
 
+  /**
+   * Duplicates a single task on the current template day.
+   * If the template is saved to the server, it invokes the addTaskApi to persist it.
+   * Otherwise, it creates the template or falls back to cloning the task in local state.
+   * Accidental double-triggering is prevented by the isDuplicatingSingleTask guard.
+   * 
+   * @param task The task item template to duplicate
+   * @param tIdx The index of the task in the list
+   */
   duplicateTask(task: TemplateTask, tIdx: number): void {
     // Guards against a double-fire from a rapid double-click submitting two API calls
     // for the same task before the first one's response comes back.
