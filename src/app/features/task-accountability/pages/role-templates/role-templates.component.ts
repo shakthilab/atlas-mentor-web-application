@@ -991,8 +991,8 @@ export class RoleTemplatesComponent implements OnInit {
       const createPayload = {
         name: this.editingTemplate.name.trim(),
         description: this.editingTemplate.name.trim(),
-        roleId: selectedRole ? selectedRole.id : null,
-        branchId: selectedBranch ? selectedBranch.id : null,
+        roleId: selectedRole ? selectedRole.id : (this.editingTemplate?.roleId != null ? Number(this.editingTemplate.roleId) : null),
+        branchId: selectedBranch ? selectedBranch.id : (this.editingTemplate?.branchId != null ? Number(this.editingTemplate.branchId) : null),
         days: []
       };
 
@@ -1574,8 +1574,8 @@ export class RoleTemplatesComponent implements OnInit {
       const createPayload = {
         name: this.editingTemplate.name.trim(),
         description: this.editingTemplate.name.trim(),
-        roleId: selectedRole ? selectedRole.id : null,
-        branchId: selectedBranch ? selectedBranch.id : null,
+        roleId: selectedRole ? selectedRole.id : (this.editingTemplate?.roleId != null ? Number(this.editingTemplate.roleId) : null),
+        branchId: selectedBranch ? selectedBranch.id : (this.editingTemplate?.branchId != null ? Number(this.editingTemplate.branchId) : null),
         days: []
       };
 
@@ -1713,8 +1713,8 @@ export class RoleTemplatesComponent implements OnInit {
     const payload = {
       name: template.name,
       description: template.name,
-      roleId: selectedRole ? selectedRole.id : null,
-      branchId: selectedBranch ? selectedBranch.id : null,
+      roleId: selectedRole ? selectedRole.id : (template.roleId != null ? Number(template.roleId) : null),
+      branchId: selectedBranch ? selectedBranch.id : (template.branchId != null ? Number(template.branchId) : null),
       days: (template.months?.[0]?.days || []).map((d, index) => {
         const dayId = this.parseServerDayId(d.id);
         return {
@@ -1747,6 +1747,7 @@ export class RoleTemplatesComponent implements OnInit {
           this.service.publishRoleTemplateApi(template.id).subscribe({
             next: () => {
               this.showToast(this.t('taskAccountability.templates.toast.templatePublished', { name: template.name }));
+              this.service.getRoleTemplatesApi().subscribe();
               this.closeModal();
             },
             error: () => {
@@ -1766,6 +1767,7 @@ export class RoleTemplatesComponent implements OnInit {
             this.service.publishRoleTemplateApi(newId).subscribe({
               next: () => {
                 this.showToast(this.t('taskAccountability.templates.toast.templatePublished', { name: template.name }));
+                this.service.getRoleTemplatesApi().subscribe();
                 this.closeModal();
               },
               error: () => {
@@ -1812,8 +1814,8 @@ export class RoleTemplatesComponent implements OnInit {
     const payload = {
       name: this.editingTemplate.name,
       description: this.editingTemplate.name,
-      roleId: selectedRole ? selectedRole.id : null,
-      branchId: selectedBranch ? selectedBranch.id : null,
+      roleId: selectedRole ? selectedRole.id : (this.editingTemplate?.roleId != null ? Number(this.editingTemplate.roleId) : null),
+      branchId: selectedBranch ? selectedBranch.id : (this.editingTemplate?.branchId != null ? Number(this.editingTemplate.branchId) : null),
       days: (this.editingTemplate.months?.[0]?.days || []).map((d, index) => {
         const dayId = this.parseServerDayId(d.id);
         return {
