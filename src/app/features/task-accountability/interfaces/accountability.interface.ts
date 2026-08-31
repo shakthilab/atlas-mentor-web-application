@@ -70,6 +70,7 @@ export interface CommentItem {
   commentedByUserId?: number | string | null;
   createdAtRaw?: Date | string | null;
   createdAtDate?: Date | null;
+  edited?: boolean;
 }
 
 export interface AttachmentItem {

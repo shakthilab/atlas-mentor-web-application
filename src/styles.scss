@@ -56,6 +56,15 @@
   }
 }
 
+.comment-popup-dialog-panel {
+  .mat-mdc-dialog-container {
+    .mdc-dialog__surface {
+      border-radius: 20px !important;
+      overflow: hidden;
+    }
+  }
+}
+
 .task-v2-dialog-panel {
   .mat-mdc-dialog-container .mdc-dialog__surface {
     background: transparent !important;

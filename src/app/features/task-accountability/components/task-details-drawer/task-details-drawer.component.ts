@@ -7,6 +7,7 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { MatDialog } from '@angular/material/dialog';
 import { SendBackReasonDialogComponent } from '../send-back-reason-dialog/send-back-reason-dialog.component';
 import { TranslateService } from '@ngx-translate/core';
+import { NotificationService } from '../../../../core/services/notification.service';
 
 @Component({
   selector: 'app-task-details-drawer',
@@ -19,6 +20,10 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
   task: TaskItem | null = null;
   newCommentText = '';
   activeTab: 'comments' | 'activity' = 'comments';
+
+  editingCommentId: string | null = null;
+  editingCommentText = '';
+  savingCommentEdit = false;
 
   // Resizing State
   width = 500; // default initial width in pixels
@@ -50,7 +55,8 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
     private renderer: Renderer2,
     private authService: AuthService,
     private dialog: MatDialog,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private notification: NotificationService
   ) {}
 
   loadStatuses(): void {
@@ -364,11 +370,12 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
             id: c.id.toString(),
             authorName: c.commentedByName || c.authorName || 'User',
             authorRole: c.commentedByRole || c.authorRole || '',
-            commentedByUserId: c.commentedByUserId || c.userId || null,
+            commentedByUserId: c.commentedById || c.commentedByUserId || c.userId || null,
             text: c.comment || c.text || '',
             createdAtRaw: c.createdAt || c.timestamp || null,
             createdAtDate: c.createdAt ? new Date(c.createdAt) : new Date(),
-            timestamp: c.createdAt ? new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now'
+            timestamp: c.createdAt ? new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now',
+            edited: !!c.edited
           }));
 
           // Sort chronologically (oldest at top, newest at bottom)
@@ -469,6 +476,46 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
       this.replyingToComment = null;
       this.service.triggerRefresh();
     }
+  }
+
+  trackByDateLabel(index: number, group: { dateLabel: string }): string {
+    return group.dateLabel;
+  }
+
+  trackByCommentId(index: number, comment: any): string {
+    return comment.id;
+  }
+
+  startEditComment(comment: any): void {
+    this.editingCommentId = comment.id;
+    this.editingCommentText = comment.text;
+  }
+
+  cancelEditComment(): void {
+    this.editingCommentId = null;
+    this.editingCommentText = '';
+  }
+
+  saveEditComment(comment: any): void {
+    const text = this.editingCommentText.trim();
+    if (!text || this.savingCommentEdit || !this.task?.id) return;
+
+    this.savingCommentEdit = true;
+    this.service.updateTaskCommentApi(this.task.id, comment.id, text).subscribe({
+      next: () => {
+        this.savingCommentEdit = false;
+        this.editingCommentId = null;
+        this.editingCommentText = '';
+        if (this.task) this.loadComments(this.task.id);
+        this.service.triggerRefresh();
+      },
+      error: (err) => {
+        this.savingCommentEdit = false;
+        console.error('Failed to update comment:', err);
+        const message = err?.error?.message || this.translate.instant('taskAccountability.taskDetails.failedToUpdateComment');
+        this.notification.showErrorToast(message);
+      }
+    });
   }
 
   onFileSelected(event: any): void {

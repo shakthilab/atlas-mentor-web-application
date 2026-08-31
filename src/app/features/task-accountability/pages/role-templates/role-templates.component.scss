@@ -2067,6 +2067,13 @@
           margin: 2px 0 0 0;
         }
       }
+      .sidebar-header-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+
       .close-btn {
         color: #94a3b8;
         &:hover {
@@ -2133,11 +2140,21 @@
           background: #eff6ff;
         }
 
-        .task-drag-handle {
+        &.is-selected {
+          border-color: #3b82f6;
+          background: #eff6ff;
+        }
+
+        .task-select-checkbox {
           padding-top: 2px;
-          cursor: grab;
           display: flex;
           align-items: center;
+          cursor: pointer;
+          color: #94a3b8;
+
+          i-tabler[name="checkbox"] {
+            color: #2563eb;
+          }
         }
 
         .priority-dot {
@@ -2227,6 +2244,11 @@
             &.edit-btn:hover {
               color: #2563eb;
               background: #eff6ff;
+            }
+
+            &.duplicate-btn:hover {
+              color: #0d9488;
+              background: #f0fdfa;
             }
 
             &.delete-btn:hover {
@@ -2513,6 +2535,15 @@
           background: #f8fafc;
           border-color: #cbd5e1 !important;
         }
+      }
+
+      .duplicate-selected-tasks-btn {
+        width: 100%;
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        border-radius: 8px !important;
+        height: 38px !important;
+        line-height: 38px !important;
       }
     }
   }

@@ -1,9 +1,11 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { TaskAccountabilityService } from '../../services/task-accountability.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { TaskItem, DayNode } from '../../interfaces/accountability.interface';
 import { Subscription } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
+import { TaskCommentPopupComponent } from '../task-comment-popup/task-comment-popup.component';
 
 @Component({
   selector: 'app-task-table',
@@ -38,7 +40,8 @@ export class TaskTableComponent implements OnInit, OnDestroy {
   constructor(
     private service: TaskAccountabilityService,
     private authService: AuthService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private dialog: MatDialog
   ) {}
 
   get isReviewerRole(): boolean {
@@ -215,6 +218,22 @@ export class TaskTableComponent implements OnInit, OnDestroy {
 
   selectTask(task: TaskItem): void {
     this.service.selectTask(task);
+  }
+
+  getCommentPreview(task: TaskItem): string | null {
+    if (task.latestCommentPreview) return task.latestCommentPreview;
+    if (task.comment && task.comment !== '—') return task.comment;
+    return null;
+  }
+
+  openCommentPopup(task: TaskItem, event?: MouseEvent): void {
+    if (event) event.stopPropagation();
+    this.dialog.open(TaskCommentPopupComponent, {
+      data: { task },
+      width: '480px',
+      maxWidth: '90vw',
+      panelClass: 'comment-popup-dialog-panel'
+    });
   }
 
   toggleAddForm(): void {

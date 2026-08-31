@@ -211,14 +211,14 @@
       <!-- Tab Content: Comments -->
       <div class="tab-panel-content" *ngIf="activeTab === 'comments'">
         <div class="chat-messages-container" #chatContainer>
-          <div class="chat-date-group" *ngFor="let group of groupedComments">
+          <div class="chat-date-group" *ngFor="let group of groupedComments; trackBy: trackByDateLabel">
             <div class="chat-date-divider">
               <span>{{ group.dateLabel }}</span>
             </div>
 
-            <div 
-              class="chat-bubble-row" 
-              *ngFor="let comment of group.comments"
+            <div
+              class="chat-bubble-row"
+              *ngFor="let comment of group.comments; trackBy: trackByCommentId"
               [class.my-message]="isMyComment(comment)"
               [class.other-message]="!isMyComment(comment)"
             >
@@ -234,10 +234,44 @@
                 <div class="comment-header-row" *ngIf="!isMyComment(comment)">
                   <span class="author-name">{{ comment.authorName }}</span>
                 </div>
-                <p class="comment-body-text">{{ comment.text }}</p>
-                <div class="comment-time-row">
-                  <span class="comment-time">{{ comment.timestamp }}</span>
-                </div>
+
+                <ng-container *ngIf="editingCommentId !== comment.id; else editCommentMode">
+                  <p class="comment-body-text">{{ comment.text }}</p>
+                  <div class="comment-time-row">
+                    <span class="comment-time">{{ comment.timestamp }}</span>
+                    <span class="comment-edited-tag" *ngIf="comment.edited">{{ 'taskAccountability.taskDetails.editedTag' | translate }}</span>
+                    <button
+                      class="comment-edit-btn"
+                      *ngIf="isMyComment(comment)"
+                      (click)="startEditComment(comment)"
+                      type="button"
+                      [title]="'taskAccountability.taskDetails.editComment' | translate"
+                    >
+                      <i-tabler name="pencil" class="icon-12"></i-tabler>
+                    </button>
+                  </div>
+                </ng-container>
+
+                <ng-template #editCommentMode>
+                  <textarea
+                    class="comment-edit-textarea"
+                    [(ngModel)]="editingCommentText"
+                    rows="2"
+                  ></textarea>
+                  <div class="comment-edit-actions">
+                    <button class="comment-edit-cancel" (click)="cancelEditComment()" type="button">
+                      {{ 'common.cancel' | translate }}
+                    </button>
+                    <button
+                      class="comment-edit-save"
+                      [disabled]="!editingCommentText.trim() || savingCommentEdit"
+                      (click)="saveEditComment(comment)"
+                      type="button"
+                    >
+                      {{ 'taskAccountability.taskDetails.saveComment' | translate }}
+                    </button>
+                  </div>
+                </ng-template>
               </div>
             </div>
           </div>
