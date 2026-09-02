@@ -48,6 +48,40 @@ export class AnimatedNumberDirective implements OnInit {
   }
 }
 
+/**
+ * Which dashboard sections each role is allowed to see. Mirrors the
+ * per-endpoint @PreAuthorize gates on AdminDashboardController — kept in sync
+ * with the backend so we never fire a request for a section the API will
+ * 403 on, and so hidden sections don't flash in before data arrives.
+ * Any role not listed here (or with no role) falls back to DEFAULT_SECTIONS.
+ */
+type DashboardSection = 'financial' | 'team' | 'referrals' | 'audit';
+const ROLE_SECTIONS: Record<string, DashboardSection[]> = {
+  ADMIN: ['financial', 'team', 'referrals', 'audit'],
+  MANAGER: ['financial', 'team', 'referrals'],
+  ADMINISTRATIVE_ASSISTANT: ['team'],
+  BRANCH_PARTNER: ['financial', 'referrals'],
+  SENIOR_COUNSELLOR: [],
+  JUNIOR_COUNSELLOR: [],
+  COUNSELLOR: [],
+};
+const DEFAULT_SECTIONS: DashboardSection[] = [];
+
+// Per-role accent color, applied as a CSS custom property so each role's
+// dashboard reads as visually distinct while reusing the exact same cards/
+// charts — all values pulled from this app's own theme tokens (_variables.scss)
+// rather than new colors, so it stays on-brand.
+const ROLE_ACCENT: Record<string, string> = {
+  ADMIN: '#14213D',                 // $primary
+  MANAGER: '#2C5AA0',               // $accent
+  ADMINISTRATIVE_ASSISTANT: '#56607A', // $ink-500
+  BRANCH_PARTNER: '#fd7e14',        // $gold-600
+  SENIOR_COUNSELLOR: '#1F9D6C',     // $success
+  JUNIOR_COUNSELLOR: '#4d9bff',     // $teal-500
+  COUNSELLOR: '#1F9D6C',
+};
+const DEFAULT_ACCENT = '#2C5AA0';
+
 @Component({
   selector: 'app-admin-dashboard',
   templateUrl: './admin-dashboard.component.html',
@@ -59,7 +93,16 @@ export class AdminDashboardComponent implements OnInit {
   public apiError: string | null = null;
   public greeting: string = '';
   public userName: string = '';
-  public isCounsellor: boolean = false;
+  public roleAccent: string = DEFAULT_ACCENT;
+
+  /** Narrow, pre-existing exception: hides the acquisition-source pie (Students
+   * section) for counsellor-type roles — kept separate from the section flags
+   * below since it trims one widget within a section they otherwise see. */
+  public isCounsellorRole: boolean = false;
+  public canViewFinancial: boolean = false;
+  public canViewTeam: boolean = false;
+  public canViewReferrals: boolean = false;
+  public canViewAudit: boolean = false;
 
   constructor(
     private dashboardService: DashboardService,
@@ -75,11 +118,20 @@ export class AdminDashboardComponent implements OnInit {
   private setGreeting(): void {
     const user = this.authService.currentUserValue;
     let userName = this.translate.instant('common.user');
+    let normalizedRole = '';
     if (user) {
       userName = user.name || userName;
-      const role = (user.role || '').toUpperCase().replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
-      this.isCounsellor = (role === 'JUNIOR COUNSELLOR' || role === 'SENIOR COUNSELLOR');
+      normalizedRole = (user.role || '').toUpperCase().trim();
+      const role = normalizedRole.replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
+      this.isCounsellorRole = (role === 'JUNIOR COUNSELLOR' || role === 'SENIOR COUNSELLOR' || role === 'COUNSELLOR');
     }
+    const sections = ROLE_SECTIONS[normalizedRole] ?? DEFAULT_SECTIONS;
+    this.canViewFinancial = sections.includes('financial');
+    this.canViewTeam = sections.includes('team');
+    this.canViewReferrals = sections.includes('referrals');
+    this.canViewAudit = sections.includes('audit');
+    this.roleAccent = ROLE_ACCENT[normalizedRole] ?? DEFAULT_ACCENT;
+
     this.userName = userName;
     const hour = new Date().getHours();
     const timeOfDay = hour < 12 ? this.translate.instant('common.timeOfDay.morning')
@@ -112,7 +164,10 @@ export class AdminDashboardComponent implements OnInit {
             (Array.isArray(res.data) ? res.data : []);
           if (Array.isArray(rawCards) && rawCards.length > 0) {
             console.log('[Dashboard] KPI card[0] keys:', Object.keys(rawCards[0]));
-            let mappedCards = rawCards.map((c: any) => ({
+            // Role-appropriate card selection now happens server-side
+            // (AdminDashboardService.getKpiCards) — the response already
+            // contains only the cards this role should see.
+            const mappedCards = rawCards.map((c: any) => ({
               ...c,
               value: String(c.value ?? c.count ?? c.total ?? 0),
               title: c.title ?? c.label ?? c.name ?? '',
@@ -120,17 +175,6 @@ export class AdminDashboardComponent implements OnInit {
               trendColor: c.trendColor || c.color || '#198754',
               chartOptions: this.createSparkline(c.chartData || c.sparkline || c.data || [], c.trendColor || c.color || '#198754')
             }));
-            if (this.isCounsellor) {
-              mappedCards = mappedCards.filter(c =>
-                !c.title.toLowerCase().includes('revenue') &&
-                !c.title.toLowerCase().includes('payment') &&
-                !c.title.toLowerCase().includes('earning') &&
-                !c.title.toLowerCase().includes('sales') &&
-                !c.title.toLowerCase().includes('payout') &&
-                !c.title.toLowerCase().includes('employee') &&
-                !c.title.toLowerCase().includes('branch')
-              );
-            }
             this.summaryCards = mappedCards;
           } else {
             console.warn('[Dashboard] KPI: no cards found in response. Available keys:', Object.keys(res.data));
@@ -223,7 +267,9 @@ export class AdminDashboardComponent implements OnInit {
       }
     });
 
-    // Financial
+    // Financial — role-gated (ADMIN, MANAGER, BRANCH_PARTNER only; see
+    // AdminDashboardController.getFinancialSection @PreAuthorize)
+    if (this.canViewFinancial) {
     this.dashboardService.getFinancialData(period).subscribe({
       next: (res) => {
         console.log('[Dashboard] Financial data keys:', res?.data ? Object.keys(res.data) : res);
@@ -310,6 +356,7 @@ export class AdminDashboardComponent implements OnInit {
         this.apiError = 'Failed to load dashboard data. Please try again later.';
       }
     });
+    }
 
     // Tasks
     this.dashboardService.getTasksData(period).subscribe({
@@ -375,7 +422,8 @@ export class AdminDashboardComponent implements OnInit {
       }
     });
 
-    // Team
+    // Team — role-gated (ADMIN, MANAGER, ADMINISTRATIVE_ASSISTANT only)
+    if (this.canViewTeam) {
     this.dashboardService.getTeamData(period).subscribe({
       next: (res) => {
         console.log('[Dashboard] Team data keys:', res?.data ? Object.keys(res.data) : res);
@@ -456,8 +504,10 @@ export class AdminDashboardComponent implements OnInit {
         this.apiError = 'Failed to load dashboard data. Please try again later.';
       }
     });
+    }
 
-    // Referrals
+    // Referrals — role-gated (ADMIN, MANAGER, BRANCH_PARTNER only)
+    if (this.canViewReferrals) {
     this.dashboardService.getReferralsData(period).subscribe({
       next: (res) => {
         console.log('[Dashboard] Referrals data keys:', res?.data ? Object.keys(res.data) : res);
@@ -480,8 +530,10 @@ export class AdminDashboardComponent implements OnInit {
         this.apiError = 'Failed to load dashboard data. Please try again later.';
       }
     });
+    }
 
-    // Audit
+    // Audit — role-gated (ADMIN only)
+    if (this.canViewAudit) {
     this.dashboardService.getAuditData(period).subscribe({
       next: (res) => {
         console.log('[Dashboard] Audit response data keys:', res?.data ? Object.keys(res.data) : res);
@@ -515,6 +567,7 @@ export class AdminDashboardComponent implements OnInit {
         this.apiError = 'Failed to load dashboard data. Please try again later.';
       }
     });
+    }
   }
 
   // --- TOP CARDS (Sparklines) ---
@@ -651,6 +704,22 @@ export class AdminDashboardComponent implements OnInit {
       if (value < 10) return '#fca5a5';
       return '#ef4444';
     }
+  }
+
+  /** Purely decorative: picks a tabler icon for a KPI card based on its (API-supplied) title. No data/behavior impact. */
+  public getKpiIcon(title: string): string {
+    const t = (title || '').toLowerCase();
+    if (t.includes('student') || t.includes('enroll')) return 'school';
+    if (t.includes('lead') || t.includes('inquir')) return 'user-plus';
+    if (t.includes('referral') || t.includes('partner') || t.includes('commission')) return 'users-group';
+    if (t.includes('employee') || t.includes('staff') || t.includes('team')) return 'users';
+    if (t.includes('branch') || t.includes('office') || t.includes('location')) return 'building';
+    if (t.includes('task') || t.includes('approval') || t.includes('pending')) return 'checklist';
+    if (t.includes('overdue') || t.includes('dispute') || t.includes('alert') || t.includes('escalat')) return 'alert-triangle';
+    if (t.includes('payment') || t.includes('invoice') || t.includes('due') || t.includes('collect')) return 'credit-card';
+    if (t.includes('revenue') || t.includes('earning') || t.includes('sales') || t.includes('income') || t.includes('amount') || t.includes('payout')) return 'currency-dollar';
+    if (t.includes('audit') || t.includes('log') || t.includes('compliance')) return 'file-text';
+    return 'activity';
   }
 
   public throughputOptions: EChartsOption = {

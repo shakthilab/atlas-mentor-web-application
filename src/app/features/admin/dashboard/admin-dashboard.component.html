@@ -1,4 +1,4 @@
-<div class="admin-dashboard">
+<div class="admin-dashboard" [style.--role-accent]="roleAccent">
 
 
   <div class="container-fluid px-3 px-md-4 px-lg-5 pt-4 pb-2">
@@ -21,7 +21,13 @@
     <div class="metrics-grid mb-4">
       <div class="op-card card-sm m-0 animate-card" *ngFor="let card of summaryCards; let i = index"
         [style.animation-delay]="(i * 55) + 'ms'">
-        <div class="card-label">{{ card.title }}</div>
+        <div class="d-flex align-items-center justify-content-between">
+          <div class="card-label">{{ card.title }}</div>
+          <div class="card-icon-chip" [style.background]="(card.trendColor || '#198754') + '18'"
+            [style.color]="card.trendColor || '#198754'">
+            <i-tabler [name]="getKpiIcon(card.title)"></i-tabler>
+          </div>
+        </div>
         <div class="d-flex align-items-center justify-content-between">
           <div class="card-value" [appAnimatedNumber]="card.value" [prefix]="card.prefix || ''"
             [suffix]="card.suffix || ''" [isDecimal]="card.value?.toString()?.includes('.')">0</div>
@@ -62,7 +68,7 @@
         </div>
       </div>
       <div class="col-lg-4 d-flex flex-column gap-4">
-        <div class="op-card p-4 flex-grow-1 animate-card" style="animation-delay:120ms" *ngIf="!isCounsellor">
+        <div class="op-card p-4 flex-grow-1 animate-card" style="animation-delay:120ms" *ngIf="!isCounsellorRole">
           <div class="card-label text-primary">{{ 'adminDashboard.source' | translate }}</div>
           <div class="fs-5 fw-bold text-dark mb-2" style="font-weight: 700 !important;">{{ 'adminDashboard.referralVsCompany' | translate }}</div>
           <div style="height: 200px;">
@@ -104,7 +110,7 @@
     </div>
 
     <!-- SECTION 03: FINANCIAL -->
-    <ng-container *ngIf="!isCounsellor">
+    <ng-container *ngIf="canViewFinancial">
       <div class="section-label animate-section">{{ 'adminDashboard.section3' | translate }}</div>
       <div class="row g-4 mb-5">
         <div class="col" *ngFor="let m of financialMetrics; let i = index">
@@ -241,7 +247,7 @@
       </div>
     </div>
     <div class="row g-4 mb-5">
-      <div [class]="isCounsellor ? 'col-12' : 'col-lg-7'">
+      <div [class]="canViewTeam ? 'col-lg-7' : 'col-12'">
         <div class="op-card p-4 h-100 animate-card" style="animation-delay:80ms">
           <div class="d-flex justify-content-between mb-4">
             <div>
@@ -265,7 +271,7 @@
           </app-data-table>
         </div>
       </div>
-      <div class="col-lg-5" *ngIf="!isCounsellor">
+      <div class="col-lg-5" *ngIf="canViewTeam">
         <div class="op-card p-4 h-100 animate-card" style="animation-delay:140ms">
           <div class="card-label text-primary">{{ 'adminDashboard.workload' | translate }}</div>
           <div class="fs-5 fw-bold text-dark mb-4" style="font-weight: 700 !important;">{{ 'adminDashboard.employeeTaskLoad' | translate }}</div>
@@ -290,7 +296,7 @@
     </div>
 
     <!-- SECTION 05: TEAM & BRANCHES -->
-    <ng-container *ngIf="!isCounsellor">
+    <ng-container *ngIf="canViewTeam">
       <div class="section-label animate-section">{{ 'adminDashboard.section5' | translate }}</div>
       <div class="row g-4 mb-5">
         <div class="col-lg-4">
@@ -374,7 +380,7 @@
     </ng-container>
 
     <!-- SECTION 06: REFERRALS & PARTNERS -->
-    <ng-container *ngIf="!isCounsellor">
+    <ng-container *ngIf="canViewReferrals">
       <div class="section-label animate-section">{{ 'adminDashboard.section6' | translate }}</div>
       <div class="row g-4 mb-5">
         <div class="col" *ngFor="let rm of referralMetrics; let i = index">
@@ -445,7 +451,7 @@
     </ng-container>
 
     <!-- SECTION 07: AUDIT & ACTIVITY -->
-    <ng-container *ngIf="!isCounsellor">
+    <ng-container *ngIf="canViewAudit">
       <div class="section-label animate-section">{{ 'adminDashboard.section7' | translate }}</div>
       <div class="row g-4 mb-5">
         <div class="col-lg-8">

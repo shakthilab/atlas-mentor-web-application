@@ -237,12 +237,26 @@
     align-items: center;
     animation: fadeIn 0.5s ease both;
 
+    // Role accent dot — set via [style.--role-accent] on .admin-dashboard,
+    // gives each role's dashboard a distinct, on-brand identity color
+    // without touching the card/chart layout.
+    &::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--role-accent, #14213D);
+      margin-right: 8px;
+      flex-shrink: 0;
+    }
+
     &::after {
       content: '';
       flex-grow: 1;
       height: 1px;
-      background: linear-gradient(to right, #e2e6ea, transparent);
+      background: linear-gradient(to right, var(--role-accent, #e2e6ea), transparent);
       margin-left: 16px;
+      opacity: 0.5;
     }
   }
 
@@ -308,6 +322,27 @@
       text-transform: uppercase;
       margin-bottom: 10px;
       letter-spacing: 0.6px;
+    }
+
+    &.card-sm .card-label {
+      margin-bottom: 0;
+    }
+
+    .card-icon-chip {
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-bottom: 10px;
+
+      i-tabler {
+        width: 14px;
+        height: 14px;
+        display: flex;
+      }
     }
 
     .card-value {
