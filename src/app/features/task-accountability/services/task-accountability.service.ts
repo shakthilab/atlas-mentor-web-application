@@ -324,11 +324,6 @@ export class TaskAccountabilityService {
     return this.http.patch<any>(`${environment.apiUrl}/role-templates/${id}/publish`, {}).pipe(
       tap(() => {
         this.setTemplateStatusLocal(id.toString(), 'ACTIVE');
-      }),
-      catchError(() => {
-        // Fallback local update if backend API endpoint is not active during local development
-        this.setTemplateStatusLocal(id.toString(), 'ACTIVE');
-        return of({ success: true, status: 'ACTIVE' });
       })
     );
   }
@@ -469,6 +464,7 @@ export class TaskAccountabilityService {
             name: tTask.name,
             type: tTask.type,
             priority: tTask.priority,
+            proofRequired: !!tTask.proofRequired,
             status: 'Employee',
             actualValue: tTask.type === 'NUMERIC' ? `0/${tTask.targetValue || '100'}` : '—',
             comment: '',
@@ -511,6 +507,7 @@ export class TaskAccountabilityService {
             name: tTask.name,
             type: tTask.type,
             priority: tTask.priority,
+            proofRequired: !!tTask.proofRequired,
             status: 'Employee',
             actualValue: tTask.type === 'NUMERIC' ? `0/${tTask.targetValue || '100'}` : '—',
             comment: '',
@@ -585,21 +582,15 @@ export class TaskAccountabilityService {
   }
 
   public createRoleTemplateApi(request: any): Observable<any> {
-    return this.http.post<any>(`${environment.apiUrl}/role-templates`, request).pipe(
-      tap(() => this.getRoleTemplatesApi().subscribe())
-    );
+    return this.http.post<any>(`${environment.apiUrl}/role-templates`, request);
   }
 
   public updateRoleTemplateApi(id: string | number, request: any): Observable<any> {
-    return this.http.put<any>(`${environment.apiUrl}/role-templates/${id}`, request).pipe(
-      tap(() => this.getRoleTemplatesApi().subscribe())
-    );
+    return this.http.put<any>(`${environment.apiUrl}/role-templates/${id}`, request);
   }
 
   public deleteRoleTemplateApi(id: string | number): Observable<any> {
-    return this.http.delete<any>(`${environment.apiUrl}/role-templates/${id}/hard`).pipe(
-      tap(() => this.getRoleTemplatesApi().subscribe())
-    );
+    return this.http.delete<any>(`${environment.apiUrl}/role-templates/${id}/hard`);
   }
 
   private getDemoTasksForDay(dayNumber: number): Array<any> {
@@ -650,6 +641,7 @@ export class TaskAccountabilityService {
               description: t.description || '',
               type: 'CHECKLIST',
               priority: t.priority ? t.priority : 'MEDIUM',
+              proofRequired: !!t.proofRequired,
               required: true,
               active: true
             }))
@@ -660,7 +652,7 @@ export class TaskAccountabilityService {
       rawDays
     };
   }
-  public addTaskApi(templateId: string | number, dayNumber: number, task: { title: string; description: string; priority: string }, month?: number | null, year?: number | null): Observable<any> {
+  public addTaskApi(templateId: string | number, dayNumber: number, task: { title: string; description: string; priority: string; proofRequired?: boolean }, month?: number | null, year?: number | null): Observable<any> {
     let url = `${environment.apiUrl}/role-templates/${templateId}/days/${dayNumber}/tasks`;
     if (month != null && year != null) {
       url += `?month=${month}&year=${year}`;
@@ -682,7 +674,7 @@ export class TaskAccountabilityService {
   public addTasksBulkApi(
     templateId: string | number,
     dayNumber: number,
-    tasks: { title: string; description: string; priority: string }[],
+    tasks: { title: string; description: string; priority: string; proofRequired?: boolean }[],
     month?: number | null,
     year?: number | null,
     targetDays?: { dayNumber: number; month?: number | null; year?: number | null }[]
@@ -699,12 +691,35 @@ export class TaskAccountabilityService {
     return this.http.post<any>(url, body, { headers });
   }
 
-  public updateTaskApi(templateId: string | number, dayNumber: number, taskId: string | number, task: { title: string; description: string; priority: string }): Observable<any> {
+  public updateTaskApi(templateId: string | number, dayNumber: number, taskId: string | number, task: { title: string; description: string; priority: string; proofRequired?: boolean }): Observable<any> {
     return this.http.put<any>(`${environment.apiUrl}/role-templates/${templateId}/days/${dayNumber}/tasks/${taskId}`, task);
   }
 
   public deleteTaskApi(templateId: string | number, dayNumber: number, taskId: string | number): Observable<any> {
     return this.http.delete<any>(`${environment.apiUrl}/role-templates/${templateId}/days/${dayNumber}/tasks/${taskId}`);
+  }
+
+  public deleteDayTasksApi(templateId: string | number, dayNumber: number, month?: number | null, year?: number | null): Observable<any> {
+    let url = `${environment.apiUrl}/role-templates/${templateId}/days/${dayNumber}/tasks`;
+    const params: string[] = [];
+    if (month != null) {
+      params.push(`month=${month}`);
+    }
+    if (year != null) {
+      params.push(`year=${year}`);
+    }
+    if (params.length > 0) {
+      url += `?${params.join('&')}`;
+    }
+    return this.http.delete<any>(url);
+  }
+
+  public duplicateDayTasksApi(templateId: string | number, dayId: string | number, payload: any): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/role-templates/${templateId}/days/${dayId}/duplicate`, payload);
+  }
+
+  public patchRoleTemplateStatusApi(id: string | number, status: 'DRAFT' | 'ACTIVE'): Observable<any> {
+    return this.http.patch<any>(`${environment.apiUrl}/role-templates/${id}/status`, { status });
   }
 
   public updateTemplateStatusApi(id: string | number, status: 'ACTIVE' | 'INACTIVE'): Observable<any> {
@@ -720,6 +735,7 @@ export class TaskAccountabilityService {
     return this.http.get<any>(`${environment.apiUrl}/admin/employee-tree`);
   }
 
+  // --- Part A: Year/Month Dropdown API Endpoints ---
   public getEmployeeYearsApi(employeeId: string | number): Observable<any> {
     return this.http.get<any>(`${environment.apiUrl}/admin/employees/${employeeId}/years`);
   }
@@ -746,8 +762,8 @@ export class TaskAccountabilityService {
     return this.http.get<any>(`${environment.apiUrl}/tasks/${taskId}/comments`);
   }
 
-  public addTaskCommentApi(taskId: string | number, comment: string, parentCommentId?: number | string | null): Observable<any> {
-    const body: any = { comment };
+  public addTaskCommentApi(taskId: string | number, comment: string | null, parentCommentId?: number | string | null): Observable<any> {
+    const body: any = { comment: comment ?? null };
     if (parentCommentId !== undefined && parentCommentId !== null) {
       body.parentCommentId = parentCommentId;
     }
@@ -758,12 +774,47 @@ export class TaskAccountabilityService {
     return this.http.put<any>(`${environment.apiUrl}/tasks/${taskId}/comments/${commentId}`, { comment });
   }
 
+  /**
+   * Rollback for the two-step media-only comment flow: call this when the follow-up
+   * uploadTaskAttachmentApi fails, to remove the now-orphaned blank comment created
+   * in step 1. The backend only allows this while the comment is still blank and has
+   * no attachment recorded against it - see TaskService#deleteEmptyComment.
+   */
+  public deleteTaskCommentApi(taskId: string | number, commentId: string | number): Observable<any> {
+    return this.http.delete<any>(`${environment.apiUrl}/tasks/${taskId}/comments/${commentId}`);
+  }
+
   public getTaskAttachmentsApi(taskId: string | number): Observable<any> {
     return this.http.get<any>(`${environment.apiUrl}/tasks/${taskId}/attachments`);
   }
 
   public addTaskAttachmentApi(taskId: string | number, payload: { fileName: string; fileUrl: string; fileSize: number; commentId?: number | string }): Observable<any> {
     return this.http.post<any>(`${environment.apiUrl}/tasks/${taskId}/attachments`, payload);
+  }
+
+  /**
+   * Real multipart upload endpoint for attachments (Proof section or Comment section).
+   * @param taskId ID of the task
+   * @param file Raw file or audio Blob
+   * @param commentId Optional comment ID (omitted / null for Proof section, provided for Comment section)
+   * @param customFileName Optional filename for Blobs without .name
+   */
+  public uploadTaskAttachmentApi(
+    taskId: string | number,
+    file: File | Blob,
+    commentId?: number | string | null,
+    customFileName?: string
+  ): Observable<any> {
+    const formData = new FormData();
+    if (file instanceof File) {
+      formData.append('file', file, file.name);
+    } else {
+      formData.append('file', file, customFileName || 'recording.webm');
+    }
+    if (commentId !== undefined && commentId !== null) {
+      formData.append('commentId', commentId.toString());
+    }
+    return this.http.post<any>(`${environment.apiUrl}/tasks/${taskId}/attachments/upload`, formData);
   }
 
   public getTaskActivityApi(taskId: string | number): Observable<any> {
@@ -799,6 +850,16 @@ export class TaskAccountabilityService {
 
   public patchTaskPriorityApi(taskId: string | number, priority: string): Observable<any> {
     return this.http.patch<any>(`${environment.apiUrl}/tasks/${taskId}/priority`, { priority });
+  }
+
+  public bulkDeleteTasksApi(taskIds: (number | string)[]): Observable<any> {
+    const numericTaskIds = taskIds.map(id => {
+      const num = Number(String(id).replace(/^\D+/g, ''));
+      return isNaN(num) ? id : num;
+    });
+    return this.http.post<any>(`${environment.apiUrl}/tasks/bulk-delete`, {
+      taskIds: numericTaskIds
+    });
   }
 
   public submitEmployeeDayApi(employeeId: string | number, date: string): Observable<any> {

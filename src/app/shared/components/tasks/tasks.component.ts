@@ -6,7 +6,8 @@ import { MatPaginator } from '@angular/material/paginator';
 import { TaskService, Task, TaskComment, TaskAttachment, TaskActivity, MOCK_MEMBERS, MOCK_BUNDLES, TaskBundle, BundleTask } from '../../../core/services/task.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { MasterDataService, Role } from '../../../core/services/master-data.service';
-import { Subject } from 'rxjs';
+import { VoiceRecorderService, VoiceRecordingResult } from '../../../core/services/voice-recorder.service';
+import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 
@@ -22,6 +23,12 @@ export class TasksComponent implements OnInit, AfterViewInit {
   isLoading: boolean = false;
   isDrawerOpen: boolean = false;
   isMobile: boolean = false;
+
+  // Voice recording state
+  isVoiceRecording: boolean = false;
+  recordingDurationSec: number = 0;
+  recordingDurationFormatted: string = '0:00';
+  private tasksSub = new Subscription();
 
   // Data
   tasks: Task[] = [];
@@ -190,7 +197,8 @@ export class TasksComponent implements OnInit, AfterViewInit {
     private taskService: TaskService,
     private notificationService: NotificationService,
     public dialog: MatDialog,
-    private masterDataService: MasterDataService
+    private masterDataService: MasterDataService,
+    private voiceRecorder: VoiceRecorderService
   ) {
     this.checkScreenSize();
   }
@@ -213,6 +221,13 @@ export class TasksComponent implements OnInit, AfterViewInit {
     this.loadTasks();
     this.loadStatuses();
     this.loadPriorities();
+
+    this.tasksSub.add(
+      this.voiceRecorder.recordingDuration$.subscribe(sec => {
+        this.recordingDurationSec = sec;
+        this.recordingDurationFormatted = this.voiceRecorder.formatTime(sec);
+      })
+    );
 
     this.searchSubject.pipe(
       debounceTime(400),
@@ -968,6 +983,104 @@ export class TasksComponent implements OnInit, AfterViewInit {
         this.loadTasks();
       }
     });
+  }
+
+  // Voice recording methods for drawer
+  async startVoiceRecording(): Promise<void> {
+    try {
+      await this.voiceRecorder.startRecording();
+      this.isVoiceRecording = true;
+    } catch (err: any) {
+      this.isVoiceRecording = false;
+      this.notificationService.showErrorToast('Could not access microphone. Please check permissions.');
+    }
+  }
+
+  cancelVoiceRecording(): void {
+    this.voiceRecorder.cancelRecording();
+    this.isVoiceRecording = false;
+  }
+
+  async stopAndSendVoiceComment(): Promise<void> {
+    try {
+      const result = await this.voiceRecorder.stopRecording();
+      this.isVoiceRecording = false;
+      if (!result || !this.editingTask) return;
+
+      const taskId = this.editingTask.id;
+      // Media-only comment: create it with blank text, then upload the raw .webm
+      // file against its id via the real multipart endpoint. Never embed the
+      // recording's base64 bytes in the comment text - it blows past the server's
+      // 1000-char cap and, on failure, leaves a blank "empty message" comment behind.
+      this.taskService.addCommentRaw(taskId, null).subscribe({
+        next: (commentRes) => {
+          const commentId = commentRes?.id || commentRes?.data?.id;
+          if (!commentId) {
+            this.loadTasks();
+            return;
+          }
+
+          this.taskService.uploadAttachment(taskId, result.blob, commentId, 'voice_note.webm').subscribe({
+            next: () => this.refreshEditingTaskAfterVoiceComment(taskId),
+            error: (uploadErr) => {
+              console.error('Failed to upload voice recording multipart file:', uploadErr);
+              this.notificationService.showErrorToast('Voice note failed to upload. Please try again.');
+              this.taskService.deleteEmptyComment(taskId, commentId).subscribe({
+                next: () => this.refreshEditingTaskAfterVoiceComment(taskId),
+                error: (deleteErr) => {
+                  console.error('Failed to clean up orphaned empty comment:', deleteErr);
+                  this.refreshEditingTaskAfterVoiceComment(taskId);
+                }
+              });
+            }
+          });
+        },
+        error: (err) => {
+          console.error('Failed to create voice note comment record:', err);
+          this.notificationService.showErrorToast('Voice note failed to upload. Please try again.');
+        }
+      });
+    } catch (e) {
+      this.isVoiceRecording = false;
+    }
+  }
+
+  private refreshEditingTaskAfterVoiceComment(taskId: number): void {
+    this.taskService.getTaskById(taskId).subscribe({
+      next: (updated) => {
+        if (!updated) return;
+        this.editingTask = updated;
+        this.drawerTaskData.comments = updated.comments;
+        this.drawerTaskData.activities = updated.activities;
+        this.buildTimelineStream();
+        this.loadTasks();
+      }
+    });
+  }
+
+  isVoiceNoteString(text?: string): boolean {
+    if (!text) return false;
+    return text.startsWith('[VOICE_NOTE:') || text.startsWith('data:audio/');
+  }
+
+  getVoiceAudioUrl(text?: string): string {
+    if (!text) return '';
+    if (text.startsWith('[VOICE_NOTE:') && text.includes(']')) {
+      return text.substring(text.indexOf(']') + 1);
+    }
+    if (text.startsWith('data:audio/')) {
+      return text;
+    }
+    return '';
+  }
+
+  getVoiceDuration(text?: string): number {
+    if (!text) return 0;
+    if (text.startsWith('[VOICE_NOTE:') && text.includes(']')) {
+      const match = text.match(/duration=(\d+)/);
+      return match ? parseInt(match[1], 10) : 0;
+    }
+    return 0;
   }
 
   deleteComment(commentId: number): void {

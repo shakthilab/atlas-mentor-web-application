@@ -71,15 +71,27 @@ export interface CommentItem {
   createdAtRaw?: Date | string | null;
   createdAtDate?: Date | null;
   edited?: boolean;
+  audioUrl?: string;
+  audioDuration?: number;
+  attachment?: AttachmentItem;
 }
 
 export interface AttachmentItem {
   id: string;
+  taskId?: number | string;
   name: string;
+  fileName?: string;
   size: string;
+  fileSize?: number;
+  fileSizeFormatted?: string;
+  originalFileSize?: number;
   fileUrl?: string;
+  fileType?: 'IMAGE' | 'VIDEO' | 'AUDIO' | 'DOCUMENT' | string;
+  commentId?: number | string | null;
+  uploadedById?: number | string;
   uploadedByName?: string;
   uploadedAt?: string;
+  createdAt?: string;
 }
 
 export interface ActivityItem {
@@ -99,6 +111,7 @@ export interface TaskItem {
   type: 'NUMERIC' | 'CHECKLIST' | 'FILE' | 'COMMENT' | 'APPROVAL' | 'TEXT' | 'DROPDOWN' | 'RATING' | 'YES_NO';
   priority: 'Low' | 'Medium' | 'High' | 'Urgent' | 'LOW' | 'MEDIUM' | 'HIGH';
   status: 'TODO' | 'IN_PROGRESS' | 'DONE' | 'OVERDUE' | 'REFLECT' | 'Employee' | 'Completed' | 'Counsellor Approved' | 'Manager Review' | 'Manager Feedback' | 'Verified' | 'Closed' | string;
+  proofRequired?: boolean;
   actualValue?: string;
   comment?: string;
   description: string;
@@ -192,6 +205,7 @@ export interface TemplateTask {
   priority: 'Low' | 'Medium' | 'High' | 'Urgent' | 'LOW' | 'MEDIUM' | 'HIGH';
   targetValue?: string;
   required: boolean;
+  proofRequired?: boolean;
   active: boolean;
   expectedOutput?: string;
   employeeInstructions?: string;

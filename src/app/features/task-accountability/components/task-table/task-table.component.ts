@@ -5,7 +5,10 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { TaskItem, DayNode } from '../../interfaces/accountability.interface';
 import { Subscription } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
+import { NotificationService } from '../../../../core/services/notification.service';
 import { TaskCommentPopupComponent } from '../task-comment-popup/task-comment-popup.component';
+import { AttachProofDialogComponent } from '../attach-proof-dialog/attach-proof-dialog.component';
+import { ConfirmDeleteDialogComponent } from '../confirm-delete-dialog/confirm-delete-dialog.component';
 
 @Component({
   selector: 'app-task-table',
@@ -27,6 +30,11 @@ export class TaskTableComponent implements OnInit, OnDestroy {
   currentSort: 'priority' | 'default' = 'default';
   currentGroup: 'status' | 'default' = 'default';
 
+  // Bulk Delete / Multi-select State
+  isDeleteMode = false;
+  selectedTaskIds = new Set<string | number>();
+  isDeleting = false;
+
   // Statuses List from API
   statusesList: { value: string; label: string }[] = [
     { value: 'TODO', label: 'To Do' },
@@ -41,7 +49,8 @@ export class TaskTableComponent implements OnInit, OnDestroy {
     private service: TaskAccountabilityService,
     private authService: AuthService,
     private translate: TranslateService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private notification: NotificationService
   ) {}
 
   get isReviewerRole(): boolean {
@@ -49,6 +58,10 @@ export class TaskTableComponent implements OnInit, OnDestroy {
     if (!user || !user.role) return false;
     const r = user.role.toUpperCase().trim();
     return ['ADMIN', 'MANAGER', 'BRANCH_PARTNER', 'ADMINISTRATIVE_ASSISTANT'].includes(r);
+  }
+
+  get canDeleteTasks(): boolean {
+    return this.isReviewerRole;
   }
 
   get canResubmitTask(): boolean {
@@ -131,6 +144,11 @@ export class TaskTableComponent implements OnInit, OnDestroy {
     });
   }
 
+  hasProofAttachment(task?: TaskItem | null): boolean {
+    if (!task || !task.attachments) return false;
+    return task.attachments.some(a => !a.commentId);
+  }
+
   changeTaskStatus(task: TaskItem, newStatus: string, event?: MouseEvent): void {
     if (event) event.stopPropagation();
     if (task.status === newStatus) return;
@@ -139,6 +157,13 @@ export class TaskTableComponent implements OnInit, OnDestroy {
       this.resubmitTask(task, event);
       return;
     }
+
+    if (newStatus === 'DONE' && task.proofRequired && !this.hasProofAttachment(task)) {
+      this.openAttachProofDialog(task);
+      return;
+    }
+
+    const prevStatus = task.status;
 
     // Optimistically update
     task.status = newStatus;
@@ -153,6 +178,29 @@ export class TaskTableComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error('Error patching task status via API:', err);
+        const errorMessage = err?.error?.message || err?.message || this.translate.instant('common.errorOccurred');
+        this.notification.showErrorToast(errorMessage);
+        // Revert optimistic update
+        task.status = prevStatus;
+        this.service.updateTaskStatus(task.id, prevStatus);
+        this.applySortingAndGrouping();
+      }
+    });
+  }
+
+  openAttachProofDialog(task: TaskItem): void {
+    const dialogRef = this.dialog.open(AttachProofDialogComponent, {
+      data: { task },
+      panelClass: 'attach-proof-dialog-panel',
+      autoFocus: false,
+      hasBackdrop: true,
+      disableClose: false,
+      maxWidth: '90vw'
+    });
+
+    dialogRef.afterClosed().subscribe(res => {
+      if (res && res.success) {
+        this.applySortingAndGrouping();
       }
     });
   }
@@ -263,6 +311,147 @@ export class TaskTableComponent implements OnInit, OnDestroy {
     this.applySortingAndGrouping();
   }
 
+  // --- Bulk Delete & Multi-select Handlers ---
+  toggleDeleteMode(): void {
+    this.isDeleteMode = !this.isDeleteMode;
+    if (!this.isDeleteMode) {
+      this.selectedTaskIds.clear();
+    }
+  }
+
+  toggleTaskSelection(task: TaskItem, event?: Event | MouseEvent): void {
+    if (event) event.stopPropagation();
+    const id = task.id;
+    if (this.selectedTaskIds.has(id)) {
+      this.selectedTaskIds.delete(id);
+    } else {
+      this.selectedTaskIds.add(id);
+    }
+  }
+
+  isTaskSelected(task: TaskItem): boolean {
+    return this.selectedTaskIds.has(task.id);
+  }
+
+  isAllSelected(): boolean {
+    if (!this.tasks || this.tasks.length === 0) return false;
+    return this.tasks.every(t => this.selectedTaskIds.has(t.id));
+  }
+
+  isSomeSelected(): boolean {
+    if (!this.tasks || this.tasks.length === 0) return false;
+    const count = this.tasks.filter(t => this.selectedTaskIds.has(t.id)).length;
+    return count > 0 && count < this.tasks.length;
+  }
+
+  toggleSelectAll(event: any): void {
+    const checked = event?.target?.checked;
+    if (checked) {
+      this.tasks.forEach(t => this.selectedTaskIds.add(t.id));
+    } else {
+      this.selectedTaskIds.clear();
+    }
+  }
+
+  confirmBulkDelete(): void {
+    if (this.selectedTaskIds.size === 0 || this.isDeleting) return;
+    const count = this.selectedTaskIds.size;
+    const dialogRef = this.dialog.open(ConfirmDeleteDialogComponent, {
+      data: {
+        title: this.translate.instant('taskAccountability.taskTable.bulkDeleteTitle', { count }) || `Delete ${count} Tasks?`,
+        message: this.translate.instant('taskAccountability.taskTable.bulkDeleteConfirm', { count }) || `Are you sure you want to delete the selected ${count} task(s)? This action cannot be undone.`,
+        confirmText: this.translate.instant('common.delete') || 'Delete',
+        cancelText: this.translate.instant('common.cancel') || 'Cancel'
+      },
+      maxWidth: '420px',
+      autoFocus: false
+    });
+
+    dialogRef.afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        this.executeBulkDelete();
+      }
+    });
+  }
+
+  executeBulkDelete(): void {
+    const ids = Array.from(this.selectedTaskIds);
+    this.isDeleting = true;
+    this.service.bulkDeleteTasksApi(ids).subscribe({
+      next: (res) => {
+        this.isDeleting = false;
+        this.notification.showSuccessToast(
+          res?.message || this.translate.instant('taskAccountability.taskTable.tasksDeletedSuccess') || 'Selected tasks deleted successfully'
+        );
+        this.selectedTaskIds.clear();
+        this.isDeleteMode = false;
+        this.service.triggerRefresh();
+      },
+      error: (err) => {
+        this.isDeleting = false;
+        console.error('Error deleting tasks:', err);
+        const msg = err?.error?.message || err?.message || 'Failed to delete selected tasks';
+        this.notification.showErrorToast(msg);
+      }
+    });
+  }
+
+  private getPriorityWeight(priority?: string): number {
+    if (!priority) return 2;
+    const p = priority.toUpperCase().trim();
+    if (p === 'URGENT') return 4;
+    if (p === 'HIGH') return 3;
+    if (p === 'MEDIUM') return 2;
+    if (p === 'LOW') return 1;
+    return 2;
+  }
+
+  private isTaskDone(task: TaskItem): boolean {
+    const s = (task.status || '').toUpperCase().trim();
+    return s === 'DONE' || s === 'COMPLETED' || s === 'VERIFIED' || s === 'APPROVED' || s === 'CLOSED';
+  }
+
+  private isTaskOverdueOrCarriedOver(task: TaskItem): boolean {
+    if (this.isTaskDone(task)) return false;
+    if (task.carriedOver) return true;
+    if (task.dueDate) {
+      const due = new Date(task.dueDate + (task.dueDate.includes('T') ? '' : 'T23:59:59'));
+      const now = new Date();
+      if (!isNaN(due.getTime()) && now.getTime() > due.getTime()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private getStatusRank(task: TaskItem): number {
+    if (!task) return 99;
+    const s = (task.status || '').toUpperCase().trim();
+
+    // 4. Done tasks always last
+    if (this.isTaskDone(task)) return 4;
+
+    // 1. Overdue TODO / carried over tasks first
+    if (this.isTaskOverdueOrCarriedOver(task)) return 1;
+
+    // 1b. Standard TODO / Not Started / Needs Rework
+    if (s === 'TODO' || s === 'TO DO' || s === 'NOT_STARTED' || s === 'REFLECT' || s === 'SEND_BACK' || s === 'MANAGER FEEDBACK' || s === 'ACTION NEEDED') {
+      return 1;
+    }
+
+    // 2. In progress tasks
+    if (s === 'IN_PROGRESS' || s === 'IN PROGRESS' || s === 'EMPLOYEE') {
+      return 2;
+    }
+
+    // 3. Awaiting review / submitted
+    if (s === 'MANAGER REVIEW' || s === 'SUBMITTED' || s === 'COUNSELLOR REVIEW' || s === 'COUNSELLOR APPROVED' || s === 'BRANCH APPROVED') {
+      return 3;
+    }
+
+    return 1;
+  }
+
   private applySortingAndGrouping(): void {
     if (!this.day || !this.day.tasks) {
       this.tasks = [];
@@ -272,38 +461,25 @@ export class TaskTableComponent implements OnInit, OnDestroy {
 
     let temp = [...this.day.tasks];
 
-    // Priority sorting
     if (this.currentSort === 'priority') {
-      const priorityWeight: Record<string, number> = { 
-        'URGENT': 4, 'HIGH': 3, 'MEDIUM': 2, 'LOW': 1,
-        'Urgent': 4, 'High': 3, 'Medium': 2, 'Low': 1 
-      };
-      temp.sort((a, b) => (priorityWeight[b.priority] || 0) - (priorityWeight[a.priority] || 0));
+      // Explicit Sort by Priority:
+      // 1. High -> Medium -> Low priority
+      // 2. Overdue Todo -> Todo -> In Progress -> Done
+      temp.sort((a, b) => {
+        const priorityDiff = this.getPriorityWeight(b.priority) - this.getPriorityWeight(a.priority);
+        if (priorityDiff !== 0) return priorityDiff;
+        return this.getStatusRank(a) - this.getStatusRank(b);
+      });
+    } else {
+      // Default Sort Order:
+      // 1. Status: Overdue Todo first, then In Progress, Done last
+      // 2. Priority: High priority first, Medium second, Low below
+      temp.sort((a, b) => {
+        const statusDiff = this.getStatusRank(a) - this.getStatusRank(b);
+        if (statusDiff !== 0) return statusDiff;
+        return this.getPriorityWeight(b.priority) - this.getPriorityWeight(a.priority);
+      });
     }
-
-    // Status sorting
-    const getStatusWeight = (status: string): number => {
-      if (!status) return 99;
-      const s = status.toUpperCase().trim();
-      if (s === 'TODO' || s === 'TO DO' || s === 'NOT_STARTED') return 1;
-      if (s === 'IN_PROGRESS' || s === 'IN PROGRESS') return 2;
-      if (s === 'EMPLOYEE') return 3;
-      if (s === 'COMPLETED' || s === 'DONE') return 4;
-      if (s === 'COUNSELLOR APPROVED' || s === 'BRANCH APPROVED') return 5;
-      if (s === 'MANAGER REVIEW' || s === 'SUBMITTED' || s === 'COUNSELLOR REVIEW') return 6;
-      if (s === 'MANAGER FEEDBACK' || s === 'REJECTED' || s === 'RETURNED') return 7;
-      if (s === 'VERIFIED' || s === 'APPROVED') return 8;
-      if (s === 'CLOSED') return 9;
-      return 50;
-    };
-
-    temp.sort((a, b) => getStatusWeight(a.status) - getStatusWeight(b.status));
-
-    // Overdue Task Rollover: keep carried-over tasks pinned to the top regardless of the
-    // active sort/group mode, so a task that's been outstanding for days never gets buried
-    // under today's fresh ones. Array#sort is stable, so this only reorders across the
-    // carriedOver boundary - each side keeps the priority/status order already applied above.
-    temp.sort((a, b) => (b.carriedOver ? 1 : 0) - (a.carriedOver ? 1 : 0));
 
     this.tasks = temp;
 
@@ -316,11 +492,19 @@ export class TaskTableComponent implements OnInit, OnDestroy {
         }
         groupsMap.get(st)!.push(t);
       }
-      this.taskGroups = Array.from(groupsMap.entries()).map(([statusName, tasks]) => ({
+
+      // Sort group headers in the status order: TODO -> IN_PROGRESS -> REVIEW -> DONE
+      const sortedEntries = Array.from(groupsMap.entries()).sort(([statusA, tasksA], [statusB, tasksB]) => {
+        const rankA = tasksA.length > 0 ? this.getStatusRank(tasksA[0]) : 50;
+        const rankB = tasksB.length > 0 ? this.getStatusRank(tasksB[0]) : 50;
+        return rankA - rankB;
+      });
+
+      this.taskGroups = sortedEntries.map(([statusName, tasks]) => ({
         statusName,
         statusClass: this.getStatusColorClass(statusName),
         count: tasks.length,
-        tasks
+        tasks: tasks.sort((a, b) => this.getPriorityWeight(b.priority) - this.getPriorityWeight(a.priority))
       }));
     } else {
       this.taskGroups = [];

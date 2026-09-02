@@ -531,6 +531,7 @@ export class TaskAccountabilityDashboardComponent implements OnInit, OnDestroy {
             description: t.description || t.title || '',
             type: t.type || 'CHECKLIST',
             priority: t.priority ? t.priority : 'MEDIUM',
+            proofRequired: !!t.proofRequired,
             status: t.status || 'TODO',
             currentStep: t.currentStep || null,
             nextStep: t.nextStep || null,

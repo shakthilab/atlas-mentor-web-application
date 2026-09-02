@@ -10,6 +10,8 @@ export interface TaskComment {
   avatar: string;
   text: string;
   date: string;
+  audioUrl?: string;
+  audioDuration?: number;
 }
 
 export interface TaskAttachment {
@@ -86,6 +88,7 @@ export interface Task {
   createdBy: string;
   createdDate: string;
   lastUpdated: string;
+  proofRequired?: boolean;
   comments: TaskComment[];
   attachments: TaskAttachment[];
   activities: TaskActivity[];
@@ -690,6 +693,44 @@ export class TaskService {
         return task;
       })
     );
+  }
+
+  /**
+   * Same POST as addComment, but returns the raw created-comment response (with its
+   * id) instead of refetching the whole task - needed by the media-only comment flow
+   * (create with blank text, then upload a file against the returned id).
+   */
+  addCommentRaw(taskId: number, text: string | null): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/tasks/${taskId}/comments`, { comment: text });
+  }
+
+  /**
+   * Real multipart upload endpoint for attachments - same one used by the
+   * task-accountability feature's uploadTaskAttachmentApi. Used for the
+   * create-comment-then-upload-file flow (see stopAndSendVoiceComment in
+   * TasksComponent) instead of ever embedding raw file bytes in the comment text.
+   */
+  uploadAttachment(taskId: number, file: File | Blob, commentId?: number | string | null, customFileName?: string): Observable<any> {
+    const formData = new FormData();
+    if (file instanceof File) {
+      formData.append('file', file, file.name);
+    } else {
+      formData.append('file', file, customFileName || 'recording.webm');
+    }
+    if (commentId !== undefined && commentId !== null) {
+      formData.append('commentId', commentId.toString());
+    }
+    return this.http.post<any>(`${environment.apiUrl}/tasks/${taskId}/attachments/upload`, formData);
+  }
+
+  /**
+   * Rollback for the two-step media-only comment flow: removes a comment created
+   * with blank text once its follow-up uploadAttachment call has failed, so a blank
+   * "empty message" comment is never left behind. Backend only allows this while the
+   * comment is still blank and has no attachment recorded against it.
+   */
+  deleteEmptyComment(taskId: number, commentId: number): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/tasks/${taskId}/comments/${commentId}`);
   }
 
   deleteComment(taskId: number, commentId: number, user: string = 'System'): Observable<Task> {

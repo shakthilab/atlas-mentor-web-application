@@ -1,0 +1,188 @@
+.whatsapp-voice-player {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px 6px 10px;
+  background: rgba(248, 250, 252, 0.85);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 16px;
+  min-width: 220px;
+  max-width: 320px;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+
+  &.my-voice {
+    background: #eef2ff;
+    border-color: #c7d2fe;
+
+    .voice-play-btn {
+      background: #4f46e5;
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3);
+
+      &:hover {
+        background: #4338ca;
+        transform: scale(1.05);
+      }
+    }
+
+    .waveform-bar {
+      background-color: #c7d2fe;
+
+      &.played {
+        background-color: #4f46e5;
+      }
+    }
+
+    .voice-time {
+      color: #4338ca;
+    }
+
+    .speed-badge-btn {
+      background: #e0e7ff;
+      color: #4338ca;
+      border-color: #c7d2fe;
+
+      &:hover {
+        background: #c7d2fe;
+      }
+    }
+
+    .voice-mic-indicator {
+      color: #6366f1;
+    }
+  }
+
+  &:not(.my-voice) {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+
+    .voice-play-btn {
+      background: #0ea5e9;
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(14, 165, 233, 0.3);
+
+      &:hover {
+        background: #0284c7;
+        transform: scale(1.05);
+      }
+    }
+
+    .waveform-bar {
+      background-color: #cbd5e1;
+
+      &.played {
+        background-color: #0ea5e9;
+      }
+    }
+
+    .voice-time {
+      color: #475569;
+    }
+
+    .speed-badge-btn {
+      background: #e2e8f0;
+      color: #334155;
+      border-color: #cbd5e1;
+
+      &:hover {
+        background: #cbd5e1;
+      }
+    }
+
+    .voice-mic-indicator {
+      color: #64748b;
+    }
+  }
+}
+
+.voice-play-btn {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+
+  .play-icon {
+    width: 16px;
+    height: 16px;
+    display: flex;
+  }
+
+  &:active {
+    transform: scale(0.94);
+  }
+}
+
+.voice-track-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.waveform-container {
+  display: flex;
+  align-items: center;
+  gap: 2.5px;
+  height: 24px;
+  cursor: pointer;
+  padding: 2px 0;
+  position: relative;
+
+  &:hover .waveform-bar {
+    filter: brightness(0.92);
+  }
+}
+
+.waveform-bar {
+  flex: 1;
+  min-width: 2px;
+  max-width: 4px;
+  border-radius: 2px;
+  transition: height 0.15s ease, background-color 0.1s linear;
+}
+
+.voice-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.voice-time {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+}
+
+.voice-meta-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.speed-badge-btn {
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 10px;
+  border: 1px solid;
+  padding: 1px 5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1.2;
+}
+
+.voice-mic-indicator {
+  width: 12px;
+  height: 12px;
+}

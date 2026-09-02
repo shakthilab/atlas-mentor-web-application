@@ -663,7 +663,18 @@
                 <span class="f-w-600 f-s-13 text-dark">{{ com.author }}</span>
                 <span class="text-muted f-s-11">{{ getRelativeTime(com.date) }}</span>
               </div>
+              
+              <!-- Voice note player if comment has audio -->
+              <app-voice-note-player 
+                *ngIf="com.audioUrl || isVoiceNoteString(com.text)"
+                [audioUrl]="com.audioUrl || getVoiceAudioUrl(com.text)" 
+                [duration]="com.audioDuration || getVoiceDuration(com.text)"
+                [isMyMessage]="com.author === 'Shakthi'"
+                [authorName]="com.author"
+              ></app-voice-note-player>
+
               <div class="comment-text f-s-13 text-dark p-8 p-x-12 rounded-8"
+                *ngIf="com.text && !isVoiceNoteString(com.text)"
                 style="background-color: #f1f5f9; display: inline-block; max-width: 100%;">
                 {{ com.text }}
               </div>
@@ -712,15 +723,41 @@
     <!-- Fixed Comment Input Box Footer -->
     <div class="comment-footer-box p-20 border-top bg-white mt-auto w-100"
       *ngIf="isDrawerOpen && activeTab === 'comments'" style="position: sticky; bottom: 0; z-index: 10;">
-      <div class="comment-input-container" style="position: relative; display: flex; align-items: center;">
+      <!-- Normal input bar with text and mic button -->
+      <div class="comment-input-container" *ngIf="!isVoiceRecording" style="position: relative; display: flex; align-items: center; gap: 8px;">
         <input type="text" [(ngModel)]="newCommentText" (keyup.enter)="addComment()" class="comment-round-input"
           placeholder="Write a comment..."
-          style="width: 100%; height: 44px; border-radius: 22px; border: 1px solid #e2e8f0; padding: 0 48px 0 20px; font-size: 14px; outline: none;" />
-        <button class="send-comment-btn" (click)="addComment()" [disabled]="!newCommentText.trim()"
+          style="width: 100%; height: 44px; border-radius: 22px; border: 1px solid #e2e8f0; padding: 0 84px 0 20px; font-size: 14px; outline: none;" />
+        
+        <!-- Mic button -->
+        <button class="comment-mic-btn" type="button" (click)="startVoiceRecording()" title="Record voice message"
+          style="position: absolute; right: 44px; width: 32px; height: 32px; border-radius: 50%; border: none; background: #f1f5f9; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #475569; transition: all 0.2s;">
+          <i-tabler name="microphone" class="icon-16"></i-tabler>
+        </button>
+
+        <!-- Send button -->
+        <button class="send-comment-btn" type="button" (click)="addComment()" [disabled]="!newCommentText.trim()"
           [style.background-color]="newCommentText.trim() ? '#3b82f6' : '#bfdbfe'"
           [style.cursor]="newCommentText.trim() ? 'pointer' : 'default'"
           style="position: absolute; right: 6px; width: 32px; height: 32px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s;">
           <i-tabler name="send" class="icon-14 text-white" style="color: white;"></i-tabler>
+        </button>
+      </div>
+
+      <!-- Active recording state (WhatsApp style) -->
+      <div class="comment-recording-bar" *ngIf="isVoiceRecording"
+        style="display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, #fef2f2 0%, #fff1f2 100%); border: 1px solid #fecdd3; border-radius: 24px; padding: 6px 8px 6px 14px; gap: 12px;">
+        <button type="button" (click)="cancelVoiceRecording()" title="Cancel recording"
+          style="width: 32px; height: 32px; border-radius: 50%; background: transparent; border: none; cursor: pointer; color: #991b1b; display: flex; align-items: center; justify-content: center;">
+          <i-tabler name="trash" class="icon-16"></i-tabler>
+        </button>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="width: 10px; height: 10px; border-radius: 50%; background-color: #ef4444; display: inline-block;"></span>
+          <span style="font-family: monospace; font-size: 13px; font-weight: 700; color: #991b1b;">{{ recordingDurationFormatted }}</span>
+        </div>
+        <button type="button" (click)="stopAndSendVoiceComment()" title="Send voice message"
+          style="width: 32px; height: 32px; border-radius: 50%; background-color: #2563eb; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white;">
+          <i-tabler name="send" class="icon-14 text-white"></i-tabler>
         </button>
       </div>
     </div>

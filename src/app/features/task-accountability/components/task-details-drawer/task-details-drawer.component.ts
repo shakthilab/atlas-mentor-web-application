@@ -1,13 +1,17 @@
 import { Component, OnInit, OnDestroy, HostListener, ElementRef, ViewChild } from '@angular/core';
 import { TaskAccountabilityService } from '../../services/task-accountability.service';
-import { TaskItem } from '../../interfaces/accountability.interface';
+import { TaskItem, CommentItem, AttachmentItem } from '../../interfaces/accountability.interface';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../../../core/services/auth.service';
 
 import { MatDialog } from '@angular/material/dialog';
 import { SendBackReasonDialogComponent } from '../send-back-reason-dialog/send-back-reason-dialog.component';
+import { AttachmentPreviewDialogComponent, AttachmentPreviewDialogData } from '../attachment-preview-dialog/attachment-preview-dialog.component';
+import { ConfirmDeleteDialogComponent } from '../confirm-delete-dialog/confirm-delete-dialog.component';
+import { AttachProofDialogComponent } from '../attach-proof-dialog/attach-proof-dialog.component';
 import { TranslateService } from '@ngx-translate/core';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { VoiceRecorderService, VoiceRecordingResult } from '../../../../core/services/voice-recorder.service';
 
 @Component({
   selector: 'app-task-details-drawer',
@@ -24,6 +28,24 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
   editingCommentId: string | null = null;
   editingCommentText = '';
   savingCommentEdit = false;
+
+  // Proof upload state
+  pendingProofFile: File | null = null;
+  pendingProofPreviewUrl: string | null = null;
+  isUploadingProof = false;
+
+  // Comment media attachment state
+  pendingCommentFile: File | null = null;
+  pendingCommentPreviewUrl: string | null = null;
+  isUploadingCommentMedia = false;
+
+  // Image lightbox preview
+  lightboxImageUrl: string | null = null;
+
+  // Voice Recording State (WhatsApp style)
+  isVoiceRecording = false;
+  recordingDurationSec = 0;
+  recordingDurationFormatted = '0:00';
 
   // Resizing State
   width = 500; // default initial width in pixels
@@ -56,7 +78,8 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
     private elRef: ElementRef,
     private dialog: MatDialog,
     private translate: TranslateService,
-    private notification: NotificationService
+    private notification: NotificationService,
+    private voiceRecorder: VoiceRecorderService
   ) {}
 
   loadStatuses(): void {
@@ -208,6 +231,13 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
     this.loadStatuses();
 
     this.sub.add(
+      this.voiceRecorder.recordingDuration$.subscribe(sec => {
+        this.recordingDurationSec = sec;
+        this.recordingDurationFormatted = this.voiceRecorder.formatTime(sec);
+      })
+    );
+
+    this.sub.add(
       this.service.selectedTask$.subscribe(t => {
         if (t) {
           if (this.closeTimer) {
@@ -218,11 +248,17 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
           this.displayTask = t;
           this.newCommentText = '';
           this.replyingToComment = null;
+          if (this.isVoiceRecording) {
+            this.cancelVoiceRecording();
+          }
           if (t.id && !t.id.startsWith('demo-') && !t.id.startsWith('tt-')) {
             this.loadRealTaskDetails(t.id);
           }
         } else {
           this.task = null;
+          if (this.isVoiceRecording) {
+            this.cancelVoiceRecording();
+          }
           // Keep displayTask populated during the 350ms slide-out animation
           this.closeTimer = setTimeout(() => {
             this.displayTask = null;
@@ -238,6 +274,9 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
 
   @HostListener('document:keydown.escape', ['$event'])
   onEscapeKey(event: KeyboardEvent): void {
+    if (this.dialog.openDialogs && this.dialog.openDialogs.length > 0) {
+      return;
+    }
     if (this.task) {
       event.preventDefault();
       this.closeDrawer();
@@ -260,6 +299,7 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
           this.task.description = res.data.description || this.task.description;
           this.task.status = res.data.status || this.task.status;
           this.task.priority = res.data.priority || this.task.priority;
+          this.task.proofRequired = res.data.proofRequired !== undefined ? !!res.data.proofRequired : this.task.proofRequired;
           this.task.assignedTo = res.data.assigneeName || this.task.assignedTo;
           this.task.createdByName = res.data.createdByName || this.task.createdByName;
           // dueDate/completedAt (V23) - present on the full task detail response too; keep
@@ -361,22 +401,343 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
     return groups;
   }
 
+  // --- File Validation & Helpers ---
+  private readonly ALLOWED_EXTENSIONS = [
+    'jpg', 'jpeg', 'png', 'webp', 'mp4', 'mov', 'mp3', 'm4a', 'ogg', 'wav', 'webm', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'csv'
+  ];
+  private readonly MAX_VIDEO_SIZE_BYTES = 25 * 1024 * 1024; // 25 MB
+  private readonly MAX_GENERAL_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
+
+  validateFile(file: File): { valid: boolean; errorKey?: string; defaultMessage?: string } {
+    const ext = file.name.split('.').pop()?.toLowerCase() || '';
+    if (!this.ALLOWED_EXTENSIONS.includes(ext)) {
+      return {
+        valid: false,
+        errorKey: 'taskAccountability.taskDetails.unsupportedFileType',
+        defaultMessage: 'Unsupported file type. Accepted types: jpg, jpeg, png, webp, mp4, mov, mp3, m4a, ogg, wav, pdf, doc, docx, xls, xlsx, csv'
+      };
+    }
+
+    const isVideo = ['mp4', 'mov'].includes(ext) || file.type.startsWith('video/');
+    if (isVideo && file.size > this.MAX_VIDEO_SIZE_BYTES) {
+      return {
+        valid: false,
+        errorKey: 'taskAccountability.taskDetails.fileTooLargeVideo',
+        defaultMessage: 'File is too large. Maximum size for video files is 25MB.'
+      };
+    }
+
+    if (!isVideo && file.size > this.MAX_GENERAL_SIZE_BYTES) {
+      return {
+        valid: false,
+        errorKey: 'taskAccountability.taskDetails.fileTooLargeGeneral',
+        defaultMessage: 'File is too large. Maximum size is 10MB.'
+      };
+    }
+
+    return { valid: true };
+  }
+
+  isImageAttachment(att?: AttachmentItem | null): boolean {
+    if (!att) return false;
+    if (att.fileType === 'IMAGE') return true;
+    if (att.fileType === 'VIDEO' || att.fileType === 'AUDIO' || att.fileType === 'DOCUMENT') return false;
+    const url = (att.fileUrl || att.name || att.fileName || '').toLowerCase();
+    return /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(url);
+  }
+
+  isVideoAttachment(att?: AttachmentItem | null): boolean {
+    if (!att) return false;
+    if (att.fileType === 'VIDEO') return true;
+    if (att.fileType === 'AUDIO' || att.fileType === 'IMAGE' || att.fileType === 'DOCUMENT') return false;
+    const url = (att.fileUrl || att.name || att.fileName || '').toLowerCase();
+    return /\.(mp4|mov|m4v|avi|mkv)$/i.test(url);
+  }
+
+  isAudioAttachment(att?: AttachmentItem | null): boolean {
+    if (!att) return false;
+    if (att.fileType === 'AUDIO') return true;
+    if (att.fileType === 'VIDEO' || att.fileType === 'IMAGE' || att.fileType === 'DOCUMENT') return false;
+    const url = (att.fileUrl || att.name || att.fileName || '').toLowerCase();
+    return /\.(mp3|m4a|wav|ogg|webm|aac|flac)$/i.test(url) || !!(att as any).audioUrl;
+  }
+
+  isDocumentAttachment(att?: AttachmentItem | null): boolean {
+    if (!att) return false;
+    if (att.fileType === 'DOCUMENT') return true;
+    if (att.fileType === 'AUDIO' || att.fileType === 'VIDEO' || att.fileType === 'IMAGE') return false;
+    return !this.isImageAttachment(att) && !this.isVideoAttachment(att) && !this.isAudioAttachment(att);
+  }
+
+  getAttachmentIcon(att?: Partial<AttachmentItem> | { fileName?: string; name?: string; fileType?: string } | null): string {
+    if (!att) return 'file-text';
+    if (att.fileType === 'AUDIO') return 'volume';
+    if (att.fileType === 'VIDEO') return 'video';
+    if (att.fileType === 'IMAGE') return 'photo';
+
+    const name = (att.fileName || att.name || '').toLowerCase();
+    if (name.endsWith('.pdf')) return 'file-type-pdf';
+    if (name.endsWith('.doc') || name.endsWith('.docx')) return 'file-type-doc';
+    if (name.endsWith('.xls') || name.endsWith('.xlsx') || name.endsWith('.csv')) return 'file-spreadsheet';
+    if (/\.(mp3|m4a|wav|ogg|webm|aac|flac)$/i.test(name)) return 'volume';
+    if (/\.(mp4|mov|m4v|avi|mkv)$/i.test(name)) return 'video';
+    if (/\.(jpg|jpeg|png|webp|gif|svg)$/i.test(name)) return 'photo';
+    return 'file-text';
+  }
+
+  openAttachmentPreview(att: AttachmentItem | string | null): void {
+    if (!att) return;
+    let dialogData: AttachmentPreviewDialogData;
+
+    if (typeof att === 'string') {
+      dialogData = {
+        fileUrl: att,
+        fileName: 'Preview',
+        fileType: this.isImageAttachment({ fileUrl: att } as any) ? 'IMAGE' : (this.isVideoAttachment({ fileUrl: att } as any) ? 'VIDEO' : 'DOCUMENT')
+      };
+    } else {
+      dialogData = {
+        attachment: att,
+        fileUrl: att.fileUrl,
+        fileName: att.fileName || att.name,
+        fileSize: att.fileSizeFormatted || att.size,
+        fileType: att.fileType,
+        uploadedByName: att.uploadedByName
+      };
+    }
+
+    this.dialog.open(AttachmentPreviewDialogComponent, {
+      data: dialogData,
+      panelClass: 'attachment-preview-dialog-panel',
+      backdropClass: 'attachment-preview-backdrop',
+      maxWidth: '96vw',
+      maxHeight: '96vh',
+      autoFocus: false,
+      hasBackdrop: true,
+      disableClose: false
+    });
+  }
+
+  closeAttachmentPreview(): void {
+    this.lightboxImageUrl = null;
+    this.dialog.closeAll();
+  }
+
+  openLightbox(imageUrl?: string): void {
+    if (imageUrl) {
+      this.openAttachmentPreview(imageUrl);
+    }
+  }
+
+  closeLightbox(): void {
+    this.closeAttachmentPreview();
+  }
+
+  // --- Proof of Work Handlers ---
+
+  getProofAttachments(): AttachmentItem[] {
+    return (this.displayTask?.attachments || []).filter(a => !a.commentId);
+  }
+
+  hasProofAttachment(task?: TaskItem | null): boolean {
+    const target = task || this.displayTask;
+    return (target?.attachments || []).some(a => !a.commentId);
+  }
+
+  onProofFileSelected(event: any): void {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const val = this.validateFile(file);
+    if (!val.valid) {
+      const msg = val.errorKey ? this.translate.instant(val.errorKey) : val.defaultMessage;
+      this.notification.showErrorToast(msg || 'Invalid file');
+      event.target.value = '';
+      return;
+    }
+
+    this.pendingProofFile = file;
+    if (file.type.startsWith('image/')) {
+      this.pendingProofPreviewUrl = URL.createObjectURL(file);
+    } else {
+      this.pendingProofPreviewUrl = null;
+    }
+    event.target.value = '';
+  }
+
+  cancelProofUpload(): void {
+    if (this.pendingProofPreviewUrl) {
+      URL.revokeObjectURL(this.pendingProofPreviewUrl);
+    }
+    this.pendingProofFile = null;
+    this.pendingProofPreviewUrl = null;
+  }
+
+  uploadProof(): void {
+    if (!this.task || !this.pendingProofFile || this.isUploadingProof) return;
+
+    const file = this.pendingProofFile;
+    this.isUploadingProof = true;
+
+    this.service.uploadTaskAttachmentApi(this.task.id, file, null).subscribe({
+      next: (res) => {
+        this.isUploadingProof = false;
+        this.cancelProofUpload();
+
+        const newAttachment: AttachmentItem = {
+          id: (res?.id || `att-${Date.now()}`).toString(),
+          name: res?.fileName || file.name,
+          fileName: res?.fileName || file.name,
+          size: res?.fileSizeFormatted || `${Math.round(file.size / 1024)} KB`,
+          fileSize: res?.fileSize || file.size,
+          fileSizeFormatted: res?.fileSizeFormatted || `${Math.round(file.size / 1024)} KB`,
+          fileUrl: res?.fileUrl || '',
+          fileType: res?.fileType || 'DOCUMENT',
+          commentId: null,
+          uploadedById: res?.uploadedById,
+          uploadedByName: res?.uploadedByName || this.authService.currentUserValue?.name,
+          uploadedAt: res?.uploadedAt || new Date().toISOString(),
+          createdAt: res?.createdAt || new Date().toISOString()
+        };
+
+        if (this.task) {
+          if (!this.task.attachments) this.task.attachments = [];
+          this.task.attachments.unshift(newAttachment);
+          this.loadActivityLogs(this.task.id);
+        }
+
+        this.notification.showSuccessToast(
+          this.translate.instant('taskAccountability.taskDetails.proofAttached')
+        );
+        this.service.triggerRefresh();
+      },
+      error: (err) => {
+        this.isUploadingProof = false;
+        console.error('Error uploading task proof:', err);
+        const errorMessage = err?.error?.message || err?.message || this.translate.instant('common.errorOccurred');
+        this.notification.showErrorToast(errorMessage);
+      }
+    });
+  }
+
+  // --- Comment Media Attachment Handlers ---
+
+  onCommentFileSelected(event: any): void {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const val = this.validateFile(file);
+    if (!val.valid) {
+      const msg = val.errorKey ? this.translate.instant(val.errorKey) : val.defaultMessage;
+      this.notification.showErrorToast(msg || 'Invalid file');
+      event.target.value = '';
+      return;
+    }
+
+    this.pendingCommentFile = file;
+    if (file.type.startsWith('image/')) {
+      this.pendingCommentPreviewUrl = URL.createObjectURL(file);
+    } else {
+      this.pendingCommentPreviewUrl = null;
+    }
+    event.target.value = '';
+  }
+
+  cancelCommentFile(): void {
+    if (this.pendingCommentPreviewUrl) {
+      URL.revokeObjectURL(this.pendingCommentPreviewUrl);
+    }
+    this.pendingCommentFile = null;
+    this.pendingCommentPreviewUrl = null;
+  }
+
+  onCommentPaste(event: ClipboardEvent): void {
+    const clipboardData = event.clipboardData;
+    if (!clipboardData) return;
+
+    // Check items first (preferred for screenshots and copied images)
+    const items = clipboardData.items;
+    if (items && items.length > 0) {
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.kind === 'file') {
+          const file = item.getAsFile();
+          if (file) {
+            event.preventDefault();
+            this.handlePastedFile(file);
+            return;
+          }
+        }
+      }
+    }
+
+    // Fallback: check files array
+    const files = clipboardData.files;
+    if (files && files.length > 0) {
+      event.preventDefault();
+      this.handlePastedFile(files[0]);
+      return;
+    }
+  }
+
+  private handlePastedFile(file: File): void {
+    let finalFile = file;
+    // Standardize file name for screenshots / pasted clips without extensions
+    if (!file.name || file.name === 'image.png' || file.name === 'blob' || !file.name.includes('.')) {
+      let ext = 'png';
+      if (file.type) {
+        const sub = file.type.split('/')[1];
+        if (sub) ext = sub.replace('jpeg', 'jpg');
+      }
+      const timestamp = new Date().toISOString().replace(/[-:T.]/g, '').substring(0, 14);
+      finalFile = new File([file], `screenshot_${timestamp}.${ext}`, { type: file.type || 'image/png' });
+    }
+
+    const val = this.validateFile(finalFile);
+    if (!val.valid) {
+      const msg = val.errorKey ? this.translate.instant(val.errorKey) : val.defaultMessage;
+      this.notification.showErrorToast(msg || 'Invalid file');
+      return;
+    }
+
+    if (this.pendingCommentPreviewUrl) {
+      URL.revokeObjectURL(this.pendingCommentPreviewUrl);
+    }
+
+    this.pendingCommentFile = finalFile;
+    if (finalFile.type.startsWith('image/')) {
+      this.pendingCommentPreviewUrl = URL.createObjectURL(finalFile);
+    } else {
+      this.pendingCommentPreviewUrl = null;
+    }
+  }
+
   loadComments(taskId: string | number): void {
     this.service.getTaskCommentsApi(taskId).subscribe({
       next: (res) => {
         if (res && res.data && this.task) {
           const rawComments = res.data || [];
-          this.task.comments = rawComments.map((c: any) => ({
-            id: c.id.toString(),
-            authorName: c.commentedByName || c.authorName || 'User',
-            authorRole: c.commentedByRole || c.authorRole || '',
-            commentedByUserId: c.commentedById || c.commentedByUserId || c.userId || null,
-            text: c.comment || c.text || '',
-            createdAtRaw: c.createdAt || c.timestamp || null,
-            createdAtDate: c.createdAt ? new Date(c.createdAt) : new Date(),
-            timestamp: c.createdAt ? new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now',
-            edited: !!c.edited
-          }));
+          this.task.comments = rawComments.map((c: any) => {
+            const rawContent = c.comment || c.text || '';
+            const parsed = this.parseCommentPayload(rawContent);
+            return {
+              id: c.id.toString(),
+              authorName: c.commentedByName || c.authorName || 'User',
+              authorRole: c.commentedByRole || c.authorRole || '',
+              commentedByUserId: c.commentedById || c.commentedByUserId || c.userId || null,
+              text: parsed.text,
+              audioUrl: parsed.audioUrl || c.audioUrl || undefined,
+              audioDuration: parsed.audioDuration || c.audioDuration || undefined,
+              createdAtRaw: c.createdAt || c.timestamp || null,
+              createdAtDate: c.createdAt ? new Date(c.createdAt) : new Date(),
+              timestamp: c.createdAt ? new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now',
+              edited: !!c.edited,
+              attachment: undefined
+            };
+          });
+
+          // Link any attachments with matching commentId
+          this.linkAttachmentsToComments();
 
           // Sort chronologically (oldest at top, newest at bottom)
           this.task.comments.sort((a: any, b: any) => {
@@ -405,12 +766,21 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
         if (res && res.data && this.task) {
           this.task.attachments = (res.data || []).map((att: any) => ({
             id: att.id.toString(),
-            name: att.fileName,
-            size: att.fileSizeFormatted || `${Math.round((att.fileSize || 0) / 1024)} KB`,
+            name: att.fileName || att.name,
+            fileName: att.fileName || att.name,
+            size: att.fileSizeFormatted || (att.fileSize ? `${Math.round(att.fileSize / 1024)} KB` : ''),
+            fileSize: att.fileSize,
+            fileSizeFormatted: att.fileSizeFormatted,
             fileUrl: att.fileUrl,
+            fileType: att.fileType,
+            commentId: att.commentId != null ? att.commentId.toString() : null,
+            uploadedById: att.uploadedById,
             uploadedByName: att.uploadedByName,
-            uploadedAt: att.uploadedAt
+            uploadedAt: att.uploadedAt,
+            createdAt: att.createdAt
           }));
+
+          this.linkAttachmentsToComments();
         }
       },
       error: (err) => {
@@ -422,6 +792,20 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
         }
       }
     });
+  }
+
+  private linkAttachmentsToComments(): void {
+    if (!this.task?.comments || !this.task?.attachments) return;
+
+    for (const comment of this.task.comments) {
+      const match = this.task.attachments.find(a => a.commentId && a.commentId.toString() === comment.id.toString());
+      if (match) {
+        comment.attachment = match;
+        if (match.fileType === 'AUDIO' && !comment.audioUrl) {
+          comment.audioUrl = match.fileUrl;
+        }
+      }
+    }
   }
 
   loadActivityLogs(taskId: string | number): void {
@@ -444,6 +828,7 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.voiceRecorder.cancelRecording();
     this.sub.unsubscribe();
   }
 
@@ -456,19 +841,82 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
   }
 
   submitComment(): void {
-    if (!this.task || !this.newCommentText.trim()) return;
+    if (!this.task) return;
     const text = this.newCommentText.trim();
-    const parentId = this.replyingToComment ? this.replyingToComment.id : null;
+    const hasPendingFile = !!this.pendingCommentFile;
 
-    if (this.task.id && !this.task.id.startsWith('demo-') && !this.task.id.startsWith('tt-')) {
-      this.service.addTaskCommentApi(this.task.id, text, parentId).subscribe(() => {
-        this.newCommentText = '';
-        this.replyingToComment = null;
-        if (this.task) {
-          this.loadComments(this.task.id);
-          this.loadActivityLogs(this.task.id);
+    if (!text && !hasPendingFile) return;
+
+    const parentId = this.replyingToComment ? this.replyingToComment.id : null;
+    const fileToUpload = this.pendingCommentFile;
+
+    // Two-step flow if an attachment is queued
+    if (hasPendingFile && fileToUpload) {
+      this.isUploadingCommentMedia = true;
+      const commentPayload = text || null;
+
+      this.service.addTaskCommentApi(this.task.id, commentPayload, parentId).subscribe({
+        next: (commentRes) => {
+          const commentId = commentRes?.id || commentRes?.data?.id;
+          if (!commentId) {
+            this.isUploadingCommentMedia = false;
+            this.cancelCommentFile();
+            this.newCommentText = '';
+            if (this.task) this.loadComments(this.task.id);
+            return;
+          }
+
+          // Step 2: Upload file with commentId
+          this.service.uploadTaskAttachmentApi(this.task!.id, fileToUpload, commentId).subscribe({
+            next: (attRes) => {
+              this.isUploadingCommentMedia = false;
+              this.cancelCommentFile();
+              this.newCommentText = '';
+              this.replyingToComment = null;
+              if (this.task) {
+                this.loadComments(this.task.id);
+                this.loadAttachments(this.task.id);
+                this.loadActivityLogs(this.task.id);
+              }
+              this.service.triggerRefresh();
+            },
+            error: (err) => {
+              this.isUploadingCommentMedia = false;
+              console.error('Failed to upload comment attachment:', err);
+              const errorMessage = err?.error?.message || err?.message || this.translate.instant('common.errorOccurred');
+              this.notification.showErrorToast(errorMessage);
+              this.cancelCommentFile();
+              if (this.task) this.loadComments(this.task.id);
+            }
+          });
+        },
+        error: (err) => {
+          this.isUploadingCommentMedia = false;
+          console.error('Failed to post comment before media upload:', err);
+          const errorMessage = err?.error?.message || err?.message || this.translate.instant('common.errorOccurred');
+          this.notification.showErrorToast(errorMessage);
         }
-        this.service.triggerRefresh();
+      });
+      return;
+    }
+
+    // Standard text comment flow
+    if (this.task.id && !this.task.id.startsWith('demo-') && !this.task.id.startsWith('tt-')) {
+      this.service.addTaskCommentApi(this.task.id, text, parentId).subscribe({
+        next: () => {
+          this.newCommentText = '';
+          this.replyingToComment = null;
+          if (this.task) {
+            this.loadComments(this.task.id);
+            this.loadActivityLogs(this.task.id);
+          }
+          this.service.triggerRefresh();
+        },
+        error: (err) => {
+          console.error('Failed to post text comment:', err);
+          const errorMessage = err?.error?.message || err?.message || this.translate.instant('common.errorOccurred');
+          this.notification.showErrorToast(errorMessage);
+        }
       });
     } else {
       this.service.addComment(this.task.id, text);
@@ -476,6 +924,154 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
       this.replyingToComment = null;
       this.service.triggerRefresh();
     }
+  }
+
+  // --- Voice Recording & Audio Comment Handlers (Two-Step Multipart) ---
+
+  async startVoiceRecording(): Promise<void> {
+    try {
+      await this.voiceRecorder.startRecording();
+      this.isVoiceRecording = true;
+    } catch (err: any) {
+      this.isVoiceRecording = false;
+      if (err?.message === 'PERMISSION_DENIED') {
+        this.notification.showErrorToast(
+          this.translate.instant('taskAccountability.taskDetails.micAccessDenied')
+        );
+      } else {
+        this.notification.showErrorToast(
+          this.translate.instant('taskAccountability.taskDetails.micNotSupported')
+        );
+      }
+    }
+  }
+
+  cancelVoiceRecording(): void {
+    this.voiceRecorder.cancelRecording();
+    this.isVoiceRecording = false;
+  }
+
+  async stopAndSendVoiceComment(): Promise<void> {
+    try {
+      const result = await this.voiceRecorder.stopRecording();
+      this.isVoiceRecording = false;
+      if (!result || !this.task) return;
+
+      const parentId = this.replyingToComment ? this.replyingToComment.id : null;
+
+      if (this.task.id && !this.task.id.startsWith('demo-') && !this.task.id.startsWith('tt-')) {
+        // Step 1: Create comment with null body
+        this.service.addTaskCommentApi(this.task.id, null, parentId).subscribe({
+          next: (commentRes) => {
+            const commentId = commentRes?.id || commentRes?.data?.id;
+            if (!commentId) {
+              this.appendLocalVoiceComment(result);
+              return;
+            }
+
+            // Step 2: Upload raw .webm file via multipart upload
+            this.service.uploadTaskAttachmentApi(this.task!.id, result.blob, commentId, 'voice_note.webm').subscribe({
+              next: () => {
+                this.replyingToComment = null;
+                if (this.task) {
+                  this.loadComments(this.task.id);
+                  this.loadAttachments(this.task.id);
+                  this.loadActivityLogs(this.task.id);
+                }
+                this.service.triggerRefresh();
+              },
+              error: (uploadErr) => {
+                // The old fallback crammed the raw base64 recording into the comment's
+                // text - it always exceeded the server's 1000-char cap and left a
+                // blank "empty message" comment behind either way. Delete that
+                // orphaned comment instead and tell the user to retry the recording.
+                console.error('Failed to upload voice recording multipart file:', uploadErr);
+                this.notification.showErrorToast(
+                  this.translate.instant('taskAccountability.taskDetails.voiceUploadFailed')
+                );
+                this.service.deleteTaskCommentApi(this.task!.id, commentId).subscribe({
+                  next: () => {
+                    if (this.task) this.loadComments(this.task.id);
+                  },
+                  error: (deleteErr) => {
+                    console.error('Failed to clean up orphaned empty comment:', deleteErr);
+                    if (this.task) this.loadComments(this.task.id);
+                  }
+                });
+              }
+            });
+          },
+          error: (err) => {
+            console.error('Failed to create voice note comment record:', err);
+            this.appendLocalVoiceComment(result);
+          }
+        });
+      } else {
+        this.appendLocalVoiceComment(result);
+      }
+    } catch (err) {
+      this.isVoiceRecording = false;
+      console.error('Error stopping voice recording:', err);
+    }
+  }
+
+  private appendLocalVoiceComment(result: VoiceRecordingResult): void {
+    if (!this.task) return;
+    const user = this.authService.currentUserValue;
+    const newComment: CommentItem = {
+      id: `vc-${Date.now()}`,
+      authorName: user?.name || 'You',
+      authorRole: user?.role || 'User',
+      text: '',
+      audioUrl: result.dataUrl,
+      audioDuration: result.duration,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      createdAtDate: new Date(),
+      commentedByUserId: user?.id || (user as any)?.userId || null
+    };
+
+    if (!this.task.comments) {
+      this.task.comments = [];
+    }
+    this.task.comments.push(newComment);
+    this.replyingToComment = null;
+    this.service.triggerRefresh();
+    setTimeout(() => this.scrollToBottom(), 100);
+  }
+
+  public parseCommentPayload(raw: string): { text: string; audioUrl?: string; audioDuration?: number } {
+    if (!raw) return { text: '' };
+
+    if (raw.startsWith('[VOICE_NOTE:') && raw.includes(']')) {
+      const headerEnd = raw.indexOf(']');
+      const header = raw.substring(12, headerEnd);
+      const durMatch = header.match(/duration=(\d+)/);
+      const duration = durMatch ? parseInt(durMatch[1], 10) : 0;
+      const audioUrl = raw.substring(headerEnd + 1);
+      return { text: '', audioUrl, audioDuration: duration };
+    }
+
+    if (raw.startsWith('data:audio/')) {
+      return { text: '', audioUrl: raw, audioDuration: 0 };
+    }
+
+    try {
+      if (raw.startsWith('{') && raw.includes('"audioUrl"')) {
+        const parsed = JSON.parse(raw);
+        return {
+          text: parsed.caption || '',
+          audioUrl: parsed.audioUrl,
+          audioDuration: parsed.duration || 0
+        };
+      }
+    } catch (e) {}
+
+    return { text: raw };
+  }
+
+  public isPureVoiceNote(text?: string): boolean {
+    if (!text) return true;
+    return text.startsWith('[VOICE_NOTE:') || text.startsWith('data:audio/');
   }
 
   trackByDateLabel(index: number, group: { dateLabel: string }): string {
@@ -514,6 +1110,42 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
         console.error('Failed to update comment:', err);
         const message = err?.error?.message || this.translate.instant('taskAccountability.taskDetails.failedToUpdateComment');
         this.notification.showErrorToast(message);
+      }
+    });
+  }
+
+  deleteComment(comment: any): void {
+    const taskId = this.task?.id || this.displayTask?.id;
+    if (!comment?.id || !taskId) return;
+
+    const ref = this.dialog.open(ConfirmDeleteDialogComponent, {
+      data: {
+        title: this.translate.instant('taskAccountability.taskDetails.deleteCommentTitle') || 'Delete Comment?',
+        message: this.translate.instant('taskAccountability.taskDetails.deleteCommentConfirm') || 'Are you sure you want to delete this comment? This action cannot be undone.',
+        confirmText: this.translate.instant('common.delete') || 'Delete',
+        cancelText: this.translate.instant('common.cancel') || 'Cancel'
+      },
+      maxWidth: '400px',
+      autoFocus: false
+    });
+
+    ref.afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        this.service.deleteTaskCommentApi(taskId, comment.id).subscribe({
+          next: (res) => {
+            this.notification.showSuccessToast(res?.message || this.translate.instant('taskAccountability.taskDetails.commentDeleted') || 'Comment deleted successfully');
+            if (this.task?.id) {
+              this.loadComments(this.task.id);
+              this.loadActivityLogs(this.task.id);
+            }
+            this.service.triggerRefresh();
+          },
+          error: (err) => {
+            console.error('Failed to delete comment:', err);
+            const message = err?.error?.message || this.translate.instant('common.errorOccurred');
+            this.notification.showErrorToast(message);
+          }
+        });
       }
     });
   }
@@ -637,6 +1269,13 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (newStatus === 'DONE' && targetTask.proofRequired && !this.hasProofAttachment(targetTask)) {
+      this.openAttachProofDialog(targetTask);
+      return;
+    }
+
+    const prevStatus = targetTask.status;
+
     // Optimistically update
     targetTask.status = newStatus;
     this.service.updateTaskStatus(targetTask.id, newStatus);
@@ -652,9 +1291,36 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           console.error('Error patching task status from drawer:', err);
+          const errorMessage = err?.error?.message || err?.message || this.translate.instant('common.errorOccurred');
+          this.notification.showErrorToast(errorMessage);
+          // Revert optimistic update
+          if (targetTask) {
+            targetTask.status = prevStatus;
+            this.service.updateTaskStatus(targetTask.id, prevStatus);
+            this.service.triggerRefresh();
+          }
         }
       });
     }
+  }
+
+  openAttachProofDialog(task: TaskItem): void {
+    const dialogRef = this.dialog.open(AttachProofDialogComponent, {
+      data: { task },
+      panelClass: 'attach-proof-dialog-panel',
+      autoFocus: false,
+      hasBackdrop: true,
+      disableClose: false,
+      maxWidth: '90vw'
+    });
+
+    dialogRef.afterClosed().subscribe(res => {
+      if (res && res.success) {
+        if (this.task && this.task.id === task.id) {
+          this.loadActivityLogs(this.task.id);
+        }
+      }
+    });
   }
 
   // Manager Actions

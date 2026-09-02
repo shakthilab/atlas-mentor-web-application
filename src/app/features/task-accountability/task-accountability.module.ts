@@ -23,6 +23,9 @@ import { TaskAccountabilityShellComponent } from './components/task-accountabili
 import { TaskCreateDrawerComponent } from './components/task-create-drawer/task-create-drawer.component';
 import { SendBackReasonDialogComponent } from './components/send-back-reason-dialog/send-back-reason-dialog.component';
 import { TaskCommentPopupComponent } from './components/task-comment-popup/task-comment-popup.component';
+import { AttachmentPreviewDialogComponent } from './components/attachment-preview-dialog/attachment-preview-dialog.component';
+import { ConfirmDeleteDialogComponent } from './components/confirm-delete-dialog/confirm-delete-dialog.component';
+import { AttachProofDialogComponent } from './components/attach-proof-dialog/attach-proof-dialog.component';
 
 @NgModule({
   declarations: [
@@ -39,6 +42,9 @@ import { TaskCommentPopupComponent } from './components/task-comment-popup/task-
     TaskCreateDrawerComponent,
     SendBackReasonDialogComponent,
     TaskCommentPopupComponent,
+    AttachmentPreviewDialogComponent,
+    ConfirmDeleteDialogComponent,
+    AttachProofDialogComponent,
     WeeklyTemplatesComponent,
     WeeklyTemplateEditDialogComponent,
     WeeklyTemplateDuplicateDialogComponent,
