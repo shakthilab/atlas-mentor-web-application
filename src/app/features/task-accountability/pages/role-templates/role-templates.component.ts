@@ -376,7 +376,7 @@ export class RoleTemplatesComponent implements OnInit {
         description: t.description || '',
         type: 'CHECKLIST',
         priority: t.priority ? t.priority : 'MEDIUM',
-        proofRequired: !!t.proofRequired,
+        proofRequired: false,
         required: true,
         active: true
       }));
@@ -965,7 +965,7 @@ export class RoleTemplatesComponent implements OnInit {
     const title = this.newTaskTitle.trim();
     const description = this.newTaskDescription.trim();
     const priority = this.newTaskPriority || 'MEDIUM';
-    const proofRequired = this.newTaskProofRequired || false;
+    const proofRequired = false;
     const dayNumber = this.selectedDayIndex + 1;
     const taskPayload = { title, description, priority, proofRequired };
 
@@ -987,7 +987,7 @@ export class RoleTemplatesComponent implements OnInit {
             type: 'CHECKLIST',
             priority: priority as any,
             required: true,
-            proofRequired,
+            proofRequired: false,
             active: true,
             comments: [],
             attachments: [],
@@ -1290,7 +1290,7 @@ export class RoleTemplatesComponent implements OnInit {
           title: t.name,
           description: t.description || '',
           priority: t.priority || 'MEDIUM',
-          proofRequired: !!t.proofRequired
+          proofRequired: false
         }));
         const [primaryTarget, ...restTargets] = targets;
         return this.service.addTasksBulkApi(
@@ -1381,7 +1381,7 @@ export class RoleTemplatesComponent implements OnInit {
         title: t.name,
         description: t.description || '',
         priority: t.priority || 'MEDIUM',
-        proofRequired: !!t.proofRequired
+        proofRequired: false
       }));
       const [primaryTarget, ...restTargets] = targets;
 
@@ -1444,7 +1444,7 @@ export class RoleTemplatesComponent implements OnInit {
     this.editingTaskTitle = task.name || '';
     this.editingTaskDescription = task.description || '';
     this.editingTaskPriority = task.priority || 'MEDIUM';
-    this.editingTaskProofRequired = !!task.proofRequired;
+    this.editingTaskProofRequired = false;
     setTimeout(() => {
       const editingEl = document.querySelector('.sidebar-task-card.is-editing');
       if (editingEl) {
@@ -1467,7 +1467,7 @@ export class RoleTemplatesComponent implements OnInit {
     task.name = this.editingTaskTitle.trim();
     task.description = this.editingTaskDescription.trim();
     task.priority = this.editingTaskPriority as any;
-    task.proofRequired = this.editingTaskProofRequired;
+    task.proofRequired = false;
 
     if (!this.isTemplateUnsaved() && this.editingTemplate?.id && task.id && !task.id.startsWith('t-') && !task.id.startsWith('temp-')) {
       const templateId = this.editingTemplate.id;
@@ -1476,7 +1476,7 @@ export class RoleTemplatesComponent implements OnInit {
         title: task.name,
         description: task.description || '',
         priority: task.priority || 'MEDIUM',
-        proofRequired: task.proofRequired
+        proofRequired: false
       };
 
       this.service.updateTaskApi(templateId, dayNumber, task.id, taskPayload).subscribe({
@@ -1866,7 +1866,7 @@ export class RoleTemplatesComponent implements OnInit {
               title: t.name,
               description: t.description || '',
               priority: t.priority ? t.priority.toUpperCase() : 'MEDIUM',
-              proofRequired: !!t.proofRequired,
+              proofRequired: false,
               displayOrder: tIndex
             };
           })
@@ -1975,7 +1975,7 @@ export class RoleTemplatesComponent implements OnInit {
               title: t.name,
               description: t.description || '',
               priority: t.priority ? t.priority.toUpperCase() : 'MEDIUM',
-              proofRequired: !!t.proofRequired,
+              proofRequired: false,
               displayOrder: tIndex
             };
           })

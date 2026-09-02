@@ -62,11 +62,6 @@
             <i-tabler name="chevron-down" class="icon-12 ml-1"></i-tabler>
           </button>
 
-          <span class="badge proof-required-header-badge" *ngIf="displayTask.proofRequired" [title]="'taskAccountability.taskDetails.proofRequiredTooltip' | translate">
-            <i-tabler name="shield-check" class="icon-12"></i-tabler>
-            {{ 'taskAccountability.taskDetails.proofRequired' | translate }}
-          </span>
-
           <span class="resubmitted-pill-tag ml-1" *ngIf="displayTask.reflectState === 'RESUBMITTED'">
             {{ 'taskAccountability.taskTable.awaitingReReview' | translate }}
           </span>
@@ -201,7 +196,7 @@
       </div>
 
       <!-- Dedicated Proof of Work Section -->
-      <div class="section-container proof-of-work-section" *ngIf="!accessForbidden && displayTask.proofRequired">
+      <div class="section-container proof-of-work-section" *ngIf="!accessForbidden">
         <div class="proof-section-header">
           <div class="proof-header-title">
             <i-tabler name="shield-check" class="proof-header-icon"></i-tabler>
@@ -210,10 +205,6 @@
           <span class="proof-status-tag attached" *ngIf="hasProofAttachment(displayTask)">
             <i-tabler name="circle-check" class="icon-14"></i-tabler>
             {{ 'taskAccountability.taskDetails.proofAttached' | translate }}
-          </span>
-          <span class="proof-status-tag required" *ngIf="displayTask.proofRequired && !hasProofAttachment(displayTask)">
-            <i-tabler name="alert-triangle" class="icon-14"></i-tabler>
-            {{ 'taskAccountability.taskDetails.proofPending' | translate }}
           </span>
         </div>
 

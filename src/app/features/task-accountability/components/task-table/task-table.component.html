@@ -94,10 +94,6 @@
                   </span>
                   <div class="task-name-col">
                     <span class="task-name-text">{{ task.name }}</span>
-                    <span class="proof-required-badge" *ngIf="task.proofRequired" [title]="'taskAccountability.taskTable.proofRequiredTooltip' | translate">
-                      <i-tabler name="shield-check" class="proof-badge-icon"></i-tabler>
-                      {{ 'taskAccountability.taskTable.proofRequired' | translate }}
-                    </span>
                     <span class="carried-over-badge" *ngIf="task.carriedOver" [title]="'taskAccountability.taskTable.carriedOverTooltip' | translate">
                       <i-tabler name="history" class="carried-badge-icon"></i-tabler>
                       {{ getCarriedOverBadgeLabel(task) }}

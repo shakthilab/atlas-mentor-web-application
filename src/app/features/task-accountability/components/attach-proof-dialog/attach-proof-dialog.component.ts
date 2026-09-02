@@ -22,7 +22,7 @@ export interface AttachProofDialogData {
             <i-tabler name="shield-check" class="icon-20 text-primary"></i-tabler>
           </div>
           <div>
-            <h2 class="dialog-title">{{ 'taskAccountability.taskDetails.proofRequired' | translate }}</h2>
+            <h2 class="dialog-title">{{ 'taskAccountability.taskDetails.proofOfWorkOptional' | translate }}</h2>
             <p class="dialog-subtitle">
               {{ 'taskAccountability.taskTable.taskIdPrefix' | translate:{ id: data.task.id } }} &bull; {{ data.task.name }}
             </p>
@@ -36,7 +36,7 @@ export interface AttachProofDialogData {
       <!-- Body -->
       <div class="dialog-body">
         <p class="instruction-text">
-          {{ 'taskAccountability.taskDetails.attachProofHint' | translate }}. {{ 'taskAccountability.taskDetails.proofPending' | translate }}.
+          {{ 'taskAccountability.taskDetails.attachProofOptionalHint' | translate }}
         </p>
 
         <!-- Dropzone / File Picker Area (when no file selected) -->
@@ -92,8 +92,14 @@ export interface AttachProofDialogData {
 
       <!-- Footer Actions -->
       <div class="dialog-footer">
-        <button mat-button class="btn-cancel" mat-dialog-close [disabled]="isUploading" type="button">
-          {{ 'common.cancel' | translate }}
+        <button 
+          mat-stroked-button 
+          class="btn-skip" 
+          [disabled]="isUploading" 
+          (click)="skipAndMarkDone()" 
+          type="button"
+        >
+          {{ 'common.skip' | translate }}
         </button>
         <button 
           mat-flat-button 
@@ -103,8 +109,8 @@ export interface AttachProofDialogData {
           (click)="submitProofAndMarkDone()"
           type="button"
         >
-          <i-tabler name="circle-check" class="icon-16 mr-1" *ngIf="!isUploading"></i-tabler>
-          <span *ngIf="!isUploading">{{ 'taskAccountability.taskDetails.attachProof' | translate }} &amp; {{ 'common.status.done' | translate }}</span>
+          <i-tabler name="circle-check" class="icon-16 btn-submit-icon" *ngIf="!isUploading"></i-tabler>
+          <span *ngIf="!isUploading">{{ 'taskAccountability.taskDetails.attach' | translate }}</span>
           <span *ngIf="isUploading">{{ 'taskAccountability.taskDetails.uploadingProof' | translate }}</span>
         </button>
       </div>
@@ -117,8 +123,8 @@ export interface AttachProofDialogData {
 
     .attach-proof-dialog-container {
       padding: 20px 24px;
-      min-width: 420px;
-      max-width: 480px;
+      min-width: 440px;
+      max-width: 500px;
       box-sizing: border-box;
       background: #ffffff;
       border-radius: 16px;
@@ -344,10 +350,25 @@ export interface AttachProofDialogData {
       padding-top: 14px;
       border-top: 1px solid #f1f5f9;
 
-      .btn-cancel {
-        color: #64748b;
+      .btn-skip {
+        border-color: #cbd5e1;
+        color: #334155;
         font-weight: 600;
         border-radius: 8px;
+        height: 38px;
+        padding: 6px 18px;
+        min-width: 80px;
+
+        &:hover:not([disabled]) {
+          background-color: #f1f5f9;
+          border-color: #94a3b8;
+          color: #0f172a;
+        }
+
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
       }
 
       .btn-submit {
@@ -355,9 +376,22 @@ export interface AttachProofDialogData {
         color: #ffffff;
         font-weight: 600;
         border-radius: 8px;
-        padding: 6px 18px;
+        padding: 6px 20px;
         height: 38px;
+        min-width: 95px;
         box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+
+        .btn-submit-icon {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          vertical-align: middle;
+          margin-top: 1px;
+        }
 
         &:hover:not([disabled]) {
           background: #4f46e5;
@@ -498,6 +532,29 @@ export class AttachProofDialogComponent {
     if (['doc', 'docx'].includes(ext)) return 'file-type-doc';
     if (['xls', 'xlsx', 'csv'].includes(ext)) return 'file-type-xls';
     return 'file';
+  }
+
+  skipAndMarkDone(): void {
+    if (this.isUploading) return;
+    const task = this.data.task;
+    this.isUploading = true;
+
+    this.service.patchTaskStatusApi(task.id, 'DONE').subscribe({
+      next: () => {
+        this.isUploading = false;
+        this.removeSelectedFile();
+        task.status = 'DONE';
+        this.service.updateTaskStatus(task.id, 'DONE');
+        this.service.triggerRefresh();
+        this.dialogRef.close({ success: true, newStatus: 'DONE' });
+      },
+      error: (err) => {
+        this.isUploading = false;
+        console.error('Error updating task status to Done:', err);
+        const msg = err?.error?.message || err?.message || 'Failed to update task status to Done';
+        this.notification.showErrorToast(msg);
+      }
+    });
   }
 
   submitProofAndMarkDone(): void {

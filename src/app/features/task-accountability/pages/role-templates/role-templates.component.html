@@ -355,10 +355,6 @@
                     <span class="task-priority-badge" [class]="task.priority.toLowerCase() || 'medium'">
                       {{ task.priority }}
                     </span>
-                    <span class="task-proof-badge" *ngIf="task.proofRequired">
-                      <i-tabler name="shield-check" class="icon-12"></i-tabler>
-                      {{ 'taskAccountability.templates.proofRequired' | translate }}
-                    </span>
                   </div>
                 </div>
 
@@ -395,13 +391,6 @@
                         <option value="MEDIUM">{{ 'common.priority.medium' | translate }}</option>
                         <option value="HIGH">{{ 'common.priority.high' | translate }}</option>
                       </select>
-                      <label class="proof-toggle-label">
-                        <input type="checkbox" [(ngModel)]="editingTaskProofRequired" class="proof-checkbox-input" />
-                        <span class="proof-toggle-text">
-                          <i-tabler name="shield-check" class="icon-14"></i-tabler>
-                          {{ 'taskAccountability.templates.proofRequired' | translate }}
-                        </span>
-                      </label>
                     </div>
                     <div class="footer-actions">
                       <button mat-button class="done-btn" (click)="cancelTaskEdit()">{{ 'common.cancel' | translate }}</button>
@@ -449,13 +438,6 @@
                   <option value="MEDIUM">{{ 'common.priority.medium' | translate }}</option>
                   <option value="HIGH">{{ 'common.priority.high' | translate }}</option>
                 </select>
-                <label class="proof-toggle-label">
-                  <input type="checkbox" [(ngModel)]="newTaskProofRequired" class="proof-checkbox-input" />
-                  <span class="proof-toggle-text">
-                    <i-tabler name="shield-check" class="icon-14"></i-tabler>
-                    {{ 'taskAccountability.templates.proofRequired' | translate }}
-                  </span>
-                </label>
               </div>
               <div class="footer-actions">
                 <button mat-button class="done-btn" (click)="toggleAddForm(false)">{{ 'common.done' | translate }}</button>

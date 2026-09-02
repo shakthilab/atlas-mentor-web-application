@@ -464,7 +464,7 @@ export class TaskAccountabilityService {
             name: tTask.name,
             type: tTask.type,
             priority: tTask.priority,
-            proofRequired: !!tTask.proofRequired,
+            proofRequired: false,
             status: 'Employee',
             actualValue: tTask.type === 'NUMERIC' ? `0/${tTask.targetValue || '100'}` : '—',
             comment: '',
@@ -507,7 +507,7 @@ export class TaskAccountabilityService {
             name: tTask.name,
             type: tTask.type,
             priority: tTask.priority,
-            proofRequired: !!tTask.proofRequired,
+            proofRequired: false,
             status: 'Employee',
             actualValue: tTask.type === 'NUMERIC' ? `0/${tTask.targetValue || '100'}` : '—',
             comment: '',
@@ -641,7 +641,7 @@ export class TaskAccountabilityService {
               description: t.description || '',
               type: 'CHECKLIST',
               priority: t.priority ? t.priority : 'MEDIUM',
-              proofRequired: !!t.proofRequired,
+              proofRequired: false,
               required: true,
               active: true
             }))
@@ -657,7 +657,8 @@ export class TaskAccountabilityService {
     if (month != null && year != null) {
       url += `?month=${month}&year=${year}`;
     }
-    return this.http.post<any>(url, task);
+    const payload = { ...task, proofRequired: false };
+    return this.http.post<any>(url, payload);
   }
 
   // Bulk counterpart to addTaskApi: clones `tasks` onto the (dayNumber, month, year) day plus
@@ -683,7 +684,8 @@ export class TaskAccountabilityService {
     if (month != null && year != null) {
       url += `?month=${month}&year=${year}`;
     }
-    const body: any = { tasks };
+    const sanitizedTasks = (tasks || []).map(t => ({ ...t, proofRequired: false }));
+    const body: any = { tasks: sanitizedTasks };
     if (targetDays && targetDays.length > 0) {
       body.targetDays = targetDays;
     }
@@ -692,7 +694,8 @@ export class TaskAccountabilityService {
   }
 
   public updateTaskApi(templateId: string | number, dayNumber: number, taskId: string | number, task: { title: string; description: string; priority: string; proofRequired?: boolean }): Observable<any> {
-    return this.http.put<any>(`${environment.apiUrl}/role-templates/${templateId}/days/${dayNumber}/tasks/${taskId}`, task);
+    const payload = { ...task, proofRequired: false };
+    return this.http.put<any>(`${environment.apiUrl}/role-templates/${templateId}/days/${dayNumber}/tasks/${taskId}`, payload);
   }
 
   public deleteTaskApi(templateId: string | number, dayNumber: number, taskId: string | number): Observable<any> {

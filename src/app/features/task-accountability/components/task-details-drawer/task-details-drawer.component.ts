@@ -299,7 +299,7 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
           this.task.description = res.data.description || this.task.description;
           this.task.status = res.data.status || this.task.status;
           this.task.priority = res.data.priority || this.task.priority;
-          this.task.proofRequired = res.data.proofRequired !== undefined ? !!res.data.proofRequired : this.task.proofRequired;
+          this.task.proofRequired = false;
           this.task.assignedTo = res.data.assigneeName || this.task.assignedTo;
           this.task.createdByName = res.data.createdByName || this.task.createdByName;
           // dueDate/completedAt (V23) - present on the full task detail response too; keep
@@ -1269,7 +1269,7 @@ export class TaskDetailsDrawerComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (newStatus === 'DONE' && targetTask.proofRequired && !this.hasProofAttachment(targetTask)) {
+    if (newStatus === 'DONE' && !this.hasProofAttachment(targetTask)) {
       this.openAttachProofDialog(targetTask);
       return;
     }

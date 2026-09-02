@@ -158,7 +158,7 @@ export class TaskTableComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (newStatus === 'DONE' && task.proofRequired && !this.hasProofAttachment(task)) {
+    if (newStatus === 'DONE' && !this.hasProofAttachment(task)) {
       this.openAttachProofDialog(task);
       return;
     }
