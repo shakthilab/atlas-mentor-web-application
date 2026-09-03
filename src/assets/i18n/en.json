@@ -28,6 +28,7 @@
     "branches": "Branches",
     "companies": "Companies",
     "hierarchy": "Hierarchy",
+    "officeCameras": "Office Cameras",
     "referrals": "Referrals",
     "documents": "Documents",
     "resources": "Resources",
@@ -955,5 +956,28 @@
       "deleted": "Resource deleted successfully",
       "deleteFailed": "Failed to delete resource"
     }
+  },
+  "officeCameras": {
+    "title": "Office Cameras",
+    "subtitle": "View live camera feeds from your branch locations via the Ezykam portal.",
+    "camerasConfigured": "Cameras Configured",
+    "portalHeroTitle": "Ezykam Live Monitoring",
+    "portalHeroDesc": "Access live CCTV streams, multi-camera playback, and motion event logs across branch locations.",
+    "openPortal": "Open Camera Portal",
+    "portalNote": "This opens Ezykam's camera portal in a new tab. You'll need to log in there separately — this is a different login from Atlas Mentor.",
+    "cameraListTitle": "Cameras on this account",
+    "cameraListSubtitle": "Reference list of registered CCTV devices across branch locations",
+    "statusReady": "Configured",
+    "copyDeviceName": "Copy device name",
+    "copied": "Copied!",
+    "quickStepsTitle": "How to access camera streams",
+    "step1Title": "1. Launch Portal",
+    "step1": "Click \"Open Camera Portal\" above to launch Ezykam in a new browser tab.",
+    "step2Title": "2. Separate Credentials",
+    "step2": "Sign in using your branch's authorized Ezykam portal credentials.",
+    "step3Title": "3. View Live Feeds",
+    "step3": "Select any of the 7 configured camera channels to monitor live feeds or search recordings.",
+    "securityTitle": "Direct & Secure Connection",
+    "securityNotice": "Video streaming is served directly from Ezykam's secure infrastructure. Atlas Mentor does not store or process your camera feeds or video credentials."
   }
 }

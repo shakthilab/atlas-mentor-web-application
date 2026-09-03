@@ -11,6 +11,7 @@ import { ReferralsComponent } from '../../shared/components/referrals/referrals.
 import { CompaniesComponent } from '../../shared/components/companies/companies.component';
 import { ResourcesComponent } from '../../shared/components/resources/resources.component';
 import { HierarchyComponent } from '../../shared/components/hierarchy/hierarchy.component';
+import { OfficeCamerasComponent } from '../../shared/components/office-cameras/office-cameras.component';
 
 
 export const managerRoutes: Routes = [
@@ -22,6 +23,7 @@ export const managerRoutes: Routes = [
   { path: 'hierarchy', component: HierarchyComponent, data: { title: 'Hierarchy' } },
   { path: 'referrals', component: ReferralsComponent, data: { title: 'Referrals' } },
   { path: 'companies', component: CompaniesComponent, data: { title: 'Companies' } },
+  { path: 'office-cameras', component: OfficeCamerasComponent, data: { title: 'Office Cameras' } },
   { path: 'resources', component: ResourcesComponent, data: { title: 'Resources' } },
   { path: 'branches', component: BranchesComponent, data: { title: 'Branches' } },
   {

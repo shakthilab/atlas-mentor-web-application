@@ -28,6 +28,7 @@
     "branches": "Succursales",
     "companies": "Entreprises",
     "hierarchy": "Hiérarchie",
+    "officeCameras": "Caméras de bureau",
     "referrals": "Parrainages",
     "documents": "Documents",
     "resources": "Ressources",
@@ -77,5 +78,28 @@
   "samplePage": {
     "title": "Page d'exemple",
     "subtitle": "Ceci est une page de test"
+  },
+  "officeCameras": {
+    "title": "Caméras de bureau",
+    "subtitle": "Visualisez les flux vidéo en direct de vos succursales via le portail Ezykam.",
+    "camerasConfigured": "Caméras configurées",
+    "portalHeroTitle": "Surveillance en direct Ezykam",
+    "portalHeroDesc": "Accédez aux flux CCTV en direct, à la lecture multi-caméras et aux journaux de détection de mouvement.",
+    "openPortal": "Ouvrir le portail caméras",
+    "portalNote": "Cela ouvre le portail de caméras Ezykam dans un nouvel onglet. Vous devrez vous y connecter séparément — cet identifiant est différent de celui d'Atlas Mentor.",
+    "cameraListTitle": "Caméras sur ce compte",
+    "cameraListSubtitle": "Liste de référence des caméras CCTV enregistrées dans vos succursales",
+    "statusReady": "Configurée",
+    "copyDeviceName": "Copier le nom de l'appareil",
+    "copied": "Copié !",
+    "quickStepsTitle": "Comment accéder aux flux des caméras",
+    "step1Title": "1. Ouvrir le portail",
+    "step1": "Cliquez sur « Ouvrir le portail caméras » ci-dessus pour lancer Ezykam dans un nouvel onglet.",
+    "step2Title": "2. Identifiants distincts",
+    "step2": "Connectez-vous avec les identifiants du portail Ezykam de votre succursale.",
+    "step3Title": "3. Flux en direct",
+    "step3": "Sélectionnez l'un des 7 canaux configurés pour afficher le flux en direct.",
+    "securityTitle": "Connexion directe et sécurisée",
+    "securityNotice": "Le streaming vidéo est directement diffusé depuis les serveurs sécurisés d'Ezykam. Atlas Mentor ne stocke ni ne traite vos flux vidéo."
   }
 }

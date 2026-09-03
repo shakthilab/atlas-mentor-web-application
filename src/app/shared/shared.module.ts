@@ -26,6 +26,7 @@ import { HierarchyComponent } from './components/hierarchy/hierarchy.component';
 import { HierarchyAssignDialogComponent } from './components/hierarchy/hierarchy-assign-dialog/hierarchy-assign-dialog.component';
 import { TasksV2Component } from './components/tasks-v2/tasks-v2.component';
 import { VoiceNotePlayerComponent } from './components/voice-note-player/voice-note-player.component';
+import { OfficeCamerasComponent } from './components/office-cameras/office-cameras.component';
 
 @NgModule({
   declarations: [
@@ -48,6 +49,7 @@ import { VoiceNotePlayerComponent } from './components/voice-note-player/voice-n
     AnimatedNumberDirective,
     PartnerDashboardComponent,
     VoiceNotePlayerComponent,
+    OfficeCamerasComponent,
   ],
   imports: [
     CommonModule,
@@ -91,6 +93,7 @@ import { VoiceNotePlayerComponent } from './components/voice-note-player/voice-n
     NgxEchartsModule,
     TasksV2Component,
     VoiceNotePlayerComponent,
+    OfficeCamerasComponent,
   ],
 })
 export class SharedModule {}

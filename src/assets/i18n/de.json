@@ -28,6 +28,7 @@
     "branches": "Filialen",
     "companies": "Unternehmen",
     "hierarchy": "Hierarchie",
+    "officeCameras": "Bürokameras",
     "referrals": "Empfehlungen",
     "documents": "Dokumente",
     "resources": "Ressourcen",
@@ -77,5 +78,28 @@
   "samplePage": {
     "title": "Beispielseite",
     "subtitle": "Dies ist eine Testseite"
+  },
+  "officeCameras": {
+    "title": "Bürokameras",
+    "subtitle": "Live-Kamera-Feeds von Ihren Filialstandorten über das Ezykam-Portal anzeigen.",
+    "camerasConfigured": "Kameras konfiguriert",
+    "portalHeroTitle": "Ezykam Live-Überwachung",
+    "portalHeroDesc": "Greifen Sie auf Live-CCTV-Streams, Multi-Kamera-Wiedergabe und Bewegungserkennungsprotokolle zu.",
+    "openPortal": "Kamera-Portal öffnen",
+    "portalNote": "Dadurch wird das Ezykam-Kameraportal in einem neuen Tab geöffnet. Sie müssen sich dort separat anmelden — dies ist ein anderer Login als bei Atlas Mentor.",
+    "cameraListTitle": "Kameras in diesem Konto",
+    "cameraListSubtitle": "Referenzliste der registrierten CCTV-Geräte an Filialstandorten",
+    "statusReady": "Konfiguriert",
+    "copyDeviceName": "Gerätenamen kopieren",
+    "copied": "Kopiert!",
+    "quickStepsTitle": "So greifen Sie auf Kamerastreams zu",
+    "step1Title": "1. Portal starten",
+    "step1": "Klicken Sie oben auf „Kamera-Portal öffnen“, um Ezykam in einem neuen Tab zu starten.",
+    "step2Title": "2. Separate Anmeldedaten",
+    "step2": "Melden Sie sich mit den Zugangsdaten Ihres Ezykam-Filialportals an.",
+    "step3Title": "3. Live-Feeds anzeigen",
+    "step3": "Wählen Sie einen der 7 konfigurierten Kanäle aus, um die Live-Übertragung anzuzeigen.",
+    "securityTitle": "Direkte und sichere Verbindung",
+    "securityNotice": "Das Video-Streaming wird direkt von den sicheren Servern von Ezykam bereitgestellt. Atlas Mentor speichert keine Video-Streams oder Anmeldedaten."
   }
 }
