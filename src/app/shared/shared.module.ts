@@ -100,6 +100,9 @@ import { OfficeCamerasComponent } from './components/office-cameras/office-camer
     TasksV2Component,
     VoiceNotePlayerComponent,
     OfficeCamerasComponent,
+    DataTableComponent,
+    TableCellDefDirective,
+    TableRowActionsDirective,
   ],
 })
 export class SharedModule {}
