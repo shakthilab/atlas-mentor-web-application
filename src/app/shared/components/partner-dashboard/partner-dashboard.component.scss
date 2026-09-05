@@ -949,9 +949,16 @@
     display: inline-flex;
     align-items: center;
 
+    // On mobile, a viewport-fixed pill inevitably lands on top of whatever
+    // KPI card happens to scroll under it (single-column stacking + short
+    // viewports means it can cover live numbers). Drop it into normal flow
+    // instead so it settles below the last section -- still reachable, no
+    // longer able to obscure card content.
     @media (max-width: 768px) {
-      bottom: 90px;
-      right: 20px;
+      position: static;
+      display: flex;
+      justify-content: flex-end;
+      margin: 20px 0 0 0;
     }
 
     select {
