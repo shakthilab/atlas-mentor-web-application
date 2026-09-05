@@ -346,10 +346,10 @@ export class AddEmployeeDialogComponent implements OnInit {
     this.masterDataService.getRoles().subscribe({
       next: (res) => {
         if (res?.data) {
-          // Filter out ADMIN, STUDENT, REFERRAL, and COMPANY roles
+          // Filter out STUDENT, REFERRAL, and COMPANY roles (include ADMIN)
           this.roles = res.data.filter(r => {
             const roleName = r.name?.toUpperCase() || '';
-            return !['ADMIN', 'STUDENT', 'REFERRAL', 'COMPANY'].includes(roleName);
+            return !['STUDENT', 'REFERRAL', 'COMPANY'].includes(roleName);
           });
           
           // Find the MANAGER role ID for fetching managers

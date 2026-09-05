@@ -10,6 +10,25 @@
         <i-tabler name="chart-bubble" class="tool-icon"></i-tabler>
         {{ 'taskAccountability.taskTable.groupByStatus' | translate }}
       </button>
+      <button 
+        class="tool-btn delete-tool-btn" 
+        *ngIf="canDeleteTasks"
+        (click)="toggleDeleteMode()" 
+        [class.active-danger]="isDeleteMode"
+        [title]="'taskAccountability.taskTable.deleteTasks' | translate"
+      >
+        <i-tabler name="trash" class="tool-icon"></i-tabler>
+        <span>{{ (isDeleteMode ? 'taskAccountability.taskTable.cancelDelete' : 'taskAccountability.taskTable.deleteTasks') | translate }}</span>
+      </button>
+      <button 
+        class="tool-btn btn-danger-action" 
+        *ngIf="isDeleteMode && selectedTaskIds.size > 0"
+        (click)="confirmBulkDelete()"
+        [disabled]="isDeleting"
+      >
+        <i-tabler name="trash" class="tool-icon"></i-tabler>
+        <span>{{ 'taskAccountability.taskTable.deleteSelected' | translate:{ count: selectedTaskIds.size } }}</span>
+      </button>
     </div>
 
     <div class="toolbar-right">
@@ -22,6 +41,16 @@
     <table class="clickup-table">
       <thead>
         <tr>
+          <th class="col-checkbox" *ngIf="isDeleteMode">
+            <input 
+              type="checkbox" 
+              class="table-checkbox"
+              [checked]="isAllSelected()" 
+              [indeterminate]="isSomeSelected()" 
+              (change)="toggleSelectAll($event)"
+              title="{{ (isAllSelected() ? 'taskAccountability.taskTable.deselectAll' : 'taskAccountability.taskTable.selectAll') | translate }}"
+            />
+          </th>
           <th class="col-task-name">{{ 'taskAccountability.taskTable.colTask' | translate }}</th>
           <th class="col-priority">{{ 'taskAccountability.taskTable.colPriority' | translate }}</th>
           <th class="col-status">{{ 'taskAccountability.taskTable.colStatus' | translate }}</th>
@@ -34,7 +63,7 @@
         <ng-container *ngIf="currentGroup === 'status'; else flatList">
           <ng-container *ngFor="let group of taskGroups">
             <tr class="status-group-header-row">
-              <td colspan="6">
+              <td [attr.colspan]="isDeleteMode ? 7 : 6">
                 <div class="status-group-title">
                   <span class="status-badge" [ngClass]="group.statusClass">{{ formatStatusLabel(group.statusName) }}</span>
                   <span class="group-count-tag">{{ (group.count === 1 ? 'taskAccountability.taskTable.taskSingular' : 'taskAccountability.taskTable.taskPlural') | translate:{ count: group.count } }}</span>
@@ -43,10 +72,20 @@
             </tr>
             <tr 
               *ngFor="let task of group.tasks" 
-              (click)="selectTask(task)"
-              [class.active-row]="selectedTask?.id === task.id"
+              (click)="isDeleteMode ? toggleTaskSelection(task, $event) : selectTask(task)"
+              [class.active-row]="!isDeleteMode && selectedTask?.id === task.id"
+              [class.selected-row]="isDeleteMode && isTaskSelected(task)"
               class="task-row"
             >
+              <!-- Checkbox column when in delete mode -->
+              <td class="col-checkbox" *ngIf="isDeleteMode" (click)="$event.stopPropagation()">
+                <input 
+                  type="checkbox" 
+                  class="table-checkbox"
+                  [checked]="isTaskSelected(task)" 
+                  (change)="toggleTaskSelection(task, $event)"
+                />
+              </td>
               <!-- Task Name with Display ID Badge -->
               <td class="col-task-name">
                 <div class="task-title-cell">
@@ -176,10 +215,20 @@
         <ng-template #flatList>
           <tr 
             *ngFor="let task of tasks" 
-            (click)="selectTask(task)"
-            [class.active-row]="selectedTask?.id === task.id"
+            (click)="isDeleteMode ? toggleTaskSelection(task, $event) : selectTask(task)"
+            [class.active-row]="!isDeleteMode && selectedTask?.id === task.id"
+            [class.selected-row]="isDeleteMode && isTaskSelected(task)"
             class="task-row"
           >
+            <!-- Checkbox column when in delete mode -->
+            <td class="col-checkbox" *ngIf="isDeleteMode" (click)="$event.stopPropagation()">
+              <input 
+                type="checkbox" 
+                class="table-checkbox"
+                [checked]="isTaskSelected(task)" 
+                (change)="toggleTaskSelection(task, $event)"
+              />
+            </td>
             <!-- Task Name with Display ID Badge -->
             <td class="col-task-name">
               <div class="task-title-cell">
@@ -294,7 +343,7 @@
         </ng-template>
 
         <tr *ngIf="tasks.length === 0">
-          <td colspan="6" class="empty-table-row">
+          <td [attr.colspan]="isDeleteMode ? 7 : 6" class="empty-table-row">
             <div class="empty-state-container">
               <i-tabler name="clipboard-off" class="empty-state-icon"></i-tabler>
               <h4 class="empty-state-title">{{ 'taskAccountability.taskTable.noDataFound' | translate }}</h4>

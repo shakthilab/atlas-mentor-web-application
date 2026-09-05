@@ -195,6 +195,104 @@
         </div>
       </div>
 
+      <!-- Dedicated Proof of Work Section -->
+      <div class="section-container proof-of-work-section" *ngIf="!accessForbidden">
+        <div class="proof-section-header">
+          <div class="proof-header-title">
+            <i-tabler name="shield-check" class="proof-header-icon"></i-tabler>
+            <h3>{{ 'taskAccountability.taskDetails.proofOfWork' | translate }}</h3>
+          </div>
+          <span class="proof-status-tag attached" *ngIf="hasProofAttachment(displayTask)">
+            <i-tabler name="circle-check" class="icon-14"></i-tabler>
+            {{ 'taskAccountability.taskDetails.proofAttached' | translate }}
+          </span>
+        </div>
+
+        <!-- Proof Attachments List -->
+        <div class="proof-attachments-grid" *ngIf="getProofAttachments().length > 0">
+          <div class="proof-card" *ngFor="let proof of getProofAttachments()">
+            <!-- Image Proof Item -->
+            <div class="proof-media-wrapper image-wrapper" *ngIf="isImageAttachment(proof)" (click)="openAttachmentPreview(proof)">
+              <img [src]="proof.fileUrl" [alt]="proof.fileName || proof.name" class="proof-media-img" />
+              <div class="proof-media-overlay">
+                <i-tabler name="zoom-in" class="icon-18"></i-tabler>
+              </div>
+            </div>
+
+            <!-- Video Proof Item -->
+            <div class="proof-media-wrapper video-wrapper" *ngIf="isVideoAttachment(proof)" (click)="openAttachmentPreview(proof)">
+              <video [src]="proof.fileUrl" controls class="proof-media-video"></video>
+            </div>
+
+            <!-- Audio Proof Item -->
+            <div class="proof-media-wrapper audio-wrapper" *ngIf="isAudioAttachment(proof)">
+              <app-voice-note-player [audioUrl]="proof.fileUrl || ''" [duration]="0" [authorName]="proof.uploadedByName || ''"></app-voice-note-player>
+            </div>
+
+            <!-- Document Proof Item -->
+            <div class="proof-media-wrapper doc-wrapper" *ngIf="isDocumentAttachment(proof)" (click)="openAttachmentPreview(proof)">
+              <div class="doc-icon-circle">
+                <i-tabler [name]="getAttachmentIcon(proof)" class="icon-24"></i-tabler>
+              </div>
+              <div class="doc-info-text">
+                <span class="doc-title" [title]="proof.fileName || proof.name">{{ proof.fileName || proof.name }}</span>
+                <span class="doc-meta-size">{{ proof.size || proof.fileSizeFormatted }}</span>
+              </div>
+              <i-tabler name="zoom-in" class="doc-download-icon"></i-tabler>
+            </div>
+
+            <div class="proof-card-footer" *ngIf="isImageAttachment(proof) || isVideoAttachment(proof)">
+              <span class="proof-filename" [title]="proof.fileName || proof.name">{{ proof.fileName || proof.name }}</span>
+              <span class="proof-filesize">{{ proof.size || proof.fileSizeFormatted }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State (No Proofs yet) -->
+        <div class="empty-proof-state" *ngIf="getProofAttachments().length === 0 && !pendingProofFile">
+          <p>{{ 'taskAccountability.taskDetails.noProofAttached' | translate }}</p>
+        </div>
+
+        <!-- Pending Proof Preview Card (WhatsApp Style Pick -> Preview -> Upload) -->
+        <div class="pending-proof-card" *ngIf="pendingProofFile">
+          <div class="pending-proof-preview">
+            <img [src]="pendingProofPreviewUrl" *ngIf="pendingProofPreviewUrl" class="pending-preview-img" />
+            <div class="pending-preview-doc" *ngIf="!pendingProofPreviewUrl">
+              <i-tabler [name]="getAttachmentIcon({ fileName: pendingProofFile.name })" class="icon-28"></i-tabler>
+            </div>
+            <div class="pending-file-info">
+              <span class="pending-file-name">{{ pendingProofFile.name }}</span>
+              <span class="pending-file-size">{{ (pendingProofFile.size / 1024).toFixed(1) }} KB</span>
+            </div>
+          </div>
+          <div class="pending-proof-actions">
+            <button class="btn-cancel-pending" type="button" (click)="cancelProofUpload()" [disabled]="isUploadingProof">
+              {{ 'taskAccountability.taskDetails.cancel' | translate }}
+            </button>
+            <button class="btn-upload-proof" type="button" (click)="uploadProof()" [disabled]="isUploadingProof">
+              <i-tabler name="upload" class="icon-14" *ngIf="!isUploadingProof"></i-tabler>
+              <span *ngIf="!isUploadingProof">{{ 'taskAccountability.taskDetails.confirmUpload' | translate }}</span>
+              <span *ngIf="isUploadingProof">{{ 'taskAccountability.taskDetails.uploading' | translate }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Attach Proof Trigger Button -->
+        <div class="attach-proof-action-row" *ngIf="!pendingProofFile">
+          <button class="btn-attach-proof" type="button" (click)="proofFileInput.click()">
+            <i-tabler name="upload" class="icon-16"></i-tabler>
+            {{ 'taskAccountability.taskDetails.attachProof' | translate }}
+          </button>
+          <input 
+            type="file" 
+            #proofFileInput 
+            style="display: none" 
+            (change)="onProofFileSelected($event)"
+            accept=".jpg,.jpeg,.png,.webp,.mp4,.mov,.mp3,.m4a,.ogg,.wav,.webm,.pdf,.doc,.docx,.xls,.xlsx,.csv,image/*,video/*,audio/*,application/pdf"
+          />
+        </div>
+      </div>
+
       <!-- Tab Selector Header -->
       <div class="drawer-tabs-container">
         <button class="drawer-tab-btn" [class.active]="activeTab === 'comments'" (click)="activeTab = 'comments'">
@@ -236,19 +334,76 @@
                 </div>
 
                 <ng-container *ngIf="editingCommentId !== comment.id; else editCommentMode">
-                  <p class="comment-body-text">{{ comment.text }}</p>
+                  <!-- Attached Media inside Comment (WhatsApp style) -->
+                  <div class="comment-attachment-card" *ngIf="comment.attachment">
+                    <!-- Image in comment -->
+                    <div class="comment-media-image" *ngIf="isImageAttachment(comment.attachment)" (click)="openAttachmentPreview(comment.attachment)">
+                      <img [src]="comment.attachment.fileUrl" [alt]="comment.attachment.fileName || comment.attachment.name" />
+                      <div class="image-zoom-hint"><i-tabler name="zoom-in" class="icon-14"></i-tabler></div>
+                    </div>
+
+                    <!-- Video in comment (Strictly video formats like .mp4, .mov) -->
+                    <div class="comment-media-video" *ngIf="isVideoAttachment(comment.attachment)" (click)="openAttachmentPreview(comment.attachment)">
+                      <video [src]="comment.attachment.fileUrl" controls></video>
+                    </div>
+
+                    <!-- Audio / Voice Note in comment -->
+                    <div class="comment-media-audio" *ngIf="isAudioAttachment(comment.attachment)">
+                      <app-voice-note-player 
+                        [audioUrl]="comment.attachment.fileUrl || comment.audioUrl || ''" 
+                        [duration]="comment.audioDuration || 0" 
+                        [isMyMessage]="isMyComment(comment)" 
+                        [authorName]="comment.authorName"
+                      ></app-voice-note-player>
+                    </div>
+
+                    <!-- Document in comment -->
+                    <div class="comment-media-doc" *ngIf="isDocumentAttachment(comment.attachment)" (click)="openAttachmentPreview(comment.attachment)">
+                      <i-tabler [name]="getAttachmentIcon(comment.attachment)" class="doc-icon"></i-tabler>
+                      <div class="doc-info">
+                        <span class="doc-name" [title]="comment.attachment.fileName || comment.attachment.name">{{ comment.attachment.fileName || comment.attachment.name }}</span>
+                        <span class="doc-size">{{ comment.attachment.size || comment.attachment.fileSizeFormatted }}</span>
+                      </div>
+                      <i-tabler name="zoom-in" class="download-icon"></i-tabler>
+                    </div>
+                  </div>
+
+                  <!-- Standalone Voice Note Player (when audio is in comment text and not an attachment) -->
+                  <app-voice-note-player 
+                    *ngIf="comment.audioUrl && (!comment.attachment || !isAudioAttachment(comment.attachment))"
+                    [audioUrl]="comment.audioUrl" 
+                    [duration]="comment.audioDuration || 0"
+                    [isMyMessage]="isMyComment(comment)"
+                    [authorName]="comment.authorName"
+                  ></app-voice-note-player>
+
+                  <p class="comment-body-text" *ngIf="comment.text && !isPureVoiceNote(comment.text)">{{ comment.text }}</p>
+
                   <div class="comment-time-row">
                     <span class="comment-time">{{ comment.timestamp }}</span>
                     <span class="comment-edited-tag" *ngIf="comment.edited">{{ 'taskAccountability.taskDetails.editedTag' | translate }}</span>
+
+                    <!-- Three Dots Menu for Comment Owner -->
                     <button
-                      class="comment-edit-btn"
+                      class="comment-menu-btn"
                       *ngIf="isMyComment(comment)"
-                      (click)="startEditComment(comment)"
+                      [matMenuTriggerFor]="commentActionMenu"
                       type="button"
-                      [title]="'taskAccountability.taskDetails.editComment' | translate"
+                      aria-label="Comment options"
                     >
-                      <i-tabler name="pencil" class="icon-12"></i-tabler>
+                      <i-tabler name="dots-vertical" class="icon-14"></i-tabler>
                     </button>
+
+                    <mat-menu #commentActionMenu="matMenu" class="comment-options-mat-menu">
+                      <button mat-menu-item *ngIf="!comment.audioUrl" (click)="startEditComment(comment)">
+                        <i-tabler name="pencil" class="icon-16 mr-2"></i-tabler>
+                        <span>{{ 'taskAccountability.taskDetails.editComment' | translate }}</span>
+                      </button>
+                      <button mat-menu-item class="delete-menu-item" (click)="deleteComment(comment)">
+                        <i-tabler name="trash" class="icon-16 mr-2 text-danger"></i-tabler>
+                        <span class="text-danger">{{ 'common.delete' | translate }}</span>
+                      </button>
+                    </mat-menu>
                   </div>
                 </ng-container>
 
@@ -281,15 +436,6 @@
           </div>
         </div>
 
-        <!-- Attached Files List -->
-        <div class="attached-files-chips-list" *ngIf="displayTask.attachments && displayTask.attachments.length > 0">
-          <div class="attached-file-chip" *ngFor="let att of displayTask.attachments">
-            <i-tabler name="paperclip" class="chip-file-icon"></i-tabler>
-            <span class="chip-file-name" [title]="att.name">{{ att.name }}</span>
-            <span class="chip-file-size">({{ att.size }})</span>
-          </div>
-        </div>
-
       </div>
 
       <!-- Tab Content: Activity -->
@@ -315,21 +461,107 @@
     <!-- Sticky Manager Review Footer -->
     <div class="drawer-footer">
       <!-- Rounded comment input bar (WhatsApp style) -->
-      <div class="comment-input-bar-wrapper" *ngIf="activeTab === 'comments'">
-        <div class="add-comment-input-bar">
-          <button class="attachment-btn" (click)="fileInput.click()" [title]="'taskAccountability.taskDetails.addAttachment' | translate">
+      <div class="comment-input-bar-wrapper" *ngIf="activeTab === 'comments'" (paste)="onCommentPaste($event)">
+        <!-- Pending Attachment Preview Bar (above input) -->
+        <div class="pending-comment-attachment-bar" *ngIf="pendingCommentFile">
+          <div class="pending-preview-left">
+            <img [src]="pendingCommentPreviewUrl" *ngIf="pendingCommentPreviewUrl" class="pending-thumbnail" />
+            <i-tabler [name]="getAttachmentIcon({ fileName: pendingCommentFile.name })" class="pending-doc-icon" *ngIf="!pendingCommentPreviewUrl"></i-tabler>
+            <div class="pending-meta">
+              <span class="pending-name">{{ pendingCommentFile.name }}</span>
+              <span class="pending-size">{{ (pendingCommentFile.size / 1024).toFixed(1) }} KB</span>
+            </div>
+          </div>
+          <button type="button" class="btn-remove-pending-comment-file" (click)="cancelCommentFile()" [disabled]="isUploadingCommentMedia">
+            <i-tabler name="x" class="icon-14"></i-tabler>
+          </button>
+        </div>
+
+        <!-- Default State: Paperclip + Text Input + Mic Button + Send Button -->
+        <div class="add-comment-input-bar" *ngIf="!isVoiceRecording">
+          <button class="attachment-btn" (click)="commentFileInput.click()" [title]="'taskAccountability.taskDetails.addAttachment' | translate" type="button" [disabled]="isUploadingCommentMedia">
             <i-tabler name="paperclip" class="attachment-icon"></i-tabler>
           </button>
-          <input type="file" #fileInput style="display: none" (change)="onFileSelected($event)" />
+          <input 
+            type="file" 
+            #commentFileInput 
+            style="display: none" 
+            (change)="onCommentFileSelected($event)" 
+            accept=".jpg,.jpeg,.png,.webp,.mp4,.mov,.mp3,.m4a,.ogg,.wav,.webm,.pdf,.doc,.docx,.xls,.xlsx,.csv,image/*,video/*,audio/*,application/pdf"
+          />
 
           <input
             type="text"
             [placeholder]="'taskAccountability.taskDetails.writeComment' | translate"
             [(ngModel)]="newCommentText"
             (keyup.enter)="submitComment()"
+            (paste)="onCommentPaste($event)"
             class="comment-bar-input"
+            [disabled]="isUploadingCommentMedia"
           />
-          <button class="comment-send-btn" (click)="submitComment()">
+
+          <!-- WhatsApp-style Mic Button to record voice -->
+          <button 
+            class="comment-mic-btn" 
+            (click)="startVoiceRecording()" 
+            [title]="'taskAccountability.taskDetails.recordVoice' | translate"
+            type="button"
+            *ngIf="!newCommentText.trim() && !pendingCommentFile"
+          >
+            <i-tabler name="microphone" class="mic-icon"></i-tabler>
+          </button>
+
+          <!-- Send Text / Media Comment Button -->
+          <button 
+            class="comment-send-btn" 
+            (click)="submitComment()"
+            [disabled]="(!newCommentText.trim() && !pendingCommentFile) || isUploadingCommentMedia"
+            [title]="'taskAccountability.taskTable.addComment' | translate"
+            type="button"
+            *ngIf="newCommentText.trim() || pendingCommentFile"
+          >
+            <i-tabler name="send" class="send-icon" *ngIf="!isUploadingCommentMedia"></i-tabler>
+            <span class="uploading-spinner-inline" *ngIf="isUploadingCommentMedia">...</span>
+          </button>
+        </div>
+
+        <!-- Active Voice Recording State (WhatsApp style) -->
+        <div class="add-comment-recording-bar" *ngIf="isVoiceRecording">
+          <!-- Discard / Trash Button -->
+          <button 
+            class="recording-discard-btn" 
+            type="button" 
+            (click)="cancelVoiceRecording()" 
+            [title]="'taskAccountability.taskDetails.cancelRecording' | translate"
+          >
+            <i-tabler name="trash" class="trash-icon"></i-tabler>
+          </button>
+
+          <!-- Pulsing Red Dot & Timer -->
+          <div class="recording-indicator-group">
+            <span class="recording-pulse-dot"></span>
+            <span class="recording-timer">{{ recordingDurationFormatted }}</span>
+          </div>
+
+          <!-- Animated Equalizer Sound Waves -->
+          <div class="recording-waves-animation">
+            <span class="rec-bar bar-1"></span>
+            <span class="rec-bar bar-2"></span>
+            <span class="rec-bar bar-3"></span>
+            <span class="rec-bar bar-4"></span>
+            <span class="rec-bar bar-5"></span>
+            <span class="rec-bar bar-6"></span>
+            <span class="rec-bar bar-7"></span>
+            <span class="rec-bar bar-8"></span>
+          </div>
+
+          <!-- Send Voice Note Button -->
+          <button 
+            class="recording-send-btn" 
+            type="button" 
+            (click)="stopAndSendVoiceComment()" 
+            [title]="'taskAccountability.taskDetails.sendVoice' | translate"
+          >
             <i-tabler name="send" class="send-icon"></i-tabler>
           </button>
         </div>

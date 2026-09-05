@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { TaskAccountabilityService } from '../../services/task-accountability.service';
 import { RoleTemplate, TemplateMonth, TemplateDay, TemplateQuestion, EmployeeNode, TemplateTask } from '../../interfaces/accountability.interface';
-import { Observable } from 'rxjs';
+import { Observable, forkJoin, switchMap } from 'rxjs';
 import { MasterDataService } from '../../../../core/services/master-data.service';
 import { TranslateService } from '@ngx-translate/core';
 
@@ -19,6 +19,10 @@ export class RoleTemplatesComponent implements OnInit {
   publishingTemplate: RoleTemplate | null = null;
   templateToDelete: RoleTemplate | null = null;
 
+  isPublishing = false;
+  isSaving = false;
+  publishingTemplateId: string | null = null;
+
   // Redesigned template days state
   selectedDayIndex = 0;
   selectedDaysForDuplication = new Set<number>();
@@ -30,6 +34,12 @@ export class RoleTemplatesComponent implements OnInit {
   newTaskTitle = '';
   newTaskDescription = '';
   newTaskPriority = 'MEDIUM';
+  newTaskProofRequired = false;
+  editingTaskId: string | null = null;
+  editingTaskTitle = '';
+  editingTaskDescription = '';
+  editingTaskPriority = 'MEDIUM';
+  editingTaskProofRequired = false;
   get pastDayTooltip(): string {
     return this.t('taskAccountability.templates.cantAddPastDay');
   }
@@ -73,12 +83,6 @@ export class RoleTemplatesComponent implements OnInit {
   showTaskDrawer = false;
   newCommentText = '';
   newAttachmentName = '';
-
-  // Inline Task Edit State
-  editingTaskId: string | null = null;
-  editingTaskTitle = '';
-  editingTaskDescription = '';
-  editingTaskPriority = 'MEDIUM';
 
   taskResponseTypes = [
     { value: 'NUMERIC', label: 'Number', icon: 'hash' },
@@ -155,6 +159,10 @@ export class RoleTemplatesComponent implements OnInit {
     });
 
     // Fetch role templates from API
+    this.loadTemplates();
+  }
+
+  loadTemplates(): void {
     this.service.getRoleTemplatesApi().subscribe();
   }
 
@@ -368,6 +376,7 @@ export class RoleTemplatesComponent implements OnInit {
         description: t.description || '',
         type: 'CHECKLIST',
         priority: t.priority ? t.priority : 'MEDIUM',
+        proofRequired: false,
         required: true,
         active: true
       }));
@@ -856,17 +865,31 @@ export class RoleTemplatesComponent implements OnInit {
     event.stopPropagation();
     if (!this.editingTemplate || !this.editingTemplate.months || this.editingTemplate.months.length === 0) return;
     const days = this.editingTemplate.months[0].days;
-    days.splice(idx, 1);
+    const templateId = this.editingTemplate.id;
+    const isSaved = templateId && templateId !== '' && !templateId.startsWith('temp-');
 
-    // Adjust day names contiguously
-    days.forEach((d, i) => {
-      d.name = `Day ${i + 1}`;
-    });
-
-    // Adjust selection index
-    if (this.selectedDayIndex >= days.length) {
-      this.selectedDayIndex = Math.max(0, days.length - 1);
+    if (isSaved) {
+      if (idx >= 0 && idx < days.length) {
+        const day = days[idx];
+        this.service.deleteDayTasksApi(templateId, day.dayNumber || (idx + 1), day.month, day.year).subscribe({
+          next: () => {
+            this.showToast(this.t('taskAccountability.templates.toast.tasksDeleted', { defaultValue: 'Tasks cleared successfully' }));
+            this.refreshEditingTemplateDaysFromServer(templateId);
+            this.service.getRoleTemplatesApi().subscribe();
+          },
+          error: (err) => {
+            console.error('Failed to delete day tasks via API:', err);
+            this.refreshEditingTemplateDaysFromServer(templateId);
+          }
+        });
+      }
+    } else {
+      if (idx >= 0 && idx < days.length) {
+        days[idx].tasks = [];
+      }
+      this.showToast(this.t('taskAccountability.templates.toast.tasksDeleted', { defaultValue: 'Tasks cleared successfully' }));
     }
+
     this.selectedDaysForDuplication.delete(idx);
   }
 
@@ -942,8 +965,9 @@ export class RoleTemplatesComponent implements OnInit {
     const title = this.newTaskTitle.trim();
     const description = this.newTaskDescription.trim();
     const priority = this.newTaskPriority || 'MEDIUM';
+    const proofRequired = false;
     const dayNumber = this.selectedDayIndex + 1;
-    const taskPayload = { title, description, priority };
+    const taskPayload = { title, description, priority, proofRequired };
 
     const executeAddTaskApi = (tempId: string | number) => {
       this.service.addTaskApi(tempId, dayNumber, taskPayload, day.month, day.year).subscribe({
@@ -963,6 +987,7 @@ export class RoleTemplatesComponent implements OnInit {
             type: 'CHECKLIST',
             priority: priority as any,
             required: true,
+            proofRequired: false,
             active: true,
             comments: [],
             attachments: [],
@@ -1011,6 +1036,7 @@ export class RoleTemplatesComponent implements OnInit {
               type: 'CHECKLIST',
               priority: priority as any,
               required: true,
+              proofRequired,
               active: true,
               comments: [],
               attachments: [],
@@ -1033,6 +1059,7 @@ export class RoleTemplatesComponent implements OnInit {
             type: 'CHECKLIST',
             priority: priority as any,
             required: true,
+            proofRequired,
             active: true,
             comments: [],
             attachments: [],
@@ -1055,6 +1082,7 @@ export class RoleTemplatesComponent implements OnInit {
         type: 'CHECKLIST',
         priority: priority as any,
         required: true,
+        proofRequired,
         active: true,
         comments: [],
         attachments: [],
@@ -1070,6 +1098,7 @@ export class RoleTemplatesComponent implements OnInit {
     // Clear fields but keep form open for subsequent entries
     this.newTaskTitle = '';
     this.newTaskDescription = '';
+    this.newTaskProofRequired = false;
     this.showDescField = false;
   }
 
@@ -1083,6 +1112,14 @@ export class RoleTemplatesComponent implements OnInit {
     this.isDuplicatingDayBatch = false;
     // Default the target-month picker to whichever month is currently open, so same-month
     // duplication (the common case) needs no extra step.
+    this.duplicateTargetMonthName = this.selectedMonthName;
+    this.showDuplicateDayModal = true;
+  }
+
+  openBulkDuplicateDaysModal(): void {
+    if (this.selectedDaysForDuplication.size === 0) return;
+    this.selectedTargetDaysForDuplication.clear();
+    this.isDuplicatingDayBatch = false;
     this.duplicateTargetMonthName = this.selectedMonthName;
     this.showDuplicateDayModal = true;
   }
@@ -1137,6 +1174,10 @@ export class RoleTemplatesComponent implements OnInit {
   }
 
   isDuplicateTargetSelf(day: TemplateDay): boolean {
+    if (day.dayNumber == null) return false;
+    if (this.multiSelectMode) {
+      return this.duplicateTargetMonthName === this.selectedMonthName && this.selectedDaysForDuplication.has(day.dayNumber - 1);
+    }
     return this.duplicateTargetMonthName === this.selectedMonthName && day.dayNumber === this.selectedDayIndex + 1;
   }
 
@@ -1176,10 +1217,27 @@ export class RoleTemplatesComponent implements OnInit {
     // explicit check here rather than relying on the *ngIf alone.
     if (this.isDuplicatingDayBatch) return;
 
-    const sourceDay = this.getSelectedDay();
-    if (!sourceDay || sourceDay.tasks.length === 0) {
+    const sourceDays: TemplateDay[] = [];
+    if (this.multiSelectMode) {
+      const days = this.getDaysList();
+      this.selectedDaysForDuplication.forEach(idx => {
+        if (idx >= 0 && idx < days.length) {
+          sourceDays.push(days[idx]);
+        }
+      });
+    } else {
+      const singleDay = this.getSelectedDay();
+      if (singleDay) {
+        sourceDays.push(singleDay);
+      }
+    }
+
+    const validSourceDays = sourceDays.filter(d => d.tasks && d.tasks.length > 0);
+    if (validSourceDays.length === 0) {
       this.showToast(this.t('taskAccountability.templates.toast.noTasksToDuplicateDay'));
       this.closeDuplicateDayModal();
+      this.selectedDaysForDuplication.clear();
+      this.multiSelectMode = false;
       return;
     }
 
@@ -1214,34 +1272,38 @@ export class RoleTemplatesComponent implements OnInit {
       const isInOpenMonth = targetMonthIsOpenMonth && target.dayNumber >= 1 && target.dayNumber <= currentMonthDays.length;
       if (isInOpenMonth) {
         const targetDay = currentMonthDays[target.dayNumber - 1];
-        sourceDay.tasks.forEach(t => {
-          const clonedTask: TemplateTask = JSON.parse(JSON.stringify(t));
-          clonedTask.id = `t-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
-          targetDay.tasks.push(clonedTask);
+        validSourceDays.forEach(sourceDay => {
+          sourceDay.tasks.forEach(t => {
+            const clonedTask: TemplateTask = JSON.parse(JSON.stringify(t));
+            clonedTask.id = `t-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+            targetDay.tasks.push(clonedTask);
+          });
         });
       }
     });
 
     if (isSaved) {
-      // One atomic bulk call instead of one addTaskApi per task per target day: the first
-      // target supplies the URL's own day, every other target rides along in `targetDays`, so
-      // either all tasks land on all days or none do - no more a day ending up with only some
-      // of the source day's tasks because one call in a per-task loop failed.
-      const taskPayloads = sourceDay.tasks.map(t => ({
-        title: t.name,
-        description: t.description || '',
-        priority: t.priority || 'MEDIUM'
-      }));
-      const [primaryTarget, ...restTargets] = targets;
+      // One atomic bulk call per source day instead of one addTaskApi per task per target day:
+      // the first target supplies the URL's own day, every other target rides along in `targetDays`.
+      const apiCalls = validSourceDays.map(sourceDay => {
+        const taskPayloads = sourceDay.tasks.map(t => ({
+          title: t.name,
+          description: t.description || '',
+          priority: t.priority || 'MEDIUM',
+          proofRequired: false
+        }));
+        const [primaryTarget, ...restTargets] = targets;
+        return this.service.addTasksBulkApi(
+          templateId,
+          primaryTarget.dayNumber,
+          taskPayloads,
+          primaryTarget.month,
+          primaryTarget.year,
+          restTargets
+        );
+      });
 
-      this.service.addTasksBulkApi(
-        templateId,
-        primaryTarget.dayNumber,
-        taskPayloads,
-        primaryTarget.month,
-        primaryTarget.year,
-        restTargets
-      ).subscribe({
+      forkJoin(apiCalls).subscribe({
         next: () => {
           this.refreshEditingTemplateDaysFromServer(templateId);
           this.service.getRoleTemplatesApi().subscribe();
@@ -1255,6 +1317,8 @@ export class RoleTemplatesComponent implements OnInit {
 
     this.showToast(this.t('taskAccountability.templates.toast.tasksDuplicatedToDays', { count: countCopied }));
     this.closeDuplicateDayModal();
+    this.selectedDaysForDuplication.clear();
+    this.multiSelectMode = false;
   }
 
   // Bound to the target-day picker's confirm button, which is shared between the whole-day
@@ -1316,7 +1380,8 @@ export class RoleTemplatesComponent implements OnInit {
       const taskPayloads = tasks.map(t => ({
         title: t.name,
         description: t.description || '',
-        priority: t.priority || 'MEDIUM'
+        priority: t.priority || 'MEDIUM',
+        proofRequired: false
       }));
       const [primaryTarget, ...restTargets] = targets;
 
@@ -1379,6 +1444,7 @@ export class RoleTemplatesComponent implements OnInit {
     this.editingTaskTitle = task.name || '';
     this.editingTaskDescription = task.description || '';
     this.editingTaskPriority = task.priority || 'MEDIUM';
+    this.editingTaskProofRequired = false;
     setTimeout(() => {
       const editingEl = document.querySelector('.sidebar-task-card.is-editing');
       if (editingEl) {
@@ -1392,6 +1458,7 @@ export class RoleTemplatesComponent implements OnInit {
     this.editingTaskTitle = '';
     this.editingTaskDescription = '';
     this.editingTaskPriority = 'MEDIUM';
+    this.editingTaskProofRequired = false;
   }
 
   saveTaskEdit(task: TemplateTask, day: TemplateDay): void {
@@ -1400,6 +1467,7 @@ export class RoleTemplatesComponent implements OnInit {
     task.name = this.editingTaskTitle.trim();
     task.description = this.editingTaskDescription.trim();
     task.priority = this.editingTaskPriority as any;
+    task.proofRequired = false;
 
     if (!this.isTemplateUnsaved() && this.editingTemplate?.id && task.id && !task.id.startsWith('t-') && !task.id.startsWith('temp-')) {
       const templateId = this.editingTemplate.id;
@@ -1407,7 +1475,8 @@ export class RoleTemplatesComponent implements OnInit {
       const taskPayload = {
         title: task.name,
         description: task.description || '',
-        priority: task.priority || 'MEDIUM'
+        priority: task.priority || 'MEDIUM',
+        proofRequired: false
       };
 
       this.service.updateTaskApi(templateId, dayNumber, task.id, taskPayload).subscribe({
@@ -1451,21 +1520,55 @@ export class RoleTemplatesComponent implements OnInit {
   duplicateSelectedDaysTo(targetDay: TemplateDay): void {
     if (!this.editingTemplate || !this.editingTemplate.months || this.editingTemplate.months.length === 0) return;
     const days = this.editingTemplate.months[0].days;
-    this.selectedDaysForDuplication.forEach(idx => {
-      if (idx >= 0 && idx < days.length) {
-        const sourceDay = days[idx];
-        // Defensive guard: the menu above already excludes selected days from the target
-        // list, but never trust a UI filter alone to prevent a day being duplicated onto
-        // itself - self-duplication silently doubles every task on that day (see comment
-        // on getDuplicateToTargetDaysList()).
-        if (sourceDay === targetDay) return;
-        sourceDay.tasks.forEach(t => {
-          const clonedTask = JSON.parse(JSON.stringify(t));
-          clonedTask.id = `t-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
-          targetDay.tasks.push(clonedTask);
+    const templateId = this.editingTemplate.id;
+    const isSaved = templateId && templateId !== '' && !templateId.startsWith('temp-');
+
+    if (isSaved) {
+      const apiCalls: Observable<any>[] = [];
+      this.selectedDaysForDuplication.forEach(idx => {
+        if (idx >= 0 && idx < days.length) {
+          const sourceDay = days[idx];
+          if (sourceDay === targetDay) return;
+          if (sourceDay.id && !sourceDay.id.startsWith('td-new-')) {
+            const sourceDayId = sourceDay.id.replace('td-', '');
+            apiCalls.push(
+              this.service.duplicateDayTasksApi(templateId, sourceDayId, {
+                mode: 'SINGLE_DAY',
+                targetDayNumber: targetDay.dayNumber
+              })
+            );
+          }
+        }
+      });
+
+      if (apiCalls.length > 0) {
+        forkJoin(apiCalls).subscribe({
+          next: () => {
+            this.showToast(this.t('taskAccountability.templates.toast.tasksDuplicatedToDay', { day: targetDay.name }));
+            this.refreshEditingTemplateDaysFromServer(templateId);
+            this.service.getRoleTemplatesApi().subscribe();
+          },
+          error: (err) => {
+            console.error('Failed to duplicate days via API:', err);
+            this.refreshEditingTemplateDaysFromServer(templateId);
+          }
         });
       }
-    });
+    } else {
+      this.selectedDaysForDuplication.forEach(idx => {
+        if (idx >= 0 && idx < days.length) {
+          const sourceDay = days[idx];
+          if (sourceDay === targetDay) return;
+          sourceDay.tasks.forEach(t => {
+            const clonedTask = JSON.parse(JSON.stringify(t));
+            clonedTask.id = `t-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+            targetDay.tasks.push(clonedTask);
+          });
+        }
+      });
+      this.showToast(this.t('taskAccountability.templates.toast.tasksDuplicatedToDay', { day: targetDay.name }));
+    }
+
     this.selectedDaysForDuplication.clear();
     this.multiSelectMode = false;
   }
@@ -1473,16 +1576,42 @@ export class RoleTemplatesComponent implements OnInit {
   deleteSelectedDays(): void {
     if (!this.editingTemplate || !this.editingTemplate.months || this.editingTemplate.months.length === 0) return;
     const days = this.editingTemplate.months[0].days;
-    const filteredDays = days.filter((_, idx) => !this.selectedDaysForDuplication.has(idx));
+    const templateId = this.editingTemplate.id;
+    const isSaved = templateId && templateId !== '' && !templateId.startsWith('temp-');
 
-    filteredDays.forEach((d, i) => {
-      d.name = `Day ${i + 1}`;
-    });
+    if (isSaved) {
+      const apiCalls: Observable<any>[] = [];
+      this.selectedDaysForDuplication.forEach(idx => {
+        if (idx >= 0 && idx < days.length) {
+          const day = days[idx];
+          apiCalls.push(this.service.deleteDayTasksApi(templateId, day.dayNumber || (idx + 1), day.month, day.year));
+        }
+      });
 
-    this.editingTemplate.months[0].days = filteredDays;
+      if (apiCalls.length > 0) {
+        forkJoin(apiCalls).subscribe({
+          next: () => {
+            this.showToast(this.t('taskAccountability.templates.toast.tasksDeleted', { defaultValue: 'Tasks cleared successfully' }));
+            this.refreshEditingTemplateDaysFromServer(templateId);
+            this.service.getRoleTemplatesApi().subscribe();
+          },
+          error: (err) => {
+            console.error('Failed to delete day tasks via API:', err);
+            this.refreshEditingTemplateDaysFromServer(templateId);
+          }
+        });
+      }
+    } else {
+      this.selectedDaysForDuplication.forEach(idx => {
+        if (idx >= 0 && idx < days.length) {
+          days[idx].tasks = [];
+        }
+      });
+      this.showToast(this.t('taskAccountability.templates.toast.tasksDeleted', { defaultValue: 'Tasks cleared successfully' }));
+    }
+
     this.selectedDaysForDuplication.clear();
     this.multiSelectMode = false;
-    this.selectedDayIndex = 0;
   }
 
   // Selected Day tasks helpers
@@ -1705,7 +1834,10 @@ export class RoleTemplatesComponent implements OnInit {
   }
 
   publishRoleTemplate(template: RoleTemplate): void {
-    if (!this.canPublish(template)) return;
+    if (!this.canPublish(template) || this.isPublishing || this.isSaving) return;
+
+    this.isPublishing = true;
+    this.publishingTemplateId = template.id || null;
 
     const selectedRole = this.rolesApiList.find(r => r.name === template.role);
     const selectedBranch = this.branchesList.find(b => b.name === template.branch);
@@ -1734,6 +1866,7 @@ export class RoleTemplatesComponent implements OnInit {
               title: t.name,
               description: t.description || '',
               priority: t.priority ? t.priority.toUpperCase() : 'MEDIUM',
+              proofRequired: false,
               displayOrder: tIndex
             };
           })
@@ -1741,47 +1874,57 @@ export class RoleTemplatesComponent implements OnInit {
       })
     };
 
-    if (template.id && !template.id.startsWith('temp-')) {
-      this.service.updateRoleTemplateApi(template.id, payload).subscribe({
+    if (this.showModal) {
+      // Combined Save & Publish flow from within the modal
+      const isExisting = template.id && !template.id.startsWith('temp-');
+      const save$ = isExisting
+        ? this.service.updateRoleTemplateApi(template.id, payload)
+        : this.service.createRoleTemplateApi(payload);
+
+      save$.pipe(
+        switchMap((res) => {
+          const targetId = isExisting ? template.id : (res?.data?.id || null);
+          if (!targetId) {
+            throw new Error('Could not resolve template ID after saving');
+          }
+          return this.service.publishRoleTemplateApi(targetId);
+        })
+      ).subscribe({
         next: () => {
-          this.service.publishRoleTemplateApi(template.id).subscribe({
-            next: () => {
-              this.showToast(this.t('taskAccountability.templates.toast.templatePublished', { name: template.name }));
-              this.service.getRoleTemplatesApi().subscribe();
-              this.closeModal();
-            },
-            error: () => {
-              this.showToast(this.t('taskAccountability.templates.toast.publishFailed'));
-            }
-          });
+          this.isPublishing = false;
+          this.publishingTemplateId = null;
+          this.showToast(this.t('taskAccountability.templates.toast.templatePublished', { name: template.name }));
+          this.loadTemplates();
+          this.closeModal();
         },
-        error: () => {
-          this.showToast(this.t('taskAccountability.templates.toast.saveBeforePublishFailed'));
+        error: (error) => {
+          this.isPublishing = false;
+          this.publishingTemplateId = null;
+          console.error('Failed to save and publish template:', error);
+          this.showToast(this.t('taskAccountability.templates.toast.publishFailed'));
         }
       });
     } else {
-      this.service.createRoleTemplateApi(payload).subscribe({
-        next: (res) => {
-          if (res && res.success && res.data) {
-            const newId = res.data.id;
-            this.service.publishRoleTemplateApi(newId).subscribe({
-              next: () => {
-                this.showToast(this.t('taskAccountability.templates.toast.templatePublished', { name: template.name }));
-                this.service.getRoleTemplatesApi().subscribe();
-                this.closeModal();
-              },
-              error: () => {
-                this.showToast(this.t('taskAccountability.templates.toast.publishFailed'));
-              }
-            });
-          } else {
-            this.showToast(this.t('taskAccountability.templates.toast.createBeforePublishFailed'));
+      // Direct Publish flow from template card menu
+      if (template.id && !template.id.startsWith('temp-')) {
+        this.service.publishRoleTemplateApi(template.id).subscribe({
+          next: () => {
+            this.isPublishing = false;
+            this.publishingTemplateId = null;
+            this.showToast(this.t('taskAccountability.templates.toast.templatePublished', { name: template.name }));
+            this.loadTemplates();
+          },
+          error: (error) => {
+            this.isPublishing = false;
+            this.publishingTemplateId = null;
+            console.error('Failed to publish template:', error);
+            this.showToast(this.t('taskAccountability.templates.toast.publishFailed'));
           }
-        },
-        error: () => {
-          this.showToast(this.t('taskAccountability.templates.toast.createBeforePublishFailed'));
-        }
-      });
+        });
+      } else {
+        this.isPublishing = false;
+        this.publishingTemplateId = null;
+      }
     }
   }
 
@@ -1795,13 +1938,13 @@ export class RoleTemplatesComponent implements OnInit {
   }
 
   publishTemplateFromModal(): void {
-    if (!this.editingTemplate || !this.canPublish(this.editingTemplate)) return;
+    if (!this.editingTemplate || !this.canPublish(this.editingTemplate) || this.isPublishing || this.isSaving) return;
     this.publishRoleTemplate(this.editingTemplate);
   }
 
   // Save actions
   saveTemplate(): void {
-    if (!this.editingTemplate || !this.editingTemplate.name) return;
+    if (!this.editingTemplate || !this.editingTemplate.name || this.isSaving || this.isPublishing) return;
 
     if (!this.editingTemplate.status) {
       this.editingTemplate.status = 'DRAFT';
@@ -1832,6 +1975,7 @@ export class RoleTemplatesComponent implements OnInit {
               title: t.name,
               description: t.description || '',
               priority: t.priority ? t.priority.toUpperCase() : 'MEDIUM',
+              proofRequired: false,
               displayOrder: tIndex
             };
           })
@@ -1839,23 +1983,32 @@ export class RoleTemplatesComponent implements OnInit {
       })
     };
 
+    this.isSaving = true;
     if (this.editingTemplate.id && !this.editingTemplate.id.startsWith('temp-')) {
       this.service.updateRoleTemplateApi(this.editingTemplate.id, payload).subscribe({
         next: () => {
+          this.isSaving = false;
           this.showToast(this.t('taskAccountability.templates.toast.templateSaved'));
+          this.loadTemplates();
           this.closeModal();
         },
-        error: () => {
+        error: (error) => {
+          this.isSaving = false;
+          console.error('Failed to update template:', error);
           this.showToast(this.t('taskAccountability.templates.toast.templateSaveFailed'));
         }
       });
     } else {
       this.service.createRoleTemplateApi(payload).subscribe({
         next: () => {
+          this.isSaving = false;
           this.showToast(this.t('taskAccountability.templates.toast.templateCreated'));
+          this.loadTemplates();
           this.closeModal();
         },
-        error: () => {
+        error: (error) => {
+          this.isSaving = false;
+          console.error('Failed to create template:', error);
           this.showToast(this.t('taskAccountability.templates.toast.templateCreateFailed'));
         }
       });

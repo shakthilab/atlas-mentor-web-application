@@ -1,0 +1,219 @@
+<div class="office-cameras-container">
+  <!-- Page Header -->
+  <div class="page-header m-b-24">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-16">
+      <div class="d-flex align-items-center gap-16">
+        <div class="header-icon-wrapper">
+          <i-tabler name="device-cctv" class="icon-28 text-primary"></i-tabler>
+        </div>
+        <div>
+          <h4 class="mat-headline-5 f-w-700 m-b-4 page-title">
+            {{ 'officeCameras.title' | translate }}
+          </h4>
+          <p class="text-muted f-s-14 m-b-0">
+            {{ 'officeCameras.subtitle' | translate }}
+          </p>
+        </div>
+      </div>
+      <div class="badge-pill">
+        <span class="status-dot"></span>
+        <span class="f-s-13 f-w-600">{{ cameraList.length }} {{ 'officeCameras.camerasConfigured' | translate }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Hero / Launch Card -->
+  <mat-card class="cardWithShadow hero-launch-card m-b-24">
+    <mat-card-content class="p-32">
+      <div class="hero-content text-center">
+        <div class="hero-icon-pulse m-b-20">
+          <div class="pulse-ring"></div>
+          <div class="hero-icon-center">
+            <i-tabler name="video" class="icon-36 text-primary"></i-tabler>
+          </div>
+        </div>
+
+        <h3 class="mat-headline-6 f-w-700 m-b-8">
+          {{ 'officeCameras.portalHeroTitle' | translate }}
+        </h3>
+        <p class="text-muted f-s-15 hero-desc m-b-24">
+          {{ 'officeCameras.portalHeroDesc' | translate }}
+        </p>
+
+        <!-- Primary Launch Button -->
+        <div class="launch-action m-b-20">
+          <a
+            mat-flat-button
+            color="primary"
+            class="launch-btn"
+            [href]="portalUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span class="d-flex align-items-center justify-content-center gap-8">
+              <i-tabler name="player-play" class="icon-20"></i-tabler>
+              <span class="launch-btn-text">{{ 'officeCameras.openPortal' | translate }}</span>
+              <i-tabler name="external-link" class="icon-18"></i-tabler>
+            </span>
+          </a>
+        </div>
+
+        <!-- Explanatory Note -->
+        <div class="notice-banner d-inline-flex align-items-center gap-12 text-start">
+          <div class="notice-icon-box">
+            <i-tabler name="info-circle" class="icon-20 text-primary"></i-tabler>
+          </div>
+          <div class="notice-text">
+            <span class="f-s-13 f-w-500 text-dark d-block">
+              {{ 'officeCameras.portalNote' | translate }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <div class="row g-24">
+    <!-- Camera Reference List (Left / Main column) -->
+    <div class="col-12 col-lg-8">
+      <mat-card class="cardWithShadow h-100">
+        <mat-card-header class="p-x-24 p-y-20 border-bottom">
+          <div class="d-flex align-items-center justify-content-between w-100 flex-wrap gap-12">
+            <div>
+              <mat-card-title>
+                <h5 class="mat-headline-6 f-w-600 m-b-4">
+                  {{ 'officeCameras.cameraListTitle' | translate }}
+                </h5>
+              </mat-card-title>
+              <p class="text-muted f-s-13 m-b-0">
+                {{ 'officeCameras.cameraListSubtitle' | translate }}
+              </p>
+            </div>
+            <span class="count-tag">{{ cameraList.length }} Devices</span>
+          </div>
+        </mat-card-header>
+
+        <mat-card-content class="p-24">
+          <div class="camera-grid">
+            <div
+              *ngFor="let camera of cameraList; let i = index"
+              class="camera-item-card"
+              [class.copied]="copiedDeviceName === camera.name"
+            >
+              <div class="d-flex align-items-center justify-content-between m-b-12">
+                <div class="d-flex align-items-center gap-12">
+                  <div class="camera-avatar">
+                    <i-tabler name="device-cctv" class="icon-20 text-primary"></i-tabler>
+                  </div>
+                  <div>
+                    <h6 class="camera-name f-w-700 f-s-15 m-b-2">{{ camera.name }}</h6>
+                    <span class="camera-model text-muted f-s-12">{{ camera.model }}</span>
+                  </div>
+                </div>
+                <span class="camera-status-pill">
+                  <span class="dot-online"></span>
+                  {{ 'officeCameras.statusReady' | translate }}
+                </span>
+              </div>
+
+              <div class="camera-details-row d-flex align-items-center justify-content-between">
+                <div class="camera-type-tag">
+                  <i-tabler name="camera" class="icon-14 m-r-4 text-muted"></i-tabler>
+                  <span>{{ camera.type }}</span>
+                </div>
+                <button
+                  mat-icon-button
+                  class="copy-btn"
+                  (click)="copyToClipboard(camera.name)"
+                  [title]="copiedDeviceName === camera.name ? ('officeCameras.copied' | translate) : ('officeCameras.copyDeviceName' | translate)"
+                >
+                  <i-tabler
+                    [name]="copiedDeviceName === camera.name ? 'check' : 'copy'"
+                    [class.text-success]="copiedDeviceName === camera.name"
+                    class="icon-16"
+                  ></i-tabler>
+                </button>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Quick Steps & Security Information (Right column) -->
+    <div class="col-12 col-lg-4">
+      <div class="d-flex flex-column gap-24 h-100">
+        <!-- Quick Guide Card -->
+        <mat-card class="cardWithShadow flex-1">
+          <mat-card-header class="p-x-20 p-y-16 border-bottom">
+            <mat-card-title>
+              <h6 class="mat-subtitle-1 f-w-600 m-b-0 d-flex align-items-center gap-8">
+                <i-tabler name="help-circle" class="icon-18 text-primary"></i-tabler>
+                {{ 'officeCameras.quickStepsTitle' | translate }}
+              </h6>
+            </mat-card-title>
+          </mat-card-header>
+
+          <mat-card-content class="p-20">
+            <div class="steps-timeline">
+              <div class="step-item">
+                <div class="step-number">1</div>
+                <div class="step-body">
+                  <span class="step-title f-w-600 f-s-13 d-block m-b-2">
+                    {{ 'officeCameras.step1Title' | translate }}
+                  </span>
+                  <span class="step-desc text-muted f-s-12">
+                    {{ 'officeCameras.step1' | translate }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="step-item">
+                <div class="step-number">2</div>
+                <div class="step-body">
+                  <span class="step-title f-w-600 f-s-13 d-block m-b-2">
+                    {{ 'officeCameras.step2Title' | translate }}
+                  </span>
+                  <span class="step-desc text-muted f-s-12">
+                    {{ 'officeCameras.step2' | translate }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="step-item">
+                <div class="step-number">3</div>
+                <div class="step-body">
+                  <span class="step-title f-w-600 f-s-13 d-block m-b-2">
+                    {{ 'officeCameras.step3Title' | translate }}
+                  </span>
+                  <span class="step-desc text-muted f-s-12">
+                    {{ 'officeCameras.step3' | translate }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Security & Privacy Card -->
+        <mat-card class="cardWithShadow security-card">
+          <mat-card-content class="p-20">
+            <div class="d-flex align-items-start gap-12">
+              <div class="security-icon-box">
+                <i-tabler name="shield-check" class="icon-22 text-success"></i-tabler>
+              </div>
+              <div>
+                <h6 class="f-s-14 f-w-600 m-b-4 text-dark">
+                  {{ 'officeCameras.securityTitle' | translate }}
+                </h6>
+                <p class="text-muted f-s-12 m-b-0 leading-relaxed">
+                  {{ 'officeCameras.securityNotice' | translate }}
+                </p>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+  </div>
+</div>

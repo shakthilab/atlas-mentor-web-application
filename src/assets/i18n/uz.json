@@ -28,6 +28,7 @@
     "branches": "Filiallar",
     "companies": "Kompaniyalar",
     "hierarchy": "Ierarxiya",
+    "officeCameras": "Ofis kameralari",
     "referrals": "Referallar",
     "documents": "Hujjatlar",
     "resources": "Resurslar",
@@ -77,5 +78,28 @@
   "samplePage": {
     "title": "Namuna sahifa",
     "subtitle": "Bu test sahifasi"
+  },
+  "officeCameras": {
+    "title": "Ofis kameralari",
+    "subtitle": "Ezykam portali orqali filiallaringizdagi to'g'ridan-to'g'ri kamera tasmalarini ko'ring.",
+    "camerasConfigured": "Kamera sozlangan",
+    "portalHeroTitle": "Ezykam Jonli Kuzatuv",
+    "portalHeroDesc": "Filiallardagi to'g'ridan-to'g'ri CCTV oqimlari, yozuvlar va harakatlar jurnaliga kiring.",
+    "openPortal": "Kamera portalini ochish",
+    "portalNote": "Bu Ezykam kamera portalini yangi tabda ochadi. U yerda alohida kirishingiz kerak — bu login Atlas Mentordan farq qiladi.",
+    "cameraListTitle": "Ushbu hisobdagi kameralar",
+    "cameraListSubtitle": "Filiallardagi ro'yxatdan o'tgan CCTV qurilmalari ro'yxati",
+    "statusReady": "Sozlangan",
+    "copyDeviceName": "Qurilma nomini nusxalash",
+    "copied": "Nusxalandi!",
+    "quickStepsTitle": "Kamera oqimlariga qanday kirish mumkin",
+    "step1Title": "1. Portalni ochish",
+    "step1": "Ezykam-ni yangi brauzer yorlig'ida ochish uchun yuqoridagi «Kamera portalini ochish» tugmasini bosing.",
+    "step2Title": "2. Alohida login",
+    "step2": "Filialingizning Ezykam portali ma'lumotlari orqali kiring.",
+    "step3Title": "3. Jonli ko'rish",
+    "step3": "Jonli efirni tomosha qilish uchun 7 ta sozlangan kanaldan birini tanlang.",
+    "securityTitle": "To'g'ridan-to'g'ri va xavfsiz ulanish",
+    "securityNotice": "Video oqimi to'g'ridan-to'g'ri Ezykam xavfsiz serverlaridan uzatiladi. Atlas Mentor video oqimlari yoki parollarni saqlamaydi."
   }
 }

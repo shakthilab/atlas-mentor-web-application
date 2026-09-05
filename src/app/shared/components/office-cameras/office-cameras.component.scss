@@ -1,0 +1,365 @@
+.office-cameras-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding-bottom: 32px;
+}
+
+/* Page Header */
+.page-header {
+  .header-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(93, 135, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .page-title {
+    color: #1e293b;
+    line-height: 1.2;
+  }
+
+  .badge-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: #f1f5f9;
+    color: #475569;
+    border-radius: 9999px;
+    border: 1px solid #e2e8f0;
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      display: inline-block;
+    }
+  }
+}
+
+/* Hero Launch Card */
+.hero-launch-card {
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #e2e8f0;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #5d87ff 0%, #4f46e5 100%);
+  }
+
+  .hero-content {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  .hero-icon-pulse {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 76px;
+    height: 76px;
+
+    .pulse-ring {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: rgba(93, 135, 255, 0.15);
+      animation: pulse-animation 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    .hero-icon-center {
+      position: relative;
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: #eff6ff;
+      border: 2px solid #bfdbfe;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1;
+    }
+  }
+
+  .hero-desc {
+    line-height: 1.5;
+  }
+
+  .launch-btn {
+    min-height: 48px;
+    padding: 0 28px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    box-shadow: 0 6px 16px rgba(93, 135, 255, 0.28);
+    transition: all 0.2s ease-in-out;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 22px rgba(93, 135, 255, 0.38);
+    }
+  }
+
+  .notice-banner {
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 10px;
+    padding: 12px 18px;
+    max-width: 580px;
+
+    .notice-icon-box {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: #e0f2fe;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .notice-text {
+      color: #0369a1;
+      line-height: 1.4;
+    }
+  }
+}
+
+@keyframes pulse-animation {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.2;
+  }
+  100% {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+}
+
+/* Card Headers & Tags */
+.count-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  background: #f1f5f9;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+/* Camera Grid */
+.camera-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+
+  .camera-item-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+      border-color: #93c5fd;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+      transform: translateY(-1px);
+    }
+
+    &.copied {
+      border-color: #10b981;
+      background: #f0fdf4;
+    }
+
+    .camera-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: #f0f7ff;
+      border: 1px solid #dbeafe;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .camera-name {
+      color: #0f172a;
+    }
+
+    .camera-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 8px;
+      background: #ecfdf5;
+      color: #065f46;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+
+      .dot-online {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #10b981;
+      }
+    }
+
+    .camera-details-row {
+      padding-top: 10px;
+      border-top: 1px dashed #f1f5f9;
+
+      .camera-type-tag {
+        display: flex;
+        align-items: center;
+        font-size: 12px;
+        color: #64748b;
+      }
+
+      .copy-btn {
+        width: 28px;
+        height: 28px;
+        line-height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+  }
+}
+
+/* Steps Timeline */
+.steps-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  .step-item {
+    display: flex;
+    gap: 12px;
+
+    .step-number {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #eff6ff;
+      color: #2563eb;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 1px solid #bfdbfe;
+    }
+
+    .step-body {
+      flex: 1;
+
+      .step-title {
+        color: #1e293b;
+      }
+
+      .step-desc {
+        line-height: 1.4;
+      }
+    }
+  }
+}
+
+/* Security Card */
+.security-card {
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+
+  .security-icon-box {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+}
+
+/* Dark theme support */
+:host-context(.dark-theme) {
+  .page-header {
+    .page-title {
+      color: #f8fafc;
+    }
+    .badge-pill {
+      background: #1e293b;
+      border-color: #334155;
+      color: #cbd5e1;
+    }
+  }
+
+  .hero-launch-card {
+    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+    border-color: #334155;
+
+    .notice-banner {
+      background: rgba(3, 105, 161, 0.15);
+      border-color: rgba(56, 189, 248, 0.3);
+      .notice-text {
+        color: #7dd3fc;
+      }
+    }
+  }
+
+  .camera-grid .camera-item-card {
+    background: #1e293b;
+    border-color: #334155;
+
+    .camera-name {
+      color: #f8fafc;
+    }
+    .camera-avatar {
+      background: #0f172a;
+      border-color: #334155;
+    }
+    .camera-details-row {
+      border-top-color: #334155;
+    }
+  }
+
+  .steps-timeline .step-item .step-number {
+    background: #0f172a;
+    border-color: #334155;
+    color: #60a5fa;
+  }
+
+  .security-card {
+    background: #1e293b;
+    border-color: #334155;
+  }
+}

@@ -46,11 +46,11 @@
             </button>
             <mat-menu #cardMenu="matMenu" class="duplicate-menu-panel" xPosition="before">
               <button mat-menu-item (click)="publishRoleTemplate(temp)"
-                [disabled]="!canPublish(temp) || temp.status === 'ACTIVE'">
+                [disabled]="!canPublish(temp) || temp.status === 'ACTIVE' || isPublishing">
                 <i-tabler name="send" class="icon-16 m-r-8 text-primary"
-                  [class.text-muted]="temp.status === 'ACTIVE'"></i-tabler>
-                <span class="text-primary font-semibold" [class.text-muted]="temp.status === 'ACTIVE'">
-                  {{ (temp.status === 'ACTIVE' ? 'taskAccountability.templates.published' : 'taskAccountability.templates.publishTemplate') | translate }}
+                  [class.text-muted]="temp.status === 'ACTIVE' || isPublishing"></i-tabler>
+                <span class="text-primary font-semibold" [class.text-muted]="temp.status === 'ACTIVE' || isPublishing">
+                  {{ (temp.status === 'ACTIVE' ? 'taskAccountability.templates.published' : ((isPublishing && publishingTemplateId === temp.id) ? 'taskAccountability.templates.publishing' : 'taskAccountability.templates.publishTemplate')) | translate }}
                 </span>
               </button>
               <mat-divider></mat-divider>
@@ -96,7 +96,7 @@
     <div class="publish-card">
       <div class="modal-header">
         <h3>{{ 'taskAccountability.templates.publishToWorkspace' | translate }}</h3>
-        <button mat-icon-button (click)="closePublishModal()">
+        <button mat-icon-button (click)="closePublishModal()" [disabled]="isPublishing">
           <i-tabler name="x" class="icon-18"></i-tabler>
         </button>
       </div>
@@ -120,9 +120,9 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button mat-button class="cancel-btn" (click)="closePublishModal()">{{ 'common.cancel' | translate }}</button>
+        <button mat-button class="cancel-btn" (click)="closePublishModal()" [disabled]="isPublishing">{{ 'common.cancel' | translate }}</button>
         <button mat-flat-button color="primary" class="save-btn" (click)="publishTemplate()"
-          [disabled]="!selectedEmployeeId">
+          [disabled]="!selectedEmployeeId || isPublishing">
           <i-tabler name="send" class="icon-16 m-r-8"></i-tabler>
           {{ 'taskAccountability.templates.publishNow' | translate }}
         </button>
@@ -172,7 +172,7 @@
             <p class="subtitle">{{ 'taskAccountability.templates.modalSubtitle' | translate }}</p>
           </div>
           <div class="header-right">
-            <button mat-icon-button (click)="closeModal()" class="close-btn">
+            <button mat-icon-button (click)="closeModal()" class="close-btn" [disabled]="isPublishing || isSaving">
               <i-tabler name="x" class="icon-18"></i-tabler>
             </button>
           </div>
@@ -236,15 +236,9 @@
 
                 <!-- Bulk Actions -->
                 <button mat-flat-button color="primary" class="bulk-duplicate-btn"
-                  *ngIf="selectedDaysForDuplication.size > 0" [matMenuTriggerFor]="duplicateToMenu">
+                  *ngIf="selectedDaysForDuplication.size > 0" (click)="openBulkDuplicateDaysModal()">
                   {{ 'taskAccountability.templates.duplicateCount' | translate:{ count: selectedDaysForDuplication.size } }}
                 </button>
-                <mat-menu #duplicateToMenu="matMenu" xPosition="before">
-                  <button mat-menu-item *ngFor="let targetDay of getDuplicateToTargetDaysList()"
-                    (click)="duplicateSelectedDaysTo(targetDay)">
-                    {{ 'taskAccountability.templates.duplicateTasksTo' | translate:{ day: targetDay.name } }}
-                  </button>
-                </mat-menu>
 
                 <button mat-button color="warn" class="bulk-delete-btn" *ngIf="selectedDaysForDuplication.size > 0"
                   (click)="deleteSelectedDays()">
@@ -313,10 +307,11 @@
             </span>
           </div>
           <div class="footer-right">
-            <button mat-button class="cancel-btn" (click)="closeModal()">{{ 'common.cancel' | translate }}</button>
+            <button mat-button class="cancel-btn" (click)="closeModal()" [disabled]="isPublishing || isSaving">{{ 'common.cancel' | translate }}</button>
             <button mat-flat-button color="primary" class="publish-btn" (click)="publishTemplateFromModal()"
-              [disabled]="!canPublish(editingTemplate)">
-              {{ 'taskAccountability.templates.publish' | translate }}
+              [disabled]="!canPublish(editingTemplate) || isPublishing || isSaving">
+              <i-tabler name="send" class="icon-16 m-r-8" *ngIf="!isPublishing"></i-tabler>
+              {{ (isPublishing ? 'taskAccountability.templates.publishing' : 'taskAccountability.templates.publish') | translate }}
             </button>
           </div>
         </div>
@@ -329,7 +324,7 @@
           <div class="sidebar-header-left">
             <h3>{{ day.name }}</h3>
             <p class="subtitle">
-              {{ (day.tasks?.length === 1 ? 'taskAccountability.templates.taskCountSingularLower' : 'taskAccountability.templates.taskCountPluralLower') | translate:{ count: day.tasks?.length || 0 } }}
+              {{ (day.tasks.length === 1 ? 'taskAccountability.templates.taskCountSingularLower' : 'taskAccountability.templates.taskCountPluralLower') | translate:{ count: day.tasks.length || 0 } }}
               <span class="past-day-badge" *ngIf="isPastDay(selectedDayIndex)"> &bull; {{ 'taskAccountability.templates.pastDayReadOnly' | translate }}</span>
             </p>
           </div>
@@ -353,13 +348,13 @@
                 <div class="task-select-checkbox" *ngIf="!isPastDay(selectedDayIndex)" (click)="toggleTaskSelection(tIdx); $event.stopPropagation()">
                   <i-tabler [name]="isTaskSelected(tIdx) ? 'checkbox' : 'square'" class="icon-16"></i-tabler>
                 </div>
-                <span class="priority-dot" [class]="task.priority?.toLowerCase() || 'medium'"></span>
+                <span class="priority-dot" [class]="task.priority.toLowerCase() || 'medium'"></span>
 
                 <div class="task-info" (click)="startEditingTask(task, tIdx)">
                   <div class="task-title">{{ task.name }}</div>
                   <div class="task-desc" *ngIf="task.description">{{ task.description }}</div>
                   <div class="task-meta">
-                    <span class="task-priority-badge" [class]="task.priority?.toLowerCase() || 'medium'">
+                    <span class="task-priority-badge" [class]="task.priority.toLowerCase() || 'medium'">
                       {{ task.priority }}
                     </span>
                   </div>
@@ -392,11 +387,13 @@
                     <textarea [(ngModel)]="editingTaskDescription" [placeholder]="'taskAccountability.templates.descriptionOptional' | translate" class="task-desc-textarea" rows="2"></textarea>
                   </div>
                   <div class="form-footer">
-                    <select [(ngModel)]="editingTaskPriority" class="priority-select">
-                      <option value="LOW">{{ 'common.priority.low' | translate }}</option>
-                      <option value="MEDIUM">{{ 'common.priority.medium' | translate }}</option>
-                      <option value="HIGH">{{ 'common.priority.high' | translate }}</option>
-                    </select>
+                    <div class="footer-left-options">
+                      <select [(ngModel)]="editingTaskPriority" class="priority-select">
+                        <option value="LOW">{{ 'common.priority.low' | translate }}</option>
+                        <option value="MEDIUM">{{ 'common.priority.medium' | translate }}</option>
+                        <option value="HIGH">{{ 'common.priority.high' | translate }}</option>
+                      </select>
+                    </div>
                     <div class="footer-actions">
                       <button mat-button class="done-btn" (click)="cancelTaskEdit()">{{ 'common.cancel' | translate }}</button>
                       <button mat-flat-button color="primary" class="add-btn" (click)="saveTaskEdit(task, day)" [disabled]="!editingTaskTitle.trim()">{{ 'common.save' | translate }}</button>
@@ -437,11 +434,13 @@
               </div>
             </div>
             <div class="form-footer">
-              <select [(ngModel)]="newTaskPriority" class="priority-select">
-                <option value="LOW">{{ 'common.priority.low' | translate }}</option>
-                <option value="MEDIUM">{{ 'common.priority.medium' | translate }}</option>
-                <option value="HIGH">{{ 'common.priority.high' | translate }}</option>
-              </select>
+              <div class="footer-left-options">
+                <select [(ngModel)]="newTaskPriority" class="priority-select">
+                  <option value="LOW">{{ 'common.priority.low' | translate }}</option>
+                  <option value="MEDIUM">{{ 'common.priority.medium' | translate }}</option>
+                  <option value="HIGH">{{ 'common.priority.high' | translate }}</option>
+                </select>
+              </div>
               <div class="footer-actions">
                 <button mat-button class="done-btn" (click)="toggleAddForm(false)">{{ 'common.done' | translate }}</button>
                 <button mat-flat-button color="primary" class="add-btn" (click)="quickAddTask(day)"
@@ -477,8 +476,10 @@
         <div class="duplicate-dialog-card" (click)="$event.stopPropagation()">
           <div class="dialog-header">
             <div class="header-titles" *ngIf="duplicateTasksContext.length === 0">
-              <h3>{{ 'taskAccountability.templates.duplicateDayTasks' | translate:{ day: getSelectedDay()?.name } }}</h3>
-              <p class="subtitle">{{ 'taskAccountability.templates.selectTargetDays' | translate:{ count: getSelectedDay()?.tasks?.length || 0 } }}</p>
+              <h3 *ngIf="!multiSelectMode">{{ 'taskAccountability.templates.duplicateDayTasks' | translate:{ day: getSelectedDay()?.name } }}</h3>
+              <h3 *ngIf="multiSelectMode">{{ 'taskAccountability.templates.duplicateSelectedDays' | translate:{ count: selectedDaysForDuplication.size } }}</h3>
+              <p class="subtitle" *ngIf="!multiSelectMode">{{ 'taskAccountability.templates.selectTargetDays' | translate:{ count: getSelectedDay()?.tasks?.length || 0 } }}</p>
+              <p class="subtitle" *ngIf="multiSelectMode">{{ 'taskAccountability.templates.selectTargetDaysForSelected' | translate }}</p>
             </div>
             <div class="header-titles" *ngIf="duplicateTasksContext.length === 1">
               <h3>{{ 'taskAccountability.templates.duplicateTaskTitle' | translate:{ task: duplicateTasksContext[0].name } }}</h3>

@@ -60,6 +60,48 @@
         color: var(--brand-primary);
       }
     }
+
+    &.delete-tool-btn {
+      &:hover {
+        border-color: #fca5a5;
+        color: #dc2626;
+        .tool-icon { color: #dc2626; }
+      }
+
+      &.active-danger {
+        background-color: #fee2e2;
+        border-color: #ef4444;
+        color: #dc2626;
+
+        .tool-icon {
+          color: #dc2626;
+        }
+      }
+    }
+
+    &.btn-danger-action {
+      background-color: #dc2626;
+      border-color: #dc2626;
+      color: #ffffff;
+      font-weight: 600;
+      box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+
+      .tool-icon {
+        color: #ffffff;
+      }
+
+      &:hover:not([disabled]) {
+        background-color: #b91c1c;
+        border-color: #b91c1c;
+      }
+
+      &:disabled {
+        background-color: #cbd5e1;
+        border-color: #cbd5e1;
+        color: #94a3b8;
+        cursor: not-allowed;
+      }
+    }
   }
 
   .toolbar-right {
@@ -234,6 +276,23 @@
     vertical-align: middle;
   }
 
+  .col-checkbox {
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 48px !important;
+    text-align: center !important;
+    padding: 0 12px !important;
+  }
+
+  .table-checkbox {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: #dc2626;
+    border-radius: 4px;
+    vertical-align: middle;
+  }
+
   .task-row {
     cursor: pointer;
     transition: background-color 0.15s ease;
@@ -247,6 +306,14 @@
       
       &:hover {
         background-color: #E2E8F0;
+      }
+    }
+
+    &.selected-row {
+      background-color: #fff1f2;
+
+      &:hover {
+        background-color: #ffe4e6;
       }
     }
   }
@@ -361,6 +428,28 @@
     width: 11px;
     height: 11px;
     flex-shrink: 0;
+  }
+}
+
+.proof-required-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #0369a1;
+  background-color: #f0f9ff;
+  border: 1px solid #bae6fd;
+  padding: 2px 7px;
+  border-radius: 10px;
+  letter-spacing: 0.1px;
+
+  .proof-badge-icon {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    color: #0284c7;
   }
 }
 

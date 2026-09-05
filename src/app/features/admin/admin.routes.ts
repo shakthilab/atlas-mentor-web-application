@@ -13,6 +13,7 @@ import { CompaniesComponent } from '../../shared/components/companies/companies.
 import { ResourcesComponent } from '../../shared/components/resources/resources.component';
 import { HierarchyComponent } from '../../shared/components/hierarchy/hierarchy.component';
 import { TasksV2Component } from '../../shared/components/tasks-v2/tasks-v2.component';
+import { OfficeCamerasComponent } from '../../shared/components/office-cameras/office-cameras.component';
 
 
 export const adminRoutes: Routes = [
@@ -35,6 +36,7 @@ export const adminRoutes: Routes = [
   { path: 'branches', component: BranchesComponent, data: { title: 'Branches' } },
   { path: 'referrals', component: ReferralsComponent, data: { title: 'Referrals' } },
   { path: 'companies', component: CompaniesComponent, data: { title: 'Companies' } },
+  { path: 'office-cameras', component: OfficeCamerasComponent, data: { title: 'Office Cameras' } },
   { path: 'resources', component: ResourcesComponent, data: { title: 'Resources' } },
   { path: 'documents', component: ComingSoonComponent, data: { title: 'Documents' } },
   { path: 'settings', component: SettingsComponent, data: { title: 'Settings' } },

@@ -28,6 +28,8 @@ import { TasksV2Component } from './components/tasks-v2/tasks-v2.component';
 import { DataTableComponent } from './components/data-table/data-table.component';
 import { TableCellDefDirective } from './components/data-table/table-cell-def.directive';
 import { TableRowActionsDirective } from './components/data-table/table-row-actions.directive';
+import { VoiceNotePlayerComponent } from './components/voice-note-player/voice-note-player.component';
+import { OfficeCamerasComponent } from './components/office-cameras/office-cameras.component';
 
 @NgModule({
   declarations: [
@@ -49,6 +51,8 @@ import { TableRowActionsDirective } from './components/data-table/table-row-acti
     AdminDashboardComponent,
     AnimatedNumberDirective,
     PartnerDashboardComponent,
+    VoiceNotePlayerComponent,
+    OfficeCamerasComponent,
   ],
   imports: [
     CommonModule,
@@ -94,9 +98,8 @@ import { TableRowActionsDirective } from './components/data-table/table-row-acti
     PartnerDashboardComponent,
     NgxEchartsModule,
     TasksV2Component,
-    DataTableComponent,
-    TableCellDefDirective,
-    TableRowActionsDirective,
+    VoiceNotePlayerComponent,
+    OfficeCamerasComponent,
   ],
 })
 export class SharedModule {}

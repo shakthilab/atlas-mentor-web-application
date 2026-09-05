@@ -216,11 +216,12 @@ export class EmployeeTreeComponent implements OnInit, OnDestroy {
         monthNode.days = sortedData.map((d: any) => {
           let isWeekly = d.isWeeklyCheckpointDay || false;
           const dt = d.date ? new Date(d.date + 'T00:00:00') : null;
-          if (dt && !isNaN(dt.getTime())) {
-            if (dt.getDay() === 6) { // 6 is Saturday
-              isWeekly = true;
-            }
-          }
+          // Commented out Saturday check for weekly accountability so employees can view task section on Saturday
+          // if (dt && !isNaN(dt.getTime())) {
+          //   if (dt.getDay() === 6) { // 6 is Saturday
+          //     isWeekly = true;
+          //   }
+          // }
 
           let label = d.dateLabel;
           if (dt && !isNaN(dt.getTime())) {

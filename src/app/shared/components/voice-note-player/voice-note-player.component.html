@@ -1,0 +1,46 @@
+<div class="whatsapp-voice-player" [class.my-voice]="isMyMessage" [class.is-playing]="isPlaying">
+  <!-- Play / Pause Action Button -->
+  <button 
+    class="voice-play-btn" 
+    type="button" 
+    (click)="togglePlay()" 
+    [attr.aria-label]="isPlaying ? 'Pause voice message' : 'Play voice message'"
+  >
+    <i-tabler [name]="isPlaying ? 'player-pause-filled' : 'player-play-filled'" *ngIf="isPlaying" class="play-icon"></i-tabler>
+    <i-tabler name="player-play-filled" *ngIf="!isPlaying" class="play-icon"></i-tabler>
+  </button>
+
+  <!-- Middle Waveform Track & Time -->
+  <div class="voice-track-area">
+    <!-- Waveform Bars Track (Seekable) -->
+    <div 
+      class="waveform-container" 
+      #waveformTrack 
+      (click)="onWaveformClick($event)"
+      [title]="'Click to seek'"
+    >
+      <div 
+        class="waveform-bar" 
+        *ngFor="let height of waveformBars; let i = index"
+        [style.height.%]="height"
+        [class.played]="((i + 1) / waveformBars.length) * 100 <= progressPercent"
+      ></div>
+    </div>
+
+    <!-- Info Row: Time & Badges -->
+    <div class="voice-info-row">
+      <span class="voice-time">{{ formatDisplayTime() }}</span>
+      <div class="voice-meta-right">
+        <button 
+          class="speed-badge-btn" 
+          type="button" 
+          (click)="toggleSpeed()" 
+          [title]="'Playback speed: ' + playbackSpeed + 'x'"
+        >
+          {{ playbackSpeed }}x
+        </button>
+        <i-tabler name="microphone" class="voice-mic-indicator"></i-tabler>
+      </div>
+    </div>
+  </div>
+</div>
