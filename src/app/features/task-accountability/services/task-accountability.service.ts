@@ -500,7 +500,8 @@ export class TaskAccountabilityService {
         const daysList: DayNode[] = [];
         for (let d = 1; d <= 30; d++) {
           const dayId = `d-${employee.id}-${d}`;
-          const isWeekly = d % 7 === 0;
+          // Saturday (every 7th day) is a normal day, not a weekly accountability checkpoint
+          const isWeekly = false;
 
           const tasks: TaskItem[] = isWeekly ? [] : template.tasks.map((tTask, tIdx) => ({
             id: `T-${dayId}-${tIdx + 1}`,

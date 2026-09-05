@@ -675,16 +675,17 @@ export class TaskAccountabilityDashboardComponent implements OnInit, OnDestroy {
   }
 
   get isAllTasksCompleted(): boolean {
-    if (!this.day || !this.day.tasks || this.day.tasks.length === 0) {
+    if (!this.day) {
       return false;
     }
+    const tasks = this.day.tasks || [];
     // Submit Day's enablement must mirror the backend's own rule (DayWorkspaceService#submitDay
     // only ever evaluates findByDayWorkspaceId(workspace.getId()) - this day's own tasks).
     // Carried-over overdue tasks from earlier days are shown here for visibility only and must
     // never gate today's submission just because they're visually present on the same screen.
-    const todaysOwnTasks = this.day.tasks.filter(t => !t.carriedOver);
+    const todaysOwnTasks = tasks.filter(t => !t.carriedOver);
     if (todaysOwnTasks.length === 0) {
-      // Every visible task is carried-over (e.g. a rest day with no tasks of its own) - the
+      // Every visible task is carried-over (or Saturday / rest day with no tasks of its own) - the
       // backend skips the completion check entirely for a day with zero own tasks.
       return true;
     }
