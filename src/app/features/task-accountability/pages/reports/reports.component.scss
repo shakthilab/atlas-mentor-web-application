@@ -29,6 +29,7 @@
 
 .filter-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 20px;
 }
 
@@ -38,7 +39,7 @@
   gap: 6px;
 
   &.flex-1 {
-    flex: 1;
+    flex: 1 1 220px;
   }
 
   label {
@@ -92,11 +93,12 @@
 // Metrics circular cards
 .metrics-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 24px;
 }
 
 .metric-circle-card {
-  flex: 1;
+  flex: 1 1 220px;
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 12px;

@@ -327,8 +327,13 @@ import { WeeklyTemplateDuplicateDialogComponent } from './weekly-template-duplic
         gap: 12px;
       }
       .templates-header > div:first-child {
-        flex: 1 1 0;
-        min-width: 0;
+        // flex: 1 1 0 + min-width: 0 let this column shrink indefinitely
+        // instead of wrapping the button below it, which squeezed the
+        // title down to where it broke mid-word ("Weekly Check-in
+        // Templat|es"). Give it a sane minimum so the header wraps to two
+        // rows (title, then button) once it can't fit both side by side.
+        flex: 1 1 220px;
+        min-width: 200px;
       }
       .premium-btn {
         flex-shrink: 0;
