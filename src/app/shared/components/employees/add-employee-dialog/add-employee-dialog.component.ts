@@ -196,11 +196,17 @@ import { AuthService } from '../../../../core/services/auth.service';
 
     .phone-input-group {
       display: flex;
+      flex-wrap: wrap;
       gap: 12px;
-      
+
       .mcc-select {
         width: 130px;
         flex-shrink: 0;
+      }
+
+      .phone-number {
+        flex: 1 1 160px;
+        min-width: 160px;
       }
     }
 
