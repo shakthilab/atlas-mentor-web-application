@@ -79,6 +79,32 @@ screenshots of a few key pages to `automation/tests/` for visual review.
 E2E_EMAIL=... E2E_PASSWORD=... node automation/scripts/theme-verify.js
 ```
 
+## Responsive UI verification scripts
+
+Added for the module-by-module responsive pass (`responsive/full-app` branch).
+Same safety constraints as everything else here: `E2E_EMAIL`/`E2E_PASSWORD` env
+vars only, login is the only mutating-looking action, nothing is ever
+submitted/created/edited/deleted.
+
+- **`responsive-check.js`** — logs in, navigates to one or more routes, and at
+  each of 11 fixed breakpoints (desktop 1920/1440/1366, tablet 1024/820/768,
+  mobile 430/390/375/360/320) takes a viewport-accurate screenshot (not
+  `fullPage`, so `position: fixed` elements like the mobile bottom nav render
+  where a real user would actually see them) and checks for page-level
+  horizontal overflow. Screenshots land in
+  `Downloads/responsive-implementation/<module>/screenshots/`.
+  ```bash
+  E2E_EMAIL=... E2E_PASSWORD=... node automation/scripts/responsive-check.js \
+    --module <name> --pages "Label1=/route1,Label2=/route2"
+  ```
+- **`layout-interaction-check.js`** — one-off check for the shared layout
+  shell: opens/closes the mobile sidenav via the hamburger and lists the
+  mobile bottom nav's items/routes.
+- **`dialog-check.js`** — opens a dialog via its trigger button (desktop
+  button or mobile FAB, whichever is visible) at several breakpoints,
+  measures the dialog's `scrollWidth`/`clientWidth`/bounding rect for
+  overflow, screenshots it, then closes with Escape without submitting.
+
 ## Extending this later
 
 Once a safe backend target exists, the natural next steps are:
