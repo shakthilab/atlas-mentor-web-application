@@ -438,20 +438,27 @@ button[mat-icon-button],
   }
 }
 
+// Mobile and Tablet Header Responsiveness Overrides
 .product-name-mobile {
   display: none;
   @media (max-width: 768px) {
     display: block;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
     color: $primary;
-    letter-spacing: 0.5px;
-    margin-left: 8px;
+    letter-spacing: 0.3px;
+    margin-left: 6px;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 140px;
+  }
+  @media (max-width: 380px) {
+    max-width: 85px;
+    font-size: 13px;
   }
 }
 
-// Mobile and Tablet Header Responsiveness Overrides
 @media (max-width: 1024px) {
   .profile-meta,
   .chevron-arrow,
@@ -473,3 +480,29 @@ button[mat-icon-button],
     }
   }
 }
+
+@media (max-width: 400px) {
+  .header-right-actions {
+    .mat-icon-button,
+    button[mat-icon-button],
+    .mat-mdc-icon-button {
+      min-width: 36px !important;
+      min-height: 36px !important;
+      width: 36px !important;
+      height: 36px !important;
+      padding: 0 !important;
+    }
+
+    .profile-trigger-btn {
+      width: 36px !important;
+      height: 36px !important;
+      padding: 0 !important;
+
+      .profile-avatar {
+        width: 30px !important;
+        height: 30px !important;
+      }
+    }
+  }
+}
+

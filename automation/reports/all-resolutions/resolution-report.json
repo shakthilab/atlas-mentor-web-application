@@ -1,0 +1,281 @@
+{
+  "testedAt": "2026-09-06T18:01:37.693Z",
+  "account": "Jitesh.gupta@atlasmentor.com",
+  "url": "http://localhost:4200/admin",
+  "totalDevices": 15,
+  "passedCount": 15,
+  "failedCount": 0,
+  "results": [
+    {
+      "device": "iPhone SE / Small Phone",
+      "resolution": "375x667",
+      "category": "Mobile",
+      "scrollWidth": 375,
+      "hasHorizontalScroll": false,
+      "cardCount": 37,
+      "filterAboveNav": true,
+      "timeFilterPos": {
+        "bottom": 72,
+        "right": 12,
+        "width": 89,
+        "height": 29
+      },
+      "mobileNavHeight": 64,
+      "status": "PASS",
+      "screenshot": "mobile-375x667.png"
+    },
+    {
+      "device": "iPhone 12/13/14/15 Pro",
+      "resolution": "390x844",
+      "category": "Mobile",
+      "scrollWidth": 390,
+      "hasHorizontalScroll": false,
+      "cardCount": 37,
+      "filterAboveNav": true,
+      "timeFilterPos": {
+        "bottom": 72,
+        "right": 12,
+        "width": 89,
+        "height": 29
+      },
+      "mobileNavHeight": 64,
+      "status": "PASS",
+      "screenshot": "mobile-390x844.png"
+    },
+    {
+      "device": "iPhone 14/15 Pro Max / Plus",
+      "resolution": "430x932",
+      "category": "Mobile",
+      "scrollWidth": 430,
+      "hasHorizontalScroll": false,
+      "cardCount": 37,
+      "filterAboveNav": true,
+      "timeFilterPos": {
+        "bottom": 72,
+        "right": 12,
+        "width": 89,
+        "height": 29
+      },
+      "mobileNavHeight": 64,
+      "status": "PASS",
+      "screenshot": "mobile-430x932.png"
+    },
+    {
+      "device": "Samsung Galaxy S20 / Android",
+      "resolution": "360x800",
+      "category": "Mobile",
+      "scrollWidth": 360,
+      "hasHorizontalScroll": false,
+      "cardCount": 37,
+      "filterAboveNav": true,
+      "timeFilterPos": {
+        "bottom": 72,
+        "right": 12,
+        "width": 89,
+        "height": 29
+      },
+      "mobileNavHeight": 64,
+      "status": "PASS",
+      "screenshot": "mobile-360x800.png"
+    },
+    {
+      "device": "Ultra-Compact Mobile",
+      "resolution": "320x568",
+      "category": "Mobile",
+      "scrollWidth": 320,
+      "hasHorizontalScroll": false,
+      "cardCount": 37,
+      "filterAboveNav": true,
+      "timeFilterPos": {
+        "bottom": 72,
+        "right": 12,
+        "width": 89,
+        "height": 29
+      },
+      "mobileNavHeight": 64,
+      "status": "PASS",
+      "screenshot": "mobile-320x568.png"
+    },
+    {
+      "device": "iPad Mini / Tablet Portrait",
+      "resolution": "768x1024",
+      "category": "Tablet",
+      "scrollWidth": 768,
+      "hasHorizontalScroll": false,
+      "cardCount": 37,
+      "filterAboveNav": true,
+      "timeFilterPos": {
+        "bottom": 76,
+        "right": 14,
+        "width": 102,
+        "height": 33
+      },
+      "mobileNavHeight": 64,
+      "status": "PASS",
+      "screenshot": "tablet-768x1024.png"
+    },
+    {
+      "device": "iPad Air (Portrait)",
+      "resolution": "820x1180",
+      "category": "Tablet",
+      "scrollWidth": 820,
+      "hasHorizontalScroll": false,
+      "cardCount": 37,
+      "filterAboveNav": true,
+      "timeFilterPos": {
+        "bottom": 24,
+        "right": 24,
+        "width": 102,
+        "height": 33
+      },
+      "mobileNavHeight": 0,
+      "status": "PASS",
+      "screenshot": "tablet-820x1180.png"
+    },
+    {
+      "device": "Surface Pro (Portrait)",
+      "resolution": "912x1368",
+      "category": "Tablet",
+      "scrollWidth": 912,
+      "hasHorizontalScroll": false,
+      "cardCount": 37,
+      "filterAboveNav": true,
+      "timeFilterPos": {
+        "bottom": 24,
+        "right": 24,
+        "width": 102,
+        "height": 33
+      },
+      "mobileNavHeight": 0,
+      "status": "PASS",
+      "screenshot": "tablet-912x1368.png"
+    },
+    {
+      "device": "iPad Landscape / Small Laptop",
+      "resolution": "1024x768",
+      "category": "Tablet / Laptop",
+      "scrollWidth": 1024,
+      "hasHorizontalScroll": false,
+      "cardCount": 37,
+      "filterAboveNav": true,
+      "timeFilterPos": {
+        "bottom": 24,
+        "right": 24,
+        "width": 102,
+        "height": 33
+      },
+      "mobileNavHeight": 0,
+      "status": "PASS",
+      "screenshot": "tablet-1024x768.png"
+    },
+    {
+      "device": "iPad Air Landscape",
+      "resolution": "1180x820",
+      "category": "Tablet / Laptop",
+      "scrollWidth": 1180,
+      "hasHorizontalScroll": false,
+      "cardCount": 37,
+      "filterAboveNav": true,
+      "timeFilterPos": {
+        "bottom": 24,
+        "right": 24,
+        "width": 102,
+        "height": 33
+      },
+      "mobileNavHeight": 0,
+      "status": "PASS",
+      "screenshot": "tablet-1180x820.png"
+    },
+    {
+      "device": "Standard Laptop (1280x800)",
+      "resolution": "1280x800",
+      "category": "Laptop",
+      "scrollWidth": 1280,
+      "hasHorizontalScroll": false,
+      "cardCount": 37,
+      "filterAboveNav": true,
+      "timeFilterPos": {
+        "bottom": 24,
+        "right": 24,
+        "width": 102,
+        "height": 33
+      },
+      "mobileNavHeight": 0,
+      "status": "PASS",
+      "screenshot": "laptop-1280x800.png"
+    },
+    {
+      "device": "HD Laptop (1366x768)",
+      "resolution": "1366x768",
+      "category": "Laptop",
+      "scrollWidth": 1366,
+      "hasHorizontalScroll": false,
+      "cardCount": 37,
+      "filterAboveNav": true,
+      "timeFilterPos": {
+        "bottom": 24,
+        "right": 24,
+        "width": 102,
+        "height": 33
+      },
+      "mobileNavHeight": 0,
+      "status": "PASS",
+      "screenshot": "laptop-1366x768.png"
+    },
+    {
+      "device": "MacBook Pro / Desktop (1440x900)",
+      "resolution": "1440x900",
+      "category": "Desktop",
+      "scrollWidth": 1440,
+      "hasHorizontalScroll": false,
+      "cardCount": 37,
+      "filterAboveNav": true,
+      "timeFilterPos": {
+        "bottom": 24,
+        "right": 24,
+        "width": 102,
+        "height": 33
+      },
+      "mobileNavHeight": 0,
+      "status": "PASS",
+      "screenshot": "desktop-1440x900.png"
+    },
+    {
+      "device": "FHD Desktop (1920x1080)",
+      "resolution": "1920x1080",
+      "category": "Desktop",
+      "scrollWidth": 1920,
+      "hasHorizontalScroll": false,
+      "cardCount": 37,
+      "filterAboveNav": true,
+      "timeFilterPos": {
+        "bottom": 24,
+        "right": 24,
+        "width": 102,
+        "height": 33
+      },
+      "mobileNavHeight": 0,
+      "status": "PASS",
+      "screenshot": "desktop-1920x1080.png"
+    },
+    {
+      "device": "2K QHD Display (2560x1440)",
+      "resolution": "2560x1440",
+      "category": "Ultra-wide / 2K",
+      "scrollWidth": 2560,
+      "hasHorizontalScroll": false,
+      "cardCount": 37,
+      "filterAboveNav": true,
+      "timeFilterPos": {
+        "bottom": 24,
+        "right": 24,
+        "width": 102,
+        "height": 33
+      },
+      "mobileNavHeight": 0,
+      "status": "PASS",
+      "screenshot": "desktop-2560x1440.png"
+    }
+  ],
+  "consoleErrors": []
+}

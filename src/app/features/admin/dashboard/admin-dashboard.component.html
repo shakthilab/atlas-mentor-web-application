@@ -1,503 +1,553 @@
 <div class="admin-dashboard" [style.--role-accent]="roleAccent">
 
-
-  <div class="container-fluid px-3 px-md-4 px-lg-5 pt-4 pb-2">
+  <div class="dashboard-container">
 
     <!-- Greeting Section -->
-    <div class="d-flex align-items-center mb-4 animate-card">
+    <div class="dashboard-greeting-row d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4 animate-card">
       <div>
-        <h2 class="fs-2 fw-bolder text-dark mb-1">{{ greeting }} 👋</h2>
+        <h2 class="dashboard-title mb-1">{{ greeting }} 👋</h2>
       </div>
     </div>
 
     <!-- API Error Banner -->
     <div class="alert alert-danger d-flex align-items-center mb-4" *ngIf="apiError">
-      <i-tabler name="alert-circle" class="icon-20 me-2"></i-tabler>
-      {{ apiError }}
+      <i-tabler name="alert-circle" class="icon-20 me-2 flex-shrink-0"></i-tabler>
+      <span>{{ apiError }}</span>
     </div>
 
     <!-- SECTION 01: Top KPI Cards -->
-    <div class="section-label animate-section">{{ 'adminDashboard.section1' | translate }}</div>
-    <div class="metrics-grid mb-4">
-      <div class="op-card card-sm m-0 animate-card" *ngFor="let card of summaryCards; let i = index"
-        [style.animation-delay]="(i * 55) + 'ms'">
-        <div class="d-flex align-items-center justify-content-between">
-          <div class="card-label">{{ card.title }}</div>
-          <div class="card-icon-chip" [style.background]="(card.trendColor || '#198754') + '18'"
-            [style.color]="card.trendColor || '#198754'">
-            <i-tabler [name]="getKpiIcon(card.title)"></i-tabler>
+    <section class="dashboard-section section-kpis">
+      <div class="section-label animate-section">
+        <span class="section-num">01</span>
+        <span class="section-title">{{ 'adminDashboard.section1' | translate }}</span>
+      </div>
+      <div class="metrics-grid">
+        <div class="op-card card-sm m-0 animate-card kpi-card" *ngFor="let card of summaryCards; let i = index"
+          [style.animation-delay]="(i * 50) + 'ms'">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <div class="card-label text-truncate" [title]="card.title">{{ card.title }}</div>
+            <div class="card-icon-chip" [style.background]="(card.trendColor || '#198754') + '18'"
+              [style.color]="card.trendColor || '#198754'">
+              <i-tabler [name]="getKpiIcon(card.title)"></i-tabler>
+            </div>
+          </div>
+          <div class="d-flex align-items-baseline justify-content-between mb-1 kpi-value-row">
+            <div class="card-value" [appAnimatedNumber]="card.value" [prefix]="card.prefix || ''"
+              [suffix]="card.suffix || ''" [isDecimal]="card.value?.toString()?.includes('.')">0</div>
+            <span class="trend-badge" [ngStyle]="{'background-color': card.trendColor + '18', 'color': card.trendColor}">
+              {{ card.trend }}
+            </span>
+          </div>
+          <div class="kpi-sparkline-wrapper">
+            <div echarts [options]="card.chartOptions" [autoResize]="true" class="h-100 w-100"></div>
           </div>
         </div>
-        <div class="d-flex align-items-center justify-content-between">
-          <div class="card-value" [appAnimatedNumber]="card.value" [prefix]="card.prefix || ''"
-            [suffix]="card.suffix || ''" [isDecimal]="card.value?.toString()?.includes('.')">0</div>
-          <span class="trend-badge" [ngStyle]="{'background-color': card.trendColor + '18', 'color': card.trendColor}">
-            {{ card.trend }}
-          </span>
-        </div>
-        <div style="margin-top: -10px; margin-bottom: -15px; margin-left: -10px; margin-right: -10px; height: 68px;">
-          <div echarts [options]="card.chartOptions" style="height: 100%;"></div>
-        </div>
       </div>
-    </div>
+    </section>
 
     <!-- SECTION 02: STUDENTS -->
-    <div class="section-label animate-section">{{ 'adminDashboard.section2' | translate }}</div>
-    <div class="row g-4 mb-5">
-      <div class="col-lg-8">
-        <div class="op-card h-100 p-4 animate-card" style="animation-delay:80ms">
-          <div class="d-flex justify-content-between mb-4">
-            <div>
-              <div class="card-label text-primary">{{ 'adminDashboard.students' | translate }}</div>
-              <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">{{ 'adminDashboard.acquisitionFunnel' | translate }}</div>
-            </div>
-          </div>
-          <div style="height: 280px;" class="mt-4 pt-2">
-            <div echarts [options]="acquisitionFunnelOptions" style="height: 100%;"></div>
-          </div>
-          <div class="mt-4 pt-4 border-top">
-            <div class="card-label text-muted mb-3">{{ 'adminDashboard.statusBreakdown' | translate }}</div>
-            <div class="status-row" *ngFor="let st of statusBreakdown">
-              <div class="label">{{ st.label }}</div>
-              <div class="bar-container">
-                <div class="fill" [style.width.%]="st.fill"></div>
+    <section class="dashboard-section section-students">
+      <div class="section-label animate-section">
+        <span class="section-num">02</span>
+        <span class="section-title">{{ 'adminDashboard.section2' | translate }}</span>
+      </div>
+      <div class="row g-3 g-md-4 mb-3 mb-md-4">
+        <div class="col-12 col-lg-8">
+          <div class="op-card h-100 animate-card" style="animation-delay:80ms">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <div class="card-label text-primary">{{ 'adminDashboard.students' | translate }}</div>
+                <div class="card-heading">{{ 'adminDashboard.acquisitionFunnel' | translate }}</div>
               </div>
-              <div class="stats">{{ st.value }} &middot; {{ st.percent }}%</div>
+            </div>
+            <div class="chart-box chart-h-280">
+              <div echarts [options]="acquisitionFunnelOptions" [autoResize]="true" class="h-100 w-100"></div>
+            </div>
+            <div class="mt-4 pt-3 border-top">
+              <div class="card-label text-muted mb-3">{{ 'adminDashboard.statusBreakdown' | translate }}</div>
+              <div class="status-row" *ngFor="let st of statusBreakdown">
+                <div class="label" [title]="st.label">{{ st.label }}</div>
+                <div class="bar-container">
+                  <div class="fill" [style.width.%]="st.fill"></div>
+                </div>
+                <div class="stats">{{ st.value }} &middot; {{ st.percent }}%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-4 d-flex flex-column gap-3 gap-md-4">
+          <div class="op-card flex-grow-1 animate-card" style="animation-delay:120ms" *ngIf="!isCounsellorRole">
+            <div class="card-label text-primary">{{ 'adminDashboard.source' | translate }}</div>
+            <div class="card-heading mb-2">{{ 'adminDashboard.referralVsCompany' | translate }}</div>
+            <div class="chart-box chart-h-200">
+              <div echarts [options]="referralCompanyOptions" [autoResize]="true" class="h-100 w-100"></div>
+            </div>
+            <div class="d-flex justify-content-center gap-3 gap-md-4 mt-2 fs-3 fw-bold flex-wrap legend-row">
+              <div class="d-flex align-items-center gap-2" *ngFor="let leg of referralCompanyLegends">
+                <span [style.background]="leg.color"
+                  style="width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0;"></span>
+                <span>{{ leg.name }}</span>
+                <span class="text-muted fw-normal ms-1">{{ leg.value }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="op-card flex-grow-1 animate-card" style="animation-delay:160ms">
+            <div class="card-label text-primary">{{ 'adminDashboard.geo' | translate }}</div>
+            <div class="card-heading mb-3">{{ 'adminDashboard.topCountries' | translate }}</div>
+            <div class="list-row-container">
+              <div class="list-row" *ngFor="let country of topCountries">
+                <div class="rank-badge" [class.rank-1]="country.rank === 1 || country.rank === '1'"
+                  [class.rank-2]="country.rank === 2 || country.rank === '2'"
+                  [class.rank-3]="country.rank === 3 || country.rank === '3'">
+                  {{ country.rank }}
+                </div>
+                <div class="item-info">
+                  <div class="item-title" [title]="country.name">{{ country.name }}</div>
+                  <div class="item-sub" [title]="country.stats">{{ country.stats }}</div>
+                </div>
+                <div class="item-amount">{{ country.revenue }}</div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <div class="col-lg-4 d-flex flex-column gap-4">
-        <div class="op-card p-4 flex-grow-1 animate-card" style="animation-delay:120ms" *ngIf="!isCounsellorRole">
-          <div class="card-label text-primary">{{ 'adminDashboard.source' | translate }}</div>
-          <div class="fs-5 fw-bold text-dark mb-2" style="font-weight: 700 !important;">{{ 'adminDashboard.referralVsCompany' | translate }}</div>
-          <div style="height: 200px;">
-            <div echarts [options]="referralCompanyOptions" style="height: 100%;"></div>
-          </div>
-          <div class="d-flex justify-content-center gap-4 mt-2 fs-3 fw-bold flex-wrap">
-            <div class="d-flex align-items-center gap-2" *ngFor="let leg of referralCompanyLegends">
-              <span [style.background]="leg.color"
-                style="width:8px;height:8px;border-radius:50%;display:inline-block;"></span>
-              {{ leg.name }} <span class="text-muted fw-normal ms-2">{{ leg.value }}</span>
-            </div>
-          </div>
-        </div>
-        <div class="op-card p-4 flex-grow-1 animate-card" style="animation-delay:160ms">
-          <div class="card-label text-primary">{{ 'adminDashboard.geo' | translate }}</div>
-          <div class="fs-5 fw-bold text-dark mb-3" style="font-weight: 700 !important;">{{ 'adminDashboard.topCountries' | translate }}</div>
-          <div class="list-row" *ngFor="let country of topCountries">
-            <div class="rank-badge">{{ country.rank }}</div>
-            <div>
-              <div class="item-title">{{ country.name }}</div>
-              <div class="item-sub">{{ country.stats }}</div>
-            </div>
-            <div class="item-amount">{{ country.revenue }}</div>
-          </div>
-        </div>
-      </div>
-    </div>
 
-    <div class="row g-4 mb-5">
-      <div class="col-12">
-        <div class="op-card p-4 animate-card" style="animation-delay:100ms">
-          <div class="card-label text-primary">{{ 'adminDashboard.trend' | translate }}</div>
-          <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">{{ 'adminDashboard.intakeByCountry' | translate }}</div>
-          <div style="height: 250px;">
-            <div echarts [options]="intakeCountryOptions" style="height: 100%;"></div>
+      <div class="row g-3 g-md-4">
+        <div class="col-12">
+          <div class="op-card animate-card" style="animation-delay:100ms">
+            <div class="card-label text-primary">{{ 'adminDashboard.trend' | translate }}</div>
+            <div class="card-heading mb-3">{{ 'adminDashboard.intakeByCountry' | translate }}</div>
+            <div class="chart-box chart-h-250">
+              <div echarts [options]="intakeCountryOptions" [autoResize]="true" class="h-100 w-100"></div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- SECTION 03: FINANCIAL -->
     <ng-container *ngIf="canViewFinancial">
-      <div class="section-label animate-section">{{ 'adminDashboard.section3' | translate }}</div>
-      <div class="row g-4 mb-5">
-        <div class="col" *ngFor="let m of financialMetrics; let i = index">
-          <div class="op-card financial-metric-card animate-card" [style.border-left-color]="m.borderColor"
-            [style.animation-delay]="(i * 60) + 'ms'">
-            <div class="card-label">{{ m.label }}</div>
+      <section class="dashboard-section section-financial">
+        <div class="section-label animate-section">
+          <span class="section-num">03</span>
+          <span class="section-title">{{ 'adminDashboard.section3' | translate }}</span>
+        </div>
+        <div class="financial-grid mb-3 mb-md-4">
+          <div class="op-card financial-metric-card animate-card" *ngFor="let m of financialMetrics; let i = index"
+            [style.border-left-color]="m.borderColor" [style.animation-delay]="(i * 60) + 'ms'">
+            <div class="card-label text-truncate" [title]="m.label">{{ m.label }}</div>
             <div class="card-value">{{ m.value }}</div>
           </div>
         </div>
-      </div>
-      <div class="row g-4 mb-5">
-        <div class="col-lg-8">
-          <div class="op-card p-4 h-100 animate-card" style="animation-delay:80ms">
-            <div class="card-label text-primary">{{ 'adminDashboard.payments' | translate }}</div>
-            <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">{{ 'adminDashboard.statusByMonth' | translate }}</div>
-            <div class="text-muted fs-2 mb-4">{{ 'adminDashboard.inLakhs' | translate }}</div>
-            <div style="height: 250px;">
-              <div echarts [options]="paymentsStatusOptions" style="height: 100%;"></div>
+        <div class="row g-3 g-md-4 mb-3 mb-md-4">
+          <div class="col-12 col-lg-8">
+            <div class="op-card h-100 animate-card" style="animation-delay:80ms">
+              <div class="card-label text-primary">{{ 'adminDashboard.payments' | translate }}</div>
+              <div class="card-heading">{{ 'adminDashboard.statusByMonth' | translate }}</div>
+              <div class="text-muted fs-2 mb-3">{{ 'adminDashboard.inLakhs' | translate }}</div>
+              <div class="chart-box chart-h-250">
+                <div echarts [options]="paymentsStatusOptions" [autoResize]="true" class="h-100 w-100"></div>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="col-lg-4">
-          <div class="op-card p-4 h-100 animate-card" style="animation-delay:140ms">
-            <div class="card-label text-primary">{{ 'adminDashboard.methods' | translate }}</div>
-            <div class="fs-5 fw-bold text-dark mb-4" style="font-weight: 700 !important;">{{ 'adminDashboard.paymentDistribution' | translate }}</div>
-            <div style="height: 220px;">
-              <div echarts [options]="paymentDistributionOptions" style="height: 100%;"></div>
-            </div>
-            <div class="mt-3">
-              <div class="d-flex justify-content-between align-items-center mb-2 fs-3 fw-bold"
-                *ngFor="let leg of paymentDistLegends">
-                <div class="d-flex align-items-center gap-2 text-muted">
-                  <span [style.background]="leg.color"
-                    style="width:8px;height:8px;border-radius:50%;display:inline-block;"></span>
-                  {{ leg.label }}
+          <div class="col-12 col-lg-4">
+            <div class="op-card h-100 animate-card" style="animation-delay:140ms">
+              <div class="card-label text-primary">{{ 'adminDashboard.methods' | translate }}</div>
+              <div class="card-heading mb-3">{{ 'adminDashboard.paymentDistribution' | translate }}</div>
+              <div class="chart-box chart-h-220">
+                <div echarts [options]="paymentDistributionOptions" [autoResize]="true" class="h-100 w-100"></div>
+              </div>
+              <div class="mt-3">
+                <div class="d-flex justify-content-between align-items-center mb-2 fs-3 fw-bold"
+                  *ngFor="let leg of paymentDistLegends">
+                  <div class="d-flex align-items-center gap-2 text-muted">
+                    <span [style.background]="leg.color"
+                      style="width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0;"></span>
+                    <span>{{ leg.label }}</span>
+                  </div>
+                  <div class="text-dark">{{ leg.percent }}</div>
                 </div>
-                <div class="text-dark">{{ leg.percent }}</div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-      <div class="row g-4 mb-5">
-        <div class="col-lg-8">
-          <div class="op-card p-4 h-100 animate-card" style="animation-delay:80ms">
-            <div class="d-flex justify-content-between mb-4">
-              <div>
-                <div class="card-label text-primary">{{ 'adminDashboard.receivables' | translate }}</div>
-                <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">{{ 'adminDashboard.topPayingEntities' | translate }}</div>
+        <div class="row g-3 g-md-4">
+          <div class="col-12 col-lg-8">
+            <div class="op-card h-100 animate-card" style="animation-delay:80ms">
+              <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                <div>
+                  <div class="card-label text-primary">{{ 'adminDashboard.receivables' | translate }}</div>
+                  <div class="card-heading">{{ 'adminDashboard.topPayingEntities' | translate }}</div>
+                </div>
+                <a href="#" class="link-all-details">{{ 'partnerDashboard.allDetails' | translate }} <i-tabler name="chevron-right"
+                    class="icon-14"></i-tabler></a>
               </div>
-              <a href="#" class="link-all-details">{{ 'partnerDashboard.allDetails' | translate }} <i-tabler name="chevron-right"
-                  class="icon-14"></i-tabler></a>
-            </div>
-            <app-data-table
-              [columns]="topPayingEntitiesColumns"
-              [rows]="topPayingEntities"
-              exportFileName="top-paying-entities"
-            >
-              <ng-template appCellDef="entity" let-ent="row"><span class="fw-bold">{{ ent.entity }}</span></ng-template>
-              <ng-template appCellDef="type" let-ent="row"><span class="text-muted fw-normal">{{ ent.type }}</span></ng-template>
-              <ng-template appCellDef="amount" let-ent="row">
-                <span class="fw-bold me-2">{{ ent.amount }}</span>
-                <span class="op-badge badge-{{ ent.status | lowercase }}">{{ ent.status }}</span>
-              </ng-template>
-              <ng-template appCellDef="last" let-ent="row"><span class="text-muted fw-normal">{{ ent.last }}</span></ng-template>
-            </app-data-table>
-          </div>
-        </div>
-        <div class="col-lg-4">
-          <div class="op-card p-4 h-100 animate-card" style="animation-delay:140ms">
-            <div class="d-flex justify-content-between align-items-start mb-4">
-              <div>
-                <div class="card-label text-primary">{{ 'adminDashboard.disputes' | translate }}</div>
-                <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">{{ 'adminDashboard.openDisputes' | translate }}</div>
-              </div>
-              <span class="badge bg-danger-subtle text-danger fw-bold py-1 px-2" style="font-size:11px;">{{ 'adminDashboard.openCount' | translate:{ count: 2 } }}</span>
-            </div>
-            <div class="dispute-card" *ngFor="let disp of openDisputes">
-              <div class="d-flex justify-content-between mb-1">
-                <div class="fw-bold text-dark">{{ disp.title }}</div>
-                <div class="fw-bold text-danger">{{ disp.amount }}</div>
-              </div>
-              <div class="text-muted fs-3 mb-1">{{ disp.sub1 }}</div>
-              <div class="text-dark fs-3 fst-italic mb-3">{{ disp.sub2 }}</div>
-              <div class="d-flex gap-2 mt-2">
-                <button class="btn-dispute-view">{{ 'adminDashboard.view' | translate }}</button>
-                <button class="btn-dispute-respond">{{ 'adminDashboard.respond' | translate }}</button>
+              <div class="table-responsive-wrapper">
+                <app-data-table
+                  [columns]="topPayingEntitiesColumns"
+                  [rows]="topPayingEntities"
+                  exportFileName="top-paying-entities"
+                >
+                  <ng-template appCellDef="entity" let-ent="row"><span class="fw-bold">{{ ent.entity }}</span></ng-template>
+                  <ng-template appCellDef="type" let-ent="row"><span class="text-muted fw-normal">{{ ent.type }}</span></ng-template>
+                  <ng-template appCellDef="amount" let-ent="row">
+                    <span class="fw-bold me-2">{{ ent.amount }}</span>
+                    <span class="op-badge badge-{{ ent.status | lowercase }}">{{ ent.status }}</span>
+                  </ng-template>
+                  <ng-template appCellDef="last" let-ent="row"><span class="text-muted fw-normal">{{ ent.last }}</span></ng-template>
+                </app-data-table>
               </div>
             </div>
           </div>
+          <div class="col-12 col-lg-4">
+            <div class="op-card h-100 animate-card" style="animation-delay:140ms">
+              <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                  <div class="card-label text-primary">{{ 'adminDashboard.disputes' | translate }}</div>
+                  <div class="card-heading">{{ 'adminDashboard.openDisputes' | translate }}</div>
+                </div>
+                <span class="badge bg-danger-subtle text-danger fw-bold py-1 px-2" style="font-size:11px;">{{ 'adminDashboard.openCount' | translate:{ count: 2 } }}</span>
+              </div>
+              <div class="dispute-card" *ngFor="let disp of openDisputes">
+                <div class="d-flex justify-content-between align-items-baseline mb-1">
+                  <div class="fw-bold text-dark text-truncate me-2">{{ disp.title }}</div>
+                  <div class="fw-bold text-danger text-nowrap">{{ disp.amount }}</div>
+                </div>
+                <div class="text-muted fs-3 mb-1 text-truncate">{{ disp.sub1 }}</div>
+                <div class="text-dark fs-3 fst-italic mb-3 text-truncate">{{ disp.sub2 }}</div>
+                <div class="d-flex gap-2 mt-2 flex-wrap">
+                  <button class="btn-dispute-view">{{ 'adminDashboard.view' | translate }}</button>
+                  <button class="btn-dispute-respond">{{ 'adminDashboard.respond' | translate }}</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
     </ng-container>
 
     <!-- SECTION 04: TASKS -->
-    <div class="section-label animate-section">{{ 'adminDashboard.section4' | translate }}</div>
-    <div class="row g-4 mb-5">
-      <div class="col-lg-5">
-        <div class="op-card p-4 h-100 animate-card" style="animation-delay:60ms">
-          <div class="card-label text-primary">{{ 'taskAccountability.shell.title' | translate }}</div>
-          <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">{{ 'adminDashboard.priorityHeatmap' | translate }}</div>
-          <div class="text-muted fs-2 mb-4">{{ 'adminDashboard.statusXPriority' | translate }}</div>
-          <div class="heatmap-grid">
-            <div class="hm-header">
-              <div></div>
-              <div>{{ 'adminDashboard.low' | translate }}</div>
-              <div>{{ 'adminDashboard.med' | translate }}</div>
-              <div>{{ 'adminDashboard.high' | translate }}</div>
+    <section class="dashboard-section section-tasks">
+      <div class="section-label animate-section">
+        <span class="section-num">04</span>
+        <span class="section-title">{{ 'adminDashboard.section4' | translate }}</span>
+      </div>
+      <div class="row g-3 g-md-4 mb-3 mb-md-4">
+        <div class="col-12 col-lg-5">
+          <div class="op-card h-100 animate-card" style="animation-delay:60ms">
+            <div class="card-label text-primary">{{ 'taskAccountability.shell.title' | translate }}</div>
+            <div class="card-heading">{{ 'adminDashboard.priorityHeatmap' | translate }}</div>
+            <div class="text-muted fs-2 mb-3">{{ 'adminDashboard.statusXPriority' | translate }}</div>
+            <div class="heatmap-grid">
+              <div class="hm-header">
+                <div></div>
+                <div>{{ 'adminDashboard.low' | translate }}</div>
+                <div>{{ 'adminDashboard.med' | translate }}</div>
+                <div>{{ 'adminDashboard.high' | translate }}</div>
+              </div>
+              <div class="hm-row" *ngFor="let row of priorityHeatmap; let i = index">
+                <div class="hm-label" [title]="row.status">{{ row.status }}</div>
+                <div class="hm-cell" [style.background]="getHeatmapColor(row.low, 'low_med')">{{ row.low }}</div>
+                <div class="hm-cell" [style.background]="getHeatmapColor(row.med, 'low_med')"
+                  [style.color]="row.med > 20 ? '#fff' : '#212529'">{{ row.med }}</div>
+                <div class="hm-cell" [style.background]="getHeatmapColor(row.high, i === 2 ? 'high_over' : 'low_med')"
+                  [style.color]="i === 2 ? '#fff' : '#212529'">{{ row.high }}</div>
+              </div>
             </div>
-            <div class="hm-row" *ngFor="let row of priorityHeatmap; let i = index">
-              <div class="hm-label">{{ row.status }}</div>
-              <div class="hm-cell" [style.background]="getHeatmapColor(row.low, 'low_med')">{{ row.low }}</div>
-              <div class="hm-cell" [style.background]="getHeatmapColor(row.med, 'low_med')"
-                [style.color]="row.med > 20 ? '#fff' : '#212529'">{{ row.med }}</div>
-              <div class="hm-cell" [style.background]="getHeatmapColor(row.high, i === 2 ? 'high_over' : 'low_med')"
-                [style.color]="i === 2 ? '#fff' : '#212529'">{{ row.high }}</div>
+            <div class="mt-3 text-danger fs-2 d-flex align-items-center gap-2">
+              <i-tabler name="alert-triangle" class="icon-14 flex-shrink-0"></i-tabler>
+              <span>{{ 'adminDashboard.escalatedNote' | translate }}</span>
             </div>
-          </div>
-          <div class="mt-4 text-danger fs-2 d-flex align-items-center gap-2">
-            <i-tabler name="alert-triangle" class="icon-14"></i-tabler>
-            {{ 'adminDashboard.escalatedNote' | translate }}
           </div>
         </div>
-      </div>
-      <div class="col-lg-7">
-        <div class="op-card p-4 h-100 animate-card" style="animation-delay:120ms">
-          <div class="card-label text-primary">{{ 'adminDashboard.throughput' | translate }}</div>
-          <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">{{ 'adminDashboard.createdVsCompleted' | translate }}</div>
-          <div class="text-muted fs-2 mb-4">{{ 'adminDashboard.weeklyTrend' | translate }}</div>
-          <div style="height: 260px;">
-            <div echarts [options]="throughputOptions" style="height: 100%;"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="row g-4 mb-5">
-      <div [class]="canViewTeam ? 'col-lg-7' : 'col-12'">
-        <div class="op-card p-4 h-100 animate-card" style="animation-delay:80ms">
-          <div class="d-flex justify-content-between mb-4">
-            <div>
-              <div class="card-label text-primary">{{ 'adminDashboard.alerts' | translate }}</div>
-              <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">{{ 'adminDashboard.overdueTasks' | translate }}</div>
-            </div>
-            <span class="badge bg-danger-subtle text-danger fw-bold py-1 px-2" style="font-size:11px;">{{ 'adminDashboard.itemsCount' | translate:{ count: overdueTasks.length } }}</span>
-          </div>
-          <app-data-table
-            [columns]="overdueTasksColumns"
-            [rows]="overdueTasks"
-            exportFileName="overdue-tasks"
-          >
-            <ng-template appCellDef="task" let-t="row"><span class="fw-bold">{{ t.task }}</span></ng-template>
-            <ng-template appCellDef="assignee" let-t="row"><span class="text-muted fw-normal">{{ t.assignee }}</span></ng-template>
-            <ng-template appCellDef="due" let-t="row"><span class="text-muted fw-normal">{{ t.due }}</span></ng-template>
-            <ng-template appCellDef="priority" let-t="row">
-              <span class="priority-badge" [style.color]="t.priColor" [style.background-color]="t.priBg">{{ t.priority }}</span>
-            </ng-template>
-            <ng-template appCellDef="late" let-t="row"><span class="text-danger fw-bold">{{ t.late }}</span></ng-template>
-          </app-data-table>
-        </div>
-      </div>
-      <div class="col-lg-5" *ngIf="canViewTeam">
-        <div class="op-card p-4 h-100 animate-card" style="animation-delay:140ms">
-          <div class="card-label text-primary">{{ 'adminDashboard.workload' | translate }}</div>
-          <div class="fs-5 fw-bold text-dark mb-4" style="font-weight: 700 !important;">{{ 'adminDashboard.employeeTaskLoad' | translate }}</div>
-          <div class="mb-4 pb-1" *ngFor="let w of workload">
-            <div class="d-flex justify-content-between fw-bold fs-3 mb-2">
-              <div class="text-dark">{{ w.name }}</div>
-              <div class="text-muted">{{ w.stats }}</div>
-            </div>
-            <div class="progress mb-2" style="height:6px;background:#e9ecef;border-radius:3px;">
-              <div class="progress-bar" [ngStyle]="{'width': w.percent + '%', 'background-color': w.color}"
-                style="border-radius:3px;transition:width 1s ease;"></div>
-            </div>
-            <div class="d-flex align-items-center fs-2 text-muted fw-medium">
-              <span>{{ 'adminDashboard.activeCount' | translate:{ count: w.active } }}</span>
-              <span [class.text-danger]="w.overdue > 0" class="ms-3">
-                {{ w.overdue > 0 ? ('adminDashboard.overdueCount' | translate:{ count: w.overdue }) : '' }}
-              </span>
+        <div class="col-12 col-lg-7">
+          <div class="op-card h-100 animate-card" style="animation-delay:120ms">
+            <div class="card-label text-primary">{{ 'adminDashboard.throughput' | translate }}</div>
+            <div class="card-heading">{{ 'adminDashboard.createdVsCompleted' | translate }}</div>
+            <div class="text-muted fs-2 mb-3">{{ 'adminDashboard.weeklyTrend' | translate }}</div>
+            <div class="chart-box chart-h-260">
+              <div echarts [options]="throughputOptions" [autoResize]="true" class="h-100 w-100"></div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+      <div class="row g-3 g-md-4">
+        <div [class]="canViewTeam ? 'col-12 col-lg-7' : 'col-12'">
+          <div class="op-card h-100 animate-card" style="animation-delay:80ms">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <div class="card-label text-primary">{{ 'adminDashboard.alerts' | translate }}</div>
+                <div class="card-heading">{{ 'adminDashboard.overdueTasks' | translate }}</div>
+              </div>
+              <span class="badge bg-danger-subtle text-danger fw-bold py-1 px-2" style="font-size:11px;">{{ 'adminDashboard.itemsCount' | translate:{ count: overdueTasks.length } }}</span>
+            </div>
+            <div class="table-responsive-wrapper">
+              <app-data-table
+                [columns]="overdueTasksColumns"
+                [rows]="overdueTasks"
+                exportFileName="overdue-tasks"
+              >
+                <ng-template appCellDef="task" let-t="row"><span class="fw-bold">{{ t.task }}</span></ng-template>
+                <ng-template appCellDef="assignee" let-t="row"><span class="text-muted fw-normal">{{ t.assignee }}</span></ng-template>
+                <ng-template appCellDef="due" let-t="row"><span class="text-muted fw-normal">{{ t.due }}</span></ng-template>
+                <ng-template appCellDef="priority" let-t="row">
+                  <span class="priority-badge" [style.color]="t.priColor" [style.background-color]="t.priBg">{{ t.priority }}</span>
+                </ng-template>
+                <ng-template appCellDef="late" let-t="row"><span class="text-danger fw-bold">{{ t.late }}</span></ng-template>
+              </app-data-table>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-5" *ngIf="canViewTeam">
+          <div class="op-card h-100 animate-card" style="animation-delay:140ms">
+            <div class="card-label text-primary">{{ 'adminDashboard.workload' | translate }}</div>
+            <div class="card-heading mb-4">{{ 'adminDashboard.employeeTaskLoad' | translate }}</div>
+            <div class="mb-4 pb-1" *ngFor="let w of workload">
+              <div class="d-flex justify-content-between align-items-baseline fw-bold fs-3 mb-2">
+                <div class="text-dark text-truncate me-2">{{ w.name }}</div>
+                <div class="text-muted text-nowrap">{{ w.stats }}</div>
+              </div>
+              <div class="progress mb-2" style="height:6px;background:#e9ecef;border-radius:3px;">
+                <div class="progress-bar" [ngStyle]="{'width': w.percent + '%', 'background-color': w.color}"
+                  style="border-radius:3px;transition:width 1s ease;"></div>
+              </div>
+              <div class="d-flex align-items-center fs-2 text-muted fw-medium flex-wrap gap-2">
+                <span>{{ 'adminDashboard.activeCount' | translate:{ count: w.active } }}</span>
+                <span [class.text-danger]="w.overdue > 0" class="ms-1" *ngIf="w.overdue > 0">
+                  &bull; {{ 'adminDashboard.overdueCount' | translate:{ count: w.overdue } }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- SECTION 05: TEAM & BRANCHES -->
     <ng-container *ngIf="canViewTeam">
-      <div class="section-label animate-section">{{ 'adminDashboard.section5' | translate }}</div>
-      <div class="row g-4 mb-5">
-        <div class="col-lg-4">
-          <div class="op-card p-4 h-100 animate-card" style="animation-delay:60ms">
-            <div class="card-label text-primary">{{ 'adminDashboard.team' | translate }}</div>
-            <div class="fs-5 fw-bold text-dark mb-4" style="font-weight: 700 !important;">{{ 'adminDashboard.roleBreakdown' | translate }}</div>
-            <div class="mb-4" *ngFor="let r of roleBreakdown">
-              <div class="d-flex justify-content-between fw-bold fs-3 mb-2">
-                <div class="text-dark">{{ r.role }}</div>
-                <div class="text-muted">{{ r.stats }}</div>
-              </div>
-              <div class="progress" style="height:6px;background:#e9ecef;border-radius:3px;">
-                <div class="progress-bar" [style.width.%]="r.percent"
-                  style="background-color:#20c997;border-radius:3px;transition:width 1s ease;"></div>
-              </div>
-            </div>
-          </div>
+      <section class="dashboard-section section-team">
+        <div class="section-label animate-section">
+          <span class="section-num">05</span>
+          <span class="section-title">{{ 'adminDashboard.section5' | translate }}</span>
         </div>
-        <div class="col-lg-4">
-          <div class="op-card p-4 h-100 animate-card" style="animation-delay:120ms">
-            <div class="d-flex justify-content-between mb-4">
-              <div>
-                <div class="card-label text-primary">{{ 'adminDashboard.performance' | translate }}</div>
-                <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">{{ 'adminDashboard.leaderboard' | translate }}</div>
-              </div>
-              <i-tabler name="trophy" class="text-warning" style="width:22px;height:22px;"></i-tabler>
-            </div>
-            <div class="list-row" *ngFor="let p of leaderboard">
-              <div class="rank-badge"
-                [ngStyle]="p.rank === 1 ? {'background':'#ffc107','color':'#000','font-weight':'700'} : {}">
-                {{ p.rank }}
-              </div>
-              <div>
-                <div class="item-title">{{ p.name }}</div>
-                <div class="item-sub">{{ p.location }}</div>
-              </div>
-              <div class="item-amount">{{ p.revenue }}</div>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-4">
-          <div class="op-card p-4 h-100 dark-card animate-card" style="animation-delay:180ms">
-            <div class="card-label" style="color:#5b7fa6;">{{ 'partnerDashboard.quick' | translate }}</div>
-            <div class="fs-5 fw-bold text-white mb-4" style="font-weight: 700 !important;">{{ 'adminDashboard.pendingApprovals' | translate }}</div>
-            <div class="quick-card" *ngFor="let qa of pendingApprovals">
-              <div class="icon-box {{ qa.color }}">
-                <i-tabler [name]="qa.icon" class="icon-16"></i-tabler>
-              </div>
-              <div class="fw-bold fs-3 text-white">{{ qa.title }}</div>
-              <div class="count">{{ qa.count }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="row g-4 mb-5">
-        <div class="col-12">
-          <div class="op-card p-4 animate-card" style="animation-delay:80ms">
-            <div class="card-label text-primary">{{ 'adminDashboard.network' | translate }}</div>
-            <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">{{ 'adminDashboard.branchPerformance' | translate }}</div>
-            <div class="text-muted fs-2 mb-4">{{ 'adminDashboard.compositeHealth' | translate }}</div>
-            <app-data-table [columns]="branchPerformanceColumns" [rows]="branchPerformance" exportFileName="branch-performance">
-              <ng-template appCellDef="branch" let-b="row"><span class="fw-bold">{{ b.branch }}</span></ng-template>
-              <ng-template appCellDef="students" let-b="row"><span class="text-muted fw-normal">{{ b.students }}</span></ng-template>
-              <ng-template appCellDef="active" let-b="row"><span class="text-muted fw-normal">{{ b.active }}</span></ng-template>
-              <ng-template appCellDef="revenue" let-b="row"><span class="fw-bold">{{ b.revenue }}</span></ng-template>
-              <ng-template appCellDef="tasks" let-b="row"><span class="text-muted fw-normal">{{ b.tasks }}</span></ng-template>
-              <ng-template appCellDef="team" let-b="row"><span class="text-muted fw-normal">{{ b.team }}</span></ng-template>
-              <ng-template appCellDef="health" let-b="row">
-                <div class="d-flex align-items-center gap-3">
-                  <div class="progress flex-grow-1" style="height:6px;background:#e9ecef;border-radius:3px;">
-                    <div class="progress-bar" [style.width.%]="b.health" [style.background-color]="b.hColor"
-                      style="border-radius:3px;transition:width 1.2s ease;"></div>
-                  </div>
-                  <span class="fw-bold fs-3">{{ b.health }}</span>
+        <div class="row g-3 g-md-4 mb-3 mb-md-4">
+          <div class="col-12 col-md-6 col-lg-4">
+            <div class="op-card h-100 animate-card" style="animation-delay:60ms">
+              <div class="card-label text-primary">{{ 'adminDashboard.team' | translate }}</div>
+              <div class="card-heading mb-4">{{ 'adminDashboard.roleBreakdown' | translate }}</div>
+              <div class="mb-4" *ngFor="let r of roleBreakdown">
+                <div class="d-flex justify-content-between align-items-baseline fw-bold fs-3 mb-2">
+                  <div class="text-dark text-truncate me-2">{{ r.role }}</div>
+                  <div class="text-muted text-nowrap">{{ r.stats }}</div>
                 </div>
-              </ng-template>
-            </app-data-table>
+                <div class="progress" style="height:6px;background:#e9ecef;border-radius:3px;">
+                  <div class="progress-bar" [style.width.%]="r.percent"
+                    style="background-color:#20c997;border-radius:3px;transition:width 1s ease;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6 col-lg-4">
+            <div class="op-card h-100 animate-card" style="animation-delay:120ms">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                  <div class="card-label text-primary">{{ 'adminDashboard.performance' | translate }}</div>
+                  <div class="card-heading">{{ 'adminDashboard.leaderboard' | translate }}</div>
+                </div>
+                <i-tabler name="trophy" class="text-warning flex-shrink-0" style="width:22px;height:22px;"></i-tabler>
+              </div>
+              <div class="list-row-container">
+                <div class="list-row" *ngFor="let p of leaderboard">
+                  <div class="rank-badge" [class.rank-1]="p.rank === 1 || p.rank === '1'"
+                    [class.rank-2]="p.rank === 2 || p.rank === '2'"
+                    [class.rank-3]="p.rank === 3 || p.rank === '3'">
+                    {{ p.rank }}
+                  </div>
+                  <div class="item-info">
+                    <div class="item-title" [title]="p.name">{{ p.name }}</div>
+                    <div class="item-sub" [title]="p.location">{{ p.location }}</div>
+                  </div>
+                  <div class="item-amount">{{ p.revenue }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-lg-4">
+            <div class="op-card h-100 dark-card animate-card" style="animation-delay:180ms">
+              <div class="card-label" style="color:#5b7fa6;">{{ 'partnerDashboard.quick' | translate }}</div>
+              <div class="fs-5 fw-bold text-white mb-4" style="font-weight: 700 !important;">{{ 'adminDashboard.pendingApprovals' | translate }}</div>
+              <div class="quick-card" *ngFor="let qa of pendingApprovals">
+                <div class="icon-box {{ qa.color }}">
+                  <i-tabler [name]="qa.icon" class="icon-16"></i-tabler>
+                </div>
+                <div class="fw-bold fs-3 text-white text-truncate me-2">{{ qa.title }}</div>
+                <div class="count">{{ qa.count }}</div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+        <div class="row g-3 g-md-4">
+          <div class="col-12">
+            <div class="op-card animate-card" style="animation-delay:80ms">
+              <div class="card-label text-primary">{{ 'adminDashboard.network' | translate }}</div>
+              <div class="card-heading">{{ 'adminDashboard.branchPerformance' | translate }}</div>
+              <div class="text-muted fs-2 mb-3">{{ 'adminDashboard.compositeHealth' | translate }}</div>
+              <div class="table-responsive-wrapper">
+                <app-data-table [columns]="branchPerformanceColumns" [rows]="branchPerformance" exportFileName="branch-performance">
+                  <ng-template appCellDef="branch" let-b="row"><span class="fw-bold">{{ b.branch }}</span></ng-template>
+                  <ng-template appCellDef="students" let-b="row"><span class="text-muted fw-normal">{{ b.students }}</span></ng-template>
+                  <ng-template appCellDef="active" let-b="row"><span class="text-muted fw-normal">{{ b.active }}</span></ng-template>
+                  <ng-template appCellDef="revenue" let-b="row"><span class="fw-bold">{{ b.revenue }}</span></ng-template>
+                  <ng-template appCellDef="tasks" let-b="row"><span class="text-muted fw-normal">{{ b.tasks }}</span></ng-template>
+                  <ng-template appCellDef="team" let-b="row"><span class="text-muted fw-normal">{{ b.team }}</span></ng-template>
+                  <ng-template appCellDef="health" let-b="row">
+                    <div class="d-flex align-items-center gap-3">
+                      <div class="progress flex-grow-1" style="height:6px;background:#e9ecef;border-radius:3px;">
+                        <div class="progress-bar" [style.width.%]="b.health" [style.background-color]="b.hColor"
+                          style="border-radius:3px;transition:width 1.2s ease;"></div>
+                      </div>
+                      <span class="fw-bold fs-3">{{ b.health }}</span>
+                    </div>
+                  </ng-template>
+                </app-data-table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </ng-container>
 
     <!-- SECTION 06: REFERRALS & PARTNERS -->
     <ng-container *ngIf="canViewReferrals">
-      <div class="section-label animate-section">{{ 'adminDashboard.section6' | translate }}</div>
-      <div class="row g-4 mb-5">
-        <div class="col" *ngFor="let rm of referralMetrics; let i = index">
-          <div class="op-card p-4 animate-card" [style.animation-delay]="(i * 55) + 'ms'">
-            <div class="card-label">{{ rm.label }}</div>
+      <section class="dashboard-section section-referrals">
+        <div class="section-label animate-section">
+          <span class="section-num">06</span>
+          <span class="section-title">{{ 'adminDashboard.section6' | translate }}</span>
+        </div>
+        <div class="referral-grid mb-3 mb-md-4">
+          <div class="op-card referral-metric-card animate-card" *ngFor="let rm of referralMetrics; let i = index"
+            [style.animation-delay]="(i * 55) + 'ms'">
+            <div class="card-label text-truncate" [title]="rm.label">{{ rm.label }}</div>
             <div class="card-value mb-1">{{ rm.value }}</div>
-            <div class="text-muted fs-2 fw-medium">{{ rm.sub }}</div>
+            <div class="text-muted fs-2 fw-medium text-truncate">{{ rm.sub }}</div>
           </div>
         </div>
-      </div>
-      <div class="row g-4 mb-5">
-        <div class="col-lg-8">
-          <div class="op-card p-4 h-100 animate-card" style="animation-delay:80ms">
-            <div class="card-label text-primary">{{ 'adminDashboard.commissions' | translate }}</div>
-            <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">{{ 'adminDashboard.earningsByPartnerType' | translate }}</div>
-            <div class="text-muted fs-2 mb-4">{{ 'adminDashboard.inLakhs' | translate }}</div>
-            <div style="height: 250px;">
-              <div echarts [options]="earningsPartnerOptions" style="height: 100%;"></div>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-4">
-          <div class="op-card p-4 h-100 animate-card" style="animation-delay:140ms">
-            <div class="card-label text-primary">{{ 'adminDashboard.conversion' | translate }}</div>
-            <div class="fs-5 fw-bold text-dark mb-4" style="font-weight: 700 !important;">{{ 'adminDashboard.referralFunnel' | translate }}</div>
-            <div class="mb-3" *ngFor="let rf of referralFunnel">
-              <div class="d-flex justify-content-between fw-bold fs-3 mb-2">
-                <div class="text-dark">{{ rf.label }}</div>
-                <div class="text-muted">{{ rf.value }}</div>
-              </div>
-              <div class="progress position-relative" style="height:24px;background:#e9ecef;border-radius:4px;">
-                <div class="progress-bar" [style.width.%]="rf.percent" [style.background-color]="rf.color"
-                  style="border-radius:4px;transition:width 1s ease;"></div>
-                <div class="position-absolute end-0 top-50 translate-middle-y text-white fw-bold fs-2 me-2"
-                  style="mix-blend-mode:difference;">{{ rf.percent }}%</div>
+        <div class="row g-3 g-md-4 mb-3 mb-md-4">
+          <div class="col-12 col-lg-8">
+            <div class="op-card h-100 animate-card" style="animation-delay:80ms">
+              <div class="card-label text-primary">{{ 'adminDashboard.commissions' | translate }}</div>
+              <div class="card-heading">{{ 'adminDashboard.earningsByPartnerType' | translate }}</div>
+              <div class="text-muted fs-2 mb-3">{{ 'adminDashboard.inLakhs' | translate }}</div>
+              <div class="chart-box chart-h-250">
+                <div echarts [options]="earningsPartnerOptions" [autoResize]="true" class="h-100 w-100"></div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
-      <div class="row g-4 mb-5">
-        <div class="col-12">
-          <div class="op-card p-4 animate-card" style="animation-delay:80ms">
-            <div class="card-label text-primary">{{ 'adminDashboard.partners' | translate }}</div>
-            <div class="fs-5 fw-bold text-dark mb-4" style="font-weight: 700 !important;">{{ 'adminDashboard.topReferrers' | translate }}</div>
-            <app-data-table
-              [columns]="topReferrersColumns"
-              [rows]="topReferrers"
-              exportFileName="top-referrers"
-            >
-              <ng-template appCellDef="rank" let-ref="row"><span class="text-muted fw-normal">{{ ref.rank }}</span></ng-template>
-              <ng-template appCellDef="partner" let-ref="row"><span class="fw-bold">{{ ref.partner }}</span></ng-template>
-              <ng-template appCellDef="type" let-ref="row">
-                <span class="type-badge" [style.background]="ref.typeBg" [style.color]="ref.typeColor">{{ ref.type }}</span>
-              </ng-template>
-              <ng-template appCellDef="students" let-ref="row"><span class="text-muted fw-normal">{{ ref.students }}</span></ng-template>
-              <ng-template appCellDef="commission" let-ref="row"><span class="fw-bold">{{ ref.commission }}</span></ng-template>
-              <ng-template appCellDef="share" let-ref="row">
-                <div class="progress" style="height:6px;background:#e9ecef;border-radius:3px;">
-                  <div class="progress-bar" [style.width.%]="ref.share"
-                    style="background-color:#0d6efd;border-radius:3px;transition:width 1.2s ease;"></div>
+          <div class="col-12 col-lg-4">
+            <div class="op-card h-100 animate-card" style="animation-delay:140ms">
+              <div class="card-label text-primary">{{ 'adminDashboard.conversion' | translate }}</div>
+              <div class="card-heading mb-4">{{ 'adminDashboard.referralFunnel' | translate }}</div>
+              <div class="mb-3" *ngFor="let rf of referralFunnel">
+                <div class="d-flex justify-content-between align-items-baseline fw-bold fs-3 mb-2">
+                  <div class="text-dark text-truncate me-2">{{ rf.label }}</div>
+                  <div class="text-muted text-nowrap">{{ rf.value }}</div>
                 </div>
-              </ng-template>
-            </app-data-table>
+                <div class="progress position-relative" style="height:24px;background:#e9ecef;border-radius:4px;">
+                  <div class="progress-bar" [style.width.%]="rf.percent" [style.background-color]="rf.color"
+                    style="border-radius:4px;transition:width 1s ease;"></div>
+                  <div class="position-absolute end-0 top-50 translate-middle-y text-white fw-bold fs-2 me-2"
+                    style="mix-blend-mode:difference;">{{ rf.percent }}%</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+        <div class="row g-3 g-md-4">
+          <div class="col-12">
+            <div class="op-card animate-card" style="animation-delay:80ms">
+              <div class="card-label text-primary">{{ 'adminDashboard.partners' | translate }}</div>
+              <div class="card-heading mb-4">{{ 'adminDashboard.topReferrers' | translate }}</div>
+              <div class="table-responsive-wrapper">
+                <app-data-table
+                  [columns]="topReferrersColumns"
+                  [rows]="topReferrers"
+                  exportFileName="top-referrers"
+                >
+                  <ng-template appCellDef="rank" let-ref="row"><span class="text-muted fw-normal">{{ ref.rank }}</span></ng-template>
+                  <ng-template appCellDef="partner" let-ref="row"><span class="fw-bold">{{ ref.partner }}</span></ng-template>
+                  <ng-template appCellDef="type" let-ref="row">
+                    <span class="type-badge" [style.background]="ref.typeBg" [style.color]="ref.typeColor">{{ ref.type }}</span>
+                  </ng-template>
+                  <ng-template appCellDef="students" let-ref="row"><span class="text-muted fw-normal">{{ ref.students }}</span></ng-template>
+                  <ng-template appCellDef="commission" let-ref="row"><span class="fw-bold">{{ ref.commission }}</span></ng-template>
+                  <ng-template appCellDef="share" let-ref="row">
+                    <div class="progress" style="height:6px;background:#e9ecef;border-radius:3px;">
+                      <div class="progress-bar" [style.width.%]="ref.share"
+                        style="background-color:#0d6efd;border-radius:3px;transition:width 1.2s ease;"></div>
+                    </div>
+                  </ng-template>
+                </app-data-table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </ng-container>
 
     <!-- SECTION 07: AUDIT & ACTIVITY -->
     <ng-container *ngIf="canViewAudit">
-      <div class="section-label animate-section">{{ 'adminDashboard.section7' | translate }}</div>
-      <div class="row g-4 mb-5">
-        <div class="col-lg-8">
-          <div class="op-card p-4 h-100 animate-card" style="animation-delay:60ms">
-            <div class="d-flex justify-content-between align-items-start mb-4">
-              <div>
-                <div class="card-label text-primary">{{ 'adminDashboard.compliance' | translate }}</div>
-                <div class="fs-5 fw-bold text-dark" style="font-weight: 700 !important;">{{ 'adminDashboard.auditLog' | translate }}</div>
+      <section class="dashboard-section section-audit">
+        <div class="section-label animate-section">
+          <span class="section-num">07</span>
+          <span class="section-title">{{ 'adminDashboard.section7' | translate }}</span>
+        </div>
+        <div class="row g-3 g-md-4">
+          <div class="col-12 col-lg-8">
+            <div class="op-card h-100 animate-card" style="animation-delay:60ms">
+              <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                  <div class="card-label text-primary">{{ 'adminDashboard.compliance' | translate }}</div>
+                  <div class="card-heading">{{ 'adminDashboard.auditLog' | translate }}</div>
+                </div>
+              </div>
+              <div class="table-responsive-wrapper">
+                <app-data-table
+                  [columns]="auditLogColumns"
+                  [rows]="auditLog"
+                  exportFileName="audit-log"
+                >
+                  <ng-template appCellDef="time" let-log="row"><span class="text-muted fw-bold" style="font-variant-numeric:tabular-nums;">{{ log.time }}</span></ng-template>
+                  <ng-template appCellDef="action" let-log="row"><span class="audit-badge badge-{{ log.actionClass }}">{{ log.action }}</span></ng-template>
+                  <ng-template appCellDef="entity" let-log="row"><span class="text-muted fw-normal" style="font-family:monospace;font-size:12px;">{{ log.entity }}</span></ng-template>
+                  <ng-template appCellDef="actor" let-log="row"><span class="fw-bold">{{ log.actor }}</span></ng-template>
+                  <ng-template appCellDef="change" let-log="row"><span [class]="log.changeClass" style="font-size:12px;">{{ log.change }}</span></ng-template>
+                </app-data-table>
               </div>
             </div>
-            <app-data-table
-              [columns]="auditLogColumns"
-              [rows]="auditLog"
-              exportFileName="audit-log"
-            >
-              <ng-template appCellDef="time" let-log="row"><span class="text-muted fw-bold" style="font-variant-numeric:tabular-nums;">{{ log.time }}</span></ng-template>
-              <ng-template appCellDef="action" let-log="row"><span class="audit-badge badge-{{ log.actionClass }}">{{ log.action }}</span></ng-template>
-              <ng-template appCellDef="entity" let-log="row"><span class="text-muted fw-normal" style="font-family:monospace;font-size:12px;">{{ log.entity }}</span></ng-template>
-              <ng-template appCellDef="actor" let-log="row"><span class="fw-bold">{{ log.actor }}</span></ng-template>
-              <ng-template appCellDef="change" let-log="row"><span [class]="log.changeClass" style="font-size:12px;">{{ log.change }}</span></ng-template>
-            </app-data-table>
           </div>
-        </div>
-        <div class="col-lg-4">
-          <div class="op-card p-4 h-100 dark-card animate-card" style="animation-delay:120ms">
-            <div class="d-flex align-items-center gap-2 mb-4">
-              <span class="live-badge">{{ 'adminDashboard.live' | translate }}</span>
-              <div class="fs-5 fw-bold text-white" style="font-weight: 700 !important;">{{ 'adminDashboard.activityFeed' | translate }}</div>
-            </div>
-            <div class="activity-item" *ngFor="let item of activityFeed">
-              <span class="activity-dot dot-{{ item.color }}"></span>
-              <div class="activity-body">
-                <div class="activity-title">{{ item.title }}</div>
-                <div class="activity-time">{{ item.time }}</div>
+          <div class="col-12 col-lg-4">
+            <div class="op-card h-100 dark-card animate-card" style="animation-delay:120ms">
+              <div class="d-flex align-items-center gap-2 mb-4">
+                <span class="live-badge">{{ 'adminDashboard.live' | translate }}</span>
+                <div class="fs-5 fw-bold text-white" style="font-weight: 700 !important;">{{ 'adminDashboard.activityFeed' | translate }}</div>
               </div>
+              <div class="activity-item" *ngFor="let item of activityFeed">
+                <span class="activity-dot dot-{{ item.color }}"></span>
+                <div class="activity-body">
+                  <div class="activity-title">{{ item.title }}</div>
+                  <div class="activity-time">{{ item.time }}</div>
+                </div>
+              </div>
+              <button class="btn-view-timeline">{{ 'adminDashboard.viewFullTimeline' | translate }}</button>
             </div>
-            <button class="btn-view-timeline">{{ 'adminDashboard.viewFullTimeline' | translate }}</button>
           </div>
         </div>
-      </div>
+      </section>
     </ng-container>
-
 
     <!-- GLOBAL TIME FILTER (FLOATING) -->
     <div class="dashboard-time-filter animate-card" style="animation-delay:200ms">
-      <select (change)="onPeriodChange($event)" [value]="currentPeriod">
+      <select (change)="onPeriodChange($event)" [value]="currentPeriod" aria-label="Select dashboard time period">
         <option value="7d">{{ 'partnerDashboard.days7' | translate }}</option>
         <option value="15d">{{ 'partnerDashboard.days15' | translate }}</option>
         <option value="30d">{{ 'partnerDashboard.days30' | translate }}</option>
