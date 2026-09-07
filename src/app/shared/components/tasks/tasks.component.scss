@@ -10,9 +10,14 @@ i-tabler {
   position: relative;
   min-height: calc(100vh - 120px);
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  box-sizing: border-box;
 
   @media (max-width: 768px) {
-    padding: 12px 8px;
+    padding: 14px 14px calc(84px + env(safe-area-inset-bottom, 0px));
+  }
+
+  @media (max-width: 480px) {
+    padding: 10px 10px calc(80px + env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -1275,13 +1280,30 @@ table {
 /* Floating FAB for mobile create */
 .mobile-fab-create {
   position: fixed;
-  bottom: 90px;
-  right: 24px;
-  z-index: 90;
+  bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+  right: 16px !important;
+  z-index: 1000;
   display: none !important;
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 50% !important;
+  background-color: var(--brand-primary, #14213D) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(20, 33, 61, 0.35) !important;
+  cursor: pointer;
 
   @media (max-width: 768px) {
     display: flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+
+  i-tabler {
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 }
 
@@ -1625,6 +1647,10 @@ table {
     flex: 6;
     padding: 32px;
     overflow-y: auto;
+
+    @media (max-width: 576px) {
+      padding: 16px;
+    }
   }
 
   .tasks-panel {
@@ -1645,6 +1671,10 @@ table {
       justify-content: space-between;
       align-items: center;
       border-bottom: 1px solid #f1f5f9;
+
+      @media (max-width: 576px) {
+        padding: 16px;
+      }
 
       .tasks-title {
         font-weight: 700;
@@ -1685,6 +1715,10 @@ table {
       padding: 32px;
       overflow-y: auto;
       flex: 1;
+
+      @media (max-width: 576px) {
+        padding: 16px;
+      }
 
       .task-card {
         background: white;

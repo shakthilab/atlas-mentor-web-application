@@ -120,7 +120,7 @@ export class DataTableComponent<T = any> implements AfterContentInit, OnDestroy 
 
   get primaryColumn(): TableColumn<T> | undefined {
     const entityCol = this.columns.find((c) =>
-      ['lead', 'student', 'employee', 'partner', 'company', 'branch', 'task', 'name'].includes(c.key)
+      ['lead', 'student', 'studentName', 'employee', 'partner', 'company', 'branch', 'task', 'name', 'title', 'user', 'client', 'referral', 'member'].includes(c.key)
     );
     if (entityCol) return entityCol;
 

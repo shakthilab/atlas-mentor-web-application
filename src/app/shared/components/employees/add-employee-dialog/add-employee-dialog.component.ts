@@ -155,20 +155,16 @@ import { AuthService } from '../../../../core/services/auth.service';
   styles: [`
     .dialog-container {
       width: 100%;
-      min-width: 500px;
       max-width: 600px;
+      box-sizing: border-box;
       background-color: var(--mat-dialog-container-color, #ffffff);
       color: var(--mat-dialog-container-text-color, #1e293b);
-      
-      @media (max-width: 600px) {
-        min-width: unset;
-        width: 100%;
-      }
     }
 
     .header-icon-box {
       width: 48px;
       height: 48px;
+      flex-shrink: 0;
     }
 
     .bg-light-primary {
@@ -178,15 +174,16 @@ import { AuthService } from '../../../../core/services/auth.service';
     .row {
       display: flex;
       flex-wrap: wrap;
-      margin-right: -12px;
-      margin-left: -12px;
+      margin-right: -8px;
+      margin-left: -8px;
     }
 
     .col-sm-6 {
       flex: 0 0 50%;
       max-width: 50%;
-      padding-right: 12px;
-      padding-left: 12px;
+      padding-right: 8px;
+      padding-left: 8px;
+      box-sizing: border-box;
       
       @media (max-width: 576px) {
         flex: 0 0 100%;
@@ -197,16 +194,19 @@ import { AuthService } from '../../../../core/services/auth.service';
     .phone-input-group {
       display: flex;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 8px;
 
       .mcc-select {
-        width: 130px;
+        width: 110px;
         flex-shrink: 0;
+        @media (max-width: 380px) {
+          width: 100%;
+        }
       }
 
       .phone-number {
-        flex: 1 1 160px;
-        min-width: 160px;
+        flex: 1 1 140px;
+        min-width: 0;
       }
     }
 

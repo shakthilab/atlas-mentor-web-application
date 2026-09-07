@@ -34,7 +34,7 @@ import { TranslateService } from '@ngx-translate/core';
             <h5 class="mat-headline-6 f-w-600 m-b-0">{{ 'employees.title' | translate }}</h5>
           </mat-card-title>
           <div class="header-actions d-flex align-items-center gap-12">
-            <div class="search-box flex-1-auto">
+            <div class="search-box">
               <i-tabler name="search" class="icon-16 search-icon"></i-tabler>
               <input (keyup)="applyFilter($event)" [placeholder]="'employees.searchPlaceholder' | translate" class="search-input" />
             </div>
@@ -58,6 +58,7 @@ import { TranslateService } from '@ngx-translate/core';
           <div *ngIf="viewMode === 'table'" class="view-container">
             <app-data-table
               [columns]="tableColumns"
+              [mobileColumns]="['role', 'contactInfo', 'branch', 'manager', 'status']"
               [rows]="dataSource.filteredData"
               trackByKey="id"
               [clickableRows]="true"
@@ -67,16 +68,16 @@ import { TranslateService } from '@ngx-translate/core';
             >
               <ng-template appCellDef="employee" let-element="row">
                 <div class="d-flex align-items-center">
-                  <img [src]="getAvatar(element)" class="rounded-circle m-r-12 object-cover avatar-animated" width="40" height="40" />
-                  <div>
-                    <span class="f-w-600 d-block text-dark f-s-14">{{ element.firstName }} {{ element.lastName }}</span>
-                    <span class="text-muted f-s-12 d-block">{{ element.email }}</span>
+                  <img [src]="getAvatar(element)" class="rounded-circle m-r-12 object-cover avatar-animated flex-shrink-0" width="40" height="40" />
+                  <div class="min-w-0">
+                    <span class="f-w-600 d-block text-dark f-s-14 text-truncate">{{ element.firstName }} {{ element.lastName }}</span>
+                    <span class="text-muted f-s-12 d-block text-truncate">{{ element.email }}</span>
                   </div>
                 </div>
               </ng-template>
 
               <ng-template appRowActions let-element="row">
-                <button mat-icon-button [matMenuTriggerFor]="menu" class="text-muted">
+                <button mat-icon-button [matMenuTriggerFor]="menu" class="text-muted" (click)="$event.stopPropagation()">
                   <i-tabler name="dots" class="icon-18"></i-tabler>
                 </button>
                 <mat-menu #menu="matMenu" class="cardWithShadow">
@@ -111,12 +112,12 @@ import { TranslateService } from '@ngx-translate/core';
             <mat-card *ngFor="let element of dataSource.data" class="employee-card cardWithShadow cursor-pointer" (click)="viewProfile(element)">
               <mat-card-content class="p-16">
                 <div class="d-flex align-items-center m-b-16">
-                  <img [src]="getAvatar(element)" class="rounded-circle m-r-12 object-cover avatar-animated" width="48" height="48" />
-                  <div>
-                    <h6 class="mat-subtitle-1 f-w-600 m-b-0">{{ element.firstName }} {{ element.lastName }}</h6>
-                    <span class="f-s-13 text-muted">{{ getRoleDisplayName(element) }}</span>
+                  <img [src]="getAvatar(element)" class="rounded-circle m-r-12 object-cover avatar-animated flex-shrink-0" width="48" height="48" />
+                  <div class="min-w-0 flex-grow-1">
+                    <h6 class="mat-subtitle-1 f-w-600 m-b-0 text-truncate">{{ element.firstName }} {{ element.lastName }}</h6>
+                    <span class="f-s-13 text-muted text-truncate d-block">{{ getRoleDisplayName(element) }}</span>
                   </div>
-                  <div class="m-l-auto">
+                  <div class="m-l-auto flex-shrink-0">
                     <button mat-icon-button [matMenuTriggerFor]="cardMenu" class="text-muted" (click)="$event.stopPropagation()">
                       <i-tabler name="dots-vertical" class="icon-18"></i-tabler>
                     </button>
@@ -146,17 +147,32 @@ import { TranslateService } from '@ngx-translate/core';
                   </div>
                 </div>
 
-                <div class="d-flex align-items-center justify-content-between m-b-12">
-                  <span class="f-s-13 text-muted d-flex align-items-center"><i-tabler name="mail" class="icon-16 m-r-4"></i-tabler> {{ element.email }}</span>
+                <div class="d-flex align-items-center justify-content-between m-b-10">
+                  <span class="f-s-13 text-muted d-flex align-items-center text-truncate">
+                    <i-tabler name="mail" class="icon-15 m-r-6 flex-shrink-0"></i-tabler>
+                    <span class="text-truncate">{{ element.email }}</span>
+                  </span>
                 </div>
 
-                <div class="d-flex align-items-center justify-content-between m-b-16">
-                  <div class="d-flex align-items-center">
-                    <i-tabler name="phone" class="icon-16 m-r-4 text-muted"></i-tabler>
-                    <span class="f-s-13 text-muted">{{ element.phone || ('leads.notAvailable' | translate) }}</span>
+                <div class="d-flex align-items-center justify-content-between m-b-14">
+                  <div class="d-flex align-items-center text-truncate me-2">
+                    <i-tabler name="phone" class="icon-15 m-r-6 text-muted flex-shrink-0"></i-tabler>
+                    <span class="f-s-13 text-muted text-truncate">{{ element.phone || ('leads.notAvailable' | translate) }}</span>
                   </div>
-                  <span class="status-badge" [ngClass]="(element.status || 'ACTIVE').toLowerCase()">
+                  <span class="status-badge flex-shrink-0" [ngClass]="(element.status || 'ACTIVE').toLowerCase()">
                     {{ ((element.status || 'ACTIVE').toUpperCase() === 'ACTIVE' ? 'common.active' : 'common.inactive') | translate }}
+                  </span>
+                </div>
+
+                <mat-divider class="m-b-10"></mat-divider>
+                <div class="d-flex align-items-center justify-content-between text-muted f-s-12">
+                  <span class="d-flex align-items-center text-truncate" *ngIf="element.branch?.name || element.branch">
+                    <i-tabler name="building" class="icon-13 m-r-4 flex-shrink-0"></i-tabler>
+                    <span class="text-truncate">{{ element.branch?.name || element.branch }}</span>
+                  </span>
+                  <span class="d-flex align-items-center flex-shrink-0 ms-auto" *ngIf="element.manager?.firstName || element.manager?.name">
+                    <i-tabler name="user" class="icon-13 m-r-4"></i-tabler>
+                    {{ element.manager?.firstName || element.manager?.name }}
                   </span>
                 </div>
               </mat-card-content>
@@ -175,37 +191,109 @@ import { TranslateService } from '@ngx-translate/core';
     </div>
 
     <!-- Mobile FAB -->
-    <button mat-fab color="primary" class="employee-mobile-fab" (click)="addEmployee()" [attr.aria-label]="'employees.addEmployee' | translate">
+    <button mat-fab color="primary" class="employee-mobile-fab" (click)="addEmployee()" [attr.aria-label]="'employees.addEmployee' | translate" title="Add Employee">
       <i-tabler name="plus" class="icon-24"></i-tabler>
     </button>
   `,
   styles: [`
-    .table-container {
-      padding: 24px;
-      
+    .page-head {
+      padding: 24px 28px 0;
+      max-width: 1680px;
+      margin: 0 auto;
+
+      @media (max-width: 1200px) {
+        padding: 20px 20px 0;
+      }
+
       @media (max-width: 768px) {
-        padding: 12px 8px;
+        padding: 16px 14px 0;
+      }
+
+      @media (max-width: 480px) {
+        padding: 12px 10px 0;
+      }
+
+      .page-title {
+        font-size: clamp(20px, 2.2vw, 28px);
+        font-weight: 800;
+        color: #1a1d23;
+        line-height: 1.25;
+        letter-spacing: -0.5px;
+        margin-bottom: 4px;
+      }
+
+      .page-sub {
+        font-size: 13px;
+        color: #718096;
+        margin-bottom: 0;
+      }
+
+      .eyebrow {
+        font-size: 11px;
+        font-weight: 700;
+        color: #8a94a6;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        margin-bottom: 4px;
+      }
+    }
+
+    .table-container {
+      padding: 20px 28px 48px;
+      max-width: 1680px;
+      margin: 0 auto;
+      box-sizing: border-box;
+
+      @media (max-width: 1200px) {
+        padding: 16px 20px 40px;
+      }
+
+      @media (max-width: 768px) {
+        padding: 14px 14px calc(84px + env(safe-area-inset-bottom, 0px));
+      }
+
+      @media (max-width: 480px) {
+        padding: 10px 10px calc(80px + env(safe-area-inset-bottom, 0px));
+      }
+    }
+
+    mat-card.cardWithShadow {
+      border-radius: 16px;
+      border: 1px solid var(--border, #e5e9f0);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.03);
+      overflow: hidden;
+
+      @media (max-width: 576px) {
+        border-radius: 12px;
       }
     }
 
     mat-card-header {
-      @media (max-width: 576px) {
+      @media (max-width: 768px) {
         flex-direction: column !important;
         align-items: flex-start !important;
-        gap: 16px;
+        gap: 14px;
+        padding: 14px 16px !important;
+      }
+
+      @media (max-width: 480px) {
+        padding: 12px 12px !important;
+        gap: 12px;
       }
     }
     
     .header-actions {
-      @media (max-width: 576px) {
+      @media (max-width: 768px) {
         width: 100%;
-        justify-content: space-between;
+        display: flex;
+        align-items: center;
+        gap: 8px;
       }
 
       button.desktop-add-btn {
         white-space: nowrap;
         flex-shrink: 0;
-        @media (max-width: 576px) {
+        @media (max-width: 768px) {
           display: none !important;
         }
       }
@@ -225,45 +313,55 @@ import { TranslateService } from '@ngx-translate/core';
     }
     
     .employee-card:hover .avatar-animated {
-      transform: scale(1.1) rotate(5deg);
+      transform: scale(1.08) rotate(4deg);
       animation: gentle-bounce 1s infinite alternate ease-in-out;
     }
     
     @keyframes gentle-bounce {
-      0% { transform: scale(1.1) rotate(3deg) translateY(0); }
-      100% { transform: scale(1.1) rotate(7deg) translateY(-3px); }
+      0% { transform: scale(1.08) rotate(3deg) translateY(0); }
+      100% { transform: scale(1.08) rotate(5deg) translateY(-2px); }
     }
     
     .card-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 24px;
+      gap: 20px;
+      padding: 20px !important;
       
+      @media (max-width: 768px) {
+        gap: 14px;
+        padding: 14px !important;
+      }
+
       @media (max-width: 576px) {
         grid-template-columns: 1fr;
-        padding: 16px !important;
+        gap: 12px;
+        padding: 12px 8px !important;
       }
     }
 
     .employee-card {
+      border-radius: 12px;
+      border: 1px solid var(--border, #e5e9f0);
       transition: transform 0.2s ease, box-shadow 0.2s ease;
       cursor: pointer;
       &:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.06) !important;
       }
     }
 
     .view-mode-toggle {
       background-color: #ffffff;
-      border-radius: 6px;
+      border-radius: 8px;
       border: 1px solid #e2e8f0;
       display: flex;
       overflow: hidden;
+      flex-shrink: 0;
       
       .toggle-btn {
-        width: 42px;
-        height: 36px;
+        width: 38px;
+        height: 38px;
         padding: 0;
         display: flex;
         align-items: center;
@@ -275,32 +373,12 @@ import { TranslateService } from '@ngx-translate/core';
         transition: all 0.2s ease;
         
         &.active {
-          background-color: var(--brand-primary);
+          background-color: var(--brand-primary, #14213D);
           color: #ffffff;
         }
         &:hover:not(.active) {
           background-color: #f1f5f9;
         }
-      }
-    }
-
-    mat-card-header {
-      @media (max-width: 576px) {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        gap: 16px;
-      }
-    }
-    
-    .header-actions {
-      @media (max-width: 576px) {
-        width: 100%;
-        justify-content: space-between;
-      }
-
-      button {
-        white-space: nowrap;
-        flex-shrink: 0;
       }
     }
     
@@ -333,18 +411,19 @@ import { TranslateService } from '@ngx-translate/core';
       position: relative;
       display: flex;
       align-items: center;
-      background-color: #f1f5f9;
+      background-color: #f8fafc;
       border-radius: 8px;
       padding: 0 12px;
       border: 1px solid #e2e8f0;
       min-width: 0;
+      flex: 1 1 auto;
       height: 38px;
       transition: all 0.2s ease-in-out;
       
       &:focus-within {
         background-color: #ffffff;
-        border-color: var(--brand-primary);
-        box-shadow: 0 0 0 3px rgba(var(--brand-primary-rgb), 0.1);
+        border-color: var(--brand-primary, #14213D);
+        box-shadow: 0 0 0 3px rgba(20, 33, 61, 0.08);
       }
       
       .search-icon {
@@ -368,7 +447,6 @@ import { TranslateService } from '@ngx-translate/core';
     }
 
     .flex-1-auto { flex: 1 1 auto; }
-
     .gap-12 { gap: 12px; }
     .m-r-12 { margin-right: 12px; }
     .m-r-8 { margin-right: 8px; }
@@ -381,38 +459,52 @@ import { TranslateService } from '@ngx-translate/core';
     /* Mobile FAB */
     .employee-mobile-fab {
       position: fixed;
-      bottom: 84px;
-      right: 24px;
+      bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+      right: 16px !important;
       z-index: 1000;
       display: none !important;
+      width: 48px !important;
+      height: 48px !important;
+      border-radius: 50% !important;
+      background-color: var(--brand-primary, #14213D) !important;
+      color: #ffffff !important;
+      box-shadow: 0 4px 14px rgba(20, 33, 61, 0.35) !important;
+      cursor: pointer;
       
-      @media (max-width: 576px) {
+      @media (max-width: 768px) {
         display: flex !important;
+        align-items: center;
+        justify-content: center;
+      }
+
+      i-tabler {
+        width: 22px;
+        height: 22px;
+        display: flex;
         align-items: center;
         justify-content: center;
       }
     }
 
-    @keyframes fabIn {
-      from { transform: scale(0.5); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
-
     :host-context(.dark-theme) {
+      .page-head {
+        .page-title { color: #f8fafc; }
+        .page-sub { color: #94a3b8; }
+      }
       .search-box {
-        background-color: var(--dark-sidebarbg);
-        border-color: var(--dark-formborderColor);
+        background-color: var(--dark-sidebarbg, #1e293b);
+        border-color: var(--dark-formborderColor, #334155);
         .search-input {
           color: #f8fafc;
         }
       }
       .view-mode-toggle {
-        background-color: var(--dark-sidebarbg);
-        border-color: var(--dark-formborderColor);
+        background-color: var(--dark-sidebarbg, #1e293b);
+        border-color: var(--dark-formborderColor, #334155);
         .toggle-btn {
           color: #94a3b8;
-          &.active { background-color: var(--brand-primary); color: #ffffff; }
-          &:hover:not(.active) { background-color: var(--dark-hoverbgcolor); }
+          &.active { background-color: var(--brand-primary, #14213D); color: #ffffff; }
+          &:hover:not(.active) { background-color: var(--dark-hoverbgcolor, #334155); }
         }
       }
       .status-badge {
@@ -424,6 +516,10 @@ import { TranslateService } from '@ngx-translate/core';
           background-color: rgba(250, 137, 107, 0.2);
           color: #ffab91;
         }
+      }
+      mat-card.cardWithShadow, .employee-card {
+        background-color: var(--dark-cardbg, #1e293b);
+        border-color: var(--dark-border, #334155);
       }
     }
   `]
