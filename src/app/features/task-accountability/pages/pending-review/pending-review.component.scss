@@ -190,13 +190,25 @@
 }
 
 @media (max-width: 640px) {
+  .pending-review-workspace {
+    padding: 12px 8px;
+  }
+
+  .pending-review-header {
+    h1 {
+      font-size: 18px;
+    }
+  }
+
   .review-row {
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
+    padding: 12px;
   }
 
   .row-right {
-    align-self: flex-end;
+    width: 100%;
+    justify-content: space-between;
   }
 }

@@ -1060,3 +1060,97 @@
     }
   }
 }
+
+/* Media Queries for Non-Approval & Mobile Dashboard */
+@media (max-width: 991px) {
+  .non-approval-workspace-wrapper {
+    .kpi-cards-grid {
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 12px !important;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .non-approval-workspace-wrapper {
+    gap: 14px;
+
+    .select-day-weekly-card {
+      padding: 14px 12px;
+
+      .weekly-cards-grid {
+        display: flex !important;
+        overflow-x: auto !important;
+        gap: 8px !important;
+        padding-bottom: 6px !important;
+        -webkit-overflow-scrolling: touch;
+
+        &::-webkit-scrollbar {
+          height: 4px;
+        }
+        &::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 2px;
+        }
+
+        .weekly-day-card {
+          flex: 0 0 78px !important;
+          min-width: 78px !important;
+          padding: 10px 8px !important;
+        }
+      }
+    }
+
+    .workflow-card-container,
+    .task-table-card-container {
+      padding: 12px 10px !important;
+    }
+  }
+}
+
+@media (max-width: 600px) {
+  .non-approval-workspace-wrapper {
+    .non-approval-top-header {
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 10px !important;
+
+      .date-title {
+        font-size: 20px !important;
+      }
+
+      .btn-submit-day-dark {
+        width: 100% !important;
+        justify-content: center !important;
+      }
+    }
+
+    .select-day-weekly-card {
+      .card-header-bar {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+
+        .header-nav-controls {
+          justify-content: space-between !important;
+          width: 100% !important;
+        }
+      }
+    }
+
+    .kpi-cards-grid {
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 8px !important;
+
+      .kpi-card {
+        padding: 12px 14px !important;
+
+        .kpi-value {
+          font-size: 22px !important;
+          margin-top: 6px !important;
+        }
+      }
+    }
+  }
+}
+
