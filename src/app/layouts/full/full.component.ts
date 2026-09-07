@@ -1,8 +1,11 @@
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
+import { Router, NavigationEnd } from '@angular/router';
 import { MatSidenav } from '@angular/material/sidenav';
 import { AuthService } from '../../core/services/auth.service';
+import { NavService } from '../../core/services/nav.service';
 import { navItems } from './sidebar/sidebar-data';
 
 const MOBILE_VIEW = 'screen and (max-width: 768px)';
@@ -14,7 +17,7 @@ const MONITOR_VIEW = 'screen and (min-width: 1024px)';
   templateUrl: './full.component.html',
   styleUrls: [],
 })
-export class FullComponent implements OnInit {
+export class FullComponent implements OnInit, OnDestroy {
 
   @ViewChild('leftsidenav')
   public sidenav: MatSidenav | any;
@@ -22,6 +25,7 @@ export class FullComponent implements OnInit {
   //get options from service
   isSidebarMini = false;
   private layoutChangesSubscription = Subscription.EMPTY;
+  private subscriptions = new Subscription();
   private isMobileScreen = false;
   private isContentWidthFixed = true;
   private isCollapsedWidthFixed = false;
@@ -33,18 +37,38 @@ export class FullComponent implements OnInit {
 
   constructor(
     private breakpointObserver: BreakpointObserver,
-    private authService: AuthService
+    private authService: AuthService,
+    private navService: NavService,
+    private router: Router
   ) {
     this.htmlElement = document.querySelector('html')!;
     this.layoutChangesSubscription = this.breakpointObserver
       .observe([MOBILE_VIEW, TABLET_VIEW, MONITOR_VIEW])
       .subscribe((state) => {
         // SidenavOpened must be reset true when layout changes
-
         this.isMobileScreen = state.breakpoints[MOBILE_VIEW];
-
         this.isContentWidthFixed = state.breakpoints[MONITOR_VIEW];
       });
+
+    // Close mobile sidebar on route navigation
+    this.subscriptions.add(
+      this.router.events
+        .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+        .subscribe(() => {
+          if (this.isOver && this.sidenav && this.sidenav.opened) {
+            this.sidenav.close();
+          }
+        })
+    );
+
+    // Close mobile sidebar on nav selection request
+    this.subscriptions.add(
+      this.navService.closeNavRequest$.subscribe(() => {
+        if (this.isOver && this.sidenav && this.sidenav.opened) {
+          this.sidenav.close();
+        }
+      })
+    );
   }
 
   get footerNavItems() {
@@ -81,6 +105,7 @@ export class FullComponent implements OnInit {
 
   ngOnDestroy() {
     this.layoutChangesSubscription.unsubscribe();
+    this.subscriptions.unsubscribe();
   }
 
   toggleCollapsed() {

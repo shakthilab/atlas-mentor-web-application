@@ -1,6 +1,9 @@
 <div class="flex-layout sidebar-wrapper">
   <div class="sidebar-header d-flex align-items-center justify-content-between">
     <app-branding></app-branding>
+    <button mat-icon-button (click)="closeSidebar.emit()" class="mobile-close-btn text-muted" aria-label="Close sidebar">
+      <i-tabler name="x" class="icon-20"></i-tabler>
+    </button>
   </div>
 
   <!-- Mobile Controls (Search) -->

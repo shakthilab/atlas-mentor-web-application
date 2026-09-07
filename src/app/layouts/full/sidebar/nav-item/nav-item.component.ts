@@ -36,6 +36,9 @@ export class AppNavItemComponent {
     if (!item.children || !item.children.length) {
       this.router.navigate([item.route]);
     }
+
+    // Request sidebar to close in mobile view
+    this.navService.requestCloseNav();
  
     // scroll
     document.querySelector('.page-wrapper')?.scroll({

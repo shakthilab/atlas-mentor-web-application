@@ -1,4 +1,5 @@
-import { Component, OnInit, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, OnDestroy, Output, EventEmitter } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { navItems } from './sidebar-data';
 import { NavItem } from './nav-item/nav-item';
 import { NavService } from '../../../core/services/nav.service';
@@ -11,11 +12,12 @@ import { LanguageService } from '../../../core/services/language.service';
   selector: 'app-sidebar',
   templateUrl: './sidebar.component.html',
 })
-export class SidebarComponent implements OnInit {
+export class SidebarComponent implements OnInit, OnDestroy {
   @Output() closeSidebar = new EventEmitter<void>();
   filteredNavItems: NavItem[] = [];
   normalNavItems: NavItem[] = [];
   settingsItem: NavItem | null = null;
+  private sub = new Subscription();
 
   constructor(
     public navService: NavService,
@@ -28,6 +30,16 @@ export class SidebarComponent implements OnInit {
     this.filteredNavItems = this.getNavItemsForCurrentUser();
     this.settingsItem = this.filteredNavItems.find(item => item.displayName === 'nav.settings') || null;
     this.normalNavItems = this.filteredNavItems.filter(item => item.displayName !== 'nav.settings');
+
+    this.sub.add(
+      this.navService.closeNavRequest$.subscribe(() => {
+        this.closeSidebar.emit();
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.sub.unsubscribe();
   }
 
   get isDarkMode(): boolean {
@@ -72,3 +84,4 @@ export class SidebarComponent implements OnInit {
     });
   }
 }
+
