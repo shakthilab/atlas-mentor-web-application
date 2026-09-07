@@ -119,9 +119,14 @@ export class DataTableComponent<T = any> implements AfterContentInit, OnDestroy 
   }
 
   get primaryColumn(): TableColumn<T> | undefined {
+    const entityCol = this.columns.find((c) =>
+      ['lead', 'student', 'employee', 'partner', 'company', 'branch', 'task', 'name'].includes(c.key)
+    );
+    if (entityCol) return entityCol;
+
     return (
-      this.columns.find((c) => c.type === 'avatar' || c.type === 'two-line') ||
-      this.columns.find((c) => c.type !== 'actions')
+      this.columns.find((c) => c.type !== 'actions') ||
+      this.columns.find((c) => c.type === 'avatar' || c.type === 'two-line')
     );
   }
 
@@ -131,14 +136,12 @@ export class DataTableComponent<T = any> implements AfterContentInit, OnDestroy 
 
   get mobileDetailColumns(): TableColumn<T>[] {
     const primary = this.primaryColumn;
-    if (this.mobileColumns.length) {
+    if (this.mobileColumns && this.mobileColumns.length) {
       return this.columns.filter(
         (c) => this.mobileColumns.includes(c.key) && c !== primary
       );
     }
-    return this.columns
-      .filter((c) => c.type !== 'actions' && c !== primary)
-      .slice(0, 2);
+    return this.columns.filter((c) => c.type !== 'actions' && c !== primary);
   }
 
   trackByFn = (_: number, row: T): unknown => {

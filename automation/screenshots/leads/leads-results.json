@@ -1,0 +1,134 @@
+[
+  {
+    "device": "Mobile XS 320x568",
+    "width": 320,
+    "height": 568,
+    "category": "Mobile",
+    "scrollWidth": 320,
+    "clientWidth": 320,
+    "hasHorizontalScroll": false,
+    "fabVisible": false,
+    "screenshot": "C:\\Users\\Hp\\.gemini\\antigravity-ide\\brain\\32eccdde-b55a-4911-9b80-ad05fce2638e\\leads-captures\\leads-mobile-xs-320x568.png"
+  },
+  {
+    "device": "Samsung Galaxy 360x800",
+    "width": 360,
+    "height": 800,
+    "category": "Mobile",
+    "scrollWidth": 360,
+    "clientWidth": 360,
+    "hasHorizontalScroll": false,
+    "fabVisible": false,
+    "screenshot": "C:\\Users\\Hp\\.gemini\\antigravity-ide\\brain\\32eccdde-b55a-4911-9b80-ad05fce2638e\\leads-captures\\leads-samsung-galaxy-360x800.png"
+  },
+  {
+    "device": "iPhone SE 375x667",
+    "width": 375,
+    "height": 667,
+    "category": "Mobile",
+    "scrollWidth": 375,
+    "clientWidth": 375,
+    "hasHorizontalScroll": false,
+    "fabVisible": false,
+    "screenshot": "C:\\Users\\Hp\\.gemini\\antigravity-ide\\brain\\32eccdde-b55a-4911-9b80-ad05fce2638e\\leads-captures\\leads-iphone-se-375x667.png"
+  },
+  {
+    "device": "iPhone 12/13/14 Pro 390x844",
+    "width": 390,
+    "height": 844,
+    "category": "Mobile",
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "hasHorizontalScroll": false,
+    "fabVisible": false,
+    "screenshot": "C:\\Users\\Hp\\.gemini\\antigravity-ide\\brain\\32eccdde-b55a-4911-9b80-ad05fce2638e\\leads-captures\\leads-iphone-12-13-14-pro-390x844.png"
+  },
+  {
+    "device": "iPhone 14/15 Pro Max 430x932",
+    "width": 430,
+    "height": 932,
+    "category": "Mobile",
+    "scrollWidth": 430,
+    "clientWidth": 430,
+    "hasHorizontalScroll": false,
+    "fabVisible": false,
+    "screenshot": "C:\\Users\\Hp\\.gemini\\antigravity-ide\\brain\\32eccdde-b55a-4911-9b80-ad05fce2638e\\leads-captures\\leads-iphone-14-15-pro-max-430x932.png"
+  },
+  {
+    "device": "iPad Mini Portrait 768x1024",
+    "width": 768,
+    "height": 1024,
+    "category": "Tablet",
+    "scrollWidth": 768,
+    "clientWidth": 768,
+    "hasHorizontalScroll": false,
+    "fabVisible": false,
+    "screenshot": "C:\\Users\\Hp\\.gemini\\antigravity-ide\\brain\\32eccdde-b55a-4911-9b80-ad05fce2638e\\leads-captures\\leads-ipad-mini-portrait-768x1024.png"
+  },
+  {
+    "device": "iPad Air Portrait 820x1180",
+    "width": 820,
+    "height": 1180,
+    "category": "Tablet",
+    "scrollWidth": 820,
+    "clientWidth": 820,
+    "hasHorizontalScroll": false,
+    "fabVisible": false,
+    "screenshot": "C:\\Users\\Hp\\.gemini\\antigravity-ide\\brain\\32eccdde-b55a-4911-9b80-ad05fce2638e\\leads-captures\\leads-ipad-air-portrait-820x1180.png"
+  },
+  {
+    "device": "iPad Landscape 1024x768",
+    "width": 1024,
+    "height": 768,
+    "category": "Tablet/Laptop",
+    "scrollWidth": 1024,
+    "clientWidth": 1024,
+    "hasHorizontalScroll": false,
+    "fabVisible": false,
+    "screenshot": "C:\\Users\\Hp\\.gemini\\antigravity-ide\\brain\\32eccdde-b55a-4911-9b80-ad05fce2638e\\leads-captures\\leads-ipad-landscape-1024x768.png"
+  },
+  {
+    "device": "Standard Laptop 1280x800",
+    "width": 1280,
+    "height": 800,
+    "category": "Laptop",
+    "scrollWidth": 1280,
+    "clientWidth": 1280,
+    "hasHorizontalScroll": false,
+    "fabVisible": false,
+    "screenshot": "C:\\Users\\Hp\\.gemini\\antigravity-ide\\brain\\32eccdde-b55a-4911-9b80-ad05fce2638e\\leads-captures\\leads-standard-laptop-1280x800.png"
+  },
+  {
+    "device": "HD Laptop 1366x768",
+    "width": 1366,
+    "height": 768,
+    "category": "Laptop",
+    "scrollWidth": 1366,
+    "clientWidth": 1366,
+    "hasHorizontalScroll": false,
+    "fabVisible": false,
+    "screenshot": "C:\\Users\\Hp\\.gemini\\antigravity-ide\\brain\\32eccdde-b55a-4911-9b80-ad05fce2638e\\leads-captures\\leads-hd-laptop-1366x768.png"
+  },
+  {
+    "device": "MacBook Pro Desktop 1440x900",
+    "width": 1440,
+    "height": 900,
+    "category": "Desktop",
+    "scrollWidth": 1440,
+    "clientWidth": 1440,
+    "hasHorizontalScroll": false,
+    "fabVisible": false,
+    "screenshot": "C:\\Users\\Hp\\.gemini\\antigravity-ide\\brain\\32eccdde-b55a-4911-9b80-ad05fce2638e\\leads-captures\\leads-macbook-pro-desktop-1440x900.png"
+  },
+  {
+    "device": "FHD Desktop 1920x1080",
+    "width": 1920,
+    "height": 1080,
+    "category": "Desktop",
+    "scrollWidth": 1920,
+    "clientWidth": 1920,
+    "hasHorizontalScroll": false,
+    "fabVisible": false,
+    "screenshot": "C:\\Users\\Hp\\.gemini\\antigravity-ide\\brain\\32eccdde-b55a-4911-9b80-ad05fce2638e\\leads-captures\\leads-fhd-desktop-1920x1080.png"
+  }
+]

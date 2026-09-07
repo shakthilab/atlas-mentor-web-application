@@ -119,6 +119,7 @@ export interface Lead {
               [rows]="dataSource.filteredData"
               trackByKey="id"
               [clickableRows]="true"
+              [mobileColumns]="['contactInfo', 'status', 'priority', 'subCategory', 'source', 'assignedTo', 'countryUniversity', 'leadDate']"
               exportFileName="leads"
               [filterOptions]="filterOptionsMap"
               noFilterResultsMessage="No leads match the current filters."
@@ -127,19 +128,27 @@ export interface Lead {
               <ng-template appCellDef="lead" let-element="row">
                 <div class="d-flex align-items-center">
                   <img [src]="element.avatar" class="rounded-circle m-r-12 object-cover avatar-animated" width="40" height="40" />
-                  <div>
-                    <span class="f-w-600 d-block text-dark f-s-14">{{ element.name }}</span>
-                    <span class="text-muted f-s-12 d-block">{{ element.role }}</span>
+                  <div class="min-w-0">
+                    <span class="f-w-600 d-block text-dark f-s-14 text-truncate">{{ element.name }}</span>
+                    <span class="text-muted f-s-12 d-block text-truncate">{{ element.role }}</span>
                   </div>
                 </div>
               </ng-template>
 
               <ng-template appCellDef="contactInfo" let-element="row">
-                <span class="d-flex align-items-center f-w-500 text-dark f-s-13 m-b-4"><i-tabler name="mail" class="icon-14 m-r-4 text-muted"></i-tabler>{{ element.email || ('leads.notAvailable' | translate) }}</span>
-                <span class="d-flex align-items-center text-muted f-s-12"><i-tabler name="phone" class="icon-14 m-r-4"></i-tabler>{{ element.phone || ('leads.notAvailable' | translate) }}</span>
+                <div class="contact-info-cell">
+                  <span class="d-flex align-items-center f-w-500 text-dark f-s-13 m-b-4 text-truncate">
+                    <i-tabler name="mail" class="icon-14 m-r-4 text-muted flex-shrink-0"></i-tabler>
+                    <span class="text-truncate">{{ element.email || ('leads.notAvailable' | translate) }}</span>
+                  </span>
+                  <span class="d-flex align-items-center text-muted f-s-12 text-truncate">
+                    <i-tabler name="phone" class="icon-14 m-r-4 flex-shrink-0"></i-tabler>
+                    <span class="text-truncate">{{ element.phone || ('leads.notAvailable' | translate) }}</span>
+                  </span>
+                </div>
               </ng-template>
 
-              <!-- Shared dummy empty menu used when a column is in loading state (avoids null panelId crash) -->
+              <!-- Shared dummy empty menu used when a column is in loading state -->
               <mat-menu #loadingMenu="matMenu"></mat-menu>
 
               <ng-template appCellDef="status" let-element="row">
@@ -223,14 +232,22 @@ export interface Lead {
 
               <ng-template appCellDef="assignedTo" let-element="row">
                 <div class="d-flex align-items-center">
-                  <img [src]="element.assignedAvatar" class="rounded-circle m-r-8 object-cover" width="28" height="28" />
-                  <span class="f-w-500 text-dark f-s-13">{{ element.assignedTo }}</span>
+                  <img [src]="element.assignedAvatar" class="rounded-circle m-r-8 object-cover flex-shrink-0" width="28" height="28" />
+                  <span class="f-w-500 text-dark f-s-13 text-truncate">{{ element.assignedTo }}</span>
                 </div>
               </ng-template>
 
               <ng-template appCellDef="countryUniversity" let-element="row">
-                <span class="d-flex align-items-center f-w-500 text-dark f-s-13 m-b-4"><i-tabler name="map-pin" class="icon-14 m-r-4 text-muted"></i-tabler>{{ element.country || ('leads.notAvailable' | translate) }}</span>
-                <span class="d-flex align-items-center text-muted f-s-12"><i-tabler name="building" class="icon-14 m-r-4"></i-tabler>{{ element.university || ('leads.notAvailable' | translate) }}</span>
+                <div class="country-uni-cell">
+                  <span class="d-flex align-items-center f-w-500 text-dark f-s-13 m-b-4 text-truncate">
+                    <i-tabler name="map-pin" class="icon-14 m-r-4 text-muted flex-shrink-0"></i-tabler>
+                    <span class="text-truncate">{{ element.country || ('leads.notAvailable' | translate) }}</span>
+                  </span>
+                  <span class="d-flex align-items-center text-muted f-s-12 text-truncate">
+                    <i-tabler name="building" class="icon-14 m-r-4 flex-shrink-0"></i-tabler>
+                    <span class="text-truncate">{{ element.university || ('leads.notAvailable' | translate) }}</span>
+                  </span>
+                </div>
               </ng-template>
 
               <ng-template appRowActions let-element="row">
@@ -260,13 +277,14 @@ export interface Lead {
           <div *ngIf="!isLoading && !hasError && dataSource.data.length > 0 && viewMode === 'card'" class="card-grid view-container p-24">
             <mat-card *ngFor="let element of dataSource.connect() | async" class="lead-card cardWithShadow cursor-pointer" (click)="viewDetails(element)">
               <mat-card-content class="p-16">
+                <!-- Card Header -->
                 <div class="d-flex align-items-center m-b-16">
-                  <img [src]="element.avatar" class="rounded-circle m-r-12 object-cover avatar-animated" width="48" height="48" />
-                  <div>
-                    <h6 class="mat-subtitle-1 f-w-600 m-b-0">{{ element.name }}</h6>
-                    <span class="f-s-13 text-muted">{{ element.role }}</span>
+                  <img [src]="element.avatar" class="rounded-circle m-r-12 object-cover avatar-animated flex-shrink-0" width="48" height="48" />
+                  <div class="min-w-0 flex-1-auto">
+                    <h6 class="mat-subtitle-1 f-w-600 m-b-0 text-truncate">{{ element.name }}</h6>
+                    <span class="f-s-13 text-muted text-truncate d-block">{{ element.role }}</span>
                   </div>
-                  <div class="m-l-auto">
+                  <div class="m-l-auto flex-shrink-0">
                     <button mat-icon-button [matMenuTriggerFor]="cardMenu" class="text-muted" (click)="$event.stopPropagation()">
                       <i-tabler name="dots-vertical" class="icon-18"></i-tabler>
                     </button>
@@ -288,19 +306,9 @@ export interface Lead {
                   </div>
                 </div>
 
-                <div class="d-flex align-items-center justify-content-between m-b-12">
-                  <span class="f-s-13 text-muted d-flex align-items-center"><i-tabler name="mail" class="icon-16 m-r-4"></i-tabler> {{ element.email || ('leads.notAvailable' | translate) }}</span>
-                </div>
-                <div class="d-flex align-items-center justify-content-between m-b-16">
-                  <span class="f-s-13 text-muted d-flex align-items-center"><i-tabler name="phone" class="icon-16 m-r-4"></i-tabler> {{ element.phone || ('leads.notAvailable' | translate) }}</span>
-                </div>
-
-                <div class="d-flex align-items-center justify-content-between m-b-16">
-                  <div class="d-flex align-items-center">
-                    <img [src]="element.assignedAvatar" class="rounded-circle m-r-8 object-cover" width="24" height="24" />
-                    <span class="f-s-13 text-muted">{{ element.assignedTo }}</span>
-                  </div>
-                  <span class="status-badge cursor-pointer d-inline-flex align-items-center" [ngClass]="getStatusClass(element.status)" [matMenuTriggerFor]="element.isUpdatingStatus ? null : cardStatusMenu" (click)="$event.stopPropagation()">
+                <!-- Badges Row: Status + Priority + Source -->
+                <div class="d-flex align-items-center flex-wrap gap-8 m-b-14" (click)="$event.stopPropagation()">
+                  <span class="status-badge cursor-pointer d-inline-flex align-items-center" [ngClass]="getStatusClass(element.status)" [matMenuTriggerFor]="element.isUpdatingStatus ? null : cardStatusMenu">
                     {{ getStatusDisplayName(element.status) }}
                     <i-tabler *ngIf="!element.isUpdatingStatus" name="chevron-down" class="icon-14 m-l-4"></i-tabler>
                     <i-tabler *ngIf="element.isUpdatingStatus" name="loader" class="icon-14 m-l-4 spinning"></i-tabler>
@@ -313,16 +321,69 @@ export interface Lead {
                       </div>
                     </button>
                   </mat-menu>
+
+                  <span class="priority-badge cursor-pointer d-inline-flex align-items-center"
+                        [ngClass]="element.priority ? element.priority.toLowerCase() : 'none'"
+                        [matMenuTriggerFor]="element.isUpdatingPriority ? null : cardPriorityMenu">
+                    {{ element.priority ? (element.priorityDisplayName || getPriorityLabel(element.priority)) : ('leads.notSet' | translate) }}
+                    <i-tabler *ngIf="!element.isUpdatingPriority" name="chevron-down" class="icon-14 m-l-4"></i-tabler>
+                    <i-tabler *ngIf="element.isUpdatingPriority" name="loader" class="icon-14 m-l-4 spinning"></i-tabler>
+                  </span>
+                  <mat-menu #cardPriorityMenu="matMenu" class="priority-menu-panel" xPosition="before">
+                    <ng-container *ngFor="let t of priorityTiers">
+                      <button mat-menu-item [matMenuTriggerFor]="cardTierSubMenu" class="priority-menu-btn">
+                        <div class="d-flex align-items-center gap-8">
+                          <span class="priority-menu-dot" [ngClass]="t.value.toLowerCase()"></span>
+                          <span class="f-w-500">{{ t.label }}</span>
+                        </div>
+                      </button>
+                      <mat-menu #cardTierSubMenu="matMenu" class="subcategory-menu-panel">
+                        <button mat-menu-item *ngFor="let sc of t.subCategories" (click)="changePriorityAndSubCategory(element, t.value, sc.value)">
+                          <span class="f-w-500">{{ sc.label }}</span>
+                        </button>
+                      </mat-menu>
+                    </ng-container>
+                  </mat-menu>
+
+                  <span class="source-badge d-inline-flex align-items-center" *ngIf="element.source">
+                    {{ element.source }}
+                  </span>
+                </div>
+
+                <!-- Contact Info Rows -->
+                <div class="card-contacts m-b-14">
+                  <div class="d-flex align-items-center m-b-8">
+                    <i-tabler name="mail" class="icon-15 m-r-8 text-muted flex-shrink-0"></i-tabler>
+                    <span class="f-s-13 text-dark text-truncate">{{ element.email || ('leads.notAvailable' | translate) }}</span>
+                  </div>
+                  <div class="d-flex align-items-center">
+                    <i-tabler name="phone" class="icon-15 m-r-8 text-muted flex-shrink-0"></i-tabler>
+                    <span class="f-s-13 text-dark text-truncate">{{ element.phone || ('leads.notAvailable' | translate) }}</span>
+                  </div>
                 </div>
 
                 <mat-divider class="m-b-12"></mat-divider>
-                <div class="d-flex align-items-center justify-content-between text-muted f-s-12 m-b-8">
-                  <span class="d-flex align-items-center"><i-tabler name="map-pin" class="icon-14 m-r-4"></i-tabler> {{ element.country || ('leads.notAvailable' | translate) }}</span>
-                  <span class="d-flex align-items-center"><i-tabler name="calendar" class="icon-14 m-r-4"></i-tabler> {{ element.leadDate || ('leads.notAvailable' | translate) }}</span>
+
+                <!-- Counsellor & Meta Details -->
+                <div class="d-flex align-items-center justify-content-between m-b-8 f-s-12">
+                  <div class="d-flex align-items-center min-w-0">
+                    <img [src]="element.assignedAvatar" class="rounded-circle m-r-6 object-cover flex-shrink-0" width="22" height="22" />
+                    <span class="text-muted text-truncate">{{ element.assignedTo }}</span>
+                  </div>
+                  <span class="text-muted d-flex align-items-center flex-shrink-0">
+                    <i-tabler name="calendar" class="icon-13 m-r-4"></i-tabler>
+                    {{ element.leadDate || ('leads.notAvailable' | translate) }}
+                  </span>
                 </div>
+
                 <div class="d-flex align-items-center justify-content-between text-muted f-s-12">
-                  <span class="d-flex align-items-center"><i-tabler name="building" class="icon-14 m-r-4"></i-tabler> {{ element.university || ('leads.notAvailable' | translate) }}</span>
-                  <span class="d-flex align-items-center"><i-tabler name="world" class="icon-14 m-r-4"></i-tabler> {{ 'leads.colSource' | translate }}: {{ element.source || '—' }}</span>
+                  <span class="d-flex align-items-center text-truncate me-2" *ngIf="element.country || element.university">
+                    <i-tabler name="map-pin" class="icon-13 m-r-4 flex-shrink-0"></i-tabler>
+                    <span class="text-truncate">{{ element.country }}{{ element.university ? ' · ' + element.university : '' }}</span>
+                  </span>
+                  <span class="d-flex align-items-center flex-shrink-0 ms-auto" *ngIf="element.addedBy">
+                    <span class="text-muted" style="font-size: 11px;">By: {{ element.addedBy }}</span>
+                  </span>
                 </div>
               </mat-card-content>
             </mat-card>
@@ -332,33 +393,107 @@ export interface Lead {
         </mat-card-content>
       </mat-card>
 
-      <!-- Mobile FAB -->
-      <button mat-fab color="primary" class="mobile-fab" (click)="addLead()">
+      <!-- Mobile Floating Action Button -->
+      <button mat-fab color="primary" class="mobile-fab" (click)="addLead()" title="Add Lead">
         <i-tabler name="plus" class="icon-24"></i-tabler>
       </button>
     </div>
   `,
   styles: [`
-    .table-container {
-      padding: 24px;
-      
+    .page-head {
+      padding: 24px 28px 0;
+      max-width: 1680px;
+      margin: 0 auto;
+
+      @media (max-width: 1200px) {
+        padding: 20px 20px 0;
+      }
+
       @media (max-width: 768px) {
-        padding: 12px 8px;
+        padding: 16px 14px 0;
+      }
+
+      @media (max-width: 480px) {
+        padding: 12px 10px 0;
+      }
+
+      .page-title {
+        font-size: clamp(20px, 2.2vw, 28px);
+        font-weight: 800;
+        color: #1a1d23;
+        line-height: 1.25;
+        letter-spacing: -0.5px;
+        margin-bottom: 4px;
+      }
+
+      .page-sub {
+        font-size: 13px;
+        color: #718096;
+        margin-bottom: 0;
+      }
+
+      .eyebrow {
+        font-size: 11px;
+        font-weight: 700;
+        color: #8a94a6;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        margin-bottom: 4px;
+      }
+    }
+
+    .table-container {
+      padding: 20px 28px 48px;
+      max-width: 1680px;
+      margin: 0 auto;
+      box-sizing: border-box;
+
+      @media (max-width: 1200px) {
+        padding: 16px 20px 40px;
+      }
+
+      @media (max-width: 768px) {
+        padding: 14px 14px calc(84px + env(safe-area-inset-bottom, 0px));
+      }
+
+      @media (max-width: 480px) {
+        padding: 10px 10px calc(80px + env(safe-area-inset-bottom, 0px));
+      }
+    }
+
+    mat-card.cardWithShadow {
+      border-radius: 16px;
+      border: 1px solid var(--border, #e5e9f0);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.03);
+      overflow: hidden;
+
+      @media (max-width: 576px) {
+        border-radius: 12px;
       }
     }
 
     mat-card-header {
+      padding: 18px 24px !important;
+      border-bottom: 1px solid var(--border, #e5e9f0);
+
+      @media (max-width: 768px) {
+        padding: 14px 16px !important;
+      }
+
       @media (max-width: 576px) {
+        padding: 12px !important;
         flex-direction: column !important;
-        align-items: flex-start !important;
-        gap: 16px;
+        align-items: stretch !important;
+        gap: 12px;
       }
     }
     
     .header-actions {
       @media (max-width: 576px) {
         width: 100%;
-        justify-content: space-between;
+        display: flex;
+        align-items: center;
+        gap: 8px;
       }
 
       button.desktop-import-btn,
@@ -397,20 +532,35 @@ export interface Lead {
     .card-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 24px;
+      gap: 20px;
+      padding: 20px !important;
       
+      @media (max-width: 768px) {
+        gap: 14px;
+        padding: 14px !important;
+      }
+
       @media (max-width: 576px) {
         grid-template-columns: 1fr;
-        padding: 16px !important;
+        gap: 12px;
+        padding: 12px 8px !important;
       }
     }
 
     .lead-card {
+      border-radius: 14px;
+      border: 1px solid var(--border, #e5e9f0);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 3px 10px rgba(0, 0, 0, 0.02);
       transition: transform 0.2s ease, box-shadow 0.2s ease;
       cursor: pointer;
+
+      @media (max-width: 576px) {
+        border-radius: 12px;
+      }
+
       &:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
+        transform: translateY(-3px);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08) !important;
       }
     }
 
@@ -420,9 +570,10 @@ export interface Lead {
       border: 1px solid #e2e8f0;
       display: flex;
       overflow: hidden;
+      flex-shrink: 0;
       
       .toggle-btn {
-        width: 42px;
+        width: 38px;
         height: 36px;
         padding: 0;
         display: flex;
@@ -435,13 +586,19 @@ export interface Lead {
         transition: all 0.2s ease;
         
         &.active {
-          background-color: var(--brand-primary);
+          background-color: var(--brand-primary, #14213D);
           color: #ffffff;
         }
         &:hover:not(.active) {
           background-color: #f1f5f9;
         }
       }
+    }
+
+    .contact-info-cell,
+    .country-uni-cell {
+      min-width: 0;
+      max-width: 100%;
     }
 
     .status-badge {
@@ -716,13 +873,28 @@ export interface Lead {
     /* Mobile FAB */
     .mobile-fab {
       position: fixed;
-      bottom: 84px;
-      right: 24px;
+      bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+      right: 16px !important;
       z-index: 1000;
       display: none !important;
+      width: 48px !important;
+      height: 48px !important;
+      border-radius: 50% !important;
+      background-color: var(--brand-primary, #14213D) !important;
+      color: #ffffff !important;
+      box-shadow: 0 4px 14px rgba(20, 33, 61, 0.35) !important;
+      cursor: pointer;
       
-      @media (max-width: 576px) {
+      @media (max-width: 768px) {
         display: flex !important;
+        align-items: center;
+        justify-content: center;
+      }
+
+      i-tabler {
+        width: 22px;
+        height: 22px;
+        display: flex;
         align-items: center;
         justify-content: center;
       }

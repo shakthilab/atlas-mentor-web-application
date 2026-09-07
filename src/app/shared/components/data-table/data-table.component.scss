@@ -546,29 +546,66 @@ tbody tr:focus-within .cell-actions {
   .app-data-table__mobile {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    padding: 4px;
+    gap: 12px;
+    padding: 4px 0;
   }
 
   .mobile-card {
-    border: 1px solid $dt-row-divider;
-    border-radius: 10px;
-    padding: 12px 14px;
+    border: 1px solid var(--border, $dt-row-divider);
+    border-radius: 12px;
+    padding: 14px 16px;
     background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 3px 10px rgba(0, 0, 0, 0.02);
+    transition: box-shadow 0.2s ease, transform 0.15s ease;
 
     &.clickable {
       cursor: pointer;
+
+      &:hover {
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.07);
+        transform: translateY(-1px);
+      }
     }
 
     &__header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
+      gap: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border, $dt-row-divider);
+    }
+
+    &__primary {
+      flex: 1 1 auto;
+      min-width: 0;
+
+      .cell-avatar {
+        max-width: 100% !important;
+      }
     }
 
     &__actions {
       flex-shrink: 0;
+
+      .cell-actions {
+        opacity: 1 !important;
+      }
+
+      button {
+        width: 34px !important;
+        height: 34px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+    }
+
+    &__fields {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-top: 10px;
     }
 
     &__field {
@@ -576,17 +613,33 @@ tbody tr:focus-within .cell-actions {
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      margin-top: 8px;
-      padding-top: 8px;
-      border-top: 1px solid $dt-row-divider;
+      min-height: 26px;
     }
 
     &__label {
       color: $dt-text-muted;
-      font-size: 11.5px;
-      font-weight: 600;
+      font-size: 11px;
+      font-weight: 700;
       text-transform: uppercase;
+      letter-spacing: 0.4px;
       flex-shrink: 0;
+    }
+
+    &__value {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 6px;
+      text-align: right;
+      min-width: 0;
+
+      .cell-text,
+      .cell-two-line,
+      .cell-mono {
+        max-width: 100% !important;
+        text-align: right;
+      }
     }
   }
 }

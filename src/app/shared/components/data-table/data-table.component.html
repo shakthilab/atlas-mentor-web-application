@@ -245,14 +245,20 @@
         (click)="onRowClick(row)"
       >
         <div class="mobile-card__header">
-          <ng-container *ngIf="primaryColumn" [ngTemplateOutlet]="cellContent" [ngTemplateOutletContext]="{ col: primaryColumn, row: row }"></ng-container>
+          <div class="mobile-card__primary">
+            <ng-container *ngIf="primaryColumn" [ngTemplateOutlet]="cellContent" [ngTemplateOutletContext]="{ col: primaryColumn, row: row }"></ng-container>
+          </div>
           <span class="mobile-card__actions" *ngIf="hasActionsColumn" (click)="$event.stopPropagation()">
             <ng-container *ngTemplateOutlet="actionsDef?.templateRef || null; context: { $implicit: row, row: row }"></ng-container>
           </span>
         </div>
-        <div class="mobile-card__field" *ngFor="let col of mobileDetailColumns">
-          <span class="mobile-card__label">{{ col.header }}</span>
-          <ng-container *ngTemplateOutlet="cellContent; context: { col: col, row: row }"></ng-container>
+        <div class="mobile-card__fields">
+          <div class="mobile-card__field" *ngFor="let col of mobileDetailColumns">
+            <span class="mobile-card__label">{{ col.header }}</span>
+            <div class="mobile-card__value">
+              <ng-container *ngTemplateOutlet="cellContent; context: { col: col, row: row }"></ng-container>
+            </div>
+          </div>
         </div>
       </div>
     </ng-container>
