@@ -64,14 +64,14 @@ export interface Student {
               <input (keyup)="applyFilter($event)" [placeholder]="'students.searchPlaceholder' | translate" class="search-input" />
             </div>
             <div class="view-mode-toggle d-flex align-items-center">
-              <button (click)="viewMode = 'table'" class="toggle-btn" [class.active]="viewMode === 'table'">
+              <button (click)="viewMode = 'table'" class="toggle-btn" [class.active]="viewMode === 'table'" title="Table View">
                 <i-tabler name="list" class="icon-18"></i-tabler>
               </button>
-              <button (click)="viewMode = 'card'" class="toggle-btn" [class.active]="viewMode === 'card'">
+              <button (click)="viewMode = 'card'" class="toggle-btn" [class.active]="viewMode === 'card'" title="Card View">
                 <i-tabler name="layout-grid" class="icon-18"></i-tabler>
               </button>
             </div>
-            <button mat-flat-button color="primary" class="add-btn d-flex align-items-center" (click)="addStudent()">
+            <button mat-flat-button color="primary" class="add-btn desktop-add-btn d-flex align-items-center" (click)="addStudent()">
               <i-tabler name="plus" class="icon-18 m-r-4"></i-tabler>
               {{ 'students.addStudent' | translate }}
             </button>
@@ -79,6 +79,9 @@ export interface Student {
         </mat-card-header>
 
         <mat-card-content class="p-0">
+          <!-- Shared dummy empty menu used when a column is in loading state -->
+          <mat-menu #loadingMenu="matMenu"></mat-menu>
+
           <!-- Loading State -->
           <div *ngIf="isLoading" class="d-flex justify-content-center align-items-center p-24">
             <i-tabler name="loader" class="icon-24 spinning text-primary m-r-8"></i-tabler>
@@ -103,6 +106,7 @@ export interface Student {
           <div *ngIf="!isLoading && !hasError && dataSource.data.length > 0 && viewMode === 'table'" class="view-container">
             <app-data-table
               [columns]="tableColumns"
+              [mobileColumns]="['contactInfo', 'status', 'activeStatus', 'priority', 'subCategory', 'counsellor', 'countryUniversity', 'joinedDate']"
               [rows]="dataSource.filteredData"
               trackByKey="id"
               [clickableRows]="true"
@@ -110,8 +114,6 @@ export interface Student {
               noFilterResultsMessage="No students on this page match the current filters."
               (rowClick)="viewProfile($event)"
             >
-              <!-- Shared dummy empty menu used when a column is in loading state (avoids null panelId crash) -->
-              <mat-menu #loadingMenu="matMenu"></mat-menu>
 
               <ng-template appCellDef="priority" let-element="row">
                 <span (click)="$event.stopPropagation()">
@@ -160,7 +162,7 @@ export interface Student {
               </ng-template>
 
               <ng-template appRowActions let-element="row">
-                <button mat-icon-button [matMenuTriggerFor]="menu" class="text-muted">
+                <button mat-icon-button [matMenuTriggerFor]="menu" class="text-muted" (click)="$event.stopPropagation()">
                   <i-tabler name="dots" class="icon-18"></i-tabler>
                 </button>
                 <mat-menu #menu="matMenu" class="cardWithShadow">
@@ -196,12 +198,12 @@ export interface Student {
             <mat-card *ngFor="let element of dataSource.filteredData" class="student-card cardWithShadow cursor-pointer" (click)="viewProfile(element)">
               <mat-card-content class="p-16">
                 <div class="d-flex align-items-center m-b-16">
-                  <img [src]="element.avatar" class="rounded-circle m-r-12 object-cover" width="48" height="48" />
-                  <div>
-                    <h6 class="mat-subtitle-1 f-w-600 m-b-0">{{ element.name }}</h6>
-                    <span class="f-s-13 text-muted">{{ element.major }}</span>
+                  <img [src]="element.avatar" class="rounded-circle m-r-12 object-cover flex-shrink-0" width="48" height="48" />
+                  <div class="min-w-0 flex-grow-1">
+                    <h6 class="mat-subtitle-1 f-w-600 m-b-0 text-truncate">{{ element.name }}</h6>
+                    <span class="f-s-13 text-muted text-truncate d-block">{{ element.major || 'No Course' }}</span>
                   </div>
-                  <div class="m-l-auto">
+                  <div class="m-l-auto flex-shrink-0">
                     <button mat-icon-button [matMenuTriggerFor]="cardMenu" class="text-muted" (click)="$event.stopPropagation()">
                       <i-tabler name="dots-vertical" class="icon-18"></i-tabler>
                     </button>
@@ -232,19 +234,65 @@ export interface Student {
                   </div>
                 </div>
 
-                <div class="d-flex align-items-center justify-content-between m-b-12">
-                  <span class="f-s-13 text-muted d-flex align-items-center"><i-tabler name="mail" class="icon-16 m-r-4"></i-tabler> {{ element.email }}</span>
+                <div class="d-flex align-items-center justify-content-between m-b-8">
+                  <span class="f-s-13 text-muted d-flex align-items-center text-truncate">
+                    <i-tabler name="mail" class="icon-15 m-r-6 flex-shrink-0"></i-tabler>
+                    <span class="text-truncate">{{ element.email || '—' }}</span>
+                  </span>
                 </div>
-                <div class="d-flex align-items-center justify-content-between m-b-16">
-                  <span class="f-s-13 text-muted d-flex align-items-center"><i-tabler name="phone" class="icon-16 m-r-4"></i-tabler> {{ element.phone }}</span>
+                <div class="d-flex align-items-center justify-content-between m-b-14">
+                  <span class="f-s-13 text-muted d-flex align-items-center text-truncate">
+                    <i-tabler name="phone" class="icon-15 m-r-6 flex-shrink-0"></i-tabler>
+                    <span class="text-truncate">{{ element.phone || '—' }}</span>
+                  </span>
                 </div>
 
-                <div class="d-flex align-items-center justify-content-between m-b-16">
-                  <div class="d-flex align-items-center">
-                    <img [src]="element.counsellorAvatar" class="rounded-circle m-r-8 object-cover" width="24" height="24" />
-                    <span class="f-s-13 text-muted">{{ element.counsellor }}</span>
+                <!-- Priority & SubCategory in Card View -->
+                <div class="d-flex align-items-center gap-8 flex-wrap m-b-12" (click)="$event.stopPropagation()">
+                  <span class="priority-badge cursor-pointer d-inline-flex align-items-center"
+                        [ngClass]="element.priority ? element.priority.toLowerCase() : 'none'"
+                        [matMenuTriggerFor]="element.isUpdatingPriority ? loadingMenu : cardPriorityMenu">
+                    {{ element.priority ? (element.priorityDisplayName || getPriorityLabel(element.priority)) : ('leads.notSet' | translate) }}
+                    <i-tabler *ngIf="!element.isUpdatingPriority" name="chevron-down" class="icon-13 m-l-4"></i-tabler>
+                    <i-tabler *ngIf="element.isUpdatingPriority" name="loader" class="icon-13 m-l-4 spinning"></i-tabler>
+                  </span>
+                  <mat-menu #cardPriorityMenu="matMenu" class="priority-menu-panel" xPosition="before">
+                    <ng-container *ngFor="let t of priorityTiers">
+                      <button mat-menu-item [matMenuTriggerFor]="cardTierSubMenu" class="priority-menu-btn">
+                        <div class="d-flex align-items-center gap-8">
+                          <span class="priority-menu-dot" [ngClass]="t.value.toLowerCase()"></span>
+                          <span class="f-w-500">{{ t.label }}</span>
+                        </div>
+                      </button>
+                      <mat-menu #cardTierSubMenu="matMenu" class="subcategory-menu-panel">
+                        <button mat-menu-item *ngFor="let sc of t.subCategories" (click)="changePriorityAndSubCategory(element, t.value, sc.value)">
+                          <span class="f-w-500">{{ sc.label }}</span>
+                        </button>
+                      </mat-menu>
+                    </ng-container>
+                  </mat-menu>
+
+                  <span *ngIf="element.prioritySubCategory" class="subcategory-badge cursor-pointer d-inline-flex align-items-center"
+                        [matMenuTriggerFor]="element.isUpdatingSubCategory ? loadingMenu : cardSubCatMenu">
+                    {{ element.prioritySubCategoryDisplayName || getSubCategoryLabel(element.prioritySubCategory) }}
+                    <i-tabler *ngIf="!element.isUpdatingSubCategory" name="chevron-down" class="icon-13 m-l-4"></i-tabler>
+                    <i-tabler *ngIf="element.isUpdatingSubCategory" name="loader" class="icon-13 m-l-4 spinning"></i-tabler>
+                  </span>
+                  <mat-menu #cardSubCatMenu="matMenu" class="subcategory-menu-panel" xPosition="before">
+                    <ng-container *ngIf="getSubCategoriesForPriority(element.priority) as subs">
+                      <button mat-menu-item *ngFor="let sc of subs" (click)="changeSubCategory(element, sc.value)" class="subcategory-menu-btn">
+                        <span class="f-w-500">{{ sc.label }}</span>
+                      </button>
+                    </ng-container>
+                  </mat-menu>
+                </div>
+
+                <div class="d-flex align-items-center justify-content-between m-b-14">
+                  <div class="d-flex align-items-center min-w-0 me-2">
+                    <img [src]="element.counsellorAvatar" class="rounded-circle m-r-8 object-cover flex-shrink-0" width="22" height="22" />
+                    <span class="f-s-13 text-muted text-truncate">{{ element.counsellor }}</span>
                   </div>
-                  <div class="d-flex gap-12">
+                  <div class="d-flex gap-8 flex-shrink-0">
                     <span class="status-badge" [ngClass]="element.isActive ? 'active' : 'inactive'">
                       {{ (element.isActive ? 'common.active' : 'common.inactive') | translate }}
                     </span>
@@ -254,13 +302,19 @@ export interface Student {
                   </div>
                 </div>
 
-                <mat-divider class="m-b-12"></mat-divider>
-                <div class="d-flex align-items-center justify-content-between text-muted f-s-12 m-b-8">
-                  <span class="d-flex align-items-center"><i-tabler name="map-pin" class="icon-14 m-r-4"></i-tabler> {{ element.country }}</span>
-                  <span class="d-flex align-items-center"><i-tabler name="calendar" class="icon-14 m-r-4"></i-tabler> {{ element.joinedDate }}</span>
+                <mat-divider class="m-b-10"></mat-divider>
+                <div class="d-flex align-items-center justify-content-between text-muted f-s-12 m-b-6">
+                  <span class="d-flex align-items-center text-truncate me-2" *ngIf="element.country || element.university">
+                    <i-tabler name="map-pin" class="icon-13 m-r-4 flex-shrink-0"></i-tabler>
+                    <span class="text-truncate">{{ element.country }}{{ element.university ? ' · ' + element.university : '' }}</span>
+                  </span>
+                  <span class="d-flex align-items-center flex-shrink-0 ms-auto">
+                    <i-tabler name="calendar" class="icon-13 m-r-4"></i-tabler>
+                    {{ element.joinedDate }}
+                  </span>
                 </div>
-                <div class="d-flex align-items-center text-muted f-s-12">
-                  <span class="d-flex align-items-center"><i-tabler name="world" class="icon-14 m-r-4"></i-tabler> {{ 'leads.colSource' | translate }}: {{ element.source || '—' }}</span>
+                <div class="d-flex align-items-center text-muted f-s-12" *ngIf="element.source">
+                  <span class="d-flex align-items-center"><i-tabler name="world" class="icon-13 m-r-4"></i-tabler> {{ 'leads.colSource' | translate }}: {{ element.source }}</span>
                 </div>
               </mat-card-content>
             </mat-card>
@@ -271,17 +325,81 @@ export interface Student {
       </mat-card>
 
       <!-- Mobile FAB -->
-      <button mat-fab color="primary" class="mobile-fab" (click)="addStudent()">
+      <button mat-fab color="primary" class="mobile-fab" (click)="addStudent()" title="Add Student" aria-label="Add Student">
         <i-tabler name="plus" class="icon-24"></i-tabler>
       </button>
     </div>
   `,
   styles: [`
-    .table-container {
-      padding: 24px;
-      
+    .page-head {
+      padding: 24px 28px 0;
+      max-width: 1680px;
+      margin: 0 auto;
+
+      @media (max-width: 1200px) {
+        padding: 20px 20px 0;
+      }
+
       @media (max-width: 768px) {
-        padding: 12px 8px;
+        padding: 16px 14px 0;
+      }
+
+      @media (max-width: 480px) {
+        padding: 12px 10px 0;
+      }
+
+      .page-title {
+        font-size: clamp(20px, 2.2vw, 28px);
+        font-weight: 800;
+        color: #1a1d23;
+        line-height: 1.25;
+        letter-spacing: -0.5px;
+        margin-bottom: 4px;
+      }
+
+      .page-sub {
+        font-size: 13px;
+        color: #718096;
+        margin-bottom: 0;
+      }
+
+      .eyebrow {
+        font-size: 11px;
+        font-weight: 700;
+        color: #8a94a6;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        margin-bottom: 4px;
+      }
+    }
+
+    .table-container {
+      padding: 20px 28px 48px;
+      max-width: 1680px;
+      margin: 0 auto;
+      box-sizing: border-box;
+
+      @media (max-width: 1200px) {
+        padding: 16px 20px 40px;
+      }
+
+      @media (max-width: 768px) {
+        padding: 14px 14px calc(84px + env(safe-area-inset-bottom, 0px));
+      }
+
+      @media (max-width: 480px) {
+        padding: 10px 10px calc(80px + env(safe-area-inset-bottom, 0px));
+      }
+    }
+
+    mat-card.cardWithShadow {
+      border-radius: 16px;
+      border: 1px solid var(--border, #e5e9f0);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.03);
+      overflow: hidden;
+
+      @media (max-width: 576px) {
+        border-radius: 12px;
       }
     }
 
@@ -297,19 +415,35 @@ export interface Student {
     .card-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 24px;
+      gap: 20px;
+      padding: 20px !important;
       
+      @media (max-width: 768px) {
+        gap: 14px;
+        padding: 14px !important;
+      }
+
       @media (max-width: 576px) {
         grid-template-columns: 1fr;
-        padding: 16px !important;
+        gap: 12px;
+        padding: 12px 8px !important;
       }
     }
 
     .student-card {
+      border-radius: 14px;
+      border: 1px solid var(--border, #e5e9f0);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 3px 10px rgba(0, 0, 0, 0.02);
       transition: transform 0.2s ease, box-shadow 0.2s ease;
+      cursor: pointer;
+
+      @media (max-width: 576px) {
+        border-radius: 12px;
+      }
+
       &:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
+        transform: translateY(-3px);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08) !important;
       }
     }
 
@@ -319,9 +453,10 @@ export interface Student {
       border: 1px solid #e2e8f0;
       display: flex;
       overflow: hidden;
+      flex-shrink: 0;
       
       .toggle-btn {
-        width: 42px;
+        width: 38px;
         height: 36px;
         padding: 0;
         display: flex;
@@ -334,7 +469,7 @@ export interface Student {
         transition: all 0.2s ease;
         
         &.active {
-          background-color: var(--brand-primary);
+          background-color: var(--brand-primary, #14213D);
           color: #ffffff;
         }
         &:hover:not(.active) {
@@ -344,23 +479,33 @@ export interface Student {
     }
 
     mat-card-header {
+      padding: 18px 24px !important;
+      border-bottom: 1px solid var(--border, #e5e9f0);
+
+      @media (max-width: 768px) {
+        padding: 14px 16px !important;
+      }
+
       @media (max-width: 576px) {
+        padding: 12px !important;
         flex-direction: column !important;
-        align-items: flex-start !important;
-        gap: 16px;
+        align-items: stretch !important;
+        gap: 12px;
       }
     }
     
     .header-actions {
       @media (max-width: 576px) {
         width: 100%;
-        justify-content: space-between;
+        display: flex;
+        align-items: center;
+        gap: 8px;
       }
 
-      button.add-btn {
+      button.desktop-add-btn {
         white-space: nowrap;
         flex-shrink: 0;
-        @media (max-width: 576px) {
+        @media (max-width: 768px) {
           display: none !important;
         }
       }
@@ -369,13 +514,28 @@ export interface Student {
     /* Mobile FAB */
     .mobile-fab {
       position: fixed;
-      bottom: 84px;
-      right: 24px;
+      bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+      right: 16px !important;
       z-index: 1000;
       display: none !important;
+      width: 48px !important;
+      height: 48px !important;
+      border-radius: 50% !important;
+      background-color: var(--brand-primary, #14213D) !important;
+      color: #ffffff !important;
+      box-shadow: 0 4px 14px rgba(20, 33, 61, 0.35) !important;
+      cursor: pointer;
       
-      @media (max-width: 576px) {
+      @media (max-width: 768px) {
         display: flex !important;
+        align-items: center;
+        justify-content: center;
+      }
+
+      i-tabler {
+        width: 22px;
+        height: 22px;
+        display: flex;
         align-items: center;
         justify-content: center;
       }
@@ -523,7 +683,9 @@ export interface Student {
       transition: all 0.2s ease-in-out;
       
       @media (max-width: 576px) {
-        width: calc(100% - 140px);
+        width: 100%;
+        flex: 1;
+        min-width: 0;
       }
       
       &:focus-within {
@@ -556,6 +718,7 @@ export interface Student {
     }
     .m-r-12 { margin-right: 12px; }
     .m-r-8 { margin-right: 8px; }
+    .m-r-6 { margin-right: 6px; }
     .m-r-4 { margin-right: 4px; }
     .p-0 { padding: 0 !important; }
     .object-cover { object-fit: cover; }

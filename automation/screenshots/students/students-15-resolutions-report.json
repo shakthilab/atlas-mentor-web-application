@@ -1,0 +1,316 @@
+{
+  "testedAt": "2026-09-07T13:23:24.984Z",
+  "account": "Jitesh.gupta@atlasmentor.com",
+  "targetUrl": "http://localhost:4201/admin/students",
+  "totalDevicesTested": 17,
+  "passedCount": 17,
+  "failedCount": 0,
+  "results": [
+    {
+      "device": "Ultra-Compact Mobile (320x568)",
+      "resolution": "320x568",
+      "category": "Mobile",
+      "scrollWidth": 320,
+      "hasHorizontalScroll": false,
+      "mobileCardCount": 0,
+      "tableRowCount": 0,
+      "mobileFabPos": {
+        "bottom": 76,
+        "right": 16,
+        "visible": true
+      },
+      "mobileNavHeight": 64,
+      "fabAboveNav": true,
+      "status": "PASS",
+      "screenshot": "students-mobile-320x568.png"
+    },
+    {
+      "device": "Samsung Galaxy S20 (360x800)",
+      "resolution": "360x800",
+      "category": "Mobile",
+      "scrollWidth": 360,
+      "hasHorizontalScroll": false,
+      "mobileCardCount": 0,
+      "tableRowCount": 0,
+      "mobileFabPos": {
+        "bottom": 76,
+        "right": 16,
+        "visible": true
+      },
+      "mobileNavHeight": 64,
+      "fabAboveNav": true,
+      "status": "PASS",
+      "screenshot": "students-mobile-360x800.png"
+    },
+    {
+      "device": "iPhone SE / Small Phone (375x667)",
+      "resolution": "375x667",
+      "category": "Mobile",
+      "scrollWidth": 375,
+      "hasHorizontalScroll": false,
+      "mobileCardCount": 0,
+      "tableRowCount": 0,
+      "mobileFabPos": {
+        "bottom": 76,
+        "right": 16,
+        "visible": true
+      },
+      "mobileNavHeight": 64,
+      "fabAboveNav": true,
+      "status": "PASS",
+      "screenshot": "students-mobile-375x667.png"
+    },
+    {
+      "device": "iPhone 12/13/14/15 Pro (390x844)",
+      "resolution": "390x844",
+      "category": "Mobile",
+      "scrollWidth": 390,
+      "hasHorizontalScroll": false,
+      "mobileCardCount": 0,
+      "tableRowCount": 0,
+      "mobileFabPos": {
+        "bottom": 76,
+        "right": 16,
+        "visible": true
+      },
+      "mobileNavHeight": 64,
+      "fabAboveNav": true,
+      "status": "PASS",
+      "screenshot": "students-mobile-390x844.png"
+    },
+    {
+      "device": "iPhone 14/15 Pro Max (430x932)",
+      "resolution": "430x932",
+      "category": "Mobile",
+      "scrollWidth": 430,
+      "hasHorizontalScroll": false,
+      "mobileCardCount": 0,
+      "tableRowCount": 0,
+      "mobileFabPos": {
+        "bottom": 76,
+        "right": 16,
+        "visible": true
+      },
+      "mobileNavHeight": 64,
+      "fabAboveNav": true,
+      "status": "PASS",
+      "screenshot": "students-mobile-430x932.png"
+    },
+    {
+      "device": "Mobile Large / Phablet (576x900)",
+      "resolution": "576x900",
+      "category": "Mobile",
+      "scrollWidth": 576,
+      "hasHorizontalScroll": false,
+      "mobileCardCount": 0,
+      "tableRowCount": 0,
+      "mobileFabPos": {
+        "bottom": 76,
+        "right": 16,
+        "visible": true
+      },
+      "mobileNavHeight": 64,
+      "fabAboveNav": true,
+      "status": "PASS",
+      "screenshot": "students-mobile-576x900.png"
+    },
+    {
+      "device": "iPad Mini / Tablet Portrait (768x1024)",
+      "resolution": "768x1024",
+      "category": "Tablet",
+      "scrollWidth": 768,
+      "hasHorizontalScroll": false,
+      "mobileCardCount": 0,
+      "tableRowCount": 0,
+      "mobileFabPos": {
+        "bottom": 76,
+        "right": 16,
+        "visible": true
+      },
+      "mobileNavHeight": 64,
+      "fabAboveNav": true,
+      "status": "PASS",
+      "screenshot": "students-tablet-768x1024.png"
+    },
+    {
+      "device": "iPad Air Portrait (820x1180)",
+      "resolution": "820x1180",
+      "category": "Tablet",
+      "scrollWidth": 820,
+      "hasHorizontalScroll": false,
+      "mobileCardCount": 0,
+      "tableRowCount": 0,
+      "mobileFabPos": {
+        "bottom": 1180,
+        "right": 820,
+        "visible": false
+      },
+      "mobileNavHeight": 0,
+      "fabAboveNav": true,
+      "status": "PASS",
+      "screenshot": "students-tablet-820x1180.png"
+    },
+    {
+      "device": "Surface Pro Portrait (912x1368)",
+      "resolution": "912x1368",
+      "category": "Tablet",
+      "scrollWidth": 912,
+      "hasHorizontalScroll": false,
+      "mobileCardCount": 0,
+      "tableRowCount": 0,
+      "mobileFabPos": {
+        "bottom": 1368,
+        "right": 912,
+        "visible": false
+      },
+      "mobileNavHeight": 0,
+      "fabAboveNav": true,
+      "status": "PASS",
+      "screenshot": "students-tablet-912x1368.png"
+    },
+    {
+      "device": "Tablet Landscape (992x768)",
+      "resolution": "992x768",
+      "category": "Tablet / Laptop",
+      "scrollWidth": 992,
+      "hasHorizontalScroll": false,
+      "mobileCardCount": 0,
+      "tableRowCount": 0,
+      "mobileFabPos": {
+        "bottom": 768,
+        "right": 992,
+        "visible": false
+      },
+      "mobileNavHeight": 0,
+      "fabAboveNav": true,
+      "status": "PASS",
+      "screenshot": "students-tablet-992x768.png"
+    },
+    {
+      "device": "iPad Landscape / Small Laptop (1024x768)",
+      "resolution": "1024x768",
+      "category": "Tablet / Laptop",
+      "scrollWidth": 1024,
+      "hasHorizontalScroll": false,
+      "mobileCardCount": 0,
+      "tableRowCount": 0,
+      "mobileFabPos": {
+        "bottom": 768,
+        "right": 1024,
+        "visible": false
+      },
+      "mobileNavHeight": 0,
+      "fabAboveNav": true,
+      "status": "PASS",
+      "screenshot": "students-tablet-1024x768.png"
+    },
+    {
+      "device": "iPad Air Landscape (1180x820)",
+      "resolution": "1180x820",
+      "category": "Tablet / Laptop",
+      "scrollWidth": 1180,
+      "hasHorizontalScroll": false,
+      "mobileCardCount": 0,
+      "tableRowCount": 0,
+      "mobileFabPos": {
+        "bottom": 820,
+        "right": 1180,
+        "visible": false
+      },
+      "mobileNavHeight": 0,
+      "fabAboveNav": true,
+      "status": "PASS",
+      "screenshot": "students-tablet-1180x820.png"
+    },
+    {
+      "device": "Standard Laptop (1280x800)",
+      "resolution": "1280x800",
+      "category": "Laptop",
+      "scrollWidth": 1280,
+      "hasHorizontalScroll": false,
+      "mobileCardCount": 0,
+      "tableRowCount": 0,
+      "mobileFabPos": {
+        "bottom": 800,
+        "right": 1280,
+        "visible": false
+      },
+      "mobileNavHeight": 0,
+      "fabAboveNav": true,
+      "status": "PASS",
+      "screenshot": "students-laptop-1280x800.png"
+    },
+    {
+      "device": "HD Laptop (1366x768)",
+      "resolution": "1366x768",
+      "category": "Laptop",
+      "scrollWidth": 1366,
+      "hasHorizontalScroll": false,
+      "mobileCardCount": 0,
+      "tableRowCount": 0,
+      "mobileFabPos": {
+        "bottom": 768,
+        "right": 1366,
+        "visible": false
+      },
+      "mobileNavHeight": 0,
+      "fabAboveNav": true,
+      "status": "PASS",
+      "screenshot": "students-laptop-1366x768.png"
+    },
+    {
+      "device": "MacBook Pro / Desktop (1440x900)",
+      "resolution": "1440x900",
+      "category": "Desktop",
+      "scrollWidth": 1440,
+      "hasHorizontalScroll": false,
+      "mobileCardCount": 0,
+      "tableRowCount": 0,
+      "mobileFabPos": {
+        "bottom": 900,
+        "right": 1440,
+        "visible": false
+      },
+      "mobileNavHeight": 0,
+      "fabAboveNav": true,
+      "status": "PASS",
+      "screenshot": "students-desktop-1440x900.png"
+    },
+    {
+      "device": "FHD Desktop (1920x1080)",
+      "resolution": "1920x1080",
+      "category": "Desktop",
+      "scrollWidth": 1920,
+      "hasHorizontalScroll": false,
+      "mobileCardCount": 0,
+      "tableRowCount": 0,
+      "mobileFabPos": {
+        "bottom": 1080,
+        "right": 1920,
+        "visible": false
+      },
+      "mobileNavHeight": 0,
+      "fabAboveNav": true,
+      "status": "PASS",
+      "screenshot": "students-desktop-1920x1080.png"
+    },
+    {
+      "device": "2K QHD Display (2560x1440)",
+      "resolution": "2560x1440",
+      "category": "Ultra-wide / 2K",
+      "scrollWidth": 2560,
+      "hasHorizontalScroll": false,
+      "mobileCardCount": 0,
+      "tableRowCount": 0,
+      "mobileFabPos": {
+        "bottom": 1440,
+        "right": 2560,
+        "visible": false
+      },
+      "mobileNavHeight": 0,
+      "fabAboveNav": true,
+      "status": "PASS",
+      "screenshot": "students-desktop-2560x1440.png"
+    }
+  ]
+}
