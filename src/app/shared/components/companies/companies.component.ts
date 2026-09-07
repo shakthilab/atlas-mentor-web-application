@@ -86,6 +86,7 @@ export interface BranchOption {
             <div *ngIf="viewMode === 'table'" class="view-container">
               <app-data-table
                 [columns]="tableColumns"
+                [mobileColumns]="['industry', 'branch', 'location', 'website', 'status']"
                 [rows]="dataSource.filteredData"
                 trackByKey="id"
                 [clickableRows]="true"
@@ -245,17 +246,92 @@ export interface BranchOption {
     </button>
   `,
   styles: [`
-    .table-container { padding: 24px; @media (max-width: 768px) { padding: 12px 8px; } }
-    mat-card-header { @media (max-width: 576px) { flex-direction: column !important; align-items: flex-start !important; gap: 16px; } }
+    .page-head {
+      padding: 24px 28px 0;
+      max-width: 1680px;
+      margin: 0 auto;
+      @media (max-width: 1200px) { padding: 20px 20px 0; }
+      @media (max-width: 768px) { padding: 16px 14px 0; }
+      @media (max-width: 480px) { padding: 12px 10px 0; }
+      .page-title {
+        font-size: clamp(20px, 2.2vw, 28px);
+        font-weight: 800;
+        color: #1a1d23;
+        line-height: 1.25;
+        letter-spacing: -0.5px;
+        margin-bottom: 4px;
+      }
+      .page-sub { font-size: 13px; color: #718096; margin-bottom: 0; }
+      .eyebrow {
+        font-size: 11px;
+        font-weight: 700;
+        color: #8a94a6;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        margin-bottom: 4px;
+      }
+    }
+    .table-container {
+      padding: 20px 28px 48px;
+      max-width: 1680px;
+      margin: 0 auto;
+      box-sizing: border-box;
+      @media (max-width: 1200px) { padding: 16px 20px 40px; }
+      @media (max-width: 768px) { padding: 14px 14px calc(84px + env(safe-area-inset-bottom, 0px)); }
+      @media (max-width: 480px) { padding: 10px 10px calc(80px + env(safe-area-inset-bottom, 0px)); }
+    }
+    mat-card-header {
+      @media (max-width: 768px) {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 14px;
+        padding: 14px 16px !important;
+      }
+      @media (max-width: 480px) {
+        padding: 12px 12px !important;
+        gap: 12px;
+      }
+    }
     .header-actions {
-      @media (max-width: 576px) { width: 100%; justify-content: space-between; }
-      button.desktop-add-btn { white-space: nowrap; flex-shrink: 0; @media (max-width: 576px) { display: none !important; } }
-      button { white-space: nowrap; flex-shrink: 0; }
+      @media (max-width: 768px) {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      button.desktop-add-btn {
+        white-space: nowrap;
+        flex-shrink: 0;
+        @media (max-width: 768px) {
+          display: none !important;
+        }
+      }
     }
     .company-mobile-fab {
-      position: fixed; bottom: 84px; right: 24px; z-index: 1000;
+      position: fixed;
+      bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+      right: 16px !important;
+      z-index: 1000;
       display: none !important;
-      @media (max-width: 576px) { display: flex !important; align-items: center; justify-content: center; }
+      width: 48px !important;
+      height: 48px !important;
+      border-radius: 50% !important;
+      background-color: var(--brand-primary, #14213D) !important;
+      color: #ffffff !important;
+      box-shadow: 0 4px 14px rgba(20, 33, 61, 0.35) !important;
+      cursor: pointer;
+      @media (max-width: 768px) {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+      }
+      i-tabler {
+        width: 22px;
+        height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
     }
 
     .cursor-pointer { cursor: pointer; }

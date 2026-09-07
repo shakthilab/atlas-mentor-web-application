@@ -163,7 +163,7 @@ import { Company } from '../companies.component';
     </div>
   `,
   styles: [`
-    .dialog-container { width: 100%; max-width: 560px; }
+    .dialog-container { width: 100%; max-width: 560px; box-sizing: border-box; }
 
     .dialog-header { border-bottom: 0; }
     .close-btn { opacity: 0.7; &:hover { opacity: 1; } }
@@ -173,6 +173,9 @@ import { Company } from '../companies.component';
     .company-avatar-lg {
       width: 72px; height: 72px; border-radius: 18px; flex-shrink: 0;
       background: linear-gradient(135deg, rgba(var(--brand-primary-rgb),0.15), rgba(139,92,246,0.15));
+      @media (max-width: 480px) {
+        width: 56px; height: 56px; border-radius: 14px;
+      }
     }
 
     .gap-8 { gap: 8px; }
@@ -195,7 +198,7 @@ import { Company } from '../companies.component';
     .details-section { }
     .details-grid {
       display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
-      @media (max-width: 480px) { grid-template-columns: 1fr; }
+      @media (max-width: 480px) { grid-template-columns: 1fr; gap: 14px; }
     }
     .detail-item { display: flex; flex-direction: column; }
     .detail-item-full { grid-column: 1 / -1; }
@@ -215,8 +218,9 @@ import { Company } from '../companies.component';
     .m-r-4 { margin-right: 4px; } .m-r-6 { margin-right: 6px; } .m-r-8 { margin-right: 8px; }
     .m-r-10 { margin-right: 10px; } .m-r-20 { margin-right: 20px; }
     .m-t-6 { margin-top: 6px; } .m-b-0 { margin-bottom: 0; } .m-b-4 { margin-bottom: 4px; }
-    .p-24 { padding: 24px; } .p-b-16 { padding-bottom: 16px; } .p-b-20 { padding-bottom: 20px; }
-    .p-t-20 { padding-top: 20px; } .p-x-24 { padding-left: 24px; padding-right: 24px; }
+    .p-24 { padding: 24px; @media (max-width: 480px) { padding: 16px; } }
+    .p-b-16 { padding-bottom: 16px; } .p-b-20 { padding-bottom: 20px; }
+    .p-t-20 { padding-top: 20px; } .p-x-24 { padding-left: 24px; padding-right: 24px; @media (max-width: 480px) { padding-left: 16px; padding-right: 16px; } }
     .p-y-16 { padding-top: 16px; padding-bottom: 16px; }
     .f-s-12 { font-size: 12px; } .f-s-18 { font-size: 18px; }
     .f-w-600 { font-weight: 600; } .f-w-700 { font-weight: 700; }

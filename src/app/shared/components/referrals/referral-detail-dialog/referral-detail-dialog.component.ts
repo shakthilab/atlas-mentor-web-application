@@ -132,7 +132,7 @@ import { TablerIconsModule } from 'angular-tabler-icons';
     </div>
   `,
   styles: [`
-    .dialog-container { width: 100%; min-width: 500px; max-width: 600px; @media (max-width: 600px) { min-width: unset; } }
+    .dialog-container { width: 100%; max-width: 600px; box-sizing: border-box; }
     .close-btn { margin-right: -8px; }
     
     .profile-banner {
@@ -146,6 +146,10 @@ import { TablerIconsModule } from 'angular-tabler-icons';
       box-shadow: 0 4px 12px rgba(0,0,0,0.05);
       border: 2px solid #ffffff;
       flex-shrink: 0;
+      @media (max-width: 480px) {
+        width: 48px; height: 48px;
+        img { width: 48px; height: 48px; }
+      }
     }
     
     .status-badge {
@@ -163,7 +167,7 @@ import { TablerIconsModule } from 'angular-tabler-icons';
     
     .details-grid {
       display: grid; grid-template-columns: 1fr 1fr; gap: 20px 24px;
-      @media (max-width: 480px) { grid-template-columns: 1fr; }
+      @media (max-width: 480px) { grid-template-columns: 1fr; gap: 14px; }
     }
     
     .detail-item { display: flex; flex-direction: column; gap: 4px; }
@@ -175,8 +179,10 @@ import { TablerIconsModule } from 'angular-tabler-icons';
     .gap-8 { gap: 8px; } .gap-12 { gap: 12px; }
     .m-b-0 { margin-bottom: 0; } .m-b-4 { margin-bottom: 4px; } .m-b-8 { margin-bottom: 8px; } .m-b-12 { margin-bottom: 12px; }
     .m-r-4 { margin-right: 4px; } .m-r-6 { margin-right: 6px; } .m-r-8 { margin-right: 8px; } .m-r-10 { margin-right: 10px; } .m-r-20 { margin-right: 20px; }
-    .p-24 { padding: 24px; } .p-b-16 { padding-bottom: 16px; } .p-b-20 { padding-bottom: 20px; } .p-t-20 { padding-top: 20px; }
-    .p-x-24 { padding-left: 24px; padding-right: 24px; } .p-y-16 { padding-top: 16px; padding-bottom: 16px; }
+    .p-24 { padding: 24px; @media (max-width: 480px) { padding: 16px; } }
+    .p-b-16 { padding-bottom: 16px; } .p-b-20 { padding-bottom: 20px; } .p-t-20 { padding-top: 20px; }
+    .p-x-24 { padding-left: 24px; padding-right: 24px; @media (max-width: 480px) { padding-left: 16px; padding-right: 16px; } }
+    .p-y-16 { padding-top: 16px; padding-bottom: 16px; }
     .text-primary { color: var(--brand-primary) !important; } .object-cover { object-fit: cover; }
     
     :host-context(.dark-theme) {

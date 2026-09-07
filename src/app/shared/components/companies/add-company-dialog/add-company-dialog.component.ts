@@ -204,12 +204,12 @@ import { NotificationService } from '../../../../core/services/notification.serv
   styles: [`
     .dialog-container {
       width: 100%;
-      min-width: 500px;
       max-width: 700px;
+      box-sizing: border-box;
       background-color: var(--mat-dialog-container-color, #ffffff);
       color: var(--mat-dialog-container-text-color, #1e293b);
       
-      @media (max-width: 700px) {
+      @media (max-width: 768px) {
         min-width: unset;
         width: 100%;
       }
@@ -226,8 +226,8 @@ import { NotificationService } from '../../../../core/services/notification.serv
 
     .phone-input-group {
       display: flex; flex-wrap: wrap; gap: 12px;
-      .mcc-select { width: 130px; flex-shrink: 0; }
-      .phone-number { flex: 1 1 160px; min-width: 160px; }
+      .mcc-select { width: 130px; flex-shrink: 0; @media (max-width: 480px) { width: 100%; } }
+      .phone-number { flex: 1 1 160px; min-width: 160px; @media (max-width: 480px) { min-width: 100%; } }
     }
 
     ::ng-deep .theme-input .mat-mdc-text-field-wrapper { background-color: transparent !important; }
@@ -244,7 +244,8 @@ import { NotificationService } from '../../../../core/services/notification.serv
     .m-b-4 { margin-bottom: 4px; } .m-b-8 { margin-bottom: 8px; } .m-b-12 { margin-bottom: 12px; } .m-b-16 { margin-bottom: 16px; }
     .m-t-8 { margin-top: 8px; } .m-r-8 { margin-right: 8px; } .m-r-16 { margin-right: 16px; }
     .m-y-16 { margin-top: 16px; margin-bottom: 16px; }
-    .p-x-24 { padding-left: 24px; padding-right: 24px; } .p-t-8 { padding-top: 8px; } .p-t-24 { padding-top: 24px; }
+    .p-x-24 { padding-left: 24px; padding-right: 24px; @media (max-width: 480px) { padding-left: 16px; padding-right: 16px; } }
+    .p-t-8 { padding-top: 8px; } .p-t-24 { padding-top: 24px; }
     .p-b-16 { padding-bottom: 16px; } .p-b-24 { padding-bottom: 24px; }
     .gap-12 { gap: 12px; } .text-primary { color: var(--brand-primary) !important; }
 

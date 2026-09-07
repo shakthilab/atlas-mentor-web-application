@@ -1,7 +1,20 @@
 .office-cameras-container {
-  max-width: 1280px;
+  max-width: 1680px;
   margin: 0 auto;
-  padding-bottom: 32px;
+  padding: 24px 28px 48px;
+  box-sizing: border-box;
+
+  @media (max-width: 1200px) {
+    padding: 20px 20px 40px;
+  }
+
+  @media (max-width: 768px) {
+    padding: 14px 14px calc(84px + env(safe-area-inset-bottom, 0px));
+  }
+
+  @media (max-width: 480px) {
+    padding: 10px 10px calc(80px + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 /* Page Header */
@@ -19,7 +32,8 @@
 
   .page-title {
     color: #1e293b;
-    line-height: 1.2;
+    line-height: 1.25;
+    font-size: clamp(20px, 2.2vw, 26px);
   }
 
   .badge-pill {
@@ -49,6 +63,12 @@
   border: 1px solid #e2e8f0;
   position: relative;
   overflow: hidden;
+
+  .mat-mdc-card-content {
+    @media (max-width: 576px) {
+      padding: 20px 14px !important;
+    }
+  }
 
   &::before {
     content: '';
@@ -103,6 +123,7 @@
   .launch-btn {
     min-height: 48px;
     padding: 0 28px;
+    max-width: 100%;
     border-radius: 10px;
     font-size: 15px;
     font-weight: 600;
@@ -112,6 +133,11 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+
+    @media (max-width: 480px) {
+      width: 100%;
+      padding: 0 16px;
+    }
 
     &:hover {
       transform: translateY(-2px);
@@ -125,6 +151,13 @@
     border-radius: 10px;
     padding: 12px 18px;
     max-width: 580px;
+    width: 100%;
+    box-sizing: border-box;
+
+    @media (max-width: 480px) {
+      padding: 10px 12px;
+      gap: 8px;
+    }
 
     .notice-icon-box {
       width: 32px;
@@ -140,6 +173,7 @@
     .notice-text {
       color: #0369a1;
       line-height: 1.4;
+      font-size: 12px;
     }
   }
 }
@@ -173,8 +207,13 @@
 /* Camera Grid */
 .camera-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 16px;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
 
   .camera-item-card {
     background: #ffffff;

@@ -129,14 +129,13 @@ export interface BranchManager {
   styles: [`
     .dialog-container {
       width: 100%;
-      min-width: 480px;
       max-width: 560px;
+      box-sizing: border-box;
       background-color: var(--mat-dialog-container-color, #ffffff);
       color: var(--mat-dialog-container-text-color, #1e293b);
-      @media (max-width: 600px) { min-width: unset; width: 100%; }
     }
 
-    .header-icon-box { width: 48px; height: 48px; }
+    .header-icon-box { width: 48px; height: 48px; flex-shrink: 0; }
     .bg-light-primary { background-color: rgba(var(--brand-primary-rgb), 0.1) !important; }
     .object-cover { object-fit: cover; }
     .field-label { gap: 4px; margin-bottom: 8px; }

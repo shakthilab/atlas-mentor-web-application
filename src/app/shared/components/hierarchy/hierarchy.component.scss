@@ -10,6 +10,22 @@ i-tabler {
 
 .hierarchy-container {
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  padding: 24px 28px 48px;
+  max-width: 1680px;
+  margin: 0 auto;
+  box-sizing: border-box;
+
+  @media (max-width: 1200px) {
+    padding: 20px 20px 40px;
+  }
+
+  @media (max-width: 768px) {
+    padding: 14px 14px calc(84px + env(safe-area-inset-bottom, 0px));
+  }
+
+  @media (max-width: 480px) {
+    padding: 10px 10px calc(80px + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 .h-page-header {
@@ -18,27 +34,43 @@ i-tabler {
   align-items: flex-start;
   gap: 16px;
   flex-wrap: wrap;
+
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    color: #8a94a6;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    margin-bottom: 4px;
+  }
 }
 
 .h-page-title {
-  font-size: 22px;
-  font-weight: 700;
-  color: #2a3547;
+  font-size: clamp(20px, 2.2vw, 28px);
+  font-weight: 800;
+  color: #1a1d23;
   margin: 0 0 4px 0;
-  line-height: 1.3;
+  line-height: 1.25;
+  letter-spacing: -0.5px;
 }
 
 .h-page-subtitle {
   font-size: 13px;
-  color: #7c8fac;
+  color: #718096;
 }
 
 .h-location-wrapper {
   margin-bottom: 0;
+  @media (max-width: 576px) {
+    width: 100%;
+  }
 }
 
 .h-location-select {
   width: 180px;
+  @media (max-width: 576px) {
+    width: 100%;
+  }
 
   .mat-mdc-form-field-infix {
     padding-top: 6px !important;

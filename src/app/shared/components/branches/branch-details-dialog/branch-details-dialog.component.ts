@@ -101,6 +101,7 @@ import { Branch } from '../branches.component';
     .dialog-container {
       width: 100%;
       max-width: 520px;
+      box-sizing: border-box;
       background-color: var(--mat-dialog-container-color, #ffffff);
       color: var(--mat-dialog-container-text-color, #1e293b);
     }

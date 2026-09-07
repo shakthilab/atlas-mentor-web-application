@@ -80,6 +80,7 @@ export interface Branch {
             <div *ngIf="viewMode === 'table'" class="view-container">
               <app-data-table
                 [columns]="tableColumns"
+                [mobileColumns]="['location', 'manager', 'employees', 'students', 'status']"
                 [rows]="dataSource.filteredData"
                 trackByKey="id"
                 [clickableRows]="true"
@@ -89,15 +90,15 @@ export interface Branch {
               >
                 <ng-template appCellDef="name" let-element="row">
                   <div class="d-flex align-items-center">
-                    <div class="bg-light-primary rounded d-flex align-items-center justify-content-center m-r-12" style="width: 40px; height: 40px;">
+                    <div class="bg-light-primary rounded d-flex align-items-center justify-content-center m-r-12 flex-shrink-0" style="width: 40px; height: 40px;">
                       <i-tabler name="building" class="icon-20 text-primary"></i-tabler>
                     </div>
-                    <span class="f-w-600 d-block text-dark f-s-14">{{ element.name }}</span>
+                    <span class="f-w-600 d-block text-dark f-s-14 text-truncate">{{ element.name }}</span>
                   </div>
                 </ng-template>
 
                 <ng-template appRowActions let-element="row">
-                  <button mat-icon-button [matMenuTriggerFor]="menu" class="text-muted">
+                  <button mat-icon-button [matMenuTriggerFor]="menu" class="text-muted" (click)="$event.stopPropagation()">
                     <i-tabler name="dots" class="icon-18"></i-tabler>
                   </button>
                   <mat-menu #menu="matMenu" class="cardWithShadow">
@@ -132,14 +133,14 @@ export interface Branch {
               <mat-card *ngFor="let element of branches" class="branch-card cardWithShadow cursor-pointer" (click)="viewDetails(element)">
                 <mat-card-content class="p-16">
                   <div class="d-flex align-items-center m-b-16">
-                    <div class="m-r-12 bg-light-primary rounded d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                    <div class="m-r-12 bg-light-primary rounded d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px;">
                       <i-tabler name="building" class="icon-24 text-primary"></i-tabler>
                     </div>
-                    <div>
-                      <h6 class="mat-subtitle-1 f-w-600 m-b-0">{{ element.name }}</h6>
+                    <div class="min-w-0 flex-grow-1">
+                      <h6 class="mat-subtitle-1 f-w-600 m-b-0 text-truncate">{{ element.name }}</h6>
                       <span class="status-badge mt-1 d-inline-block" [ngClass]="(element.status || '').toLowerCase()">{{ ((element.status || '').toUpperCase() === 'ACTIVE' ? 'common.active' : 'common.inactive') | translate }}</span>
                     </div>
-                    <div class="m-l-auto">
+                    <div class="m-l-auto flex-shrink-0">
                       <button mat-icon-button [matMenuTriggerFor]="cardMenu" class="text-muted" (click)="$event.stopPropagation()">
                         <i-tabler name="dots-vertical" class="icon-18"></i-tabler>
                       </button>
@@ -170,26 +171,27 @@ export interface Branch {
                   </div>
 
                   <div class="d-flex align-items-center m-b-12">
-                    <span class="f-s-13 text-muted d-flex align-items-center">
-                      <i-tabler name="map-pin" class="icon-16 m-r-4"></i-tabler> {{ element.location }}
+                    <span class="f-s-13 text-muted d-flex align-items-center text-truncate">
+                      <i-tabler name="map-pin" class="icon-16 m-r-4 flex-shrink-0"></i-tabler>
+                      <span class="text-truncate">{{ element.location }}</span>
                     </span>
                   </div>
 
                   <div class="d-flex align-items-center m-b-16">
                     <img [src]="getManagerAvatar(element.manager?.id)" class="rounded-circle m-r-8 object-cover avatar-img" width="32" height="32" />
-                    <div>
-                      <span class="f-s-13 text-dark f-w-500 d-block">
+                    <div class="min-w-0 flex-grow-1">
+                      <span class="f-s-13 text-dark f-w-500 d-block text-truncate">
                         {{ element.manager?.name || ('leads.notAvailable' | translate) }}
                         <span class="badge-role" *ngIf="element.manager?.name">{{ 'branches.managerBadge' | translate }}</span>
                       </span>
-                      <span class="f-s-12 text-muted" *ngIf="element.manager?.email">{{ element.manager?.email }}</span>
+                      <span class="f-s-12 text-muted text-truncate d-block" *ngIf="element.manager?.email">{{ element.manager?.email }}</span>
                     </div>
                   </div>
 
                   <mat-divider class="m-b-12"></mat-divider>
                   <div class="d-flex align-items-center justify-content-between text-muted f-s-12">
-                    <span class="d-flex align-items-center"><i-tabler name="users" class="icon-14 m-r-4"></i-tabler> {{ 'branches.staffCount' | translate:{ count: element.userCounts?.totalStaffs } }}</span>
-                    <span class="d-flex align-items-center"><i-tabler name="school" class="icon-14 m-r-4"></i-tabler> {{ 'branches.studentsCount' | translate:{ count: element.userCounts?.totalStudents } }}</span>
+                    <span class="d-flex align-items-center text-truncate me-2"><i-tabler name="users" class="icon-14 m-r-4 flex-shrink-0"></i-tabler> <span class="text-truncate">{{ 'branches.staffCount' | translate:{ count: element.userCounts?.totalStaffs } }}</span></span>
+                    <span class="d-flex align-items-center flex-shrink-0 ms-auto"><i-tabler name="school" class="icon-14 m-r-4"></i-tabler> {{ 'branches.studentsCount' | translate:{ count: element.userCounts?.totalStudents } }}</span>
                   </div>
                 </mat-card-content>
               </mat-card>
@@ -209,23 +211,143 @@ export interface Branch {
     </div>
 
     <!-- Mobile FAB -->
-    <button mat-fab color="primary" class="branch-mobile-fab" (click)="addBranch()" [attr.aria-label]="'branches.addBranch' | translate">
+    <button mat-fab color="primary" class="branch-mobile-fab" (click)="addBranch()" [attr.aria-label]="'branches.addBranch' | translate" title="Add Branch">
       <i-tabler name="plus" class="icon-24"></i-tabler>
     </button>
   `,
   styles: [`
-    .table-container { padding: 24px; @media (max-width: 768px) { padding: 12px 8px; } }
-    mat-card-header { @media (max-width: 576px) { flex-direction: column !important; align-items: flex-start !important; gap: 16px; } }
+    .page-head {
+      padding: 24px 28px 0;
+      max-width: 1680px;
+      margin: 0 auto;
+
+      @media (max-width: 1200px) {
+        padding: 20px 20px 0;
+      }
+
+      @media (max-width: 768px) {
+        padding: 16px 14px 0;
+      }
+
+      @media (max-width: 480px) {
+        padding: 12px 10px 0;
+      }
+
+      .page-title {
+        font-size: clamp(20px, 2.2vw, 28px);
+        font-weight: 800;
+        color: #1a1d23;
+        line-height: 1.25;
+        letter-spacing: -0.5px;
+        margin-bottom: 4px;
+      }
+
+      .page-sub {
+        font-size: 13px;
+        color: #718096;
+        margin-bottom: 0;
+      }
+
+      .eyebrow {
+        font-size: 11px;
+        font-weight: 700;
+        color: #8a94a6;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        margin-bottom: 4px;
+      }
+    }
+
+    .table-container {
+      padding: 20px 28px 48px;
+      max-width: 1680px;
+      margin: 0 auto;
+      box-sizing: border-box;
+
+      @media (max-width: 1200px) {
+        padding: 16px 20px 40px;
+      }
+
+      @media (max-width: 768px) {
+        padding: 14px 14px calc(84px + env(safe-area-inset-bottom, 0px));
+      }
+
+      @media (max-width: 480px) {
+        padding: 10px 10px calc(80px + env(safe-area-inset-bottom, 0px));
+      }
+    }
+
+    mat-card.cardWithShadow {
+      border-radius: 16px;
+      border: 1px solid var(--border, #e5e9f0);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.03);
+      overflow: hidden;
+
+      @media (max-width: 576px) {
+        border-radius: 12px;
+      }
+    }
+
+    mat-card-header {
+      @media (max-width: 768px) {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 14px;
+        padding: 14px 16px !important;
+      }
+
+      @media (max-width: 480px) {
+        padding: 12px 12px !important;
+        gap: 12px;
+      }
+    }
+    
     .header-actions {
-      @media (max-width: 576px) { width: 100%; justify-content: space-between; }
-      button.desktop-add-btn { white-space: nowrap; flex-shrink: 0; @media (max-width: 576px) { display: none !important; } }
-      button { white-space: nowrap; flex-shrink: 0; }
+      @media (max-width: 768px) {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      button.desktop-add-btn {
+        white-space: nowrap;
+        flex-shrink: 0;
+        @media (max-width: 768px) {
+          display: none !important;
+        }
+      }
     }
+
     .branch-mobile-fab {
-      position: fixed; bottom: 84px; right: 24px; z-index: 1000;
+      position: fixed;
+      bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+      right: 16px !important;
+      z-index: 1000;
       display: none !important;
-      @media (max-width: 576px) { display: flex !important; align-items: center; justify-content: center; }
+      width: 48px !important;
+      height: 48px !important;
+      border-radius: 50% !important;
+      background-color: var(--brand-primary, #14213D) !important;
+      color: #ffffff !important;
+      box-shadow: 0 4px 14px rgba(20, 33, 61, 0.35) !important;
+      cursor: pointer;
+      
+      @media (max-width: 768px) {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+      }
+
+      i-tabler {
+        width: 22px;
+        height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
     }
+
     .location-cell {
       display: block; max-width: 280px; white-space: normal; line-height: 1.4; word-break: break-word;
       @media (max-width: 768px) {
@@ -241,43 +363,181 @@ export interface Branch {
 
     .view-container { animation: fadeIn 0.4s ease-in-out; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; @media (max-width: 576px) { grid-template-columns: 1fr; padding: 16px !important; } }
-    .branch-card { transition: transform 0.2s ease, box-shadow 0.2s ease; &:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important; } }
-    .view-mode-toggle { background-color: #ffffff; border-radius: 6px; border: 1px solid #e2e8f0; display: flex; overflow: hidden;
-      .toggle-btn { width: 42px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; color: #64748b; background: transparent; border: none; cursor: pointer; transition: all 0.2s ease;
-        &.active { background-color: var(--brand-primary); color: #ffffff; }
-        &:hover:not(.active) { background-color: #f1f5f9; }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+      padding: 20px !important;
+      
+      @media (max-width: 768px) {
+        gap: 14px;
+        padding: 14px !important;
+      }
+
+      @media (max-width: 576px) {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        padding: 12px 8px !important;
+      }
+    }
+
+    .branch-card {
+      border-radius: 12px;
+      border: 1px solid var(--border, #e5e9f0);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      cursor: pointer;
+      &:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.06) !important;
+      }
+    }
+
+    .view-mode-toggle {
+      background-color: #ffffff;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      display: flex;
+      overflow: hidden;
+      flex-shrink: 0;
+      
+      .toggle-btn {
+        width: 38px;
+        height: 38px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #64748b;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        
+        &.active {
+          background-color: var(--brand-primary, #14213D);
+          color: #ffffff;
+        }
+        &:hover:not(.active) {
+          background-color: #f1f5f9;
+        }
       }
     }
 
     .badge-role { background: rgba(var(--brand-primary-rgb),0.12); color: var(--brand-primary); border-radius: 4px; padding: 1px 6px; font-size: 11px; font-weight: 600; margin-left: 4px; }
 
     .status-badge {
-      display: inline-flex; align-items: center; justify-content: center; padding: 4px 10px; font-size: 12px; font-weight: 600; border-radius: 6px; text-transform: capitalize;
-      &.active { background-color: rgba(19, 222, 185, 0.1); color: #13deb9; }
-      &.setup { background-color: rgba(255, 174, 31, 0.1); color: #ffae1f; }
-      &.inactive { background-color: rgba(250, 137, 107, 0.1); color: #fa896b; }
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 6px;
+      text-transform: capitalize;
+      
+      &.active {
+        background-color: rgba(19, 222, 185, 0.1);
+        color: #13deb9;
+      }
+      &.setup {
+        background-color: rgba(255, 174, 31, 0.1);
+        color: #ffae1f;
+      }
+      &.inactive {
+        background-color: rgba(250, 137, 107, 0.1);
+        color: #fa896b;
+      }
     }
 
     .search-box {
-      position: relative; display: flex; align-items: center; background-color: #f1f5f9; border-radius: 8px; padding: 0 12px; border: 1px solid #e2e8f0; width: 240px; height: 38px; transition: all 0.2s ease-in-out;
-      @media (max-width: 576px) { width: calc(100% - 140px); }
-      &:focus-within { background-color: #ffffff; border-color: var(--brand-primary); box-shadow: 0 0 0 3px rgba(var(--brand-primary-rgb), 0.1); }
-      .search-icon { color: #64748b; margin-right: 8px; }
-      .search-input { border: none; background: transparent; outline: none; width: 100%; font-size: 13px; color: #1e293b; &::placeholder { color: #94a3b8; } }
+      position: relative;
+      display: flex;
+      align-items: center;
+      background-color: #f8fafc;
+      border-radius: 8px;
+      padding: 0 12px;
+      border: 1px solid #e2e8f0;
+      min-width: 0;
+      flex: 1 1 auto;
+      height: 38px;
+      transition: all 0.2s ease-in-out;
+      
+      &:focus-within {
+        background-color: #ffffff;
+        border-color: var(--brand-primary, #14213D);
+        box-shadow: 0 0 0 3px rgba(20, 33, 61, 0.08);
+      }
+      
+      .search-icon {
+        color: #64748b;
+        margin-right: 8px;
+        flex-shrink: 0;
+      }
+      
+      .search-input {
+        border: none;
+        background: transparent;
+        outline: none;
+        width: 100%;
+        font-size: 13px;
+        color: #1e293b;
+        
+        &::placeholder {
+          color: #94a3b8;
+        }
+      }
     }
 
-    .gap-12 { gap: 12px; } .m-r-12 { margin-right: 12px; } .m-r-8 { margin-right: 8px; } .m-r-4 { margin-right: 4px; } .p-0 { padding: 0 !important; } .object-cover { object-fit: cover; }
+    .flex-1-auto { flex: 1 1 auto; }
+    .gap-12 { gap: 12px; }
+    .m-r-12 { margin-right: 12px; }
+    .m-r-8 { margin-right: 8px; }
+    .m-r-4 { margin-right: 4px; }
+    .p-0 { padding: 0 !important; }
+    .object-cover { object-fit: cover; }
     .cursor-pointer { cursor: pointer; }
-    .text-success { color: #13deb9 !important; } .text-warning { color: #ffae1f !important; }
+    .text-success { color: #13deb9 !important; }
+    .text-warning { color: #ffae1f !important; }
 
     :host-context(.dark-theme) {
-      .search-box { background-color: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); .search-input { color: #f8fafc; } }
-      .view-mode-toggle { background-color: var(--dark-sidebarbg); border-color: var(--dark-formborderColor); .toggle-btn { color: #94a3b8; &.active { background-color: var(--brand-primary); color: #ffffff; } &:hover:not(.active) { background-color: var(--dark-hoverbgcolor); } } }
+      .page-head {
+        .page-title { color: #f8fafc; }
+        .page-sub { color: #94a3b8; }
+      }
+      .search-box {
+        background-color: var(--dark-sidebarbg, #1e293b);
+        border-color: var(--dark-formborderColor, #334155);
+        .search-input {
+          color: #f8fafc;
+        }
+      }
+      .view-mode-toggle {
+        background-color: var(--dark-sidebarbg, #1e293b);
+        border-color: var(--dark-formborderColor, #334155);
+        .toggle-btn {
+          color: #94a3b8;
+          &.active { background-color: var(--brand-primary, #14213D); color: #ffffff; }
+          &:hover:not(.active) { background-color: var(--dark-hoverbgcolor, #334155); }
+        }
+      }
       .status-badge {
-        &.active { background-color: rgba(19, 222, 185, 0.2); color: #80f1d4; }
-        &.setup { background-color: rgba(255, 174, 31, 0.2); color: #ffe082; }
-        &.inactive { background-color: rgba(250, 137, 107, 0.2); color: #ffab91; }
+        &.active {
+          background-color: rgba(19, 222, 185, 0.2);
+          color: #80f1d4;
+        }
+        &.setup {
+          background-color: rgba(255, 174, 31, 0.2);
+          color: #ffe082;
+        }
+        &.inactive {
+          background-color: rgba(250, 137, 107, 0.2);
+          color: #ffab91;
+        }
+      }
+      mat-card.cardWithShadow, .branch-card {
+        background-color: var(--dark-cardbg, #1e293b);
+        border-color: var(--dark-border, #334155);
       }
     }
   `]

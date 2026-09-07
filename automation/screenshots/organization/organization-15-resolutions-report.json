@@ -1,0 +1,1070 @@
+{
+  "timestamp": "2026-09-07T16:05:46.246Z",
+  "totalDevicesTested": 17,
+  "tabs": {
+    "branches": [
+      {
+        "device": "Ultra-Compact Mobile (320x568)",
+        "name": "mobile-320x568",
+        "category": "Mobile",
+        "resolution": "320x568",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 320,
+        "mobileFab": {
+          "visible": true,
+          "bottom": 76,
+          "right": 16
+        },
+        "screenshot": "branches-mobile-320x568.png"
+      },
+      {
+        "device": "Samsung Galaxy S20 (360x800)",
+        "name": "mobile-360x800",
+        "category": "Mobile",
+        "resolution": "360x800",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 360,
+        "mobileFab": {
+          "visible": true,
+          "bottom": 76,
+          "right": 16
+        },
+        "screenshot": "branches-mobile-360x800.png"
+      },
+      {
+        "device": "iPhone SE / Small Phone (375x667)",
+        "name": "mobile-375x667",
+        "category": "Mobile",
+        "resolution": "375x667",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 375,
+        "mobileFab": {
+          "visible": true,
+          "bottom": 76,
+          "right": 16
+        },
+        "screenshot": "branches-mobile-375x667.png"
+      },
+      {
+        "device": "iPhone 12/13/14/15 Pro (390x844)",
+        "name": "mobile-390x844",
+        "category": "Mobile",
+        "resolution": "390x844",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 390,
+        "mobileFab": {
+          "visible": true,
+          "bottom": 76,
+          "right": 16
+        },
+        "screenshot": "branches-mobile-390x844.png"
+      },
+      {
+        "device": "iPhone 14/15 Pro Max (430x932)",
+        "name": "mobile-430x932",
+        "category": "Mobile",
+        "resolution": "430x932",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 430,
+        "mobileFab": {
+          "visible": true,
+          "bottom": 76,
+          "right": 16
+        },
+        "screenshot": "branches-mobile-430x932.png"
+      },
+      {
+        "device": "Mobile Large / Phablet (576x900)",
+        "name": "mobile-576x900",
+        "category": "Mobile",
+        "resolution": "576x900",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 576,
+        "mobileFab": {
+          "visible": true,
+          "bottom": 76,
+          "right": 16
+        },
+        "screenshot": "branches-mobile-576x900.png"
+      },
+      {
+        "device": "iPad Mini / Tablet Portrait (768x1024)",
+        "name": "tablet-768x1024",
+        "category": "Tablet",
+        "resolution": "768x1024",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 768,
+        "mobileFab": {
+          "visible": true,
+          "bottom": 76,
+          "right": 16
+        },
+        "screenshot": "branches-tablet-768x1024.png"
+      },
+      {
+        "device": "iPad Air Portrait (820x1180)",
+        "name": "tablet-820x1180",
+        "category": "Tablet",
+        "resolution": "820x1180",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 820,
+        "mobileFab": {
+          "visible": false,
+          "bottom": 1180,
+          "right": 820
+        },
+        "screenshot": "branches-tablet-820x1180.png"
+      },
+      {
+        "device": "Surface Pro Portrait (912x1368)",
+        "name": "tablet-912x1368",
+        "category": "Tablet",
+        "resolution": "912x1368",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 912,
+        "mobileFab": {
+          "visible": false,
+          "bottom": 1368,
+          "right": 912
+        },
+        "screenshot": "branches-tablet-912x1368.png"
+      },
+      {
+        "device": "Tablet Landscape (992x768)",
+        "name": "tablet-992x768",
+        "category": "Tablet / Laptop",
+        "resolution": "992x768",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 992,
+        "mobileFab": {
+          "visible": false,
+          "bottom": 768,
+          "right": 992
+        },
+        "screenshot": "branches-tablet-992x768.png"
+      },
+      {
+        "device": "iPad Landscape / Small Laptop (1024x768)",
+        "name": "tablet-1024x768",
+        "category": "Tablet / Laptop",
+        "resolution": "1024x768",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 1024,
+        "mobileFab": {
+          "visible": false,
+          "bottom": 768,
+          "right": 1024
+        },
+        "screenshot": "branches-tablet-1024x768.png"
+      },
+      {
+        "device": "iPad Air Landscape (1180x820)",
+        "name": "tablet-1180x820",
+        "category": "Tablet / Laptop",
+        "resolution": "1180x820",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 1180,
+        "mobileFab": {
+          "visible": false,
+          "bottom": 820,
+          "right": 1180
+        },
+        "screenshot": "branches-tablet-1180x820.png"
+      },
+      {
+        "device": "Standard Laptop (1280x800)",
+        "name": "laptop-1280x800",
+        "category": "Laptop",
+        "resolution": "1280x800",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 1280,
+        "mobileFab": {
+          "visible": false,
+          "bottom": 800,
+          "right": 1280
+        },
+        "screenshot": "branches-laptop-1280x800.png"
+      },
+      {
+        "device": "HD Laptop (1366x768)",
+        "name": "laptop-1366x768",
+        "category": "Laptop",
+        "resolution": "1366x768",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 1366,
+        "mobileFab": {
+          "visible": false,
+          "bottom": 768,
+          "right": 1366
+        },
+        "screenshot": "branches-laptop-1366x768.png"
+      },
+      {
+        "device": "MacBook Pro / Desktop (1440x900)",
+        "name": "desktop-1440x900",
+        "category": "Desktop",
+        "resolution": "1440x900",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 1440,
+        "mobileFab": {
+          "visible": false,
+          "bottom": 900,
+          "right": 1440
+        },
+        "screenshot": "branches-desktop-1440x900.png"
+      },
+      {
+        "device": "FHD Desktop (1920x1080)",
+        "name": "desktop-1920x1080",
+        "category": "Desktop",
+        "resolution": "1920x1080",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 1920,
+        "mobileFab": {
+          "visible": false,
+          "bottom": 1080,
+          "right": 1920
+        },
+        "screenshot": "branches-desktop-1920x1080.png"
+      },
+      {
+        "device": "2K QHD Display (2560x1440)",
+        "name": "desktop-2560x1440",
+        "category": "Ultra-wide / 2K",
+        "resolution": "2560x1440",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 2560,
+        "mobileFab": {
+          "visible": false,
+          "bottom": 1440,
+          "right": 2560
+        },
+        "screenshot": "branches-desktop-2560x1440.png"
+      }
+    ],
+    "companies": [
+      {
+        "device": "Ultra-Compact Mobile (320x568)",
+        "name": "mobile-320x568",
+        "category": "Mobile",
+        "resolution": "320x568",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 320,
+        "mobileFab": {
+          "visible": true,
+          "bottom": 76,
+          "right": 16
+        },
+        "screenshot": "companies-mobile-320x568.png"
+      },
+      {
+        "device": "Samsung Galaxy S20 (360x800)",
+        "name": "mobile-360x800",
+        "category": "Mobile",
+        "resolution": "360x800",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 360,
+        "mobileFab": {
+          "visible": true,
+          "bottom": 76,
+          "right": 16
+        },
+        "screenshot": "companies-mobile-360x800.png"
+      },
+      {
+        "device": "iPhone SE / Small Phone (375x667)",
+        "name": "mobile-375x667",
+        "category": "Mobile",
+        "resolution": "375x667",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 375,
+        "mobileFab": {
+          "visible": true,
+          "bottom": 76,
+          "right": 16
+        },
+        "screenshot": "companies-mobile-375x667.png"
+      },
+      {
+        "device": "iPhone 12/13/14/15 Pro (390x844)",
+        "name": "mobile-390x844",
+        "category": "Mobile",
+        "resolution": "390x844",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 390,
+        "mobileFab": {
+          "visible": true,
+          "bottom": 76,
+          "right": 16
+        },
+        "screenshot": "companies-mobile-390x844.png"
+      },
+      {
+        "device": "iPhone 14/15 Pro Max (430x932)",
+        "name": "mobile-430x932",
+        "category": "Mobile",
+        "resolution": "430x932",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 430,
+        "mobileFab": {
+          "visible": true,
+          "bottom": 76,
+          "right": 16
+        },
+        "screenshot": "companies-mobile-430x932.png"
+      },
+      {
+        "device": "Mobile Large / Phablet (576x900)",
+        "name": "mobile-576x900",
+        "category": "Mobile",
+        "resolution": "576x900",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 576,
+        "mobileFab": {
+          "visible": true,
+          "bottom": 76,
+          "right": 16
+        },
+        "screenshot": "companies-mobile-576x900.png"
+      },
+      {
+        "device": "iPad Mini / Tablet Portrait (768x1024)",
+        "name": "tablet-768x1024",
+        "category": "Tablet",
+        "resolution": "768x1024",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 768,
+        "mobileFab": {
+          "visible": true,
+          "bottom": 76,
+          "right": 16
+        },
+        "screenshot": "companies-tablet-768x1024.png"
+      },
+      {
+        "device": "iPad Air Portrait (820x1180)",
+        "name": "tablet-820x1180",
+        "category": "Tablet",
+        "resolution": "820x1180",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 820,
+        "mobileFab": {
+          "visible": false,
+          "bottom": 1180,
+          "right": 820
+        },
+        "screenshot": "companies-tablet-820x1180.png"
+      },
+      {
+        "device": "Surface Pro Portrait (912x1368)",
+        "name": "tablet-912x1368",
+        "category": "Tablet",
+        "resolution": "912x1368",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 912,
+        "mobileFab": {
+          "visible": false,
+          "bottom": 1368,
+          "right": 912
+        },
+        "screenshot": "companies-tablet-912x1368.png"
+      },
+      {
+        "device": "Tablet Landscape (992x768)",
+        "name": "tablet-992x768",
+        "category": "Tablet / Laptop",
+        "resolution": "992x768",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 992,
+        "mobileFab": {
+          "visible": false,
+          "bottom": 768,
+          "right": 992
+        },
+        "screenshot": "companies-tablet-992x768.png"
+      },
+      {
+        "device": "iPad Landscape / Small Laptop (1024x768)",
+        "name": "tablet-1024x768",
+        "category": "Tablet / Laptop",
+        "resolution": "1024x768",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 1024,
+        "mobileFab": {
+          "visible": false,
+          "bottom": 768,
+          "right": 1024
+        },
+        "screenshot": "companies-tablet-1024x768.png"
+      },
+      {
+        "device": "iPad Air Landscape (1180x820)",
+        "name": "tablet-1180x820",
+        "category": "Tablet / Laptop",
+        "resolution": "1180x820",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 1180,
+        "mobileFab": {
+          "visible": false,
+          "bottom": 820,
+          "right": 1180
+        },
+        "screenshot": "companies-tablet-1180x820.png"
+      },
+      {
+        "device": "Standard Laptop (1280x800)",
+        "name": "laptop-1280x800",
+        "category": "Laptop",
+        "resolution": "1280x800",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 1280,
+        "mobileFab": {
+          "visible": false,
+          "bottom": 800,
+          "right": 1280
+        },
+        "screenshot": "companies-laptop-1280x800.png"
+      },
+      {
+        "device": "HD Laptop (1366x768)",
+        "name": "laptop-1366x768",
+        "category": "Laptop",
+        "resolution": "1366x768",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 1366,
+        "mobileFab": {
+          "visible": false,
+          "bottom": 768,
+          "right": 1366
+        },
+        "screenshot": "companies-laptop-1366x768.png"
+      },
+      {
+        "device": "MacBook Pro / Desktop (1440x900)",
+        "name": "desktop-1440x900",
+        "category": "Desktop",
+        "resolution": "1440x900",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 1440,
+        "mobileFab": {
+          "visible": false,
+          "bottom": 900,
+          "right": 1440
+        },
+        "screenshot": "companies-desktop-1440x900.png"
+      },
+      {
+        "device": "FHD Desktop (1920x1080)",
+        "name": "desktop-1920x1080",
+        "category": "Desktop",
+        "resolution": "1920x1080",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 1920,
+        "mobileFab": {
+          "visible": false,
+          "bottom": 1080,
+          "right": 1920
+        },
+        "screenshot": "companies-desktop-1920x1080.png"
+      },
+      {
+        "device": "2K QHD Display (2560x1440)",
+        "name": "desktop-2560x1440",
+        "category": "Ultra-wide / 2K",
+        "resolution": "2560x1440",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 2560,
+        "mobileFab": {
+          "visible": false,
+          "bottom": 1440,
+          "right": 2560
+        },
+        "screenshot": "companies-desktop-2560x1440.png"
+      }
+    ],
+    "hierarchy": [
+      {
+        "device": "Ultra-Compact Mobile (320x568)",
+        "name": "mobile-320x568",
+        "category": "Mobile",
+        "resolution": "320x568",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 320,
+        "mobileFab": null,
+        "screenshot": "hierarchy-mobile-320x568.png"
+      },
+      {
+        "device": "Samsung Galaxy S20 (360x800)",
+        "name": "mobile-360x800",
+        "category": "Mobile",
+        "resolution": "360x800",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 360,
+        "mobileFab": null,
+        "screenshot": "hierarchy-mobile-360x800.png"
+      },
+      {
+        "device": "iPhone SE / Small Phone (375x667)",
+        "name": "mobile-375x667",
+        "category": "Mobile",
+        "resolution": "375x667",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 375,
+        "mobileFab": null,
+        "screenshot": "hierarchy-mobile-375x667.png"
+      },
+      {
+        "device": "iPhone 12/13/14/15 Pro (390x844)",
+        "name": "mobile-390x844",
+        "category": "Mobile",
+        "resolution": "390x844",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 390,
+        "mobileFab": null,
+        "screenshot": "hierarchy-mobile-390x844.png"
+      },
+      {
+        "device": "iPhone 14/15 Pro Max (430x932)",
+        "name": "mobile-430x932",
+        "category": "Mobile",
+        "resolution": "430x932",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 430,
+        "mobileFab": null,
+        "screenshot": "hierarchy-mobile-430x932.png"
+      },
+      {
+        "device": "Mobile Large / Phablet (576x900)",
+        "name": "mobile-576x900",
+        "category": "Mobile",
+        "resolution": "576x900",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 576,
+        "mobileFab": null,
+        "screenshot": "hierarchy-mobile-576x900.png"
+      },
+      {
+        "device": "iPad Mini / Tablet Portrait (768x1024)",
+        "name": "tablet-768x1024",
+        "category": "Tablet",
+        "resolution": "768x1024",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 768,
+        "mobileFab": null,
+        "screenshot": "hierarchy-tablet-768x1024.png"
+      },
+      {
+        "device": "iPad Air Portrait (820x1180)",
+        "name": "tablet-820x1180",
+        "category": "Tablet",
+        "resolution": "820x1180",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 820,
+        "mobileFab": null,
+        "screenshot": "hierarchy-tablet-820x1180.png"
+      },
+      {
+        "device": "Surface Pro Portrait (912x1368)",
+        "name": "tablet-912x1368",
+        "category": "Tablet",
+        "resolution": "912x1368",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 912,
+        "mobileFab": null,
+        "screenshot": "hierarchy-tablet-912x1368.png"
+      },
+      {
+        "device": "Tablet Landscape (992x768)",
+        "name": "tablet-992x768",
+        "category": "Tablet / Laptop",
+        "resolution": "992x768",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 992,
+        "mobileFab": null,
+        "screenshot": "hierarchy-tablet-992x768.png"
+      },
+      {
+        "device": "iPad Landscape / Small Laptop (1024x768)",
+        "name": "tablet-1024x768",
+        "category": "Tablet / Laptop",
+        "resolution": "1024x768",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 1024,
+        "mobileFab": null,
+        "screenshot": "hierarchy-tablet-1024x768.png"
+      },
+      {
+        "device": "iPad Air Landscape (1180x820)",
+        "name": "tablet-1180x820",
+        "category": "Tablet / Laptop",
+        "resolution": "1180x820",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 1180,
+        "mobileFab": null,
+        "screenshot": "hierarchy-tablet-1180x820.png"
+      },
+      {
+        "device": "Standard Laptop (1280x800)",
+        "name": "laptop-1280x800",
+        "category": "Laptop",
+        "resolution": "1280x800",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 1280,
+        "mobileFab": null,
+        "screenshot": "hierarchy-laptop-1280x800.png"
+      },
+      {
+        "device": "HD Laptop (1366x768)",
+        "name": "laptop-1366x768",
+        "category": "Laptop",
+        "resolution": "1366x768",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 1366,
+        "mobileFab": null,
+        "screenshot": "hierarchy-laptop-1366x768.png"
+      },
+      {
+        "device": "MacBook Pro / Desktop (1440x900)",
+        "name": "desktop-1440x900",
+        "category": "Desktop",
+        "resolution": "1440x900",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 1440,
+        "mobileFab": null,
+        "screenshot": "hierarchy-desktop-1440x900.png"
+      },
+      {
+        "device": "FHD Desktop (1920x1080)",
+        "name": "desktop-1920x1080",
+        "category": "Desktop",
+        "resolution": "1920x1080",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 1920,
+        "mobileFab": null,
+        "screenshot": "hierarchy-desktop-1920x1080.png"
+      },
+      {
+        "device": "2K QHD Display (2560x1440)",
+        "name": "desktop-2560x1440",
+        "category": "Ultra-wide / 2K",
+        "resolution": "2560x1440",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 2560,
+        "mobileFab": null,
+        "screenshot": "hierarchy-desktop-2560x1440.png"
+      }
+    ],
+    "office-cameras": [
+      {
+        "device": "Ultra-Compact Mobile (320x568)",
+        "name": "mobile-320x568",
+        "category": "Mobile",
+        "resolution": "320x568",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 320,
+        "mobileFab": null,
+        "screenshot": "office-cameras-mobile-320x568.png"
+      },
+      {
+        "device": "Samsung Galaxy S20 (360x800)",
+        "name": "mobile-360x800",
+        "category": "Mobile",
+        "resolution": "360x800",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 360,
+        "mobileFab": null,
+        "screenshot": "office-cameras-mobile-360x800.png"
+      },
+      {
+        "device": "iPhone SE / Small Phone (375x667)",
+        "name": "mobile-375x667",
+        "category": "Mobile",
+        "resolution": "375x667",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 375,
+        "mobileFab": null,
+        "screenshot": "office-cameras-mobile-375x667.png"
+      },
+      {
+        "device": "iPhone 12/13/14/15 Pro (390x844)",
+        "name": "mobile-390x844",
+        "category": "Mobile",
+        "resolution": "390x844",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 390,
+        "mobileFab": null,
+        "screenshot": "office-cameras-mobile-390x844.png"
+      },
+      {
+        "device": "iPhone 14/15 Pro Max (430x932)",
+        "name": "mobile-430x932",
+        "category": "Mobile",
+        "resolution": "430x932",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 430,
+        "mobileFab": null,
+        "screenshot": "office-cameras-mobile-430x932.png"
+      },
+      {
+        "device": "Mobile Large / Phablet (576x900)",
+        "name": "mobile-576x900",
+        "category": "Mobile",
+        "resolution": "576x900",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 576,
+        "mobileFab": null,
+        "screenshot": "office-cameras-mobile-576x900.png"
+      },
+      {
+        "device": "iPad Mini / Tablet Portrait (768x1024)",
+        "name": "tablet-768x1024",
+        "category": "Tablet",
+        "resolution": "768x1024",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 768,
+        "mobileFab": null,
+        "screenshot": "office-cameras-tablet-768x1024.png"
+      },
+      {
+        "device": "iPad Air Portrait (820x1180)",
+        "name": "tablet-820x1180",
+        "category": "Tablet",
+        "resolution": "820x1180",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 820,
+        "mobileFab": null,
+        "screenshot": "office-cameras-tablet-820x1180.png"
+      },
+      {
+        "device": "Surface Pro Portrait (912x1368)",
+        "name": "tablet-912x1368",
+        "category": "Tablet",
+        "resolution": "912x1368",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 912,
+        "mobileFab": null,
+        "screenshot": "office-cameras-tablet-912x1368.png"
+      },
+      {
+        "device": "Tablet Landscape (992x768)",
+        "name": "tablet-992x768",
+        "category": "Tablet / Laptop",
+        "resolution": "992x768",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 992,
+        "mobileFab": null,
+        "screenshot": "office-cameras-tablet-992x768.png"
+      },
+      {
+        "device": "iPad Landscape / Small Laptop (1024x768)",
+        "name": "tablet-1024x768",
+        "category": "Tablet / Laptop",
+        "resolution": "1024x768",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 1024,
+        "mobileFab": null,
+        "screenshot": "office-cameras-tablet-1024x768.png"
+      },
+      {
+        "device": "iPad Air Landscape (1180x820)",
+        "name": "tablet-1180x820",
+        "category": "Tablet / Laptop",
+        "resolution": "1180x820",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 1180,
+        "mobileFab": null,
+        "screenshot": "office-cameras-tablet-1180x820.png"
+      },
+      {
+        "device": "Standard Laptop (1280x800)",
+        "name": "laptop-1280x800",
+        "category": "Laptop",
+        "resolution": "1280x800",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 1280,
+        "mobileFab": null,
+        "screenshot": "office-cameras-laptop-1280x800.png"
+      },
+      {
+        "device": "HD Laptop (1366x768)",
+        "name": "laptop-1366x768",
+        "category": "Laptop",
+        "resolution": "1366x768",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 1366,
+        "mobileFab": null,
+        "screenshot": "office-cameras-laptop-1366x768.png"
+      },
+      {
+        "device": "MacBook Pro / Desktop (1440x900)",
+        "name": "desktop-1440x900",
+        "category": "Desktop",
+        "resolution": "1440x900",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 1440,
+        "mobileFab": null,
+        "screenshot": "office-cameras-desktop-1440x900.png"
+      },
+      {
+        "device": "FHD Desktop (1920x1080)",
+        "name": "desktop-1920x1080",
+        "category": "Desktop",
+        "resolution": "1920x1080",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 1920,
+        "mobileFab": null,
+        "screenshot": "office-cameras-desktop-1920x1080.png"
+      },
+      {
+        "device": "2K QHD Display (2560x1440)",
+        "name": "desktop-2560x1440",
+        "category": "Ultra-wide / 2K",
+        "resolution": "2560x1440",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 2560,
+        "mobileFab": null,
+        "screenshot": "office-cameras-desktop-2560x1440.png"
+      }
+    ],
+    "referrals": [
+      {
+        "device": "Ultra-Compact Mobile (320x568)",
+        "name": "mobile-320x568",
+        "category": "Mobile",
+        "resolution": "320x568",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 320,
+        "mobileFab": {
+          "visible": true,
+          "bottom": 76,
+          "right": 16
+        },
+        "screenshot": "referrals-mobile-320x568.png"
+      },
+      {
+        "device": "Samsung Galaxy S20 (360x800)",
+        "name": "mobile-360x800",
+        "category": "Mobile",
+        "resolution": "360x800",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 360,
+        "mobileFab": {
+          "visible": true,
+          "bottom": 76,
+          "right": 16
+        },
+        "screenshot": "referrals-mobile-360x800.png"
+      },
+      {
+        "device": "iPhone SE / Small Phone (375x667)",
+        "name": "mobile-375x667",
+        "category": "Mobile",
+        "resolution": "375x667",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 375,
+        "mobileFab": {
+          "visible": true,
+          "bottom": 76,
+          "right": 16
+        },
+        "screenshot": "referrals-mobile-375x667.png"
+      },
+      {
+        "device": "iPhone 12/13/14/15 Pro (390x844)",
+        "name": "mobile-390x844",
+        "category": "Mobile",
+        "resolution": "390x844",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 390,
+        "mobileFab": {
+          "visible": true,
+          "bottom": 76,
+          "right": 16
+        },
+        "screenshot": "referrals-mobile-390x844.png"
+      },
+      {
+        "device": "iPhone 14/15 Pro Max (430x932)",
+        "name": "mobile-430x932",
+        "category": "Mobile",
+        "resolution": "430x932",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 430,
+        "mobileFab": {
+          "visible": true,
+          "bottom": 76,
+          "right": 16
+        },
+        "screenshot": "referrals-mobile-430x932.png"
+      },
+      {
+        "device": "Mobile Large / Phablet (576x900)",
+        "name": "mobile-576x900",
+        "category": "Mobile",
+        "resolution": "576x900",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 576,
+        "mobileFab": {
+          "visible": true,
+          "bottom": 76,
+          "right": 16
+        },
+        "screenshot": "referrals-mobile-576x900.png"
+      },
+      {
+        "device": "iPad Mini / Tablet Portrait (768x1024)",
+        "name": "tablet-768x1024",
+        "category": "Tablet",
+        "resolution": "768x1024",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 768,
+        "mobileFab": {
+          "visible": true,
+          "bottom": 76,
+          "right": 16
+        },
+        "screenshot": "referrals-tablet-768x1024.png"
+      },
+      {
+        "device": "iPad Air Portrait (820x1180)",
+        "name": "tablet-820x1180",
+        "category": "Tablet",
+        "resolution": "820x1180",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 820,
+        "mobileFab": {
+          "visible": false,
+          "bottom": 1180,
+          "right": 820
+        },
+        "screenshot": "referrals-tablet-820x1180.png"
+      },
+      {
+        "device": "Surface Pro Portrait (912x1368)",
+        "name": "tablet-912x1368",
+        "category": "Tablet",
+        "resolution": "912x1368",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 912,
+        "mobileFab": {
+          "visible": false,
+          "bottom": 1368,
+          "right": 912
+        },
+        "screenshot": "referrals-tablet-912x1368.png"
+      },
+      {
+        "device": "Tablet Landscape (992x768)",
+        "name": "tablet-992x768",
+        "category": "Tablet / Laptop",
+        "resolution": "992x768",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 992,
+        "mobileFab": {
+          "visible": false,
+          "bottom": 768,
+          "right": 992
+        },
+        "screenshot": "referrals-tablet-992x768.png"
+      },
+      {
+        "device": "iPad Landscape / Small Laptop (1024x768)",
+        "name": "tablet-1024x768",
+        "category": "Tablet / Laptop",
+        "resolution": "1024x768",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 1024,
+        "mobileFab": {
+          "visible": false,
+          "bottom": 768,
+          "right": 1024
+        },
+        "screenshot": "referrals-tablet-1024x768.png"
+      },
+      {
+        "device": "iPad Air Landscape (1180x820)",
+        "name": "tablet-1180x820",
+        "category": "Tablet / Laptop",
+        "resolution": "1180x820",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 1180,
+        "mobileFab": {
+          "visible": false,
+          "bottom": 820,
+          "right": 1180
+        },
+        "screenshot": "referrals-tablet-1180x820.png"
+      },
+      {
+        "device": "Standard Laptop (1280x800)",
+        "name": "laptop-1280x800",
+        "category": "Laptop",
+        "resolution": "1280x800",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 1280,
+        "mobileFab": {
+          "visible": false,
+          "bottom": 800,
+          "right": 1280
+        },
+        "screenshot": "referrals-laptop-1280x800.png"
+      },
+      {
+        "device": "HD Laptop (1366x768)",
+        "name": "laptop-1366x768",
+        "category": "Laptop",
+        "resolution": "1366x768",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 1366,
+        "mobileFab": {
+          "visible": false,
+          "bottom": 768,
+          "right": 1366
+        },
+        "screenshot": "referrals-laptop-1366x768.png"
+      },
+      {
+        "device": "MacBook Pro / Desktop (1440x900)",
+        "name": "desktop-1440x900",
+        "category": "Desktop",
+        "resolution": "1440x900",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 1440,
+        "mobileFab": {
+          "visible": false,
+          "bottom": 900,
+          "right": 1440
+        },
+        "screenshot": "referrals-desktop-1440x900.png"
+      },
+      {
+        "device": "FHD Desktop (1920x1080)",
+        "name": "desktop-1920x1080",
+        "category": "Desktop",
+        "resolution": "1920x1080",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 1920,
+        "mobileFab": {
+          "visible": false,
+          "bottom": 1080,
+          "right": 1920
+        },
+        "screenshot": "referrals-desktop-1920x1080.png"
+      },
+      {
+        "device": "2K QHD Display (2560x1440)",
+        "name": "desktop-2560x1440",
+        "category": "Ultra-wide / 2K",
+        "resolution": "2560x1440",
+        "hasHorizontalScroll": false,
+        "scrollWidth": 2560,
+        "mobileFab": {
+          "visible": false,
+          "bottom": 1440,
+          "right": 2560
+        },
+        "screenshot": "referrals-desktop-2560x1440.png"
+      }
+    ]
+  }
+}
