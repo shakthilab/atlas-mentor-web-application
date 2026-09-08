@@ -68,8 +68,15 @@ export interface Branch {
           </div>
 
           <ng-container *ngIf="!isLoading">
+            <!-- Empty State -->
+            <div *ngIf="branches.length === 0 || dataSource.filteredData.length === 0" class="d-flex flex-column align-items-center justify-content-center p-y-48 text-center">
+              <i-tabler name="inbox" class="icon-48 text-muted m-b-8"></i-tabler>
+              <h6 class="mat-subtitle-1 m-b-4 f-w-600">{{ 'taskAccountability.employeeTree.noDataFound' | translate }}</h6>
+              <span class="f-s-14 text-muted">{{ 'branches.noBranchesFound' | translate }}</span>
+            </div>
+
             <!-- Table View -->
-            <div *ngIf="viewMode === 'table'" class="table-responsive view-container">
+            <div *ngIf="branches.length > 0 && dataSource.filteredData.length > 0 && viewMode === 'table'" class="table-responsive view-container">
               <table mat-table [dataSource]="dataSource" class="w-100">
 
                 <ng-container matColumnDef="name">
@@ -165,7 +172,7 @@ export interface Branch {
             </div>
 
             <!-- Card View -->
-            <div *ngIf="viewMode === 'card'" class="card-grid view-container p-24">
+            <div *ngIf="branches.length > 0 && dataSource.filteredData.length > 0 && viewMode === 'card'" class="card-grid view-container p-24">
               <mat-card *ngFor="let element of branches" class="branch-card cardWithShadow cursor-pointer" (click)="viewDetails(element)">
                 <mat-card-content class="p-16">
                   <div class="d-flex align-items-center m-b-16">
@@ -206,7 +213,7 @@ export interface Branch {
                     </div>
                   </div>
 
-                  <div class="d-flex align-items-center m-b-12">
+                  <div class="d-flex align-items-center justify-content-between m-b-12">
                     <span class="f-s-13 text-muted d-flex align-items-center">
                       <i-tabler name="map-pin" class="icon-16 m-r-4"></i-tabler> {{ element.location }}
                     </span>
@@ -233,7 +240,7 @@ export interface Branch {
             </div>
           </ng-container>
 
-          <mat-paginator
+          <mat-paginator *ngIf="!isLoading && branches.length > 0 && dataSource.filteredData.length > 0"
             [length]="totalElements"
             [pageSizeOptions]="[5, 10, 15]"
             [pageSize]="pageSize"

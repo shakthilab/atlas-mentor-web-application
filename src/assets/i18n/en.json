@@ -927,6 +927,8 @@
     "colApproval": "Approval",
     "colDate": "Date",
     "editPayment": "Edit payment",
+    "noDataFound": "No data found",
+    "noPaymentsDesc": "No payment records available.",
     "toast": {
       "loadFailed": "Failed to load payments.",
       "created": "Payment created successfully.",

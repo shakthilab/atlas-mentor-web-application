@@ -52,7 +52,27 @@ export interface Payment {
         </mat-card-header>
 
         <mat-card-content class="p-0">
-          <div *ngIf="viewMode === 'table'" class="table-responsive view-container">
+          <!-- Loading State -->
+          <div *ngIf="isLoading" class="d-flex align-items-center justify-content-center p-y-40">
+            <mat-spinner diameter="40"></mat-spinner>
+          </div>
+
+          <!-- Error State -->
+          <div *ngIf="!isLoading && hasError" class="d-flex flex-column justify-content-center align-items-center p-y-48 text-center">
+            <i-tabler name="alert-circle" class="icon-48 text-danger m-b-8"></i-tabler>
+            <h6 class="mat-subtitle-1 m-b-4">{{ 'payments.toast.loadFailed' | translate }}</h6>
+            <button mat-stroked-button color="primary" class="m-t-8" (click)="loadPayments()">{{ 'common.tryAgain' | translate }}</button>
+          </div>
+
+          <!-- Empty State -->
+          <div *ngIf="!isLoading && !hasError && (dataSource.data.length === 0 || dataSource.filteredData.length === 0)" class="d-flex flex-column align-items-center justify-content-center p-y-48 text-center">
+            <i-tabler name="inbox" class="icon-48 text-muted m-b-8"></i-tabler>
+            <h6 class="mat-subtitle-1 m-b-4 f-w-600">{{ 'payments.noDataFound' | translate }}</h6>
+            <span class="f-s-14 text-muted">{{ 'payments.noPaymentsDesc' | translate }}</span>
+          </div>
+
+          <!-- Table View -->
+          <div *ngIf="!isLoading && !hasError && dataSource.filteredData.length > 0 && viewMode === 'table'" class="table-responsive view-container">
             <table mat-table [dataSource]="dataSource" class="w-100">
 
               <ng-container matColumnDef="studentName">
@@ -160,7 +180,7 @@ export interface Payment {
           </div>
 
           <!-- Card View -->
-          <div *ngIf="viewMode === 'card'" class="card-grid view-container p-24">
+          <div *ngIf="!isLoading && !hasError && dataSource.filteredData.length > 0 && viewMode === 'card'" class="card-grid view-container p-24">
             <mat-card *ngFor="let element of dataSource.connect() | async" class="payment-card cardWithShadow cursor-pointer" (click)="viewDetails(element)">
               <mat-card-content class="p-16">
                 <div class="d-flex align-items-center m-b-16">
@@ -210,7 +230,8 @@ export interface Payment {
             </mat-card>
           </div>
 
-          <mat-paginator [length]="totalElements"
+          <mat-paginator *ngIf="!isLoading && !hasError && dataSource.filteredData.length > 0"
+                         [length]="totalElements"
                          [pageSize]="pageSize"
                          [pageSizeOptions]="[5, 10, 15]"
                          (page)="pageChanged($event)"
@@ -341,6 +362,8 @@ export class PaymentsComponent implements OnInit, AfterViewInit {
   displayedColumns: string[] = ['studentName', 'source', 'assigned', 'paid', 'balance', 'studentStatus', 'paymentStatus', 'approval', 'date', 'actions'];
   dataSource = new MatTableDataSource<Payment>([]);
 
+  isLoading = false;
+  hasError = false;
   totalElements = 0;
   pageSize = 10;
   currentPage = 0;
@@ -364,15 +387,23 @@ export class PaymentsComponent implements OnInit, AfterViewInit {
   }
 
   loadPayments(): void {
+    this.isLoading = true;
+    this.hasError = false;
     this.studentService.getPaymentsByReferralCompany(this.currentPage, this.pageSize).subscribe({
       next: (data) => {
-        if (data && data.payouts) {
+        this.isLoading = false;
+        if (data && data.payouts && Array.isArray(data.payouts)) {
           this.dataSource.data = data.payouts.map(p => this.mapToPayment(p));
           // Since the API doesn't return totalElements currently, we'll fall back to array length
           this.totalElements = data.payouts.length; 
+        } else {
+          this.dataSource.data = [];
+          this.totalElements = 0;
         }
       },
       error: (err) => {
+        this.isLoading = false;
+        this.hasError = true;
         console.error('Error fetching payments:', err);
         this.notificationService.showErrorToast(this.translate.instant('payments.toast.loadFailed'), this.translate.instant('employees.toast.errorTitle'));
       }

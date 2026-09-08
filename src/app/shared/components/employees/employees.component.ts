@@ -46,14 +46,33 @@ import { TranslateService } from '@ngx-translate/core';
         </mat-card-header>
 
         <mat-card-content class="p-0">
+          <!-- Loading State -->
+          <div *ngIf="isLoading" class="d-flex align-items-center justify-content-center p-y-40">
+            <mat-spinner diameter="40"></mat-spinner>
+          </div>
+
+          <!-- Error State -->
+          <div *ngIf="!isLoading && hasError" class="d-flex flex-column justify-content-center align-items-center p-y-48 text-center">
+            <i-tabler name="alert-circle" class="icon-48 text-danger m-b-8"></i-tabler>
+            <h6 class="mat-subtitle-1 m-b-4">{{ 'employees.toast.loadFailed' | translate }}</h6>
+            <button mat-stroked-button color="primary" class="m-t-8" (click)="loadEmployees()">{{ 'common.tryAgain' | translate }}</button>
+          </div>
+
+          <!-- Empty State -->
+          <div *ngIf="!isLoading && !hasError && (dataSource.data.length === 0 || dataSource.filteredData.length === 0)" class="d-flex flex-column align-items-center justify-content-center p-y-48 text-center">
+            <i-tabler name="inbox" class="icon-48 text-muted m-b-8"></i-tabler>
+            <h6 class="mat-subtitle-1 m-b-4 f-w-600">{{ 'taskAccountability.employeeTree.noDataFound' | translate }}</h6>
+            <span class="f-s-14 text-muted">{{ 'employees.noEmployeesFound' | translate }}</span>
+          </div>
+
           <!-- Table View -->
-          <div *ngIf="viewMode === 'table'" class="table-responsive view-container">
+          <div *ngIf="!isLoading && !hasError && dataSource.filteredData.length > 0 && viewMode === 'table'" class="table-responsive view-container">
             <table mat-table [dataSource]="dataSource" class="w-100">
 
               <!-- Employee Column -->
               <ng-container matColumnDef="employee">
                 <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'employees.colEmployee' | translate }}</th>
-                <td mat-cell *matCellDef="let element" (click)="viewProfile(element)" class="cursor-pointer">
+                <td mat-cell *matCellDef="let element" class="cursor-pointer">
                   <div class="d-flex align-items-center">
                     <img [src]="getAvatar(element)" class="rounded-circle m-r-12 object-cover avatar-animated" width="40" height="40" />
                     <div>
@@ -67,34 +86,34 @@ import { TranslateService } from '@ngx-translate/core';
               <!-- Role Column -->
               <ng-container matColumnDef="role">
                 <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'employees.colRole' | translate }}</th>
-                <td mat-cell *matCellDef="let element" class="f-w-500 text-dark f-s-13">
-                  {{ getRoleDisplayName(element) }}
+                <td mat-cell *matCellDef="let element">
+                  <span class="d-block f-w-500 text-dark f-s-13">{{ getRoleDisplayName(element) }}</span>
                 </td>
               </ng-container>
 
               <!-- Branch Column -->
               <ng-container matColumnDef="branch">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'taskAccountability.templates.branch' | translate }}</th>
-                <td mat-cell *matCellDef="let element" class="text-muted f-s-13">
-                  {{ element.branch?.name || element.branch || ('employees.branchN' | translate:{ id: element.branchId }) }}
-                </td>
-              </ng-container>
-
-              <!-- Status Column -->
-              <ng-container matColumnDef="status">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'taskAccountability.taskTable.colStatus' | translate }}</th>
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'employees.colBranch' | translate }}</th>
                 <td mat-cell *matCellDef="let element">
-                  <span class="status-badge" [ngClass]="(element.status || 'ACTIVE').toLowerCase()">
-                    {{ ((element.status || 'ACTIVE').toUpperCase() === 'ACTIVE' ? 'common.active' : 'common.inactive') | translate }}
-                  </span>
+                  <span class="d-block f-w-500 text-dark f-s-13">{{ element.branchName || ('leads.notAvailable' | translate) }}</span>
                 </td>
               </ng-container>
 
               <!-- Phone Column -->
               <ng-container matColumnDef="phone">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'employees.colPhone' | translate }}</th>
-                <td mat-cell *matCellDef="let element" class="text-muted f-s-13">
-                  {{ element.phone || ('leads.notAvailable' | translate) }}
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'leads.colPhone' | translate }}</th>
+                <td mat-cell *matCellDef="let element">
+                  <span class="d-block f-w-500 text-dark f-s-13">{{ element.phone || ('leads.notAvailable' | translate) }}</span>
+                </td>
+              </ng-container>
+
+              <!-- Status Column -->
+              <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">{{ 'leads.colStatus' | translate }}</th>
+                <td mat-cell *matCellDef="let element">
+                  <span class="status-badge" [ngClass]="(element.status || 'ACTIVE').toLowerCase()">
+                    {{ ((element.status || 'ACTIVE').toUpperCase() === 'ACTIVE' ? 'common.active' : 'common.inactive') | translate }}
+                  </span>
                 </td>
               </ng-container>
 
@@ -132,19 +151,19 @@ import { TranslateService } from '@ngx-translate/core';
               </ng-container>
 
               <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-              <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="employee-row"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="employee-row cursor-pointer" (click)="viewProfile(row)"></tr>
             </table>
           </div>
 
           <!-- Card View -->
-          <div *ngIf="viewMode === 'card'" class="card-grid view-container p-24">
-            <mat-card *ngFor="let element of dataSource.data" class="employee-card cardWithShadow cursor-pointer" (click)="viewProfile(element)">
+          <div *ngIf="!isLoading && !hasError && dataSource.filteredData.length > 0 && viewMode === 'card'" class="card-grid view-container p-24">
+            <mat-card *ngFor="let element of dataSource.connect() | async" class="employee-card cardWithShadow cursor-pointer" (click)="viewProfile(element)">
               <mat-card-content class="p-16">
                 <div class="d-flex align-items-center m-b-16">
                   <img [src]="getAvatar(element)" class="rounded-circle m-r-12 object-cover avatar-animated" width="48" height="48" />
                   <div>
                     <h6 class="mat-subtitle-1 f-w-600 m-b-0">{{ element.firstName }} {{ element.lastName }}</h6>
-                    <span class="f-s-13 text-muted">{{ getRoleDisplayName(element) }}</span>
+                    <span class="text-muted f-s-12 d-block">{{ getRoleDisplayName(element) }}</span>
                   </div>
                   <div class="m-l-auto">
                     <button mat-icon-button [matMenuTriggerFor]="cardMenu" class="text-muted" (click)="$event.stopPropagation()">
@@ -193,7 +212,8 @@ import { TranslateService } from '@ngx-translate/core';
             </mat-card>
           </div>
 
-          <mat-paginator [length]="totalElements"
+          <mat-paginator *ngIf="!isLoading && !hasError && dataSource.filteredData.length > 0"
+                         [length]="totalElements"
                          [pageSize]="pageSize"
                          [pageSizeOptions]="[5, 10, 20]"
                          (page)="pageChanged($event)"
@@ -493,6 +513,8 @@ export class EmployeesComponent implements OnInit, AfterViewInit {
 
   dataSource = new MatTableDataSource<Employee>([]);
   
+  isLoading = false;
+  hasError = false;
   totalElements = 0;
   pageSize = 10;
   currentPage = 0;
@@ -532,10 +554,13 @@ export class EmployeesComponent implements OnInit, AfterViewInit {
   }
 
   loadEmployees(): void {
+    this.isLoading = true;
+    this.hasError = false;
     const filters = this.searchQuery ? { search: this.searchQuery } : undefined;
     
     this.employeeService.getEmployees(this.currentPage, this.pageSize, filters).subscribe({
       next: (response: any) => {
+        this.isLoading = false;
         const pageData = response?.data || response;
         if (pageData && pageData.content) {
           this.dataSource.data = pageData.content;
@@ -544,9 +569,14 @@ export class EmployeesComponent implements OnInit, AfterViewInit {
           // Fallback if API returns an array directly
           this.dataSource.data = pageData;
           this.totalElements = pageData.length;
+        } else {
+          this.dataSource.data = [];
+          this.totalElements = 0;
         }
       },
       error: (err) => {
+        this.isLoading = false;
+        this.hasError = true;
         console.error('Error fetching employees:', err);
         this.notificationService.showErrorToast(this.translate.instant('employees.toast.loadFailed'), this.translate.instant('employees.toast.errorTitle'));
       }
